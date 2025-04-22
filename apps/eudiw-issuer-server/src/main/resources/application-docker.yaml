@@ -1,0 +1,11 @@
+---
+server:
+  port: 9240
+
+management:
+  server:
+    port: 9241
+
+spring:
+  application:
+    environment: docker
