@@ -2,3 +2,6 @@
 spring:
   application:
     environment: systest
+
+credential-issuer-server:
+  credential-issuer: https://utsteder.eidas2sandkasse.dev
