@@ -14,7 +14,7 @@ public class CredentialIssuerMetadataEndpointController {
     private final CredentialIssuerMetadata credentialIssuerMetadata;
 
     @GetMapping(value = Endpoints.METADATA_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CredentialIssuerMetadata> credentialIssuerMetadata() {
+    public ResponseEntity<CredentialIssuerMetadata> credentialIssuerMetadataEndpoint() {
         return ResponseEntity.ok().body(credentialIssuerMetadata);
     }
 
