@@ -4,3 +4,6 @@ spring:
     environment: junit
   config:
     import: file:.env[.properties]
+
+credential-issuer-server:
+  credential-issuer: https://junit.eidas2sandkasse.dev/

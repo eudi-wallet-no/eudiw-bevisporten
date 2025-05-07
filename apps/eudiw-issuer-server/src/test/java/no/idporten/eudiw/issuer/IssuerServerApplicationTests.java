@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @ActiveProfiles("junit")
 @SpringBootTest
-class IssuerApplicationTests {
+class IssuerServerApplicationTests {
 
 	@Test
 	void contextLoads() {
