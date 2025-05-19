@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * Credential Issuer Metadata - https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata
@@ -19,6 +20,9 @@ public class CredentialIssuerMetadata {
 
     @JsonProperty("credential_issuer")
     private URI credentialIssuer;
+
+    @JsonProperty("authorization_servers")
+    private List<URI> authorizationServers;
 
     @JsonProperty("credential_endpoint")
     private URI credentialEndpoint;

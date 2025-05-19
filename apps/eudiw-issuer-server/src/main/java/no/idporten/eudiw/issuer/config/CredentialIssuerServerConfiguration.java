@@ -24,6 +24,7 @@ public class CredentialIssuerServerConfiguration {
     public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties properties) {
         CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
                 .credentialIssuer(properties.getCredentialIssuer())
+                .authorizationServers(properties.getAuthorizationServers())
                 .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT));
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {

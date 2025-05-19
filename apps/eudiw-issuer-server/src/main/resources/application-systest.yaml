@@ -5,3 +5,5 @@ spring:
 
 credential-issuer-server:
   credential-issuer: https://utsteder.eidas2sandkasse.dev
+  authorization-servers:
+    - https://idporten.dev
