@@ -29,7 +29,23 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.credential_issuer").value("https://junit.eidas2sandkasse.dev/"))
-                .andExpect(jsonPath("$.credential_endpoint").value("https://junit.eidas2sandkasse.dev/credential"));
+                .andExpect(jsonPath("$.credential_endpoint").value("https://junit.eidas2sandkasse.dev/openid4vci/credential"));
+    }
+
+    @DisplayName("then credential configurations metadata is created from issuer server, credentials configuration and claims sources config ")
+    @Test
+    void testCredentialConfigurationsSupportedBuiltFromApplicationConfiguration() throws Exception {
+        mockMvc.perform(get("/.well-known/openid-credential-issuer"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.credential_configurations_supported").exists())
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']").exists())
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['doctype']").value("eu.europa.ec.eudi.pid.1"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['scope']").value("no.digdir.eudiw.pid_mso_mdoc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['format']").value("mso_mdoc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['display'][0]['name']").value("Norwegian PID"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['claims'][0]['path'][0]").value("personal_administrative_number"));
     }
 
 }

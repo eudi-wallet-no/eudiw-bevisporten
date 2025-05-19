@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.openid4vci;
+package no.idporten.eudiw.issuer.openid4vci.protocol;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

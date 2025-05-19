@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.openid4vci;
+package no.idporten.eudiw.issuer.openid4vci.metadata;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 
 import java.net.URI;
 
+/**
+ * Credential Issuer Metadata - https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata
+ */
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
