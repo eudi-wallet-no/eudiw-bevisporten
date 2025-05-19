@@ -25,6 +25,8 @@ public class CredentialIssuerServerProperties {
     @NotEmpty
     private List<@NotNull String> cryptographicBindings;
     @NotEmpty
+    private List<URI> authorizationServers;
+    @NotEmpty
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
     @NotEmpty
     private List<ClaimsSourceProperties> claimsSources;

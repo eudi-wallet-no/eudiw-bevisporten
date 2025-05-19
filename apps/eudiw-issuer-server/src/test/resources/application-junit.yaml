@@ -7,3 +7,5 @@ spring:
 
 credential-issuer-server:
   credential-issuer: https://junit.eidas2sandkasse.dev/
+  authorization-servers:
+    - https://junit.idporten.no
