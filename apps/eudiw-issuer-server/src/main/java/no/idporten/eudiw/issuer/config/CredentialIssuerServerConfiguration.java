@@ -1,24 +1,51 @@
 package no.idporten.eudiw.issuer.config;
 
+import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.api.Endpoints;
-import no.idporten.eudiw.issuer.openid4vci.CredentialConfigurations;
-import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerMetadata;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfigurations;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
+@RequiredArgsConstructor
 @Configuration
 public class CredentialIssuerServerConfiguration {
 
+    private final ClaimsSourceService claimsSourceService;
+
     @Bean
     public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties properties) {
-        return CredentialIssuerMetadata.builder()
+        CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
                 .credentialIssuer(properties.getCredentialIssuer())
-                .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
-                .credentialConfigurations(CredentialConfigurations.builder().build())
-                .build();
+                .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT));
+        CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
+        for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
+            ClaimsSource claimsSource = claimsSourceService.findCredentialClaimsSource(credentialConfigurationProperties.getDoctype());
+            ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
+            credentialConfigurations.put(
+                    credentialConfigurationProperties.getIdentifier(),
+                    CredentialConfiguration.builder()
+                            // credential-specific config
+                            .doctype(credentialConfigurationProperties.getDoctype())
+                            .format(credentialConfigurationProperties.getFormat())
+                            .scope(credentialConfigurationProperties.getScope())
+                            .doctype(credentialConfigurationProperties.getDoctype())
+                            // config from claims source
+                            .display(claimsSourceMetadata.getDisplay())
+                            .claims(claimsSourceMetadata.getClaims())
+                            // config from issuer server
+                            .cryptographicBindingMethods(properties.getCryptographicBindings())
+                    .build());
+        }
+        builder.credentialConfigurations(credentialConfigurations);
+        return builder.build();
     }
 
     protected URI endpointURI(URI issuerUri, String path) {
