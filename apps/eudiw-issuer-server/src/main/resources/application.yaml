@@ -28,9 +28,10 @@ credential-issuer-server:
     - mso_mdoc
   credential-configurations:
     - identifier: no.digdir.eudiw.pid_mso_mdoc
-      scope: no.digdir.eudiw.pid_mso_mdoc
+      scope: nobid:pid
       format: mso_mdoc
       doctype: eu.europa.ec.eudi.pid.1
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
       display:

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +26,7 @@ public class CredentialIssuerServerProperties {
     @NotEmpty
     private List<@NotNull String> cryptographicBindings;
     @NotEmpty
-    private List<URI> authorizationServers;
+    private List<AuthorizationServer> authorizationServers;
     @NotEmpty
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
     @NotEmpty

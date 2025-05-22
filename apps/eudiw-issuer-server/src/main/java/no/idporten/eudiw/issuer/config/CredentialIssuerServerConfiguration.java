@@ -5,6 +5,7 @@ import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
+import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfigurations;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
@@ -24,7 +25,7 @@ public class CredentialIssuerServerConfiguration {
     public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties properties) {
         CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
                 .credentialIssuer(properties.getCredentialIssuer())
-                .authorizationServers(properties.getAuthorizationServers())
+                .authorizationServers(properties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
                 .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT));
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {

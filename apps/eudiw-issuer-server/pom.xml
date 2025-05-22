@@ -25,6 +25,8 @@
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <bcpkix-jdk18on.version>1.80</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.80</bcprov-jdk18on.version>
+        <nimbus-jose-jwt.version>10.3</nimbus-jose-jwt.version>
+        <oauth2-oidc-sdk.version>11.24</oauth2-oidc-sdk.version>
     </properties>
 
     <dependencies>
@@ -52,9 +54,14 @@
             <version>${opentelemetry-api.version}</version>
         </dependency>
         <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>${jakarta.xml.bind-api.version}</version>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+            <version>${oauth2-oidc-sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>

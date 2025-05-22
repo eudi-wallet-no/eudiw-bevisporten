@@ -25,7 +25,7 @@ public class ClaimsSourceService implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         this.claimsSources = this.credentialIssuerServerProperties.getClaimsSources().stream()
                 .map(claimsSourceProperties -> {
-                    ClaimsSource claimsSource  = new ClaimsSource();
+                    ClaimsSource claimsSource  = new OAuth2ResourceServerClaimsSource(); // TODO load scan + init?!?
                     claimsSource.init(claimsSourceProperties);
                     return claimsSource;
                 })
