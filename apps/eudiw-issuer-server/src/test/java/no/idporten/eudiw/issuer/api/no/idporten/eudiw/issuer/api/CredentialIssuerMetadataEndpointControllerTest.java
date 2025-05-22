@@ -42,7 +42,7 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(jsonPath("$.credential_configurations_supported").exists())
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']").exists())
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['doctype']").value("eu.europa.ec.eudi.pid.1"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['scope']").value("no.digdir.eudiw.pid_mso_mdoc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['scope']").value("nobid:pid"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['format']").value("mso_mdoc"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['display'][0]['name']").value("Norwegian PID"))

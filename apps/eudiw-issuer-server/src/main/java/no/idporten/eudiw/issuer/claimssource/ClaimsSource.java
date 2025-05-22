@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
+import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 
@@ -41,7 +42,7 @@ public class ClaimsSource {
     /**
      * Retrieves claims.
      */
-    public List<Claim> retrieveClaims() {
+    public List<Claim> retrieveClaims(JWT accessToken) {
         // mock response data
         List<Claim> claims = new ArrayList<>();
         for (ClaimsDescription claimsDescription : properties.getClaims()) {
