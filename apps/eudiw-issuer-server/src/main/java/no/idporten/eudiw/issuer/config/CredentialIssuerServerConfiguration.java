@@ -29,7 +29,7 @@ public class CredentialIssuerServerConfiguration {
                 .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT));
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
-            ClaimsSource claimsSource = claimsSourceService.findCredentialClaimsSource(credentialConfigurationProperties.getDoctype());
+            ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
             ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
             credentialConfigurations.put(
                     credentialConfigurationProperties.getIdentifier(),

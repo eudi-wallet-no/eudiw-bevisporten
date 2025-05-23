@@ -38,17 +38,4 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
-      display:
-        - name: Norwegian PID
-          locale: en
-      claims:
-        - path:
-          - personal_administrative_number
-          display:
-            - name: Fnr/dnr
-              locale: en
-        - path:
-            - given_name
-          display:
-            - name: Given name
-              locale: en
+      resource-server: ${credential-issuer-server.authorization-servers[0].issuer}/userinfo

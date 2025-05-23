@@ -1,16 +1,15 @@
 package no.idporten.eudiw.issuer.config;
 
 import lombok.Data;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 
-import java.util.List;
+import java.net.URI;
 
 @Data
 public class ClaimsSourceProperties {
 
     private String doctype;
-    private List<Display> display;
-    private List<ClaimsDescription> claims;
+    private URI resourceServer;
+    private int connectTimeoutMillis = 3000;
+    private int readTimeoutMillis = 5000;
 
 }

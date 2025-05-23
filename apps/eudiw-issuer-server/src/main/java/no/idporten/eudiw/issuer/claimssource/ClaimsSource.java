@@ -3,56 +3,37 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
-public class ClaimsSource {
-
-    private ClaimsSourceProperties properties;
-
-    public void init(ClaimsSourceProperties properties) {
-        this.properties = properties;
-    }
-
-    public boolean isEnabled() {
-        return true;
-    }
+public interface ClaimsSource {
 
     /**
-     * Gets metadata about the claims this claims source can provide.
+     * Initializes claims source with properties.
      */
-    public ClaimsSourceMetadata getMetadata() {
-        return ClaimsSourceMetadata.builder()
-                .display(properties.getDisplay())
-                .claims(properties.getClaims())
-                .build();
-    }
+    void init(ClaimsSourceProperties properties);
 
     /**
-     * Check if this claims supports doctype
+     * Gets properties for this claims source.
      */
-    public boolean supports(String doctype) {
-        return Objects.equals(doctype, properties.getDoctype());
+    ClaimsSourceProperties getProperties();
+
+    /**
+     * Gets metadata about claims provided by claims source.
+     */
+    ClaimsSourceMetadata getMetadata();
+
+    /**
+     * Check if this claims source supports doctype
+     */
+    default boolean supports(String doctype) {
+        return Objects.equals(doctype, getProperties().getDoctype());
     }
 
     /**
      * Retrieves claims.
      */
-    public List<Claim> retrieveClaims(JWT accessToken) {
-        // mock response data
-        List<Claim> claims = new ArrayList<>();
-        for (ClaimsDescription claimsDescription : properties.getClaims()) {
-            if (claimsDescription.isMandatory()) {
-                for (String path : claimsDescription.getPath()) {
-                    claims.add(Claim.builder().path(path).value("foo" + new Random().nextInt()).build());
-                }
-            }
-        }
-        return claims;
-    }
+    List<Claim> retrieveClaims(JWT accessToken);
 
 }

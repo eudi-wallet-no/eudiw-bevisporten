@@ -24,6 +24,6 @@ public class ClaimsDescription {
 
     @Singular("display")
     @JsonProperty("display")
-    private List<Display> display;
+    private List<Display> displays;
 
 }

@@ -87,13 +87,15 @@ public class CredentialIssuerServiceTest {
                 .doctype("foodoc")
                 .build();
         ClaimsSource claimsSource = mock(ClaimsSource.class);
-        when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("p1").value("v1").build()));
+        when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("n1").path("p1").value("v1").build()));
         when(credentialIssuerServerProperties.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfigurationProperties);
-        when(claimsSourceService.findCredentialClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
+        when(claimsSourceService.findClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
         List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
         assertAll(
                 () -> assertEquals(1, credentials.size()),
-                () -> assertEquals("p1=v1", credentials.getFirst().getCredential())
+                () -> assertTrue(credentials.getFirst().getCredential().contains("n1")),
+                () -> assertTrue(credentials.getFirst().getCredential().contains("p1")),
+                () -> assertTrue(credentials.getFirst().getCredential().contains("v1"))
         );
     }
 
