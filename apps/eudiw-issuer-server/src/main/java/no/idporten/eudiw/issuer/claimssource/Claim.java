@@ -1,9 +1,8 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,7 +10,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class Claim {
 
-    private String path;
+    @Singular("path")
+    private List<String> path;
     private String value;
 
 }

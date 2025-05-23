@@ -46,7 +46,8 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['format']").value("mso_mdoc"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['display'][0]['name']").value("Norwegian PID"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['claims'][0]['path'][0]").value("personal_administrative_number"));
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['claims'][0]['path'][0]").value("eu.europa.ec.eudi.pid.1"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['claims'][0]['path'][1]").value("personal_administrative_number"));
     }
 
 }

@@ -18,7 +18,8 @@ public class Display {
     @JsonProperty("name")
     private String name;
 
+    @Builder.Default
     @JsonProperty("locale")
-    private String locale;
+    private String locale = "en";
 
 }

@@ -1,8 +1,11 @@
 package no.idporten.eudiw.issuer.claimssource;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.nimbusds.jwt.JWT;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
@@ -12,8 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -30,9 +34,9 @@ public class CredentialIssuerService {
         if (! validateScope(credentialConfigurationProperties.getScope(), accessToken)) {
             throw new IssuerServerException("insufficient_scope", "Invalid scope for credential configuration", HttpStatus.FORBIDDEN);
         }
-        ClaimsSource claimsSource = claimsSourceService.findCredentialClaimsSource(credentialConfigurationProperties.getDoctype());
+        ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         List<Claim> claims = claimsSource.retrieveClaims(accessToken);
-        return List.of(new Credential(claims.stream().map(claim -> claim.getPath() + "=" + claim.getValue()).collect(Collectors.joining(","))));
+        return createCredentials(credentialConfigurationProperties.getFormat(), claims);
     }
 
     private boolean validate(String authorizationServer, JWT accessToken) {
@@ -53,6 +57,23 @@ public class CredentialIssuerService {
             return parsedScopes.contains(expectedScope);
         } catch (ParseException e) {
             throw new IssuerServerException("invalid_token", "Invalid token format", HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @SneakyThrows
+    protected List<Credential> createCredentials(String format, List<Claim> claims) {
+        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        if ("mso_mdoc".equals(format)) {
+            Map<String, Map<String, String>> mdocDocData = new HashMap<>();
+            for (Claim claim : claims) {
+                if (! mdocDocData.containsKey(claim.getPath().getFirst())) {
+                    mdocDocData.put(claim.getPath().getFirst(), new HashMap<>());
+                }
+                mdocDocData.get(claim.getPath().getFirst()).put(claim.getPath().getLast(), claim.getValue());
+            }
+            return List.of(Credential.builder().credential(objectWriter.writeValueAsString(mdocDocData)).build());
+        } else {
+            return List.of(Credential.builder().credential(objectWriter.writeValueAsString(claims)).build());
         }
     }
 
