@@ -38,4 +38,5 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
+      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
       resource-server: ${credential-issuer-server.authorization-servers[0].issuer}/userinfo

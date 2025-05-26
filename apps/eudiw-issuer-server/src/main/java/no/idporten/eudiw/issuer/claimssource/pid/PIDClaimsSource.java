@@ -7,14 +7,12 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.OAuth2ResourceServerClaimsSource;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class PIDClaimsSource extends OAuth2ResourceServerClaimsSource<Map<String, Object>> {
 
     public static final String NAMESPACE = "eu.europa.ec.eudi.pid.1";

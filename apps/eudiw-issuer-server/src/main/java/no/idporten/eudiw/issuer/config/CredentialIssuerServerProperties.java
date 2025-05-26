@@ -30,7 +30,7 @@ public class CredentialIssuerServerProperties {
     @NotEmpty
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
     @NotEmpty
-    private List<ClaimsSourceProperties> claimsSources;
+    private List<@Valid ClaimsSourceProperties> claimsSources;
 
     public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
         return credentialConfigurations.stream()
