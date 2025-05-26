@@ -10,4 +10,24 @@ credential-issuer-server:
   authorization-servers:
     - issuer: https://junit.idporten.no
       jwks-uri: https://junit.idporten.no/jwks.json
-
+  cryptographic-bindings:
+    - jwk
+  formats:
+    - mso_mdoc
+  credential-configurations:
+    - identifier: no.digdir.eudiw.pid_mso_mdoc
+      scope: nobid:pid
+      format: mso_mdoc
+      doctype: eu.europa.ec.eudi.pid.1
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+    - identifier: junitdoc_mso_mdoc
+      scope: eudiw:junit
+      format: mso_mdoc
+      doctype: junitdoc
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+  claims-sources:
+    - doctype: eu.europa.ec.eudi.pid.1
+      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
+      resource-server: ${credential-issuer-server.authorization-servers[0].issuer}/userinfo
+    - doctype: junitdoc
+      class-name: no.idporten.eudiw.issuer.claimssource.JUnitClaimsSource
