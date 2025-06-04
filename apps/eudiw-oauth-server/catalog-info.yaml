@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: eudiw-oauth-server
+  description: EUDIWs OAuth2-server
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-oauth-server
+spec:
+  type: application
+  lifecycle: production
+  owner: team-idporten
+  system: eudiw-oauth-server
+  dependsOn:
+    - component:idporten-login
+    - component:idporten-c2id-server

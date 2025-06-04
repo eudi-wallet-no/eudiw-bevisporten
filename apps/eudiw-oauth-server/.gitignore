@@ -1,0 +1,22 @@
+# Build
+/target/**
+
+# Test logs
+/var/**
+
+# Allure test reports
+/.allure/**
+/allure-results/**
+
+# Intellij IDEA
+**/*.iml
+/.idea
+
+# Jenv
+.java-version
+
+#vscode
+.vscode/
+docker/repository/
+docker/*.jar
+docker/data/
