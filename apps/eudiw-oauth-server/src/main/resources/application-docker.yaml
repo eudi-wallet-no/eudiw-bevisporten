@@ -1,0 +1,15 @@
+---
+server:
+  port: 9260
+
+management:
+  server:
+    port: 9261
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  application:
+    environment: docker
+

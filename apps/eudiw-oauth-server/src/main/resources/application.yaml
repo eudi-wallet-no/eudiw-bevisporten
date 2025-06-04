@@ -1,0 +1,30 @@
+---
+server:
+  port: 8080
+
+spring:
+  thread-executor: virtual
+  application:
+    name: eudiw-oauth-server
+    environment: default
+  
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+  
