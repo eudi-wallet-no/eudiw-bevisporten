@@ -22,8 +22,6 @@
         <log4j2.version>2.16.0</log4j2.version>
         <nimbus-jose-jwt.version>10.3</nimbus-jose-jwt.version>
         <gson.version>2.13.1</gson.version> <!-- Gson version used by nimbus-jose-jwt, but for some reason the wrong version is included. remove when fixed-->
-        <jackson.version>2.19.0</jackson.version>
-        <jackson.version.databind>2.19.0</jackson.version.databind>
         <lombok.version>1.18.38</lombok.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
     </properties>
@@ -70,12 +68,6 @@
             <version>${gson.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j-api.version}</version>
@@ -90,18 +82,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version.databind}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
