@@ -10,6 +10,7 @@ import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("When testing the authorization code flow with direct PAR response")
+@Disabled // TODO ikke nødvending i openid4vci
 class ImplicitPARFlowTest {
 
     private OpenIDConnectIntegrationBase openIDConnectSdk;

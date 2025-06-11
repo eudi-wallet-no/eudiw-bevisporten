@@ -3,3 +3,9 @@ spring:
   application:
     environment: systest
  
+# EUDIW auth server
+oauth-authorization-server:
+  issuer: https://auth.eidas2sandkasse.dev
+  scopes-supported:
+    - foo
+    - bar

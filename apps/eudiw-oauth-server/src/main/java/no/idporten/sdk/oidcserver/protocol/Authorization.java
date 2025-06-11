@@ -25,7 +25,6 @@ public class Authorization implements Cacheable, AuditDataProvider {
     private static final long serialVersionUID = 1L;
 
     @Singular("attribute")
-
     private Map<String, Serializable> attributes = new HashMap<>();
     private String code;
     private String nonce;

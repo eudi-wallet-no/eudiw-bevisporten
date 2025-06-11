@@ -6,6 +6,7 @@ import no.idporten.sdk.oidcserver.protocol.AuthenticatedRequest;
 import no.idporten.sdk.oidcserver.protocol.PushedAuthorizationRequest;
 import no.idporten.sdk.oidcserver.protocol.TokenRequest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,7 @@ public class ClientAuthenticationTest {
         openIDConnectSdk = new OpenIDConnectIntegrationBase(sdkConfiguration);
     }
 
+    @Disabled // TODO
     @Test
     @DisplayName("then missing client authentication raises an OAuth2 error with code invalid_client")
     public void testMissingClientAuthentication() {

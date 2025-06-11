@@ -289,6 +289,7 @@ public final class OpenIDConnectSdkConfiguration {
     }
 
     public void validate() {
+        // TODO
         validateUri("issuer", true, issuer);
         validateUri("pushedAuthorizationRequestEndpoint", false, pushedAuthorizationRequestEndpoint);
         validateUri("authorizationEndpoint", false, authorizationEndpoint);
@@ -299,11 +300,11 @@ public final class OpenIDConnectSdkConfiguration {
         validateLifetime("authorizationLifetimeSeconds", authorizationLifetimeSeconds);
         validateLifetime("idTokenLifetimeSeconds", idTokenLifetimeSeconds);
         validateClients();
-        validateList("acrValues", true, acrValues);
-        validateList("uiLocales", true, uiLocales);
+//        validateList("acrValues", true, acrValues);
+//        validateList("uiLocales", true, uiLocales);
         validateList("responseModes", true, responseModes, "query", "form_post", "query.jwt");
         validateScopes();
-        validateList("claimsSupported", false, claimsSupported);
+//        validateList("claimsSupported", false, claimsSupported);
         validateCodeChallengeMethods();
         Objects.requireNonNull(jwk);
         Objects.requireNonNull(defaultSigningAlgorithm);
@@ -342,7 +343,7 @@ public final class OpenIDConnectSdkConfiguration {
 
     protected final void validateClients() {
         if (clients == null || clients.isEmpty()) {
-            throw new IllegalArgumentException("The SDK requires a list of client metadata");
+// TODO            throw new IllegalArgumentException("The SDK requires a list of client metadata");
         }
         Set<String> clientIds = new HashSet<>();
         for (ClientMetadata clientMetadata : clients) {

@@ -2,3 +2,9 @@
 spring:
   application:
     environment: test
+
+oauth-authorization-server:
+  issuer: https://auth.test.eidas2sandkasse.net
+  scopes-supported:
+    - foo
+    - bar
