@@ -2,12 +2,15 @@ package no.idporten.sdk.oidcserver.protocol;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import no.idporten.sdk.oidcserver.util.JsonObjectBuilder;
 import no.idporten.sdk.oidcserver.util.JsonUtils;
 
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
 @Getter
 @AllArgsConstructor
@@ -47,12 +50,14 @@ public class TokenResponse implements AuditDataProvider, JsonResponse {
 
     @Override
     public Map<String, Object> toJsonObject() {
-        return JsonUtils.jsonObjectBuilder()
-                .addAttribute(ID_TOKEN, idToken)
+        JsonObjectBuilder jsonObjectBuilder = JsonUtils.jsonObjectBuilder()
                 .addAttribute(ACCESS_TOKEN, accessToken)
                 .addAttribute(TOKEN_TYPE, tokenType)
-                .addAttribute(EXPIRES_IN, expiresInSeconds)
-                .build();
+                .addAttribute(EXPIRES_IN, expiresInSeconds);
+        if (idToken != null) {
+            jsonObjectBuilder.addAttribute(ID_TOKEN, idToken);
+        }
+        return jsonObjectBuilder.build();
     }
 
 }

@@ -106,7 +106,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
 
     @JsonProperty(TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED)
     @Builder.Default
-    private List<String> tokenEndpointAuthMethodsSupported = List.of("client_secret_basic", "client_secret_post", "client_secret_jwt");
+    private List<String> tokenEndpointAuthMethodsSupported = List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none");
 
     @JsonProperty(TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED)
     @Singular("tokenEndpointAuthSigningAlgValueSupported")

@@ -121,38 +121,41 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         if (authorizationRequest.getScope().isEmpty()) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "No scopes requested.", 400);
         }
-        if (!authorizationRequest.getScope().contains("openid")) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "Not an OpenID Connect request.", 400);
-        }
-        if (!clientMetadata.getScopes().containsAll(authorizationRequest.getScope())) {
-            log.info("Invalid scopes [{}] for client [{}]", authorizationRequest.getScope(), clientMetadata.getClientId());
-            throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "Client does not have access to all of the requested scopes.", 400);
-        }
+        // TODO
+//        if (!authorizationRequest.getScope().contains("openid")) {
+//            throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "Not an OpenID Connect request.", 400);
+//        }
+//        if (!clientMetadata.getScopes().containsAll(authorizationRequest.getScope())) {
+//            log.info("Invalid scopes [{}] for client [{}]", authorizationRequest.getScope(), clientMetadata.getClientId());
+//            throw new OAuth2Exception(OAuth2Exception.INVALID_SCOPE, "Client does not have access to all of the requested scopes.", 400);
+//        }
     }
 
     @SuppressWarnings("unused")
     protected void validateAcrValues(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
-        if (!sdkConfiguration.getAcrValues().containsAll(authorizationRequest.getAcrValues())) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter acr_values. Requested values not supported.", 400);
-        }
-        if (authorizationRequest.getAcrValues().isEmpty()) {
-            authorizationRequest.setResolvedAcrValue(sdkConfiguration.getAcrValues().get(0));
-        } else {
-            authorizationRequest.setResolvedAcrValue(authorizationRequest.getAcrValues().get(0));
-        }
+        // TODO
+//        if (!sdkConfiguration.getAcrValues().containsAll(authorizationRequest.getAcrValues())) {
+//            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter acr_values. Requested values not supported.", 400);
+//        }
+//        if (authorizationRequest.getAcrValues().isEmpty()) {
+//            authorizationRequest.setResolvedAcrValue(sdkConfiguration.getAcrValues().get(0));
+//        } else {
+//            authorizationRequest.setResolvedAcrValue(authorizationRequest.getAcrValues().get(0));
+//        }
     }
 
     @SuppressWarnings("unused")
     protected void validateUiLocales(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
-        if (authorizationRequest.getUiLocales().isEmpty()) {
-            authorizationRequest.setResolvedUiLocale(sdkConfiguration.getUiLocales().get(0));
-        } else {
-            authorizationRequest.setResolvedUiLocale(
-                    authorizationRequest.getUiLocales().stream()
-                            .filter(uiLocale -> sdkConfiguration.getUiLocales().contains(uiLocale))
-                            .findFirst()
-                            .orElse(sdkConfiguration.getUiLocales().get(0)));
-        }
+        // TODO
+//        if (authorizationRequest.getUiLocales().isEmpty()) {
+//            authorizationRequest.setResolvedUiLocale(sdkConfiguration.getUiLocales().get(0));
+//        } else {
+//            authorizationRequest.setResolvedUiLocale(
+//                    authorizationRequest.getUiLocales().stream()
+//                            .filter(uiLocale -> sdkConfiguration.getUiLocales().contains(uiLocale))
+//                            .findFirst()
+//                            .orElse(sdkConfiguration.getUiLocales().get(0)));
+//        }
     }
 
     @SuppressWarnings("unused")
@@ -256,7 +259,6 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         sdkConfiguration.getAuditLogger().auditAuthorization(authorization);
         TokenResponse tokenResponse = createTokenResponse(authorization);
         return DirectPushedAuthorizationResponse.builder()
-                .idToken(tokenResponse.getIdToken())
                 .accessToken(tokenResponse.getAccessToken())
                 .state(authorizationRequest.getState())
                 .expiresIn(sdkConfiguration.getAccessTokenLifetimeSeconds())
@@ -279,7 +281,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         } else if (authenticatedRequest.isClientSecretJwt()) {
             clientMetadata = authenticateClientByJwt(authenticatedRequest.getClientAssertion());
             clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("client_secret_jwt").build();
-        } else {
+        } else if (authenticatedRequest.isClientSecretBasic()) {
             final String clientId;
             final String clientSecret;
             try {
@@ -294,6 +296,16 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             }
             clientMetadata = authenticateClient(clientId, clientSecret);
             clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("client_secret_basic").build();
+        } else if (authenticatedRequest.isNone()) {
+            if (authenticatedRequest instanceof PushedAuthorizationRequest) {
+                clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId())
+                        .redirectUri(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()).build();
+            } else {
+                clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId()).build();
+            }
+            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("none").build();
+        } else {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown client authentication method.", 401);
         }
         if (hasText(authenticatedRequest.getClientId()) && !Objects.equals(authenticatedRequest.getClientId(), clientMetadata.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client authentication does not match parameter client_id.", 401);
@@ -461,7 +473,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
     }
 
     /**
-     * Processes the token request and creates a token response.  Builds and signs id_token.
+     * Processes the token request and creates a token response.  Builds and signs tokens.
      *
      * @param tokenRequest OAuth2 token request
      * @return token response
@@ -507,23 +519,28 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
 
     protected final TokenResponse createTokenResponse(Authorization authorization) throws JOSEException {
         validateAuthorization(authorization);
-        JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder()
-                .jwtID(generateId())
-                .issuer(sdkConfiguration.getIssuer().toString())
-                .audience(authorization.getAud())
-                .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getIdTokenLifetimeSeconds() * 1000)))
-                .issueTime(new Date())
-                .claim("auth_time", new Date().getTime() / 1000)
-                .claim("nonce", authorization.getNonce())
-                .subject(authorization.getSub())
-                .claim("acr", authorization.getAcr());
-        if (hasText(authorization.getAmr())) {
-            jwtClaimsSetBuilder.claim("amr", authorization.getAmr().split(",\\s*"));
+        boolean isOpenIDConnect = authorization.getAttributes().containsKey("scope") && authorization.getAttributes().get("scope").toString().contains("openid");
+        String idToken = null;
+        if (isOpenIDConnect) {
+            JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder()
+                    .jwtID(generateId())
+                    .issuer(sdkConfiguration.getIssuer().toString())
+                    .audience(authorization.getAud())
+                    .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getIdTokenLifetimeSeconds() * 1000)))
+                    .issueTime(new Date())
+                    .claim("auth_time", new Date().getTime() / 1000)
+                    .claim("nonce", authorization.getNonce())
+                    .subject(authorization.getSub())
+                    .claim("acr", authorization.getAcr());
+            if (hasText(authorization.getAmr())) {
+                jwtClaimsSetBuilder.claim("amr", authorization.getAmr().split(",\\s*"));
+            }
+            authorization.getAttributes().entrySet().forEach(attribute -> jwtClaimsSetBuilder.claim(attribute.getKey(), attribute.getValue()));
+            idToken = signJwt(jwtClaimsSetBuilder.build());
         }
-        authorization.getAttributes().entrySet().forEach(attribute -> jwtClaimsSetBuilder.claim(attribute.getKey(), attribute.getValue()));
-        String serializedJWT = signJwt(jwtClaimsSetBuilder.build());
         return TokenResponse.builder()
-                .idToken(serializedJWT)
+                // TODO access_token egen sak, fjerne id_tokenb
+                .idToken(idToken)
                 .accessToken(generateId())
                 .expiresInSeconds(sdkConfiguration.getAccessTokenLifetimeSeconds())
                 .build();

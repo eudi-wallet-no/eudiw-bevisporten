@@ -10,7 +10,7 @@ public interface AuthenticatedRequest {
     void setAuthenticatedClientId(String clientId);
 
     default boolean isAuthenticatedRequest() {
-        return isClientSecretPost() || isClientSecretBasic() || isClientSecretJwt();
+        return isClientSecretPost() || isClientSecretBasic() || isClientSecretJwt() || isNone();
     }
 
     default boolean isClientSecretPost() {
@@ -23,6 +23,10 @@ public interface AuthenticatedRequest {
 
     default boolean isClientSecretJwt() {
         return "urn:ietf:params:oauth:client-assertion-type:jwt-bearer".equals(getClientAssertionType());
+    }
+
+    default boolean isNone() {
+        return getClientId() != null && !(isClientSecretBasic() || isClientSecretJwt() || isClientSecretPost());
     }
 
     default boolean hasMoreThanOneClientAuthMethod() {
