@@ -3,10 +3,10 @@ package no.idporten.eudiw.issuer.oauth2;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.proc.BadJOSEException;
+import com.nimbusds.jose.proc.JOSEObjectTypeVerifier;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
@@ -38,9 +38,10 @@ public class AccessTokenValidator extends AbstractJWTValidator {
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
             jwtProcessor.setJWSKeySelector(this.getJWSKeySelector());
             jwtProcessor.setJWTClaimsSetVerifier(new AccessTokenClaimsVerifier<>(
-                    Set.of("iss", "scope", "pid", "exp", "iat")
+                    Set.of("iss", "aud", "sub", "scope", "iat", "exp")
                     ));
-            JWTClaimsSet jwtClaimsSet = jwtProcessor.process(accessToken, (SecurityContext) null);
+            jwtProcessor.setJWSTypeVerifier(createJWSTypeVerifier());
+            jwtProcessor.process(accessToken, (SecurityContext) null);
             return signedJWT;
         } catch (ExpiredJWTException e) {
             throw new IssuerServerException("invalid_token", "Expired access token", HttpStatus.UNAUTHORIZED);
@@ -49,6 +50,14 @@ public class AccessTokenValidator extends AbstractJWTValidator {
         } catch (JOSEException e) {
             throw new IssuerServerException("invalid_token", "Invalid token signature", HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    private static JOSEObjectTypeVerifier<SecurityContext> createJWSTypeVerifier() {
+        return (joseObjectType, _) -> {
+            if (joseObjectType != null && !joseObjectType.equals(JOSEObjectType.JWT) && !joseObjectType.equals(new JOSEObjectType("at+jwt"))) {
+                throw new BadJOSEException("JOSE header typ (type) " + joseObjectType + " not allowed");
+            }
+        };
     }
 
 }

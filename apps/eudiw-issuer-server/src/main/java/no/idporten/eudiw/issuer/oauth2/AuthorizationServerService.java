@@ -13,6 +13,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -35,7 +36,7 @@ public class AuthorizationServerService implements InitializingBean {
                     .create(authorizationServer.getJwksUri().toURL())
                     .cache(24 * 60 * 60 * 1000,5000)
                     .build();
-            JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, jwkSource);
+            JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(Set.of(JWSAlgorithm.RS256, JWSAlgorithm.ES256), jwkSource);
             authorizationServer.setAccessTokenValidator(new AccessTokenValidator(new Issuer(authorizationServer.getIssuer()), keySelector));
         }
     }
