@@ -303,6 +303,26 @@ public class PushedAuthorizationRequestProcessingTest {
         assertDoesNotThrow(() -> openIDConnectSdk.validateCodeChallenge(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
     }
 
+    @Test
+    @DisplayName("then the resource parameter is optional")
+    public void testResourceIsOptional() {
+        MockRequest request = new MockRequest();
+        assertDoesNotThrow(() -> openIDConnectSdk.validateResource(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+    }
+
+    @Test
+    @DisplayName("then the resource parameter must be an absolute uri without query or fragment components")
+    public void testResourceValidation() {
+        MockRequest request = new MockRequest();
+        request.addParameter("resource", "https://api.junit.idporten.dev/v1");
+        assertDoesNotThrow(() -> openIDConnectSdk.validateResource(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        request.setParameter("resource", "https://api.junit.idporten.dev/v1#fragment");
+        assertThrows(OAuth2Exception.class, () -> openIDConnectSdk.validateResource(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        request.setParameter("resource", "https://api.junit.idporten.dev/v1?query=notallowed");
+        assertThrows(OAuth2Exception.class, () -> openIDConnectSdk.validateResource(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        request.setParameter("resource", "v1/api");
+        assertThrows(OAuth2Exception.class, () -> openIDConnectSdk.validateResource(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+    }
 
     @Test
     @DisplayName("then a code_challenge_method not registered with the server cannot be used")

@@ -51,13 +51,14 @@ class CodeFlowTest {
         request.addParameter("client_assertion", TestUtils.createClientSecretJWT(clientMetadata, openIDConnectSdk.getSDKConfiguration().getIssuer().toString()).serialize());
         request.addParameter("code_challenge", "WWHTYIjNclXxS69q1gerQ-eTlW5ab1YCpKTorurQ3zw");
         request.addParameter("code_challenge_method", "S256");
-        request.addParameter("scope", "openid");
+        request.addParameter("scope", "openid pid.mdoc");
         request.addParameter("redirect_uri", clientMetadata.getRedirectUris().get(0));
         request.addParameter("response_type", "code");
         request.addParameter("response_mode", "form_post");
         request.addParameter("state", "s");
         request.addParameter("nonce", "n");
         request.addParameter("acr_values", "Level4 Level3");
+        request.addParameter("resource", "https://api.idporten.junit/v1");
 
         PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
         PushedAuthorizationResponse pushedAuthorizationResponse = openIDConnectSdk.process(pushedAuthorizationRequest);
@@ -113,46 +114,57 @@ class CodeFlowTest {
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
         TokenResponse tokenResponse = openIDConnectSdk.process(tokenRequest);
         assertNotNull(tokenResponse);
-        // TODO assertNotNull(tokenResponse.getIdToken());
+        assertNotNull(tokenResponse.getIdToken());
         verify(auditLogger).auditTokenRequest(tokenRequest);
         verify(auditLogger).auditTokenResponse(tokenResponse);
 
         // 5. Validate the id_token
-        // TODO fjerner id_token
-//        JWKSet jwkSet = openIDConnectSdk.getPublicJWKSet();
-//        SignedJWT jwt = SignedJWT.parse(tokenResponse.getIdToken());
-//        JWSHeader jwtHeader = jwt.getHeader();
-//        assertEquals("test-kid", jwtHeader.getKeyID());
-//        JWTClaimsSet jwtClaimsSet = jwt.getJWTClaimsSet();
-//        assertTrue(jwt.verify(new DefaultJWSVerifierFactory().createJWSVerifier(
-//                jwtHeader,
-//                jwkSet.getKeyByKeyId(jwtHeader.getKeyID()).toRSAKey().toRSAPublicKey())));
-//        assertEquals(TestUtils.defaultIssuer(), jwtClaimsSet.getIssuer());
-//        assertEquals(clientMetadata.getClientId(), jwtClaimsSet.getAudience().get(0));
-//        assertEquals("n", jwtClaimsSet.getClaim("nonce"));
-//        assertEquals("12345678901", jwtClaimsSet.getClaim("sub"));
-//        assertEquals("test", jwtClaimsSet.getStringArrayClaim("amr")[0]);
-//        assertEquals("LevelX", jwtClaimsSet.getClaim("acr"));
-//        assertEquals("v1", jwtClaimsSet.getClaim("a1"));
-//        assertEquals("v2", jwtClaimsSet.getClaim("a2"));
-//        assertTrue(jwtClaimsSet.getStringListClaim("list").contains("a"));
-//        assertTrue(jwtClaimsSet.getStringListClaim("list").contains("b"));
-//        assertTrue(jwtClaimsSet.getStringListClaim("list").contains("c"));
-        final String accessToken = tokenResponse.getAccessToken();
+        JWKSet jwkSet = openIDConnectSdk.getPublicJWKSet();
+        SignedJWT idToken = SignedJWT.parse(tokenResponse.getIdToken());
+        JWSHeader idTokenHeader = idToken.getHeader();
+        assertEquals("test-kid", idTokenHeader.getKeyID());
+        JWTClaimsSet idTokenClaimsSet = idToken.getJWTClaimsSet();
+        assertTrue(idToken.verify(new DefaultJWSVerifierFactory().createJWSVerifier(
+                idTokenHeader,
+                jwkSet.getKeyByKeyId(idTokenHeader.getKeyID()).toRSAKey().toRSAPublicKey())));
+        assertEquals(TestUtils.defaultIssuer(), idTokenClaimsSet.getIssuer());
+        assertEquals(clientMetadata.getClientId(), idTokenClaimsSet.getAudience().getFirst());
+        assertEquals("n", idTokenClaimsSet.getClaim("nonce"));
+        assertEquals("12345678901", idTokenClaimsSet.getClaim("sub"));
+        assertEquals("test", idTokenClaimsSet.getStringArrayClaim("amr")[0]);
+        assertEquals("LevelX", idTokenClaimsSet.getClaim("acr"));
+        assertEquals("v1", idTokenClaimsSet.getClaim("a1"));
+        assertEquals("v2", idTokenClaimsSet.getClaim("a2"));
+        assertTrue(idTokenClaimsSet.getStringListClaim("list").contains("a"));
+        assertTrue(idTokenClaimsSet.getStringListClaim("list").contains("b"));
+        assertTrue(idTokenClaimsSet.getStringListClaim("list").contains("c"));
 
-        // 6. Process optional userinfo request
+        // 6. Validate the access_token
+        SignedJWT accessToken = SignedJWT.parse(tokenResponse.getAccessToken());
+        JWSHeader accessTokenHeader = accessToken.getHeader();
+        assertEquals("test-kid", accessTokenHeader.getKeyID());
+        JWTClaimsSet accessTokenClaimsSet = accessToken.getJWTClaimsSet();
+        assertTrue(accessToken.verify(new DefaultJWSVerifierFactory().createJWSVerifier(
+                accessTokenHeader,
+                jwkSet.getKeyByKeyId(accessTokenHeader.getKeyID()).toRSAKey().toRSAPublicKey())));
+        assertEquals(TestUtils.defaultIssuer(), accessTokenClaimsSet.getIssuer());
+        assertEquals("https://api.idporten.junit/v1", accessTokenClaimsSet.getAudience().getFirst());
+        assertEquals(clientMetadata.getClientId(), accessTokenClaimsSet.getClaim("client_id"));
+        assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
+
+        // 7. Process optional userinfo request
         request = new MockRequest();
-        request.addHeader("Authorization", "Bearer " + accessToken);
+        request.addHeader("Authorization", "Bearer " + tokenResponse.getAccessToken());
         UserInfoRequest userInfoRequest = new UserInfoRequest(request.getHeaders(), request.getParameters());
         UserInfoResponse userInfoResponse = openIDConnectSdk.process(userInfoRequest);
         assertEquals("12345678901", userInfoResponse.getSub());
         verify(auditLogger).auditUserInfoRequest(userInfoRequest);
         verify(auditLogger).auditUserInfoResponse(userInfoResponse);
 
-        // 6. Check all id's unique
-// TODO        assertEquals(4, new HashSet(List.of(requestUri.split(":")[2], code, jwtClaimsSet.getJWTID(), accessToken)).size());
+        // 8. Check all id's unique
+        assertEquals(4, new HashSet(List.of(requestUri.split(":")[2], code, idTokenClaimsSet.getJWTID(), accessTokenClaimsSet.getJWTID())).size());
 
-        // 7. Check cache empty
+        // 9. Check cache empty
         assertTrue(cache.getAuthorizationRequestMap().isEmpty());
         assertTrue(cache.getCode2authorizationMap().isEmpty());
         assertFalse(cache.getAccessToken2authorizationMap().isEmpty());

@@ -11,6 +11,7 @@ public class OAuth2Exception extends RuntimeException {
     public static final String INVALID_CLIENT = "invalid_client";
     public static final String INVALID_GRANT = "invalid_grant";
     public static final String INVALID_TOKEN = "invalid_token";
+    public static final String INVALID_TARGET = "invalid_target";
     public static final String UNAUTHORIZED_CLIENT = "unauthorized_client";
     public static final String UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type";
     public static final String UNSUPPORTED_RESPONSE_TYPE = "unsupported_response_type";
