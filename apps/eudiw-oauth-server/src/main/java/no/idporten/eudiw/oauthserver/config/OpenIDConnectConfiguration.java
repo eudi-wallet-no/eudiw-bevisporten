@@ -1,8 +1,9 @@
 package no.idporten.eudiw.oauthserver.config;
 
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.oauthserver.crypto.KeyStoreProvider;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegrationBase;
-import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -24,7 +24,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.security.KeyStore;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -105,7 +104,7 @@ public class OpenIDConnectConfiguration implements InitializingBean {
                         .cache(new SimpleOpenIDConnectCache())
         ;
         if (keystoreType == null) {
-            builder.jwk(generateServerKeys());
+            builder.jwk(generateServerECKey());
         } else {
             builder.keystore(loadServerKeystore(), keystoreKeyAlias, keystoreKeyPassword);
         }
@@ -113,13 +112,14 @@ public class OpenIDConnectConfiguration implements InitializingBean {
         return builder.build();
     }
 
-    public RSAKey generateServerKeys() throws Exception {
-        RSAKey rsaKey = new RSAKeyGenerator(2048)
+    public ECKey generateServerECKey() throws Exception {
+        ECKey ecKey = new ECKeyGenerator(Curve.P_256)
                 .keyUse(KeyUse.SIGNATURE)
+                .keyIDFromThumbprint(true)
                 .keyID(UUID.randomUUID().toString())
                 .generate();
         log.info("Generated server keys for signing av tokens.");
-        return rsaKey;
+        return ecKey;
     }
 
     public KeyStore loadServerKeystore() throws Exception {

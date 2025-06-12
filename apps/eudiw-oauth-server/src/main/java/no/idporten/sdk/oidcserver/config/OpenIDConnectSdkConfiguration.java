@@ -1,8 +1,7 @@
 package no.idporten.sdk.oidcserver.config;
 
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -17,6 +16,7 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
@@ -206,7 +206,7 @@ public final class OpenIDConnectSdkConfiguration {
      *
      * @param jwk private key
      */
-    private RSAKey jwk;
+    private JWK jwk;
 
     /**
      * Algorithm for jws signing (tokens, responses).
@@ -250,25 +250,34 @@ public final class OpenIDConnectSdkConfiguration {
 
     public static class OpenIDConnectSdkConfigurationBuilder {
 
-        private RSAKey jwk;
+        private JWK jwk;
 
         public OpenIDConnectSdkConfigurationBuilder keystore(KeyStore keyStore, String keyAlias, String keyPassword) {
             try {
                 PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, keyPassword.toCharArray());
                 Certificate certificate = keyStore.getCertificate(keyAlias);
                 PublicKey publicKey = certificate.getPublicKey();
-                this.jwk = new RSAKey.Builder((RSAPublicKey) publicKey)
-                        .privateKey(privateKey)
-                        .keyUse(KeyUse.SIGNATURE)
-                        .keyIDFromThumbprint()
-                        .build();
+                if (publicKey instanceof ECPublicKey) {
+                    this.jwk = new ECKey.Builder(Curve.forECParameterSpec(((ECPublicKey) publicKey).getParams()), (ECPublicKey) publicKey)
+                            .privateKey(privateKey)
+                            .keyUse(KeyUse.SIGNATURE)
+                            .keyIDFromThumbprint()
+                            .build();
+
+                } else {
+                    this.jwk = new RSAKey.Builder((RSAPublicKey) publicKey)
+                            .privateKey(privateKey)
+                            .keyUse(KeyUse.SIGNATURE)
+                            .keyIDFromThumbprint()
+                            .build();
+                }
                 return this;
             } catch (Exception e) {
                 throw new IllegalArgumentException("The SDK configuration failed to convert keystore into JWK", e);
             }
         }
 
-        public OpenIDConnectSdkConfigurationBuilder jwk(RSAKey jwk) {
+        public OpenIDConnectSdkConfigurationBuilder jwk(JWK jwk) {
             this.jwk = jwk;
             return this;
         }

@@ -3,8 +3,9 @@ package no.idporten.sdk.oidcserver;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
@@ -74,7 +75,7 @@ public class TestUtils {
         return OpenIDConnectSdkConfiguration.builder()
                 .issuer(new URI(defaultIssuer()))
                 .cache(new SimpleOpenIDConnectCache())
-                .jwk(new RSAKeyGenerator(2048)
+                .jwk(new ECKeyGenerator(Curve.P_256)
                         .keyUse(KeyUse.SIGNATURE)
                         .keyID("test-kid")
                         .generate())

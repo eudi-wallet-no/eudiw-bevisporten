@@ -1,9 +1,12 @@
 package no.idporten.sdk.oidcserver;
 
 import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyType;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.SneakyThrows;
@@ -569,7 +572,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             idTokenClaimsSetBuilder.claim("amr", authorization.getAmr().split(",\\s*"));
         }
         authorization.getAttributes().forEach(idTokenClaimsSetBuilder::claim);
-        idToken = signJwt("id_token+jwt", idTokenClaimsSetBuilder.build());
+        idToken = signJwt(idTokenClaimsSetBuilder.build());
         return idToken;
     }
 
@@ -580,6 +583,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 .issuer(sdkConfiguration.getIssuer().toString())
                 .audience(authorization.getAud())
                 .claim("client_id", authorization.getClientId())
+                .claim("scope", authorization.getScope())
                 .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getAccessTokenLifetimeSeconds() * 1000L)))
                 .issueTime(new Date())
                 .subject(authorization.getSub());
@@ -630,7 +634,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                         .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getAuthorizationLifetimeSeconds() * 1000)))
                         .issueTime(new Date());
                 authorizationResponse.toResponseParameters().forEach(jwtClaimsSetBuilder::claim);
-                return new RedirectedResponse(authorizationResponse.getRedirectUri(), Map.of("response", signJwt("JWT", jwtClaimsSetBuilder.build())));
+                return new RedirectedResponse(authorizationResponse.getRedirectUri(), Map.of("response", signJwt(jwtClaimsSetBuilder.build())));
             } catch (JOSEException e) {
                 throw new OAuth2Exception(OAuth2Exception.SERVER_ERROR, "Failed to send signed response", 500, e);
             }
@@ -696,12 +700,19 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    protected String signJwt(JWTClaimsSet jwtClaimsSet) throws JOSEException {
+        return signJwt(null, jwtClaimsSet);
+    }
+
     protected String signJwt(String type, JWTClaimsSet jwtClaimsSet) throws JOSEException {
-        JWSSigner signer = new RSASSASigner(sdkConfiguration.getJwk());
+        JWK jwk = sdkConfiguration.getJwk();
+        boolean isEC = KeyType.EC.equals(jwk.getKeyType());
+        JWSSigner signer = isEC ? new ECDSASigner(jwk.toECKey()) : new RSASSASigner(jwk.toRSAKey());
+        JWSAlgorithm signingAlgorithm = isEC ? JWSAlgorithm.ES256 : JWSAlgorithm.RS256;
         SignedJWT signedJWT = new SignedJWT(
                 new JWSHeader
-                        .Builder(sdkConfiguration.getDefaultSigningAlgorithm())
-                        .type(new JOSEObjectType(type))
+                        .Builder(signingAlgorithm)
+                        .type(StringUtils.hasText(type) ? new JOSEObjectType(type) : null)
                         .keyID(sdkConfiguration.getJwk().getKeyID())
                         .build(),
                 jwtClaimsSet);

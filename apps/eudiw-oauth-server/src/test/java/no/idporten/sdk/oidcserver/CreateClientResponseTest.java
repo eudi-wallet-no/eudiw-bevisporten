@@ -64,7 +64,7 @@ public class CreateClientResponseTest {
                 () -> assertTrue(signedJWT.verify(
                         new DefaultJWSVerifierFactory().createJWSVerifier(
                                 jwtHeader,
-                                jwkSet.getKeyByKeyId(jwtHeader.getKeyID()).toRSAKey().toRSAPublicKey()))),
+                                jwkSet.getKeyByKeyId(jwtHeader.getKeyID()).toECKey().toKeyPair().getPublic()    ))),
                 () -> assertEquals(openIDConnectSdk.getSDKConfiguration().getIssuer().toString(), jwtClaimsSet.getIssuer()),
                 () -> assertEquals(client1.getClientId(), jwtClaimsSet.getAudience().get(0)),
                 () -> assertEquals("c", jwtClaimsSet.getStringClaim("code")),
