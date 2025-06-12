@@ -27,8 +27,10 @@ public class Authorization implements Cacheable, AuditDataProvider {
     @Singular("attribute")
     private Map<String, Serializable> attributes = new HashMap<>();
     private String code;
+    private String scope;
     private String nonce;
     private String codeChallenge;
+    private String clientId;
     private String aud;
     private String sub;
     private String amr;
@@ -66,9 +68,14 @@ public class Authorization implements Cacheable, AuditDataProvider {
                 .attribute("sub", sub)
                 .attribute("amr", amr)
                 .attribute("acr", acr)
-                .attribute("aud", aud);
+                .attribute("aud", aud)
+                .attribute("client_id", clientId);
+
         attributes.forEach(builder::attribute);
         return builder.build();
     }
 
+    public String getAud() {
+        return aud != null ? aud : clientId;
+    }
 }

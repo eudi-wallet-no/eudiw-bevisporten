@@ -26,7 +26,7 @@ public class AuthorizationEndpointController {
     @GetMapping("/authorize")
     public String authorize(@RequestHeader HttpHeaders headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request) {
         PushedAuthorizationRequest pushedAuthorizationRequest = openIDConnectSdk.process(new AuthorizationRequest(headers, parameters));
-        Authorization authorization = Authorization.builder().sub("12345678901").attribute("scope", String.join(" ", pushedAuthorizationRequest.getScope())).build();
+        Authorization authorization = Authorization.builder().sub("12345678901").build();
         AuthorizationResponse authorizationResponse = openIDConnectSdk.authorize(pushedAuthorizationRequest, authorization);
         ClientResponse clientResponse = openIDConnectSdk.createClientResponse(authorizationResponse);
         return "redirect:" + ((RedirectedResponse) clientResponse).toQueryRedirectUri();

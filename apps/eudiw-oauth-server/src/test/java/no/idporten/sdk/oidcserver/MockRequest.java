@@ -20,6 +20,13 @@ public class MockRequest {
         return addToMap(parameter, value, parameters);
     }
 
+    public MockRequest setParameter(String parameter, String value) {
+        List<String> values = new ArrayList<>();
+        values.add(value);
+        parameters.put(parameter, values);
+        return this;
+    }
+
     public MockRequest addHeader(String header, String value) {
         return addToMap(header, value, headers);
     }

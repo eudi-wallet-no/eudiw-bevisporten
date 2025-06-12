@@ -13,6 +13,8 @@ import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import no.idporten.sdk.oidcserver.util.StringUtils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -79,6 +81,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         validateState(authorizationRequest, clientMetadata);
         validateNonce(authorizationRequest, clientMetadata);
         validateAuthorizationDetails(authorizationRequest, clientMetadata);
+        validateResource(authorizationRequest, clientMetadata);
     }
 
     protected void validateClientId(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
@@ -194,6 +197,27 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 if (!getSDKConfiguration().supportsAuthorizationDetailsType(authorizationDetail.getType())) {
                     throw new OAuth2Exception(OAuth2Exception.INVALID_AUTHORIZATION_DETAILS, "Unsupported authorization_details type.", 400);
                 }
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    protected void validateResource(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
+        if (authorizationRequest.getResource() != null) {
+            final URI uri;
+            try {
+                uri = new URI(authorizationRequest.getResource());
+            } catch (URISyntaxException e) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource.", 400);
+            }
+            if (! uri.isAbsolute()) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource. Must be absolute.", 400);
+            }
+            if (StringUtils.hasText(uri.getQuery())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource.  Cannot contain query params.", 400);
+            }
+            if (StringUtils.hasText(uri.getFragment())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource.  Cannot contain fragments.", 400);
             }
         }
     }
@@ -421,7 +445,9 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         authorization.setNonce(pushedAuthorizationRequest.getNonce());
         authorization.setCodeChallenge(pushedAuthorizationRequest.getCodeChallenge());
         authorization.setLifetimeSeconds(sdkConfiguration.getAuthorizationLifetimeSeconds());
-        authorization.setAud(pushedAuthorizationRequest.getClientId());
+        authorization.setClientId(pushedAuthorizationRequest.getClientId());
+        authorization.setAud(pushedAuthorizationRequest.getResource());
+        authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
         if (!hasText(authorization.getAcr())) {
             authorization.setAcr(pushedAuthorizationRequest.getResolvedAcrValue());
         }
@@ -430,7 +456,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         sdkConfiguration.getAuditLogger().auditAuthorization(authorization);
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
                 .redirectUri(pushedAuthorizationRequest.getRedirectUri())
-                .aud(authorization.getAud())
+                .aud(pushedAuthorizationRequest.getClientId())
                 .iss(sdkConfiguration.isAuthorizationResponseIssParameterSupported() ? sdkConfiguration.getIssuer().toString() : null)
                 .responseMode(pushedAuthorizationRequest.getResolvedResponseMode())
                 .code(code)
@@ -490,7 +516,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         if (!authorization.isValidNow()) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The grant has expired.", 400);
         }
-        if (!Objects.equals(clientMetadata.getClientId(), authorization.getAud())) {
+        if (!Objects.equals(clientMetadata.getClientId(), authorization.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The grant is not issued to authenticated client.", 400);
         }
         if ((getSDKConfiguration().isRequirePkce() || hasText(authorization.getCodeChallenge())) && !validateCodeVerifier(tokenRequest.getCodeVerifier(), authorization.getCodeChallenge())) {
@@ -519,32 +545,49 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
 
     protected final TokenResponse createTokenResponse(Authorization authorization) throws JOSEException {
         validateAuthorization(authorization);
-        boolean isOpenIDConnect = authorization.getAttributes().containsKey("scope") && authorization.getAttributes().get("scope").toString().contains("openid");
-        String idToken = null;
-        if (isOpenIDConnect) {
-            JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder()
-                    .jwtID(generateId())
-                    .issuer(sdkConfiguration.getIssuer().toString())
-                    .audience(authorization.getAud())
-                    .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getIdTokenLifetimeSeconds() * 1000)))
-                    .issueTime(new Date())
-                    .claim("auth_time", new Date().getTime() / 1000)
-                    .claim("nonce", authorization.getNonce())
-                    .subject(authorization.getSub())
-                    .claim("acr", authorization.getAcr());
-            if (hasText(authorization.getAmr())) {
-                jwtClaimsSetBuilder.claim("amr", authorization.getAmr().split(",\\s*"));
-            }
-            authorization.getAttributes().entrySet().forEach(attribute -> jwtClaimsSetBuilder.claim(attribute.getKey(), attribute.getValue()));
-            idToken = signJwt(jwtClaimsSetBuilder.build());
-        }
+        boolean isOpenIDConnect = authorization.getScope().contains("openid");
         return TokenResponse.builder()
-                // TODO access_token egen sak, fjerne id_tokenb
-                .idToken(idToken)
-                .accessToken(generateId())
+                .idToken(isOpenIDConnect ? createIDToken(authorization) : null)
+                .accessToken(createAccessToken(authorization))
                 .expiresInSeconds(sdkConfiguration.getAccessTokenLifetimeSeconds())
                 .build();
     }
+
+    private String createIDToken(Authorization authorization) throws JOSEException {
+        String idToken;
+        JWTClaimsSet.Builder idTokenClaimsSetBuilder = new JWTClaimsSet.Builder()
+                .jwtID(generateId())
+                .issuer(sdkConfiguration.getIssuer().toString())
+                .audience(authorization.getClientId())
+                .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getIdTokenLifetimeSeconds() * 1000L)))
+                .issueTime(new Date())
+                .claim("auth_time", new Date().getTime() / 1000)
+                .claim("nonce", authorization.getNonce())
+                .subject(authorization.getSub())
+                .claim("acr", authorization.getAcr());
+        if (hasText(authorization.getAmr())) {
+            idTokenClaimsSetBuilder.claim("amr", authorization.getAmr().split(",\\s*"));
+        }
+        authorization.getAttributes().forEach(idTokenClaimsSetBuilder::claim);
+        idToken = signJwt("id_token+jwt", idTokenClaimsSetBuilder.build());
+        return idToken;
+    }
+
+    private String createAccessToken(Authorization authorization) throws JOSEException {
+        String accessToken;
+        JWTClaimsSet.Builder accessTokenClaimsSetBuilder = new JWTClaimsSet.Builder()
+                .jwtID(generateId())
+                .issuer(sdkConfiguration.getIssuer().toString())
+                .audience(authorization.getAud())
+                .claim("client_id", authorization.getClientId())
+                .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getAccessTokenLifetimeSeconds() * 1000L)))
+                .issueTime(new Date())
+                .subject(authorization.getSub());
+        authorization.getAttributes().forEach(accessTokenClaimsSetBuilder::claim);
+        accessToken = signJwt("at+JWT", accessTokenClaimsSetBuilder.build());
+        return accessToken;
+    }
+
 
     @Override
     public UserInfoResponse process(UserInfoRequest userInfoRequest) {
@@ -586,8 +629,8 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                         .issuer(sdkConfiguration.getIssuer().toString())
                         .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getAuthorizationLifetimeSeconds() * 1000)))
                         .issueTime(new Date());
-                authorizationResponse.toResponseParameters().entrySet().forEach(attribute -> jwtClaimsSetBuilder.claim(attribute.getKey(), attribute.getValue()));
-                return new RedirectedResponse(authorizationResponse.getRedirectUri(), Map.of("response", signJwt(jwtClaimsSetBuilder.build())));
+                authorizationResponse.toResponseParameters().forEach(jwtClaimsSetBuilder::claim);
+                return new RedirectedResponse(authorizationResponse.getRedirectUri(), Map.of("response", signJwt("JWT", jwtClaimsSetBuilder.build())));
             } catch (JOSEException e) {
                 throw new OAuth2Exception(OAuth2Exception.SERVER_ERROR, "Failed to send signed response", 500, e);
             }
@@ -653,11 +696,12 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    protected String signJwt(JWTClaimsSet jwtClaimsSet) throws JOSEException {
+    protected String signJwt(String type, JWTClaimsSet jwtClaimsSet) throws JOSEException {
         JWSSigner signer = new RSASSASigner(sdkConfiguration.getJwk());
         SignedJWT signedJWT = new SignedJWT(
                 new JWSHeader
                         .Builder(sdkConfiguration.getDefaultSigningAlgorithm())
+                        .type(new JOSEObjectType(type))
                         .keyID(sdkConfiguration.getJwk().getKeyID())
                         .build(),
                 jwtClaimsSet);
