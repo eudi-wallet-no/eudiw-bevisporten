@@ -1,21 +1,31 @@
 package no.idporten.eudiw.issuer.claimssource.pid;
 
-import com.nimbusds.openid.connect.sdk.claims.UserInfo;
-import net.minidev.json.JSONObject;
+import com.nimbusds.jwt.JWT;
+import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
-import no.idporten.eudiw.issuer.claimssource.OAuth2ResourceServerClaimsSource;
+import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-public class PIDClaimsSource extends OAuth2ResourceServerClaimsSource<Map<String, Object>> {
+public class PIDClaimsSource implements ClaimsSource {
 
     public static final String NAMESPACE = "eu.europa.ec.eudi.pid.1";
+    private ClaimsSourceProperties properties;
+
+    @Override
+    public void init(ClaimsSourceProperties properties) {
+        this.properties = properties;
+    }
+
+    @Override
+    public ClaimsSourceProperties getProperties() {
+        return properties;
+    }
 
     @Override
     public ClaimsSourceMetadata getMetadata() {
@@ -30,17 +40,13 @@ public class PIDClaimsSource extends OAuth2ResourceServerClaimsSource<Map<String
                 .build();
     }
 
+    @SneakyThrows
     @Override
-    protected List<Claim> mapClaims(Map<String, Object> userInfoMap) {
-        UserInfo userInfo = new UserInfo(new JSONObject(userInfoMap));
+    public List<Claim> retrieveClaims(JWT accessToken) {
         List<Claim> claims = new ArrayList<>();
-        claims.add(Claim.builder().path(NAMESPACE).path("personal_administrative_number").value(userInfo.getStringClaim("pid")).build());
-        claims.add(Claim.builder().path(NAMESPACE).path("given_name").value(userInfo.getStringClaim("given_name")).build());
+        claims.add(Claim.builder().path(NAMESPACE).path("personal_administrative_number").value(accessToken.getJWTClaimsSet().getSubject()).build());
+        claims.add(Claim.builder().path(NAMESPACE).path("given_name").value("navn" + accessToken.getJWTClaimsSet().getSubject()).build());
         return claims;
-    }
-
-    protected Class getResponseClass() {
-        return new HashMap<String, Object>().getClass();
     }
 
 }

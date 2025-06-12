@@ -13,5 +13,5 @@ spring:
 credential-issuer-server:
   credential-issuer: http://eudiw-issuer-server:9240
   authorization-servers:
-    - issuer: https://idporten.dev
-      jwks-uri: https://idporten.dev/jwks.json
+    - issuer: https://auth.eidas2sandkasse.dev
+      jwks-uri: https://auth.eidas2sandkasse.dev/jwks

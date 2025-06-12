@@ -6,5 +6,5 @@ spring:
 credential-issuer-server:
   credential-issuer: https://utsteder.test.eidas2sandkasse.net
   authorization-servers:
-    - issuer: https://test.idporten.no
-      jwks-uri: https://test.idporten.no/jwks.json
+    - issuer: https://auth.test.eidas2sandkasse.net
+      jwks-uri: https://auth.test.eidas2sandkasse.net/jwks
