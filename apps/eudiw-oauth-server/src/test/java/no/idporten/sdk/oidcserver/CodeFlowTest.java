@@ -126,7 +126,7 @@ class CodeFlowTest {
         JWTClaimsSet idTokenClaimsSet = idToken.getJWTClaimsSet();
         assertTrue(idToken.verify(new DefaultJWSVerifierFactory().createJWSVerifier(
                 idTokenHeader,
-                jwkSet.getKeyByKeyId(idTokenHeader.getKeyID()).toRSAKey().toRSAPublicKey())));
+                jwkSet.getKeyByKeyId(idTokenHeader.getKeyID()).toECKey().toPublicKey())));
         assertEquals(TestUtils.defaultIssuer(), idTokenClaimsSet.getIssuer());
         assertEquals(clientMetadata.getClientId(), idTokenClaimsSet.getAudience().getFirst());
         assertEquals("n", idTokenClaimsSet.getClaim("nonce"));
@@ -146,11 +146,12 @@ class CodeFlowTest {
         JWTClaimsSet accessTokenClaimsSet = accessToken.getJWTClaimsSet();
         assertTrue(accessToken.verify(new DefaultJWSVerifierFactory().createJWSVerifier(
                 accessTokenHeader,
-                jwkSet.getKeyByKeyId(accessTokenHeader.getKeyID()).toRSAKey().toRSAPublicKey())));
+                jwkSet.getKeyByKeyId(accessTokenHeader.getKeyID()).toECKey().toKeyPair().getPublic())));
         assertEquals(TestUtils.defaultIssuer(), accessTokenClaimsSet.getIssuer());
         assertEquals("https://api.idporten.junit/v1", accessTokenClaimsSet.getAudience().getFirst());
         assertEquals(clientMetadata.getClientId(), accessTokenClaimsSet.getClaim("client_id"));
         assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
+        assertEquals("openid pid.mdoc", accessTokenClaimsSet.getClaim("scope"));
 
         // 7. Process optional userinfo request
         request = new MockRequest();
