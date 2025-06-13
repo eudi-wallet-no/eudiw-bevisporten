@@ -26,3 +26,11 @@ management:
     tags:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
+
+oauth-authorization-server:
+  keystore:
+    type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
+    location: ${TOKEN_SIGNING_KEYSTORE_LOCATION}
+    password: ${TOKEN_SIGNING_KEYSTORE_PASSWORD}
+    key-alias: ${TOKEN_SIGNING_KEYSTORE_KEY_ALIAS}
+    key-password: ${TOKEN_SIGNING_KEYSTORE_KEY_PASSORD}
