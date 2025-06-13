@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import no.idporten.eudiw.oauthserver.crypto.KeyStoreProperties;
 import no.idporten.eudiw.oauthserver.crypto.KeyStoreProvider;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegrationBase;
@@ -17,7 +18,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -53,20 +53,14 @@ public class OpenIDConnectConfiguration implements InitializingBean {
     private int parLifetimeSeconds = 60;
     @Min(1)
     private int authorizationLifetimeSeconds = 60;
-    private String keystoreType;
-    private String keystoreLocation;
-    private String keystorePassword;
-    private String keystoreKeyAlias;
-    private String keystoreKeyPassword;
     private boolean requirePkce = true;
+    private KeyStoreProperties keyStore;
+
+
 
     @Override
     public void afterPropertiesSet() {
-        if (StringUtils.hasText(keystoreType)) {
-            notEmptyForServerKeystore("keystoreLocation", keystoreLocation);
-            notEmptyForServerKeystore("keystorePassword", keystorePassword);
-            notEmptyForServerKeystore("keystoreKeyAlias", keystoreKeyAlias);
-            notEmptyForServerKeystore("keystoreKeyPassword", keystoreKeyPassword);
+        if (keyStore != null) {
         }
     }
 
@@ -103,10 +97,10 @@ public class OpenIDConnectConfiguration implements InitializingBean {
 //                        .clients(clients);
                         .cache(new SimpleOpenIDConnectCache())
         ;
-        if (keystoreType == null) {
+        if (keyStore == null) {
             builder.jwk(generateServerECKey());
         } else {
-            builder.keystore(loadServerKeystore(), keystoreKeyAlias, keystoreKeyPassword);
+            builder.keystore(loadServerKeystore(keyStore), keyStore.keyAlias(), keyStore.keyPassword());
         }
         log.info("Initialized OIDC SDK with id {} for issuer {}", internalId, issuer);
         return builder.build();
@@ -122,15 +116,8 @@ public class OpenIDConnectConfiguration implements InitializingBean {
         return ecKey;
     }
 
-    public KeyStore loadServerKeystore() throws Exception {
-        KeyStore keyStore = new KeyStoreProvider(
-                keystoreType,
-                keystoreLocation,
-                keystorePassword,
-                new DefaultResourceLoader())
-                .keyStore();
-        log.info("Loaded server keystore from {}", keystoreLocation);
-        return keyStore;
+    public KeyStore loadServerKeystore(KeyStoreProperties keyStoreProperties) {
+        return new KeyStoreProvider(keyStoreProperties).keyStore();
     }
 
 }
