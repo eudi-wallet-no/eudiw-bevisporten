@@ -7,4 +7,4 @@ credential-issuer-server:
   credential-issuer: https://utsteder.eidas2sandkasse.dev
   authorization-servers:
     - issuer: https://auth.eidas2sandkasse.dev
-      jwks-uri: https://auth.eidas2sandkasse.dev/jwks
+      jwks-uri: http://eudiw-oauth-server-service:8080/jwks
