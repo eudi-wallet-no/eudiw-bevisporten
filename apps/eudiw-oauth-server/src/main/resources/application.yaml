@@ -27,6 +27,27 @@ management:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
 
+# Digdir standard logging
+digdir:
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
+  audit:
+    log-dir:
+    log-file:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false
+      bearer-token: false
+      correlation-id: false
+      ip-address: true
+    prometheus:
+      counter: true
+
+# EUDIW oAuth proxy
 oauth-authorization-server:
   keystore:
     type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
