@@ -13,7 +13,7 @@ services:
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     environment:
       spring_profiles_active: docker
-      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
     env_file:
         - .env
     ports:
