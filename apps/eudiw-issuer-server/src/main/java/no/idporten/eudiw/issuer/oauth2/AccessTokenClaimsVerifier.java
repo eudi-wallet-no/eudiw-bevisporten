@@ -11,8 +11,8 @@ import java.util.Set;
 
 public class AccessTokenClaimsVerifier<C extends SecurityContext> extends DefaultJWTClaimsVerifier<C> {
 
-    public AccessTokenClaimsVerifier(Set<String> requiredClaims) {
-        super(null, null, requiredClaims, null);
+    public AccessTokenClaimsVerifier(Set<String> acceptedAudience, Set<String> requiredClaims) {
+        super(acceptedAudience, null, requiredClaims, null);
     }
 
     @Override
