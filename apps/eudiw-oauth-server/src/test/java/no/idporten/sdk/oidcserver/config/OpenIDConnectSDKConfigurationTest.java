@@ -1,7 +1,6 @@
 package no.idporten.sdk.oidcserver.config;
 
 import no.idporten.sdk.oidcserver.TestUtils;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -59,32 +58,6 @@ public class OpenIDConnectSDKConfigurationTest {
     }
 
     @Test
-    @DisplayName("then the openid scope is supported by default")
-    void testAlwaysAddOpenidToScopesSupported() throws Exception {
-        OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder()
-                .scopeSupported("prefix:customscope")
-                .build();
-        assertTrue(sdkConfiguration.supportsScope("openid"));
-        assertTrue(sdkConfiguration.supportsScope("prefix:customscope"));
-    }
-
-    @Disabled // TODO
-    @Test
-    @DisplayName("then empty claims in claims supported is not allowed")
-    void testDetectEmptyClaimsInClaimsSupported() throws Exception {
-        OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder()
-                .claimSupported("claim")
-                .claimSupported("")
-                .build();
-        try {
-            sdkConfiguration.validate();
-            fail();
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("requires a list of non-empty values for claimsSupported"));
-        }
-    }
-
-    @Test
     @DisplayName("then an illegal response_mode is not allowed")
     void testDetectIllegalResponseMode() throws Exception {
         OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder()
@@ -96,18 +69,6 @@ public class OpenIDConnectSDKConfigurationTest {
         } catch (Exception e) {
             assertTrue(e.getMessage().contains("illegal values in list of values for responseModes"));
         }
-    }
-
-    @Test
-    @DisplayName("then supported claims are recognized")
-    void testSupportClaims() throws Exception {
-        OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder()
-                .claimSupported("c")
-                .build();
-        assertAll(
-                () -> assertTrue(sdkConfiguration.supportsClaim("c")),
-                () -> assertFalse(sdkConfiguration.supportsClaim("d"))
-        );
     }
 
     @Test

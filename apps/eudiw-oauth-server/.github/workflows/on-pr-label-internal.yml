@@ -1,3 +1,5 @@
+# See https://github.com/felleslosninger/github-workflows for reusable workflow used.
+
 name: On PR label
 
 on:

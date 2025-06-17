@@ -39,25 +39,25 @@ public class OpenIDConnectConfiguration implements InitializingBean {
 
     @NotNull
     private URI issuer;
-//    @NotEmpty
-//    private List<ClientMetadata> clients;
+
 //    @NotEmpty
 //    private List<String> uiLocales;
-//    @NotEmpty
-//    private List<String> acrValues;
+
+    @NotEmpty
+    private List<String> grantTypesSupported;
+
     @NotEmpty
     private List<String> scopesSupported;
-//    private List<String> claimsSupported = new ArrayList<>();
+
 //    @NotEmpty
 //    private List<String> responseModesSupported = new ArrayList<>();
+
     @Min(1)
     private int parLifetimeSeconds = 60;
     @Min(1)
     private int authorizationLifetimeSeconds = 60;
     private boolean requirePkce = true;
     private KeyStoreProperties keyStore;
-
-
 
     @Override
     public void afterPropertiesSet() {
@@ -78,7 +78,6 @@ public class OpenIDConnectConfiguration implements InitializingBean {
 
     @Bean
     public OpenIDConnectSdkConfiguration openIDConnectSdkConfig(AuditService auditService) throws Exception {
-        // TODO
         OpenIDConnectSdkConfiguration.OpenIDConnectSdkConfigurationBuilder builder =
                 OpenIDConnectSdkConfiguration.builder()
                         .internalId(internalId)
@@ -87,18 +86,17 @@ public class OpenIDConnectConfiguration implements InitializingBean {
                         .authorizationEndpoint(UriComponentsBuilder.fromUri(issuer).path("/authorize").build().toUri())
                         .tokenEndpoint(UriComponentsBuilder.fromUri(issuer).path("/token").build().toUri())
                         .jwksUri(UriComponentsBuilder.fromUri(issuer).path("/jwks").build().toUri())
+                        .grantTypesSupported(grantTypesSupported)
                         .authorizationRequestLifetimeSeconds(parLifetimeSeconds)
                         .authorizationLifetimeSeconds(authorizationLifetimeSeconds)
                         .requirePkce(requirePkce)
-//                        .acrValues(acrValues)
                         .responseMode("query")
 //                        .uiLocales(uiLocales)
                         .scopesSupported(scopesSupported)
-//                        .claimsSupported(claimsSupported)
-//                        .clients(clients);
+                        .authorizationDetailsTypeSupported("openid_credential")
                         .cache(new SimpleOpenIDConnectCache())
                         .auditLogger(auditService);
-        ;
+
         if (keyStore == null) {
             builder.jwk(generateServerECKey());
         } else {

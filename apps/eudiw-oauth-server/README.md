@@ -1,5 +1,5 @@
 # eudiw-ca-service
-EUDIW oAuth2 Server is an oauth server in front of ID-porten for wallet.
+EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate users through ID-porten for Wallet.
 
 
 
@@ -14,12 +14,12 @@ EUDIW oAuth2 Server is an oauth server in front of ID-porten for wallet.
 
 Profiles in the [resources](/src/main/resources) folder:
 
-| Profile | Description                                          |
-|---------|------------------------------------------------------|
-| dev     | Local development w/embedded H2                      |
-| docker  | Docker locally, run by docker-compose file w/MariaDB |
-| systest | Systest environment                                  |
-| test    | Test environment                                     |
+| Profile | Description                                   |
+|---------|-----------------------------------------------|
+| dev     | Local development                             |
+| docker  | Docker locally, run by docker-compose file    |
+| systest | Systest environment                           |
+| test    | Test environment                              |
 
 
 ## Running the application locally

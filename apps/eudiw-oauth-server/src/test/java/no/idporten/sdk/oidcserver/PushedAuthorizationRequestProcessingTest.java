@@ -157,34 +157,6 @@ public class PushedAuthorizationRequestProcessingTest {
 
     @Disabled // TODO
     @Test
-    @DisplayName("then the acr_values parameter is optional and acr is resolved automatically")
-    public void testAcrValuesResolved() {
-        MockRequest request = new MockRequest();
-        request.addParameter("acr_values", "");
-        PushedAuthorizationRequest authorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
-        openIDConnectSdk.validateAcrValues(authorizationRequest, ClientMetadata.builder().build());
-        assertEquals("Level3", authorizationRequest.getResolvedAcrValue());
-    }
-
-    @Disabled // TODO
-    @Test
-    @DisplayName("then the acr_values parameter must contain valid values if used")
-    public void testAcrValues() {
-        MockRequest request = new MockRequest();
-        request.addParameter("acr_values", "foo");
-        try {
-            openIDConnectSdk.validateAcrValues(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build());
-            fail();
-        } catch (OAuth2Exception e) {
-            assertAll(
-                    () -> assertEquals("invalid_request", e.error()),
-                    () -> assertTrue(e.errorDescription().contains("Requested values not supported"))
-            );
-        }
-    }
-
-    @Disabled // TODO
-    @Test
     @DisplayName("then the ui_locales parameter is optional and locale is resolved automatically")
     public void testUiLocalesResolved() {
         MockRequest request = new MockRequest();

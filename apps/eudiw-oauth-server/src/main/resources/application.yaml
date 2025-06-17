@@ -7,7 +7,6 @@ spring:
   application:
     name: eudiw-oauth-server
     environment: default
-  
 
 # Spring Boot Actuator
 management:
@@ -55,3 +54,6 @@ oauth-authorization-server:
     password: ${TOKEN_SIGNING_KEYSTORE_PASSWORD}
     key-alias: ${TOKEN_SIGNING_KEYSTORE_KEY_ALIAS}
     key-password: ${TOKEN_SIGNING_KEYSTORE_KEY_PASSORD}
+  grant-types-supported:
+    - authorization_code
+    - urn:ietf:params:oauth:grant-type:pre-authorized_code

@@ -1,1 +1,12 @@
 ---
+# EUDIW auth server
+oauth-authorization-server:
+  keystore:
+    type: JKS
+    location: classpath:./junit.jks
+    password: secret
+    key-alias: junit
+    key-password: secret
+  issuer: http://my-test-server
+  scopes-supported:
+    - ra

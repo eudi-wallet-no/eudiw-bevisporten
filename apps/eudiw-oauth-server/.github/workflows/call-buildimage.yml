@@ -1,5 +1,4 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+# See https://github.com/felleslosninger/github-workflows for reusable workflows used.
 
 name: Build/publish Docker image & update image version in config
 
