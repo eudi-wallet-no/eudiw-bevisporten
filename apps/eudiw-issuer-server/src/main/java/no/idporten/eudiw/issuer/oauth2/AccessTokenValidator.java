@@ -17,15 +17,20 @@ import com.nimbusds.openid.connect.sdk.validators.AbstractJWTValidator;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import org.springframework.http.HttpStatus;
 
+import java.net.URI;
+import java.util.Collections;
 import java.util.Set;
 
 public class AccessTokenValidator extends AbstractJWTValidator {
 
+    private final URI acceptedAudience;
 
-    public AccessTokenValidator(Issuer expectedIssuer, JWSKeySelector jwsKeySelector) {
+    public AccessTokenValidator(Issuer expectedIssuer, URI acceptedAudience, JWSKeySelector jwsKeySelector) {
         super(JOSEObjectType.JWT, expectedIssuer, new ClientID("IGNORE"), jwsKeySelector, null);
+        this.acceptedAudience = acceptedAudience;
     }
 
+    @SuppressWarnings("unchecked")
     public JWT validate(JWT accessToken) {
         if (accessToken == null) {
             throw new IssuerServerException("invalid_request", "Missing access token", HttpStatus.UNAUTHORIZED);
@@ -36,10 +41,9 @@ public class AccessTokenValidator extends AbstractJWTValidator {
         try {
             SignedJWT signedJWT = (SignedJWT) accessToken;
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
-            jwtProcessor.setJWSKeySelector(this.getJWSKeySelector());
-            jwtProcessor.setJWTClaimsSetVerifier(new AccessTokenClaimsVerifier<>(
-                    Set.of("iss", "aud", "sub", "scope", "iat", "exp")
-                    ));
+            jwtProcessor.setJWSKeySelector((JWSKeySelector<SecurityContext>) this.getJWSKeySelector());
+            jwtProcessor.setJWTClaimsSetVerifier(new AccessTokenClaimsVerifier<>(Collections.singleton(acceptedAudience.toString()),
+                    Set.of("iss", "aud", "sub", "scope", "iat", "exp")));
             jwtProcessor.setJWSTypeVerifier(createJWSTypeVerifier());
             jwtProcessor.process(accessToken, (SecurityContext) null);
             return signedJWT;
