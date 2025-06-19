@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWT;
 import id.walt.mdoc.doc.MDoc;
 import io.micrometer.common.util.StringUtils;
@@ -36,9 +37,10 @@ public class CredentialIssuerService {
         if (! validateScope(credentialConfigurationProperties.getScope(), accessToken)) {
             throw new IssuerServerException("insufficient_scope", "Invalid scope for credential configuration", HttpStatus.FORBIDDEN);
         }
+        JWK bindingKey = credentialRequest.getProof() != null ? credentialRequest.getProof().getBindingKey() : null;
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         List<Claim> claims = claimsSource.retrieveClaims(accessToken);
-        return createCredentials(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
+        return createCredentials(bindingKey, credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
     }
 
     private boolean validate(String authorizationServer, JWT accessToken) {
@@ -63,15 +65,16 @@ public class CredentialIssuerService {
     }
 
     @SneakyThrows
-    protected List<Credential> createCredentials(String format, String docType, List<Claim> claims) {
+    protected List<Credential> createCredentials(JWK bindingKey, String format, String docType, List<Claim> claims) {
         ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
         if ("mso_mdoc".equals(format)) {
-            MDoc mDoc = mDocService.issueCredentials(null, docType, claims);
+            MDoc mDoc = mDocService.issueCredentials(bindingKey, docType, claims);
             String encodedMDoc = Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
             return List.of(Credential.builder().credential(encodedMDoc).build());
         } else {
             return List.of(Credential.builder().credential(objectWriter.writeValueAsString(claims)).build());
         }
     }
+
 
 }
