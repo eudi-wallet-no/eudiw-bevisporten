@@ -30,10 +30,6 @@ public class MDocService {
     private final KeyProvider keyProvider;
 
     public MDoc issueCredentials(JWK jwk, String docType, List<Claim> claims) throws Exception {
-
-        // TODO erstatte med proof, egen sak
-        jwk = new ECKeyGenerator(Curve.P_256).generate();
-
         var ISSUER_KEY_ID = "ISSUER_KEY";
         var DEVICE_KEY_ID = "DEVICE_KEY";
         var READER_KEY_ID = "READER_KEY";
@@ -47,7 +43,6 @@ public class MDocService {
                                 keyProvider.privateKey(),
                                 List.of(keyProvider.certificate()),
                                 List.of(keyProvider.certificate())) // TODO root certs
-//                        ,
                 ));
         DeviceKeyInfo deviceKeyInfo = new DeviceKeyInfo(DataElement.Companion.fromCBOR(new OneKey(jwk.toECKey().toECPublicKey(), null).AsCBOR().EncodeToBytes()),
                 null,
