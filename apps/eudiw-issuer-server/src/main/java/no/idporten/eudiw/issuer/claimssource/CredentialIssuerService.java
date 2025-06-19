@@ -3,21 +3,22 @@ package no.idporten.eudiw.issuer.claimssource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.nimbusds.jwt.JWT;
+import id.walt.mdoc.doc.MDoc;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.HashMap;
+import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Service
@@ -25,6 +26,7 @@ public class CredentialIssuerService {
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
     private final ClaimsSourceService claimsSourceService;
+    private final MDocService mDocService;
 
     public List<Credential> issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
@@ -36,7 +38,7 @@ public class CredentialIssuerService {
         }
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         List<Claim> claims = claimsSource.retrieveClaims(accessToken);
-        return createCredentials(credentialConfigurationProperties.getFormat(), claims);
+        return createCredentials(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
     }
 
     private boolean validate(String authorizationServer, JWT accessToken) {
@@ -61,17 +63,12 @@ public class CredentialIssuerService {
     }
 
     @SneakyThrows
-    protected List<Credential> createCredentials(String format, List<Claim> claims) {
+    protected List<Credential> createCredentials(String format, String docType, List<Claim> claims) {
         ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
         if ("mso_mdoc".equals(format)) {
-            Map<String, Map<String, String>> mdocDocData = new HashMap<>();
-            for (Claim claim : claims) {
-                if (! mdocDocData.containsKey(claim.getPath().getFirst())) {
-                    mdocDocData.put(claim.getPath().getFirst(), new HashMap<>());
-                }
-                mdocDocData.get(claim.getPath().getFirst()).put(claim.getPath().getLast(), claim.getValue());
-            }
-            return List.of(Credential.builder().credential(objectWriter.writeValueAsString(mdocDocData)).build());
+            MDoc mDoc = mDocService.issueCredentials(null, docType, claims);
+            String encodedMDoc = Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
+            return List.of(Credential.builder().credential(encodedMDoc).build());
         } else {
             return List.of(Credential.builder().credential(objectWriter.writeValueAsString(claims)).build());
         }
