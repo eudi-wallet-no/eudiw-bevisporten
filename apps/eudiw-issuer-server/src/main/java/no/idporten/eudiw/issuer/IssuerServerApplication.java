@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
+import java.security.Security;
+
 @ConfigurationPropertiesScan
 @EnableConfigurationProperties
 @SpringBootApplication
@@ -12,6 +14,14 @@ public class IssuerServerApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(IssuerServerApplication.class, args);
+		addBouncyCastleProvider();
+	}
+
+	/**
+	 * Bootstrap Bouncy Castle.
+	 */
+	private static void addBouncyCastleProvider() {
+		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 	}
 
 }

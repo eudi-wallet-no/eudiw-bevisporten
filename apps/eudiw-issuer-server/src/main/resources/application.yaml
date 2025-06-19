@@ -39,3 +39,9 @@ credential-issuer-server:
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
+  key-store:
+    type: ${ISSUER_KEYSTORE_TYPE}
+    location: ${ISSUER_KEYSTORE_LOCATION}
+    password: ${ISSUER_KEYSTORE_PASSWORD}
+    key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
+    key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
