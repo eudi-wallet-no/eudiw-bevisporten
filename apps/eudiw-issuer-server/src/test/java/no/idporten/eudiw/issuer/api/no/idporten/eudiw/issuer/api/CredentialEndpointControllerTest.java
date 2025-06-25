@@ -62,8 +62,12 @@ public class CredentialEndpointControllerTest {
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content("""
                                 {
-                                    "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc"
-                                }"""))
+                                     "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
+                                     "proof": {
+                                         "jwt": "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoiMUUxQzUzQTYtOTNCMS00MTdFLUFBMzQtQjE0RTMyNjNEMTRBIiwia3R5IjoiRUMiLCJ1c2UiOiJzaWciLCJ4IjoiV1lGSGwwVTNBMXRCZHA4Y09IdS1YRGh6aEpjcF9XNkhJOWkyVU81UTUycyIsInkiOiJSLWZFdUhvWWVhMWNBTXJtSF9rTVNnWEhhb3NPSE9tc1QyVEh5VzlCU1lFIn0sInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0In0.eyJhdWQiOiJodHRwczpcL1wvZGVtby11dHN0ZWRlci50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQiLCJpYXQiOjE3NTAzMjc1MTksImlzcyI6ImRlbW8tbG9tbWVib2sifQ.-LSGbLPF3NDQoFEZInkhIDqLVcu7n5Zp-_5cQo3wYlSNSogwUa1FVmg6WOnKr6zHtb4v2ipRdnYjS2tq2LbXIg",
+                                         "type": "jwt"
+                                     }
+                                 }"""))
                 .andExpect(status().isAccepted())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.credentials").isArray())
@@ -114,6 +118,24 @@ public class CredentialEndpointControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.error").value("invalid_credential_request"));
         verifyNoInteractions(credentialIssuerService);
+    }
+
+    @DisplayName("then a credential without proof gives credential error response with a c_nonce")
+    @Test
+    void testMissingProofCredentialRequest() throws Exception {
+        setUpAccessTokenValidation();
+        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(List.of(Credential.builder().credential("foo").build()));
+        mockMvc.perform(post("/openid4vci/credential")
+                        .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("""
+                                {
+                                     "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc"
+                                 }"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.error").value("invalid_proof"))
+                .andExpect(jsonPath("$.c_nonce").isNotEmpty());
     }
 
 }
