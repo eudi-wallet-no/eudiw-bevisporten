@@ -29,7 +29,8 @@ public class CredentialIssuerServerConfiguration {
         CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
                 .credentialIssuer(properties.getCredentialIssuer())
                 .authorizationServers(properties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
-                .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT));
+                .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
+                .nonceEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT));
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
             ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());

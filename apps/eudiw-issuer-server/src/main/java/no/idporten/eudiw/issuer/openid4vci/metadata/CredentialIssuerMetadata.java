@@ -27,6 +27,9 @@ public class CredentialIssuerMetadata {
     @JsonProperty("credential_endpoint")
     private URI credentialEndpoint;
 
+    @JsonProperty("nonce_endpoint")
+    private URI nonceEndpoint;
+
     @JsonProperty("credential_configurations_supported")
     private CredentialConfigurations credentialConfigurations;
 
