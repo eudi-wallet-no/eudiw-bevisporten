@@ -10,6 +10,8 @@ import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
+import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
+import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,6 +31,7 @@ public class CredentialEndpointController {
 
     private final CredentialIssuerService credentialIssuerService;
     private final AuthorizationServerService authorizationServerService;
+    private final NonceService nonceService;
 
     @PostMapping(path = Endpoints.CREDENTIAL_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialResponse> credentialEndpoint(@RequestBody CredentialRequest credentialRequest,
@@ -36,6 +39,9 @@ public class CredentialEndpointController {
         JWT accessToken = extractAccessTokenFromAuthorizationHeader(authorizationHeader);
         JWT validAccessToken = validateAccessToken(accessToken);
         credentialRequest.validate();
+        if (credentialRequest.getProof() == null) {
+            throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
+        }
         List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, validAccessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
