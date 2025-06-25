@@ -27,6 +27,8 @@ public class CredentialIssuerServerProperties {
     @NotEmpty
     private List<@NotNull String> cryptographicBindings;
     @NotEmpty
+    private List<@NotNull String> proofSigningAlgorithms;
+    @NotEmpty
     private List<AuthorizationServer> authorizationServers;
     @NotEmpty
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;

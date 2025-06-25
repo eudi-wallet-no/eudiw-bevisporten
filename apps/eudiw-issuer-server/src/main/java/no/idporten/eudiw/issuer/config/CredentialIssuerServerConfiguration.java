@@ -9,9 +9,7 @@ import no.idporten.eudiw.issuer.crypto.KeyProvider;
 import no.idporten.eudiw.issuer.crypto.KeyStoreProperties;
 import no.idporten.eudiw.issuer.crypto.KeyStoreProvider;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
-import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
-import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfigurations;
-import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
+import no.idporten.eudiw.issuer.openid4vci.metadata.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -48,6 +46,7 @@ public class CredentialIssuerServerConfiguration {
                             .claims(claimsSourceMetadata.getClaims())
                             // config from issuer server
                             .cryptographicBindingMethods(properties.getCryptographicBindings())
+                            .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(properties.getProofSigningAlgorithms()).build()).build())
                     .build());
         }
         builder.credentialConfigurations(credentialConfigurations);

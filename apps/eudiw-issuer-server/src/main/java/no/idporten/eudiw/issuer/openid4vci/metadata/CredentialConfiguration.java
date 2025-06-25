@@ -33,5 +33,7 @@ public class CredentialConfiguration  {
     @JsonProperty("claims")
     private List<ClaimsDescription> claims;
 
+    @JsonProperty("proof_types_supported")
+    private ProofTypes proofTypes;
 
 }
