@@ -13,9 +13,21 @@ public class InvalidProof extends IssuerServerException {
     private final Nonce nonce;
     private final long nonceExpiresInSecpnds = 60 * 60 * 24;
 
+    public InvalidProof(Nonce nonce, String errorDescription, Throwable cause) {
+        super(INVALID_PROOF, errorDescription, HttpStatus.BAD_REQUEST, cause);
+        this.nonce = nonce == null ? new Nonce() : nonce;
+    }
+
     public InvalidProof(Nonce nonce, String errorDescription) {
-        super(INVALID_PROOF, errorDescription, HttpStatus.BAD_REQUEST);
-        this.nonce = nonce;
+        this(nonce, errorDescription, null);
+    }
+
+    public InvalidProof(String errorDescription) {
+        this(null, errorDescription);
+    }
+
+    public InvalidProof(String errorDescription, Throwable cause) {
+        this(null, errorDescription, cause);
     }
 
 }
