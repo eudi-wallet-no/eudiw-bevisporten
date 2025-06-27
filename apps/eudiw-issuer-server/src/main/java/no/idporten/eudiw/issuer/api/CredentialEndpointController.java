@@ -12,6 +12,7 @@ import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
 import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
 import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
+import no.idporten.eudiw.issuer.openid4vci.service.ProofService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +33,7 @@ public class CredentialEndpointController {
     private final CredentialIssuerService credentialIssuerService;
     private final AuthorizationServerService authorizationServerService;
     private final NonceService nonceService;
+    private final ProofService proofService;
 
     @PostMapping(path = Endpoints.CREDENTIAL_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialResponse> credentialEndpoint(@RequestBody CredentialRequest credentialRequest,
@@ -42,6 +44,7 @@ public class CredentialEndpointController {
         if (credentialRequest.getProof() == null) {
             throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
         }
+        proofService.validateProof(credentialRequest.getProof());
         List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, validAccessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
