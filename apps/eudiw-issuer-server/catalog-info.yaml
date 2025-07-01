@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-issuer-server
+  description: EUDIWs issuer-server
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-issuer-server
+spec:
+  type: application
+  lifecycle: production
+  owner: team-digital-lommebok
+  system: digital-lommebok-issuer-server
+  dependsOn:
+

@@ -7,4 +7,4 @@ credential-issuer-server:
   credential-issuer: https://utsteder.test.eidas2sandkasse.net
   authorization-servers:
     - issuer: https://auth.test.eidas2sandkasse.net
-      jwks-uri: http://eudiw-oauth-server-service:8080/jwks
+      jwks-uri: http://digital-lommebok-oauth-server-service:8080/jwks
