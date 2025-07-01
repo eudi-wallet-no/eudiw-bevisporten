@@ -1,10 +1,10 @@
-name: eudiw-oauth-server
+name: digital-lommebok-oauth-server
 networks:
   eudiw:
     name: eudiw
 
 services:
-  eudiw-oauth-server:
+  digital-lommebok-oauth-server:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile

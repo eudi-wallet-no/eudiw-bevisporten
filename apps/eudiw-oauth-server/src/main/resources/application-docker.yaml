@@ -15,7 +15,7 @@ spring:
 
 # EUDIW auth server
 oauth-authorization-server:
-  issuer: http://eudiw-oauth-server:9260
+  issuer: http://digital-lommebok-oauth-server:9260
   scopes-supported:
     - foo
     - bar
