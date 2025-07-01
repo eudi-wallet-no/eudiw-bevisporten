@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: eudiw-issuer-server
+    name: digital-lommebok-issuer-server
     environment: default
 
 management:
