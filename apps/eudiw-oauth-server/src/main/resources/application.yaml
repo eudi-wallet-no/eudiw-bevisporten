@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: eudiw-oauth-server
+    name: digital-lommebok-oauth-server
     environment: default
 
 # Spring Boot Actuator
