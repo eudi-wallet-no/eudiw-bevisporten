@@ -1,2 +1,1 @@
-CVE-2025-22874 # stdlib crypto/x509: Usage of ExtKeyUsageAny disables policy validation in crypto/x509
-CVE-2025-48988 # tomcat: Apache Tomcat DoS in multipart upload
+# <CVE> # <package/affected code>. Fixed in <version>.
