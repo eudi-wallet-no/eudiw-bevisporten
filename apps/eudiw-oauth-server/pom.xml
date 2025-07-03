@@ -21,7 +21,7 @@
         <opentelemetry-api.version>1.51.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <log4j2.version>2.16.0</log4j2.version>
-        <nimbus-jose-jwt.version>10.3</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>10.3.1</nimbus-jose-jwt.version>
         <gson.version>2.13.1</gson.version> <!-- Gson version used by nimbus-jose-jwt, but for some reason the wrong version is included. remove when fixed-->
         <lombok.version>1.18.38</lombok.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
