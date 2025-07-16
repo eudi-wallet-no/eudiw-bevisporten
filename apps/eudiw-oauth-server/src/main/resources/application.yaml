@@ -48,6 +48,9 @@ digdir:
 
 # EUDIW oAuth proxy
 oauth-authorization-server:
+  features:
+    allow-real-person-identifiers: false
+    allow-synthetic-person-identifiers: true
   keystore:
     type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
     location: ${TOKEN_SIGNING_KEYSTORE_LOCATION}
@@ -57,3 +60,23 @@ oauth-authorization-server:
   grant-types-supported:
     - authorization_code
     - urn:ietf:params:oauth:grant-type:pre-authorized_code
+
+oidc-proxy:
+  connect-timeout-millis: 5000
+  read-timeout-millis: 5000
+  redirect-uri: ${oauth-authorization-server.issuer}/callback
+  oidc-issuer:
+    issuer: https://test.idporten.no
+    authorization-endpoint: https://login.test.idporten.no/authorize
+    pushed-authorization-request-endpoint: ${oidc-proxy.oidc-issuer.issuer}/par
+    token-endpoint: ${oidc-proxy.oidc-issuer.issuer}/token
+    jwks-uri: ${oidc-proxy.oidc-issuer.issuer}/jwks.json
+  oidc-client:
+    client-id: ${OIDC_CLIENT_ID}
+    client-authentication-method: private_key_jwt
+    keystore:
+      type: pkcs12
+      location: ${OIDC_CLIENT_KEYSTORE_LOCATION}
+      password: ${OIDC_CLIENT_KEYSTORE_PASSWORD}
+      key-alias: ${OIDC_CLIENT_KEYSTORE_KEY_ALIAS}
+      key-password: ${OIDC_CLIENT_KEYSTORE_KEY_PASSWORD}

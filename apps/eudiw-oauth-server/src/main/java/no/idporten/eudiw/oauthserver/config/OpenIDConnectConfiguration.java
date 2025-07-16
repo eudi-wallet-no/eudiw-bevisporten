@@ -12,8 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.oauthserver.audit.AuditService;
 import no.idporten.eudiw.oauthserver.crypto.KeyStoreProperties;
 import no.idporten.eudiw.oauthserver.crypto.KeyStoreProvider;
-import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
-import no.idporten.sdk.oidcserver.OpenIDConnectIntegrationBase;
+import no.idporten.eudiw.oauthserver.server.OAuth2AuthorizationServer;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -72,8 +71,8 @@ public class OpenIDConnectConfiguration implements InitializingBean {
     }
 
     @Bean
-    public OpenIDConnectIntegration openIDConnectSdk(OpenIDConnectSdkConfiguration openIDConnectSdkConfig) {
-        return new OpenIDConnectIntegrationBase(openIDConnectSdkConfig);
+    public OAuth2AuthorizationServer openIDConnectSdk(OpenIDConnectSdkConfiguration openIDConnectSdkConfig) {
+        return new OAuth2AuthorizationServer(openIDConnectSdkConfig);
     }
 
     @Bean

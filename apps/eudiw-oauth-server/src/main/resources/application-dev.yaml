@@ -20,3 +20,8 @@ oauth-authorization-server:
   scopes-supported:
     - foo
     - bar
+oidc-proxy:
+  redirect-uri: ${oauth-authorization-server.issuer}/callback
+  oidc-issuer:
+    issuer: https://idporten.dev
+    authorization-endpoint: https://login.idporten.dev/authorize
