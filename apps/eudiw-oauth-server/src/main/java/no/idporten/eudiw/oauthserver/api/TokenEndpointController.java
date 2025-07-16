@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Handles OAuth2 token from clients.
+ * Handles OAuth2 token requests from clients.
  */
 @Slf4j
 @Controller

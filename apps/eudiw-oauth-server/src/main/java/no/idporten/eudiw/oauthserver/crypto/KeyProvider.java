@@ -15,6 +15,7 @@ import java.util.List;
  */
 public class KeyProvider {
 
+    private String alias;
     private PrivateKey privateKey;
     private Certificate certificate;
     private List<Certificate> certificateChain;
@@ -26,6 +27,7 @@ public class KeyProvider {
      */
     public KeyProvider(KeyStore keyStore, String alias, String password) {
         try {
+            this.alias = alias;
             privateKey = (PrivateKey) keyStore.getKey(alias, password.toCharArray());
             certificate = keyStore.getCertificate(alias);
             publicKey = certificate.getPublicKey();
@@ -64,6 +66,10 @@ public class KeyProvider {
     public String getKid() {
         byte[] bytes = MessageDigest.getInstance("SHA-256").digest(publicKey.getEncoded());
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    public String getAlias() {
+        return alias;
     }
 
 }
