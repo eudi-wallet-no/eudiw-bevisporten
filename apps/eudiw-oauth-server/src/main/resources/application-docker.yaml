@@ -1,6 +1,10 @@
 ---
 server:
   port: 9260
+  servlet:
+    session:
+      cookie:
+        secure: false
 
 management:
   server:
@@ -12,6 +16,10 @@ management:
 spring:
   application:
     environment: docker
+  data:
+    redis:
+      port: 6379
+      host: redis
 
 # EUDIW auth server
 oauth-authorization-server:

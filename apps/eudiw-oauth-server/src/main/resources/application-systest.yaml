@@ -2,7 +2,17 @@
 spring:
   application:
     environment: systest
- 
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-redis-sentinel-node-0.digital-lommebok-redis-sentinel-headless:26379
+          - digital-lommebok-redis-sentinel-node-1.digital-lommebok-redis-sentinel-headless:26379
+          - digital-lommebok-redis-sentinel-node-2.digital-lommebok-redis-sentinel-headless:26379
+
 # EUDIW auth server
 oauth-authorization-server:
   issuer: https://auth.eidas2sandkasse.dev
