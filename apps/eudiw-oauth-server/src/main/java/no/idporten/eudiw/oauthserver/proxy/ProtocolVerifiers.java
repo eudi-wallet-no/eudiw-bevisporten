@@ -7,12 +7,13 @@ import jakarta.servlet.http.HttpSession;
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import org.springframework.http.HttpStatus;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Verification objects for OIDC protocol.
  */
-public record ProtocolVerifiers(State state, Nonce nonce, CodeVerifier codeVerifier) {
+public record ProtocolVerifiers(State state, Nonce nonce, CodeVerifier codeVerifier) implements Serializable {
 
     public static ProtocolVerifiers forLogin() {
         return new ProtocolVerifiers(new State(), new Nonce(), new CodeVerifier());

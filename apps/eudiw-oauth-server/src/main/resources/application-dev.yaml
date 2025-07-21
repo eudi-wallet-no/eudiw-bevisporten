@@ -1,6 +1,10 @@
 ---
 server:
   port: 9260
+  servlet:
+    session:
+      cookie:
+        secure: false
 
 management:
   server:
@@ -13,7 +17,11 @@ spring:
     import: file:.env[.properties]
   application:
     environment: dev
-  
+  data:
+    redis:
+      port: 9262
+      host: localhost
+
 # EUDIW auth server
 oauth-authorization-server:
   issuer: http://digital-lommebok-oauth-server:9260

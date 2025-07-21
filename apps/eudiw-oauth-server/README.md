@@ -1,4 +1,4 @@
-# eudiw-ca-service
+# eudiw-oauth2-server
 EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate users through ID-porten for Wallet.
 
 
@@ -7,10 +7,9 @@ EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate u
 - Java 24
 - Maven
 - Docker
+- Redis
 
 ## Configuration
-
-
 
 Profiles in the [resources](/src/main/resources) folder:
 
@@ -23,6 +22,8 @@ Profiles in the [resources](/src/main/resources) folder:
 
 
 ## Running the application locally
+
+Redis is needed for HTTP session and cache of protocol objects.  The docker compose setup adds a Redis server.
 
 The `dev` and `docker` profiles runs the application with the same configuration (certs, url).
 
