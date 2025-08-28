@@ -1,7 +1,7 @@
-name: digital-lommebok-oauth-server
+name: digital-lommebok-issuer
 networks:
-  eudiw:
-    name: eudiw
+  digital-lommebok:
+    name: digital-lommebok
 
 services:
   redis:
@@ -15,11 +15,11 @@ services:
     ports:
       - "9262:6379"
     networks:
-      - eudiw
+      - digital-lommebok
     command: redis-server --maxmemory-policy allkeys-lru
 
 
-  digital-lommebok-oauth-server:
+  oauth-server:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile
@@ -29,17 +29,16 @@ services:
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
-    env_file:
-        - .env
     ports:
       - "9260:9260"
       - "9261:9261"
       - "9265:9265"
     networks:
-      - eudiw
+      - digital-lommebok
     entrypoint: "/bin/bash -c"
     command:
       - |
+        set -a && . /usr/local/webapps/.env && set +a
         cd /usr/local/tomcat/webapps/
         java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9265 -jar application.jar
     healthcheck:
