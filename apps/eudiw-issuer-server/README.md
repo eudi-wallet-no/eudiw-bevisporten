@@ -24,7 +24,7 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 eudiw-issuer-server
+127.0.0.1 issuer-server
 ```
 
 The application can be started with Maven:
@@ -37,4 +37,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://eudiw-issuer-server:9240 .
+The application will run on http://issuer-server:9240 .
