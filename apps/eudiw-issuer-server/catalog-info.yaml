@@ -11,4 +11,5 @@ spec:
   owner: team-digital-lommebok
   system: digital-lommebok-issuer-server
   dependsOn:
+    - component:digital-lommebok-oauth-server
 
