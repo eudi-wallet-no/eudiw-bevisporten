@@ -29,7 +29,7 @@ The `dev` and `docker` profiles runs the application with the same configuration
 
 The local hosts file should include:
 ```
-127.0.0.1 eudiw-oauth-server
+127.0.0.1 oauth-server
 ```
 
 The application can be started with Maven:
@@ -42,4 +42,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://eudiw-oauth-server:9226 .
+The application will run on http://oauth-server:9260/.

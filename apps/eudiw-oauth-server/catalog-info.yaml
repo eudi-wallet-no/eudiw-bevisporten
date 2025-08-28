@@ -9,7 +9,7 @@ spec:
   type: application
   lifecycle: production
   owner: team-digital-lommebok
-  system: digital-lommebok-oauth-server
+  system: digital-lommebok
   dependsOn:
     - component:idporten-login
     - component:idporten-c2id-server
