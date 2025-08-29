@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+    <head>
+        <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+        <title>Sandkassa for digital lommebok: Test issuer</title>
+    </head>
+
+    <body>
+        <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+        <main>
+            <div>
+                <h1 class="ds-heading" data-size="lg">
+                    Demo issuer-ui for å starte utsteding av bevis med Digdir sin generelle issuer
+                </h1>
+            </div>
+
+
+            <h2 class="ds-heading">
+                Send inn attributter
+            </h2>
+
+            <form th:fragment="send_attributes_form_fragment"
+                  id="send_attributes_form"
+                  th:action="@{/start-issuance}"
+                  method="POST">
+
+                <p class="ds-paragraph">
+                    <label for="access_token_field"
+                           data-weight="medium"
+                           class="ds-label">
+                        Maskinporten access-token
+                    </label>
+                    <input type="text" id="access_token_field"
+                              placeholder="IxC0B76vlWl3fiQhAwZUmD0hr_PPwC9hSIXRdoUslPU="
+                              class="ds-input"/>
+                </p>
+
+                <p class="ds-paragraph">
+                    <label for="eaa_data_field"
+                           data-weight="medium"
+                           class="ds-label">
+                        Attributter for utferdig av bevis (i JSON-format)
+                    </label>
+                    <textarea id="eaa_data_field"
+                           placeholder="{nnid:123456789}"
+                           class="ds-input"></textarea>
+                </p>
+
+                <p class="ds-paragraph">
+
+                    Døme på attributter i JSON-format: <br/>
+                    <code>
+                        {"nnid":"123456789"}
+                    </code>
+                </p>
+                <button class="ds-button ds-button--primary"
+                        type="submit"
+                        form="send_attributes_form"
+                        data-variant="primary">
+                    Start utferdig av bevis
+                </button>
+            </form>
+
+
+
+        </main>
+
+        <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+    </body>
+</html>
