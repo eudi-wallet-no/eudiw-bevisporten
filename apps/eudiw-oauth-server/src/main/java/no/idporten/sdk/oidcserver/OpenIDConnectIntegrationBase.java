@@ -185,11 +185,11 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
     }
 
     @SuppressWarnings("unused")
-    protected void validateResource(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
-        if (authorizationRequest.getResource() != null) {
+    protected void validateResource(ResourceIndicatorSupport request, ClientMetadata clientMetadata) {
+        if (request.getResource() != null) {
             final URI uri;
             try {
-                uri = new URI(authorizationRequest.getResource());
+                uri = new URI(request.getResource());
             } catch (URISyntaxException e) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource.", 400);
             }
@@ -520,7 +520,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         }
     }
 
-    private void validateAuthorization(Authorization authorization) {
+    protected void validateAuthorization(Authorization authorization) {
         Objects.requireNonNull(authorization);
         Objects.requireNonNull(authorization.getAud(), "authorization must have an audience");
         Objects.requireNonNull(authorization.getSub(), "authorization must have a sub");
@@ -631,17 +631,36 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         if (!hasText(tokenRequest.getGrantType()) || !sdkConfiguration.getGrantTypesSupported().contains(tokenRequest.getGrantType())) {
             throw new OAuth2Exception(OAuth2Exception.UNSUPPORTED_GRANT_TYPE, "Invalid parameter grant_type. Supported: " + sdkConfiguration.getGrantTypesSupported(), 400);
         }
-        if (!hasText(tokenRequest.getCode())) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter code.", 400);
-        }
         if (!hasText(tokenRequest.getRedirectUri()) && clientMetadata.getRedirectUris().size() > 1) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing parameter redirect_uri.", 400);
         }
-        if (!hasText(tokenRequest.getCodeVerifier()) && getSDKConfiguration().isRequirePkce()) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing parameter code_verifier. PKCE is required.", 400);
-        }
         if (hasText(tokenRequest.getCodeVerifier()) && !tokenRequest.getCodeVerifier().matches("^[A-Za-z0-9\\-._~]{43,128}$")) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter code_verifier.", 400);
+        }
+        validateResource(tokenRequest, clientMetadata);
+        // code flow specific
+        if ("authorization_code".equals(tokenRequest.getGrantType())) {
+            if (!hasText(tokenRequest.getCode())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter code.", 400);
+            }
+            if (!hasText(tokenRequest.getCodeVerifier()) && getSDKConfiguration().isRequirePkce()) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing parameter code_verifier. PKCE is required.", 400);
+            }
+            if (hasText(tokenRequest.getPreAuthorizedCode())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Illegal parameter pre-authorized_code.", 400);
+            }
+            if (hasText(tokenRequest.getTxCode())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Illegal parameter tx_code.", 400);
+            }
+        }
+        // pre-authorized code flow specific
+        else if ("urn:ietf:params:oauth:grant-type:pre-authorized_code".equals(tokenRequest.getGrantType())) {
+            if (!hasText(tokenRequest.getPreAuthorizedCode())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter pre-authorized_code.", 400);
+            }
+            if (hasText(tokenRequest.getCode())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Illegal parameter code.", 400);
+            }
         }
     }
 

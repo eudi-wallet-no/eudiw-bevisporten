@@ -23,7 +23,7 @@ import static no.idporten.sdk.oidcserver.util.MultiValuedMapUtils.*;
 @EqualsAndHashCode(exclude = {"authorizationHeader", "clientSecret"})
 @ToString(exclude = {"authorizationHeader", "clientSecret"})
 @NoArgsConstructor
-public class PushedAuthorizationRequest implements AuthenticatedRequest, Cacheable, AuditDataProvider {
+public class PushedAuthorizationRequest implements AuthenticatedRequest, ResourceIndicatorSupport, Cacheable, AuditDataProvider {
 
     @Serial
     private static final long serialVersionUID = 1L;

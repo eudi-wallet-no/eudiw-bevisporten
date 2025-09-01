@@ -27,13 +27,10 @@ public class OpenIDConfigurationEndpointController {
         return ResponseEntity.ok(openIDConnectSdk.getOpenIDProviderMetadata());
     }
 
-    @Deprecated // TODO skal bort
     @GetMapping(value = "/.well-known/openid-configuration", produces = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins = "*")
     public ResponseEntity<OpenIDProviderMetadataResponse> openIDConnectProviderMetadata() {
         return ResponseEntity.ok(openIDConnectSdk.getOpenIDProviderMetadata());
     }
-
-
 
 }

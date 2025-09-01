@@ -69,6 +69,7 @@ oauth-authorization-server:
   features:
     allow-real-person-identifiers: false
     allow-synthetic-person-identifiers: true
+  api-key: ${INTERNAL_API_KEY}
   keystore:
     type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
     location: ${TOKEN_SIGNING_KEYSTORE_LOCATION}
