@@ -13,7 +13,7 @@ import static no.idporten.sdk.oidcserver.util.MultiValuedMapUtils.*;
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"parameters"})
 @ToString(exclude = {"parameters"})
-public class TokenRequest implements AuthenticatedRequest, AuditDataProvider {
+public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupport, AuditDataProvider {
 
     private transient String authorizationHeader;
     private transient String clientSecret;
@@ -22,8 +22,11 @@ public class TokenRequest implements AuthenticatedRequest, AuditDataProvider {
     private String clientId;
     private String codeVerifier;
     private String code;
+    private String preAuthorizedCode;
+    private String txCode;
     private String grantType;
     private String redirectUri;
+    private String resource;
     @Getter(AccessLevel.NONE)
     @Builder.Default
     private Map<String, String> parameters = new HashMap<>();
@@ -37,7 +40,10 @@ public class TokenRequest implements AuthenticatedRequest, AuditDataProvider {
         clientAssertion = getFirstValue("client_assertion", parameters);
         clientAssertionType = getFirstValue("client_assertion_type", parameters);
         code = getFirstValue("code", parameters);
+        preAuthorizedCode = getFirstValue("pre-authorized_code", parameters);
+        txCode = getFirstValue("tx_code", parameters);
         grantType = getFirstValue("grant_type", parameters);
+        resource = getFirstValue("resource", parameters);
         redirectUri = getFirstValue("redirect_uri", parameters);
         this.parameters = toMap(parameters);
     }
@@ -64,8 +70,11 @@ public class TokenRequest implements AuthenticatedRequest, AuditDataProvider {
                 .attribute("client_id", clientId)
                 .attribute("code_verifier", codeVerifier)
                 .attribute("code", code)
+                .attribute("pre-authorized_code", preAuthorizedCode)
+                .attribute("tx_code", txCode == null ? null : txCode.replaceAll("[\\w]", "*"))
                 .attribute("grant_type", grantType)
                 .attribute("redirect_uri", redirectUri)
+                .attribute("resource", resource)
                 .build();
     }
 

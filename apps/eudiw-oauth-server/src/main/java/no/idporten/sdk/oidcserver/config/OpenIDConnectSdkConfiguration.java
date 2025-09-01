@@ -30,6 +30,11 @@ import java.util.*;
 public final class OpenIDConnectSdkConfiguration {
 
     /**
+     * API key for internal APIs
+     */
+    private String apiKey;
+
+    /**
      * OAuth2 issuer uri.  The base uri for this server.  The discovery endpoint must be served relative to this uri.
      */
     private URI issuer;

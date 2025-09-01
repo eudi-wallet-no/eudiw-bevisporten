@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -34,6 +35,9 @@ import java.util.UUID;
 @Validated
 @ConfigurationProperties(prefix = "oauth-authorization-server")
 public class OpenIDConnectConfiguration implements InitializingBean {
+
+    @NotBlank
+    private String apiKey;
 
     private String internalId = "eudiw";
 
@@ -80,6 +84,7 @@ public class OpenIDConnectConfiguration implements InitializingBean {
     public OpenIDConnectSdkConfiguration openIDConnectSdkConfig(AuditService auditService, OpenIDConnectCache openIDConnectCache) throws Exception {
         OpenIDConnectSdkConfiguration.OpenIDConnectSdkConfigurationBuilder builder =
                 OpenIDConnectSdkConfiguration.builder()
+                        .apiKey(apiKey)
                         .internalId(internalId)
                         .issuer(issuer)
                         .pushedAuthorizationRequestEndpoint(UriComponentsBuilder.fromUri(issuer).path("/par").build().toUri())
