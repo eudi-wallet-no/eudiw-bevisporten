@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,6 +31,7 @@ public class CredentialIssuerServerProperties {
     private List<@NotNull String> proofSigningAlgorithms;
     @NotEmpty
     private List<AuthorizationServer> authorizationServers;
+    private List<AuthorizationServer> preAuthorizationServers = new ArrayList<>();
     @NotEmpty
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
     @NotEmpty

@@ -12,8 +12,9 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
-import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
-import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
+import no.idporten.eudiw.issuer.openid4vci.protocol.*;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionCode;
+import no.idporten.eudiw.issuer.openid4vci.service.PreAuthorizationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,30 @@ public class CredentialIssuerService {
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
     private final ClaimsSourceService claimsSourceService;
     private final MDocService mDocService;
+    private final PreAuthorizationService preAuthorizationService;
+
+    public CredentialOffer startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
+        CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
+        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
+        IssuerTransactionCode issuerTransactionCode = preAuthorizationService.generateIssuerTransactionCode();
+        String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionCode, startIssuanceRequest);
+        claimsSource.store(issuerTransactionCode.getValue(), startIssuanceRequest.getClaims());
+        CredentialOffer credentialOffer = CredentialOffer.builder()
+                .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
+                .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
+                .grant(Grant.builder()
+                        .preAuthorziedCodeGrant(PreAuthorizedCodeGrant.builder()
+                                .preAuthorizedCode(preAuthorizedCode)
+                                .txCode(TxCode.builder()
+                                        .inputMode("numeric")
+                                        .length(4)
+                                        .description("Enter code from SMS to issue %s".formatted(claimsSource.getMetadata().getDisplay().getFirst().getName()))
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+        return credentialOffer;
+    }
 
     public List<Credential> issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());

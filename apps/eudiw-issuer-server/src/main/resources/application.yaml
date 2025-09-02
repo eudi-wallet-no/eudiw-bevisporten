@@ -38,9 +38,17 @@ credential-issuer-server:
       format: mso_mdoc
       doctype: eu.europa.ec.eudi.pid.1
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+    - identifier: no.skatteetaten.nnid_mso_mdoc
+      scope: eudiw:skatteetaten:nnid
+      format: mso_mdoc
+      doctype: no.skatteetaten.nnid.1
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
+    - doctype: no.skatteetaten.nnid.1
+      class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource
   key-store:
     type: ${ISSUER_KEYSTORE_TYPE}
     location: ${ISSUER_KEYSTORE_LOCATION}

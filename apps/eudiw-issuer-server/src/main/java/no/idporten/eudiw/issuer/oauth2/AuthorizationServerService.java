@@ -29,6 +29,13 @@ public class AuthorizationServerService implements InitializingBean {
                 .orElse(null);
     }
 
+    /**
+     * The first authorization server is the server accepting pre-authorizations.
+     */
+    public AuthorizationServer getPrimaryAuthorizationServer() {
+        return credentialIssuerServerProperties.getAuthorizationServers().getFirst();
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         for (AuthorizationServer authorizationServer : credentialIssuerServerProperties.getAuthorizationServers()) {

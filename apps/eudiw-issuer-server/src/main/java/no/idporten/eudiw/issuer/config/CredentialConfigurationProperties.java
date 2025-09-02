@@ -15,15 +15,39 @@ import org.springframework.validation.annotation.Validated;
 @Data
 public class CredentialConfigurationProperties {
 
+    /**
+     * Credential identifier used in metadata, reqyests, responses
+     */
     @NotEmpty
     private String identifier;
+
+    /**
+     * Document type used in metadata.
+     */
     @NotNull
     private String doctype;
+
+    /**
+     * Credential format
+     */
     @NotNull
     private String format;
+
+    /**
+     * Scope required in access_token at the credentials endpoint
+     */
     @NotNull
     private String scope;
+
+    /**
+     * Issuer of access_token at the credentials endpoint
+     */
     @NotNull
     private String authorizationServer;
+
+    /**
+     * Issuer of access_token at the start issuance endpoint in the pre-authorized flow
+     */
+    private String preAuthorizationServer;
 
 }
