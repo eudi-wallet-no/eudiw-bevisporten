@@ -9,18 +9,26 @@ import no.idporten.eudiw.issuer.crypto.KeyProvider;
 import no.idporten.eudiw.issuer.crypto.KeyStoreProperties;
 import no.idporten.eudiw.issuer.crypto.KeyStoreProvider;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
+import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @RequiredArgsConstructor
 @Configuration
 public class CredentialIssuerServerConfiguration {
 
     private final ClaimsSourceService claimsSourceService;
+    private final AuthorizationServerService authorizationServerService;
 
     @Bean
     public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties properties) {
@@ -62,6 +70,22 @@ public class CredentialIssuerServerConfiguration {
         KeyStoreProperties keyStoreProperties = credentialIssuerServerProperties.getKeyStore();
         KeyStoreProvider keyStoreProvider = new KeyStoreProvider(keyStoreProperties);
         return new KeyProvider(keyStoreProvider.keyStore(), keyStoreProperties.keyAlias(), keyStoreProperties.keyPassword());
+    }
+
+    @Bean
+    public RestClient preAuthorizationRestClient() {
+        AuthorizationServer authorizationServer = authorizationServerService.getPrimaryAuthorizationServer();
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(Duration.of(5, ChronoUnit.SECONDS));
+        requestFactory.setReadTimeout(Duration.of(5, ChronoUnit.SECONDS));
+        return
+                RestClient.builder()
+                        .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .defaultHeader("X-API-KEY", authorizationServer.getApiKey())
+                        .baseUrl(authorizationServer.getIssuer())
+                        .requestFactory(requestFactory)
+                        .build();
     }
 
 }

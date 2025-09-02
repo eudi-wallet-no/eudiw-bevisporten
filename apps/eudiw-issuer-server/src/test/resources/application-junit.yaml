@@ -8,6 +8,7 @@ credential-issuer-server:
   authorization-servers:
     - issuer: https://junit.idporten.no
       jwks-uri: https://junit.idporten.no/jwks.json
+      api-key: junit-key
   cryptographic-bindings:
     - jwk
   formats:

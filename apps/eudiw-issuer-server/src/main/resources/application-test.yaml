@@ -8,3 +8,7 @@ credential-issuer-server:
   authorization-servers:
     - issuer: https://auth.test.eidas2sandkasse.net
       jwks-uri: http://digital-lommebok-oauth-server-service:8080/jwks
+      api-key: ${AUTH_PROXY_API_KEY}
+  pre-authorization-servers:
+    - issuer: https://test.maskinporten.no/
+      jwks-uri: https://test.maskinporten.no/jwk
