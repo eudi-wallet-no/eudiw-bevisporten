@@ -29,6 +29,27 @@ management:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
 
+issuer-ui-demo:
+  issuer-server:
+    issuance-endpoint: /api/v1/credential/start-issuance-transaction
+
+# Maskinporten
+maskinporten:
+  oauth2:
+    client-id: ${MASKINPORTEN_CLIENT_ID}
+    kid: ${MASKINPORTEN_CLIENT_KID}
+    audience:
+      - ${maskinporten.oauth2.issuer}
+    token-endpoint: ${maskinporten.oauth2.issuer}token
+    scope: eudiw:no:skatteetaten:nnid
+  #    resource: <optional. The target API that the client intends to use the token.>
+  jwt-signing-config: #to authenticate towards maskinporten
+    key-store-type: JKS
+    key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+    key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+    key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+    key-password: ${MASKINPORTEN_KEY_PASSWORD}
+
 # Digdir standard logging
 digdir:
   access:
