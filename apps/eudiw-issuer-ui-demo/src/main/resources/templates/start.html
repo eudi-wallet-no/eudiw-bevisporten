@@ -23,18 +23,9 @@
             <form th:fragment="send_attributes_form_fragment"
                   id="send_attributes_form"
                   th:action="@{/start-issuance}"
+                  th:object="${jsonRequest}"
                   method="POST">
 
-                <p class="ds-paragraph">
-                    <label for="access_token_field"
-                           data-weight="medium"
-                           class="ds-label">
-                        Maskinporten access-token
-                    </label>
-                    <input type="text" id="access_token_field"
-                              placeholder="IxC0B76vlWl3fiQhAwZUmD0hr_PPwC9hSIXRdoUslPU="
-                              class="ds-input"/>
-                </p>
 
                 <p class="ds-paragraph">
                     <label for="eaa_data_field"
@@ -44,11 +35,12 @@
                     </label>
                     <textarea id="eaa_data_field"
                            placeholder="{nnid:123456789}"
-                           class="ds-input"></textarea>
+                           class="ds-input"
+                              th:field="*{json}">
+                    </textarea>
                 </p>
 
                 <p class="ds-paragraph">
-
                     Døme på attributter i JSON-format: <br/>
                     <code>
                         {"nnid":"123456789"}
