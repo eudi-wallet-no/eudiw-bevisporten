@@ -7,10 +7,10 @@ import lombok.Builder;
 
 @Builder
 @AllArgsConstructor
-public class Grant {
+public class Grants {
 
     @JsonProperty("urn:ietf:params:oauth:grant-type:pre-authorized_code")
-    private PreAuthorizedCodeGrant preAuthorziedCodeGrant;
-
+    private PreAuthorizedCodeGrant preAuthorizedCodeGrant;
 
 }
+
