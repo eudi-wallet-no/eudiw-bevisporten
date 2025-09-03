@@ -1,31 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
-    <head>
-        <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-        <title>Sandkassa for digital lommebok: Test issuer</title>
-    </head>
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Sandkassa for digital lommebok: Test issuer</title>
+</head>
 
-    <body>
-        <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-        <main>
-            <div>
-                <h1 class="ds-heading" data-size="lg">
-                    Demo issuer-ui for å starte utsteding av bevis med Digdir sin generelle issuer
-                </h1>
-            </div>
-
-
-            <h2 class="ds-heading">
-                starta utstedelse av bevis
-            </h2>
-
-            <code>noko response skal inn hit</code>
+<main>
+    <div>
+        <h1 class="ds-heading" data-size="lg">
+            Demo issuer-ui for å starte utsteding av bevis med Digdir sin generelle issuer
+        </h1>
+    </div>
 
 
+    <h2 class="ds-heading">
+        No er me i gong med å utferding av bevis, køyr pao med mobilen!
+    </h2>
+    <p th:text="${offer}"></p>
 
-        </main>
+    <a th:href="${urlSameSite}">
+        <button class="button ">Open på mobilen</button>
+    </a>
 
-        <footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
-    </body>
+    <p class="ds-paragraph">
+        <a th:href="@{/}" class="ds-button">
+            Heim
+        </a>
+    </p>
+
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+</body>
 </html>
