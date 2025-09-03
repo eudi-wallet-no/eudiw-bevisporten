@@ -28,7 +28,7 @@ public class StartIssuanceController {
 
     @GetMapping("/")
     public String start(Model model) {
-        model.addAttribute("jsonRequest",new JsonRequest(defaultJsonRequest()));
+        model.addAttribute("jsonRequest", new JsonRequest(defaultJsonRequest()));
         return "start";
     }
 
@@ -40,9 +40,12 @@ public class StartIssuanceController {
         logger.info(normalizedJson);
         String response = issuerServerService.startIssuance(normalizedJson);
         model.addAttribute("offer", response);
-        String offerEncoded = URLEncoder.encode(response.toString(), StandardCharsets.UTF_8);
-        model.addAttribute("urlSameSite", "openid-credential-offer://?credential_offer="+offerEncoded);
-        logger.info("Issuer response: " + response);
+        String content = response.substring("{\"credential_offer\":".length(), response.length() - 1);
+        logger.debug("content for url: " + content);
+        String offerEncoded = URLEncoder.encode(content, StandardCharsets.UTF_8);
+        model.addAttribute("urlSameSite", "openid-credential-offer://?credential_offer=" + offerEncoded);
+        logger.info("Issuer offer: " + response);
+        logger.info("Issuer offer encoded: " + offerEncoded);
         return "issuer_response";
     }
 
