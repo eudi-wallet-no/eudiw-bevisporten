@@ -20,7 +20,6 @@ public class CredentialOffer {
     private List<String> credentialConfigurationIds;
 
     @JsonProperty("grants")
-    @Singular
-    private List<Grant> grants;
+    private Grants grants;
 
 }
