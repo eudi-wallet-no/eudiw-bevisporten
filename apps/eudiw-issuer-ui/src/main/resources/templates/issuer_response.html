@@ -11,25 +11,25 @@
 <main>
     <div>
         <h1 class="ds-heading" data-size="lg">
-            Demo issuer-ui for å starte utsteding av bevis med Digdir sin generelle issuer
+            Send bevis til mobilen
         </h1>
+        <p class="ds-paragraph">
+            No er me i gong med å utferding av bevis, køyr på med mobilen!
+        </p>
     </div>
 
-
-    <h2 class="ds-heading">
-        No er me i gong med å utferding av bevis, køyr pao med mobilen!
-    </h2>
-    <p th:text="${offer}"></p>
-
-    <a th:href="${urlSameSite}">
-        <button class="button ">Open på mobilen</button>
-    </a>
-
     <p class="ds-paragraph">
-        <a th:href="@{/}" class="ds-button">
-            Heim
+        <code th:text="${offer}"></code>
+
+
+        <a th:href="@{/}" class="ds-button" data-variant="secondary">
+            Tilbake
+        </a>
+        <a th:href="${urlSameSite}" class="ds-button">
+            Opne på mobilen
         </a>
     </p>
+
 
 </main>
 
