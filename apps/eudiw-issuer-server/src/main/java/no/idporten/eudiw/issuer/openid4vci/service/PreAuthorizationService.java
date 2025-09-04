@@ -21,11 +21,11 @@ public class PreAuthorizationService {
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
     private final RestClient preAuthorizationRestClient;
 
-    public IssuerTransactionCode generateIssuerTransactionCode() {
-        return new IssuerTransactionCode();
+    public IssuerTransactionId generateIssuerTransactionCode() {
+        return new IssuerTransactionId();
     }
 
-    public String preAuthorize(IssuerTransactionCode issuerTransactionCode, StartIssuanceRequest startIssuanceRequest) {
+    public String preAuthorize(IssuerTransactionId issuerTransactionCode, StartIssuanceRequest startIssuanceRequest) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
         PreAuthorizationRequest preAuthorizationRequest = PreAuthorizationRequest.builder()
                 .aud(credentialIssuerServerProperties.getCredentialIssuer().toString())

@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssuerService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
-import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import no.idporten.eudiw.issuer.openid4vci.protocol.StartIssuanceRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.StartIssuanceResponse;
 import org.springframework.http.HttpHeaders;
@@ -30,13 +29,10 @@ public class StartCredentialIssuanceController {
             @RequestBody StartIssuanceRequest startIssuanceRequest,
             @RequestHeader(required = false, value = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         JWT accessToken = accessTokenValidationService.validateAccessTokenForCredentialConfiguration(authorizationHeader, authorizationServerService.getPreAuthorizationServers());
-        CredentialOffer credentialOffer = credentialIssuerService.startIssuerTransaction(startIssuanceRequest, accessToken);
-        StartIssuanceResponse response = StartIssuanceResponse.builder()
-                .credentialOffer(credentialOffer)
-                .build();
+        StartIssuanceResponse startIssuanceResponse = credentialIssuerService.startIssuerTransaction(startIssuanceRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .body(response);
+                .body(startIssuanceResponse);
     }
 
 }

@@ -12,4 +12,7 @@ public class StartIssuanceResponse {
     @JsonProperty("credential_offer")
     private CredentialOffer credentialOffer;
 
+    @JsonProperty("issuer_transaction_id")
+    private String issuerTransactionId;
+
 }

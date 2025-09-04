@@ -12,7 +12,7 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionCode;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.service.PreAuthorizationService;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +29,13 @@ public class CredentialIssuerService {
     private final MDocService mDocService;
     private final PreAuthorizationService preAuthorizationService;
 
-    public CredentialOffer startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
+    public StartIssuanceResponse startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
-        IssuerTransactionCode issuerTransactionCode = preAuthorizationService.generateIssuerTransactionCode();
-        String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionCode, startIssuanceRequest);
-        claimsSource.store(issuerTransactionCode.getValue(), startIssuanceRequest.getClaims());
+        IssuerTransactionId issuerTransactionId = preAuthorizationService.generateIssuerTransactionCode();
+        String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionId, startIssuanceRequest);
+        claimsSource.store(issuerTransactionId.getValue(), startIssuanceRequest.getClaimsMap());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
@@ -49,7 +49,10 @@ public class CredentialIssuerService {
                                 .build())
                         .build())
                 .build();
-        return credentialOffer;
+        return StartIssuanceResponse.builder()
+                .credentialOffer(credentialOffer)
+                .issuerTransactionId(issuerTransactionId.getValue())
+                .build();
     }
 
     public List<Credential> issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {

@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import java.util.List;
+import java.util.Map;
 
 public interface PreAuthorizedClaimsSource extends ClaimsSource {
 
@@ -11,6 +11,6 @@ public interface PreAuthorizedClaimsSource extends ClaimsSource {
      * @param claims
      * @return tx_id
      */
-    String store(String txId, List<Claim> claims);
+    String store(String txId, Map<String, String> claims);
 
 }
