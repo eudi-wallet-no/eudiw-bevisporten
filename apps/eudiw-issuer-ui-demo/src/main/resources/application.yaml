@@ -42,7 +42,7 @@ maskinporten:
       - ${maskinporten.oauth2.issuer}
     token-endpoint: ${maskinporten.oauth2.issuer}token
     scope: eudiw:no:skatteetaten:nnid
-  #    resource: <optional. The target API that the client intends to use the token.>
+    resource: ${issuer-ui-demo.issuer-server.base-url}
   jwt-signing-config: #to authenticate towards maskinporten
     key-store-type: JKS
     key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
