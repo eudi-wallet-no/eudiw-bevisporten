@@ -10,6 +10,7 @@ import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,25 +25,25 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
 
     private ClaimsSourceProperties properties;
 
-    private Map<String, List<Claim>> claimsCache = new HashMap<>();
+    private Map<String, Map<String, String>> claimsCache = new HashMap<>();
 
-    protected Claim findClaim(String path, List<Claim> claims) {
-        return claims.stream()
-                .filter(claim -> claim.getPath().getFirst().equals(path))
-                .findFirst()
-                .orElseThrow(() ->
-                        new IssuerServerException("invalid_request", "Missing required path %s".formatted(path), HttpStatus.BAD_REQUEST));
-
+    protected void validateClaim(String name, Map<String, String> claims) {
+        if (! claims.containsKey(name)) {
+            throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(name), HttpStatus.BAD_REQUEST);
+        }
+        if (! StringUtils.hasLength(claims.get(name))) {
+            throw new IssuerServerException("invalid_request", "Missing required value for claim %s".formatted(name), HttpStatus.BAD_REQUEST);
+        }
     }
 
-    public void validate(List<Claim> claims) {
-        findClaim(ATTRIBUTE_NNID, claims);
-        findClaim(ATTRIBUTE_NNID_STATUS, claims);
-        findClaim(ATTRIBUTE_NNID_TYPE, claims);
+    public void validate(Map<String, String> claims) {
+        validateClaim(ATTRIBUTE_NNID, claims);
+        validateClaim(ATTRIBUTE_NNID_STATUS, claims);
+        validateClaim(ATTRIBUTE_NNID_TYPE, claims);
     }
 
     @Override
-    public String store(String transactionId, List<Claim> claims) {
+    public String store(String transactionId, Map<String, String> claims) {
         validate(claims);
         claimsCache.put(transactionId, claims);
         return transactionId;
@@ -82,11 +83,11 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {
         final String transactionId = accessToken.getJWTClaimsSet().getStringClaim("tx_id");
-        List<Claim> storedClaims = claimsCache.get(transactionId);
+        Map<String, String> storedClaims = claimsCache.get(transactionId);
         List<Claim> claims = new ArrayList<>();
-        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID).value(findClaim(ATTRIBUTE_NNID, storedClaims).getValue()).build());
-        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID_STATUS).value(findClaim(ATTRIBUTE_NNID_STATUS, storedClaims).getValue()).build());
-        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID_TYPE).value(findClaim(ATTRIBUTE_NNID_TYPE, storedClaims).getValue()).build());
+        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID).value(storedClaims.get(ATTRIBUTE_NNID)).build());
+        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID_STATUS).value(storedClaims.get(ATTRIBUTE_NNID_STATUS)).build());
+        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID_TYPE).value(storedClaims.get(ATTRIBUTE_NNID_TYPE)).build());
         return claims;
     }
 

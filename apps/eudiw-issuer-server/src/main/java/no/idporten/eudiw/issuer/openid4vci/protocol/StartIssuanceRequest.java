@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import no.idporten.eudiw.issuer.claimssource.Claim;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -23,6 +25,10 @@ public class StartIssuanceRequest {
     private String credentialConfigurationId;
 
     @JsonProperty("claims")
-    private List<Claim> claims;
+    private List<Claim> claims = new ArrayList<>();
+
+    public Map<String, String> getClaimsMap() {
+        return claims.stream().collect(Collectors.toMap(Claim::getName, Claim::getValue));
+    }
 
 }
