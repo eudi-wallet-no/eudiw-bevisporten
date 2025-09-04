@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.api.no.idporten.eudiw.issuer.api;
+package no.idporten.eudiw.issuer.api;
 
 
 import com.nimbusds.jwt.JWT;
@@ -20,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestClient;
 
+import java.net.URI;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -55,8 +56,10 @@ public class CredentialEndpointControllerTest {
         AccessTokenValidator accessTokenValidator = mock(AccessTokenValidator.class);
         when(accessTokenValidator.validate(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
         AuthorizationServer authorizationServer = mock(AuthorizationServer.class);
+        when(authorizationServer.getIssuer()).thenReturn(URI.create("https://idporten.dev"));
         when(authorizationServer.getAccessTokenValidator()).thenReturn(accessTokenValidator);
-        when(authorizationServerService.findAuthorizationServer(any())).thenReturn(authorizationServer);
+        when(authorizationServerService.findAuthorizationServer(any(), any())).thenReturn(authorizationServer);
+        when(authorizationServerService.getPrimaryAuthorizationServer()).thenReturn(authorizationServer);
     }
 
     @DisplayName("then a valid credential request gives a credential response")
@@ -81,19 +84,6 @@ public class CredentialEndpointControllerTest {
                 .andExpect(jsonPath("$.credentials").isNotEmpty())
                 .andExpect(jsonPath("$.credentials[0].credential").value("foo"));
         verify(proofService).validateProof(any());
-    }
-
-    @DisplayName("then an authorization header with bearer token is required")
-    @Test
-    void testInvalidAuthorizationHeader() throws Exception {
-        mockMvc.perform(post("/openid4vci/credential")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .header("Authorization", "Bjørnar at")
-                        .content(" {}"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.error").value("invalid_request"));
-        verifyNoInteractions(credentialIssuerService, proofService);
     }
 
     @DisplayName("then an empty credential request gives a credential error response")

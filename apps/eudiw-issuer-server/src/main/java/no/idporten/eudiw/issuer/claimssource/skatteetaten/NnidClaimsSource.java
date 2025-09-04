@@ -18,7 +18,6 @@ import java.util.Map;
 
 public class NnidClaimsSource implements PreAuthorizedClaimsSource {
 
-    public static final String NAMESPACE = "no:skatteetaten:nnid:1";
     public static final String ATTRIBUTE_NNID = "norwegian_national_id_number";
     public static final String ATTRIBUTE_NNID_STATUS = "norwegian_national_id_number_status";
     public static final String ATTRIBUTE_NNID_TYPE = "norwegian_national_id_number_type";
@@ -59,18 +58,22 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
         return properties;
     }
 
+    private String namespace() {
+        return getProperties().getDoctype();
+    }
+
     @Override
     public ClaimsSourceMetadata getMetadata() {
         return ClaimsSourceMetadata.builder()
                 .display(Display.builder().name("Norwegian National identification number").build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("norwegian_national_id_number")
+                        .path(namespace()).path("norwegian_national_id_number")
                         .display(Display.builder().name("ID-number").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("norwegian_national_id_number_status")
+                        .path(namespace()).path("norwegian_national_id_number_status")
                         .display(Display.builder().name("Status").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("norwegian_national_id_number_type")
+                        .path(namespace()).path("norwegian_national_id_number_type")
                         .display(Display.builder().name("Type").build()).build())
                 .build();
     }
@@ -81,9 +84,9 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
         final String transactionId = accessToken.getJWTClaimsSet().getStringClaim("tx_id");
         List<Claim> storedClaims = claimsCache.get(transactionId);
         List<Claim> claims = new ArrayList<>();
-        claims.add(Claim.builder().path(NAMESPACE).path(ATTRIBUTE_NNID).value(findClaim(ATTRIBUTE_NNID, storedClaims).getValue()).build());
-        claims.add(Claim.builder().path(NAMESPACE).path(ATTRIBUTE_NNID_STATUS).value(findClaim(ATTRIBUTE_NNID_STATUS, storedClaims).getValue()).build());
-        claims.add(Claim.builder().path(NAMESPACE).path(ATTRIBUTE_NNID_TYPE).value(findClaim(ATTRIBUTE_NNID_TYPE, storedClaims).getValue()).build());
+        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID).value(findClaim(ATTRIBUTE_NNID, storedClaims).getValue()).build());
+        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID_STATUS).value(findClaim(ATTRIBUTE_NNID_STATUS, storedClaims).getValue()).build());
+        claims.add(Claim.builder().path(namespace()).path(ATTRIBUTE_NNID_TYPE).value(findClaim(ATTRIBUTE_NNID_TYPE, storedClaims).getValue()).build());
         return claims;
     }
 

@@ -43,7 +43,7 @@ public class AccessTokenValidator extends AbstractJWTValidator {
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
             jwtProcessor.setJWSKeySelector((JWSKeySelector<SecurityContext>) this.getJWSKeySelector());
             jwtProcessor.setJWTClaimsSetVerifier(new AccessTokenClaimsVerifier<>(Collections.singleton(acceptedAudience.toString()),
-                    Set.of("iss", "aud", "sub", "scope", "iat", "exp")));
+                    Set.of("iss", "aud", "scope", "iat", "exp")));
             jwtProcessor.setJWSTypeVerifier(createJWSTypeVerifier());
             jwtProcessor.process(accessToken, (SecurityContext) null);
             return signedJWT;
