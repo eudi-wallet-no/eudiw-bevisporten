@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.api.no.idporten.eudiw.issuer.api;
+package no.idporten.eudiw.issuer.api;
 
 
 import org.junit.jupiter.api.DisplayName;

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -21,12 +23,17 @@ public class AuthorizationServerService implements InitializingBean {
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
-    public AuthorizationServer findAuthorizationServer(String issuer) {
-        return credentialIssuerServerProperties.getAuthorizationServers()
+
+    public AuthorizationServer findAuthorizationServer(String issuer, List<AuthorizationServer> authorizationServers) {
+        return authorizationServers
                 .stream()
                 .filter(authorizationServer -> URI.create(issuer).equals(authorizationServer.getIssuer()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public AuthorizationServer findAuthorizationServer(String issuer) {
+        return findAuthorizationServer(issuer, credentialIssuerServerProperties.getAuthorizationServers());
     }
 
     /**
@@ -36,12 +43,19 @@ public class AuthorizationServerService implements InitializingBean {
         return credentialIssuerServerProperties.getAuthorizationServers().getFirst();
     }
 
+    public List<AuthorizationServer> getPreAuthorizationServers() {
+        return credentialIssuerServerProperties.getPreAuthorizationServers();
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
-        for (AuthorizationServer authorizationServer : credentialIssuerServerProperties.getAuthorizationServers()) {
+        List<AuthorizationServer> authorizationServers = new ArrayList<>();
+        authorizationServers.addAll(credentialIssuerServerProperties.getAuthorizationServers());
+        authorizationServers.addAll(credentialIssuerServerProperties.getPreAuthorizationServers());
+        for (AuthorizationServer authorizationServer : authorizationServers) {
             JWKSource<SecurityContext> jwkSource = JWKSourceBuilder
                     .create(authorizationServer.getJwksUri().toURL())
-                    .cache(24 * 60 * 60 * 1000,5000)
+                    .cache(24 * 60 * 60 * 1000, 5000)
                     .build();
             JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(Set.of(JWSAlgorithm.RS256, JWSAlgorithm.ES256), jwkSource);
             authorizationServer.setAccessTokenValidator(new AccessTokenValidator(new Issuer(authorizationServer.getIssuer()), credentialIssuerServerProperties.getCredentialIssuer(), keySelector));
