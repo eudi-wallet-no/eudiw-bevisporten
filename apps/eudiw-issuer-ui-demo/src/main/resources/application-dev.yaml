@@ -12,15 +12,12 @@ spring:
 
 issuer-ui-demo:
   issuer-server:
-    base-url: https://utsteder.eidas2sandkasse.dev
-#    base-url: https://kontaktregisteret.dev #KRR: temp for testing before issuer server is ready
-#    issuance-endpoint: /rest/v2/personer #KRR: temp for testing before issuer server is ready
+    base-url: http://issuer-server:9240
 maskinporten:
   oauth2:
     issuer: https://maskinporten.dev/
     client-id: c7ab9a32-0460-41da-a1e6-de0c729f394b
     kid: 4b54d556-65ea-4206-b8f5-6105bc1457c2
-#    scope: krr:global/kontaktinformasjon.read
 
   jwt-signing-config: #to authenticate towards maskinporten
     key-store-type: JKS
