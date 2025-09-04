@@ -91,28 +91,22 @@ public class StartIssuanceController {
     private String defaultJsonRequest() {
         return """
                 {
-                  "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
-                  "claims": [
-                    {
-                      "path": [
-                        "norwegian_national_id_number"
-                      ],
-                      "value": "1234567890"
-                    },
-                    {
-                      "path": [
-                        "norwegian_national_id_number_status"
-                      ],
-                      "value": "Utstedt"
-                    },
-                    {
-                      "path": [
-                        "norwegian_national_id_number_type"
-                      ],
-                      "value": "JUKS"
-                    }
-                  ]
-                }
+                   "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
+                   "claims": [
+                     {
+                       "name": "norwegian_national_id_number",
+                       "value": "12345678901"
+                     },
+                     {
+                       "name": "norwegian_national_id_number_status",
+                       "value": "Kontrollert"
+                     },
+                     {
+                       "name": "norwegian_national_id_number_type",
+                       "value": "D-nummer"
+                     }
+                   ]
+                 }
                 """;
     }
 
