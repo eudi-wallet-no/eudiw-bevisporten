@@ -20,6 +20,7 @@
         <opentelemetry-api.version>1.53.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <idporten.maskinporten.client.version>4.0.2</idporten.maskinporten.client.version>
+        <zxing.javase.version>3.5.3</zxing.javase.version>
     </properties>
     <dependencies>
         <dependency>
@@ -57,7 +58,16 @@
             <artifactId>lib-maskinporten-client</artifactId>
             <version>${idporten.maskinporten.client.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.javase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>${zxing.javase.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
