@@ -1,4 +1,6 @@
 package no.idporten.eudiw.issuer.ui.demo.issuer.domain;
 
-public record IssuanceResponse(String issuerTransactionId, CredentialOffer credentialOffer) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record IssuanceResponse(@JsonProperty("credential_offer") CredentialOffer credentialOffer) {
 }

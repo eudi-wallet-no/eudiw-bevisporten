@@ -1,6 +1,10 @@
 package no.idporten.eudiw.issuer.ui.demo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.idporten.eudiw.issuer.ui.demo.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.demo.issuer.IssuerServerService;
+import no.idporten.eudiw.issuer.ui.demo.issuer.domain.IssuanceResponse;
 import no.idporten.eudiw.issuer.ui.demo.issuer.domain.JsonRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,20 +38,29 @@ public class StartIssuanceController {
 
     @PostMapping("/start-issuance")
     public String startIssuance(@ModelAttribute("jsonRequest") JsonRequest jsonRequest, Model model) {
-        // TODO: validering og datamodell
-
-        String normalizedJson = jsonRequest.json().replaceAll("\\s", "");
+        String normalizedJson = jsonRequest.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
-        String response = issuerServerService.startIssuance(normalizedJson);
+
+        IssuanceResponse response = issuerServerService.startIssuance(normalizedJson);
+
+        String jsonString = toJsonString(response);
+
         model.addAttribute("offer", response);
-        String content = response.substring("{\"credential_offer\":".length(), response.length() - 1);
-        logger.debug("content for url: " + content);
-        String offerEncoded = URLEncoder.encode(content, StandardCharsets.UTF_8);
+        String offerEncoded = URLEncoder.encode(jsonString, StandardCharsets.UTF_8);
         model.addAttribute("urlSameSite", "openid-credential-offer://?credential_offer=" + offerEncoded);
         logger.info("Issuer offer: " + response);
         logger.info("Issuer offer encoded: " + offerEncoded);
         return "issuer_response";
     }
+
+    private String toJsonString(IssuanceResponse response) {
+        try {
+            return new ObjectMapper().writeValueAsString(response.credentialOffer());
+        } catch (JsonProcessingException e) {
+            throw new IssuerUiException("Failed to convert response to Json string", e);
+        }
+    }
+
 
     private String defaultJsonRequest() {
         return """

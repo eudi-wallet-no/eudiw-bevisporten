@@ -1,7 +1,9 @@
 package no.idporten.eudiw.issuer.ui.demo.issuer;
 
 import no.idporten.eudiw.issuer.ui.demo.exception.IssuerServerException;
+import no.idporten.eudiw.issuer.ui.demo.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
+import no.idporten.eudiw.issuer.ui.demo.issuer.domain.IssuanceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
-
-import java.util.Collections;
-import java.util.List;
 
 @Service
 public class IssuerServerService {
@@ -31,41 +30,23 @@ public class IssuerServerService {
     }
 
 
-    public String startIssuance(String json) {
+    public IssuanceResponse startIssuance(String json) {
         String path = issuerServerProperties.getIssuanceEndpoint();
-        return callIssuerServer(path, json);
-    }
-
-    private String callIssuerServer(final String path, String json) {
+        IssuanceResponse result;
         try {
-            String result = restClient.post().uri(
+            result = restClient.post().uri(
                             path).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON).body(json).retrieve()
-                    .body(String.class);
-            log.debug("search for " + json + ". Returned: " + result);
-            return result;
+                    .body(IssuanceResponse.class);
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + path, e);
         } catch (HttpServerErrorException e) {
             throw new IssuerServerException("callIssuerServer failed for input" + json, e);
         }
-    }
-
-    // temp for testing before issuer server is ready
-    //https://kontaktregisteret.dev/swagger-ui/index.html#/Personer/getUsersV2
-    private Object findPersonInKrr(String path) {
-        String synFnr = "56814900792";
-        String fnr = "17912099997";
-        Persons persons = new Persons(Collections.singletonList(fnr));
-
-        Object result = restClient.post().uri(
-                        path).accept(MediaType.APPLICATION_JSON).body(persons).retrieve()
-                .body(Object.class);
-        log.debug("search for " + fnr + ". Returned: " + result);
+        if (result == null || result.credentialOffer() == null) {
+            throw new IssuerUiException("callIssuerServer returned null for input: " + json);
+        }
+        log.debug("Searched for " + json + ". Returned: " + result);
         return result;
     }
-
-    public record Persons(List<String> personidentifikatorer) {
-    }
-
 
 }
