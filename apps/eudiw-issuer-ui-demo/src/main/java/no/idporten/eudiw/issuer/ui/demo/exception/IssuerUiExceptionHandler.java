@@ -24,4 +24,10 @@ public class IssuerUiExceptionHandler {
         return new ModelAndView("error/error").addObject("errorMessage", e.getMessage()).addObject("statusCode", e.getHttpStatusCode()).addObject("details", e.getCauseMessage());
     }
 
+    @ExceptionHandler(IssuerUiException.class)
+    public ModelAndView handleIssuerUiException(IssuerUiException e) {
+        log.error("IssuerUiException", e);
+        return new ModelAndView("error/error").addObject("errorMessage", e.getMessage());
+    }
+
 }
