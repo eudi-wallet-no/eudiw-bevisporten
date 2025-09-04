@@ -18,9 +18,15 @@
         </p>
     </div>
 
-    <p class="ds-paragraph">
-        <code th:text="${offer}"></code>
+    <p th:text="${error}" class="ds-validation-message" th:if="${error}">
+    </p>
 
+
+    <p class="ds-paragraph">
+
+        <div id="cross-device-request">
+            <img th:src="${'data:image/png;base64,' + qrcode}" alt="QR kode for bevis" id="qrcode-cross-device" width="75%" />
+        </div>
 
         <a th:href="@{/}" class="ds-button" data-variant="secondary">
             Tilbake
@@ -28,6 +34,8 @@
         <a th:href="${urlSameSite}" class="ds-button">
             Opne på mobilen
         </a>
+
+        <code th:text="${offer}"></code>
     </p>
 
 
