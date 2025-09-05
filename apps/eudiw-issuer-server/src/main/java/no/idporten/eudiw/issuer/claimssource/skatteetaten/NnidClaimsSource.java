@@ -41,7 +41,7 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
         Pattern pattern = Pattern.compile(REQUIRED_CLAIMS.get(name), Pattern.CASE_INSENSITIVE);
         Matcher match = pattern.matcher(value);
         if (!match.matches() ) {
-            throw new IssuerServerException("invalid_request", "Invalid format for required value for claim %s with value %s".formatted(name,value), HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException("invalid_request", "Invalid format for required value for claim %s".formatted(name), HttpStatus.BAD_REQUEST);
         }
     }
 
