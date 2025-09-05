@@ -5,7 +5,7 @@ spring:
 
 issuer-ui-demo:
   issuer-server:
-    base-url: https://utsteder.test.eidas2sandkasse.net
+    base-url: https://utsteder.eidas2sandkasse.dev
 
 maskinporten:
   oauth2:
