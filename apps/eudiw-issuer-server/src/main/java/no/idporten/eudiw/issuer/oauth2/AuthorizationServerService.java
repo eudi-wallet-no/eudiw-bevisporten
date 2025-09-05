@@ -8,8 +8,10 @@ import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.oauth2.sdk.id.Issuer;
 import lombok.RequiredArgsConstructor;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
@@ -29,7 +31,7 @@ public class AuthorizationServerService implements InitializingBean {
                 .stream()
                 .filter(authorizationServer -> URI.create(issuer).equals(authorizationServer.getIssuer()))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED));
     }
 
     public AuthorizationServer findAuthorizationServer(String issuer) {
