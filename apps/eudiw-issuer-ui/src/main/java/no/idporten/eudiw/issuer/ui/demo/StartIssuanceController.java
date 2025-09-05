@@ -53,7 +53,7 @@ public class StartIssuanceController {
 
         String jsonString = toJsonString(response);
 
-        model.addAttribute("offer", response);
+        model.addAttribute("offer", jsonString);
         String offerEncoded = URLEncoder.encode(jsonString, StandardCharsets.UTF_8);
         String uri = "openid-credential-offer://?credential_offer=" + offerEncoded;
         model.addAttribute("urlSameSite", uri);
