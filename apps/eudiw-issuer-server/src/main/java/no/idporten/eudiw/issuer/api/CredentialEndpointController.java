@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.api;
 
 import com.nimbusds.jwt.JWT;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssuerService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Hidden
 @RequiredArgsConstructor
 @RestController
 public class CredentialEndpointController {

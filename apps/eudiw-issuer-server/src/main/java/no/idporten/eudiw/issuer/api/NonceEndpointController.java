@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.api;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.openid4vci.protocol.NonceResponse;
 import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Hidden
 @RequiredArgsConstructor
 @RestController
 public class NonceEndpointController {

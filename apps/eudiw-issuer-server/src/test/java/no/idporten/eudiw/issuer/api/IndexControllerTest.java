@@ -5,12 +5,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @DisplayName("When accessing the root path")
@@ -22,12 +24,18 @@ public class IndexControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @DisplayName("then redirect to the credential issuer metadata endpoint")
+    @DisplayName("then show page with links to metadata and documentation endpoints")
     @Test
-    void testRedirectRootToMetadata() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/.well-known/openid-credential-issuer"));
+    void testIndexPage() throws Exception {
+        MvcResult mvcResult = mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/html;charset=UTF-8"))
+                .andReturn();
+        String content = mvcResult.getResponse().getContentAsString();
+        assertAll(
+                () -> content.contains(Endpoints.METADATA_ENDPOINT),
+                () -> content.contains(Endpoints.OPENAPI_ENDPOINT)
+        );
     }
 
 }
