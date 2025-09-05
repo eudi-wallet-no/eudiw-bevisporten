@@ -22,21 +22,27 @@
     </p>
 
 
-    <p class="ds-paragraph">
+    <div class="ds-card" style="max-width: 600px">
 
         <div id="cross-device-request">
-            <img th:src="${'data:image/png;base64,' + qrcode}" alt="QR kode for bevis" id="qrcode-cross-device" width="75%" />
+            <img th:src="${'data:image/png;base64,' + qrcode}" alt="QR kode for bevis" id="qrcode-cross-device" width="100%" />
         </div>
 
-        <a th:href="@{/}" class="ds-button" data-variant="secondary">
-            Tilbake
-        </a>
-        <a th:href="${urlSameSite}" class="ds-button">
-            Opne på mobilen
-        </a>
+        <div class="flex-container" style="min-width: unset">
+            <a th:href="${urlSameSite}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+                Opne på mobilen
+            </a>
+            <a th:href="@{/}" class="ds-button" type="button" data-variant="secondary">
+                Tilbake
+            </a>
+        </div>
+    </div>
 
-        <code th:text="${offer}"></code>
+    <p class="ds-paragraph">
+        Response som JSON frå issuer-server:
     </p>
+    <code th:text="${offer}"></code>
+
 
 
 </main>
