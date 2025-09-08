@@ -35,7 +35,7 @@
     </div>
 </header>
 
-<footer th:fragment="page_footer_fragment"
+<footer th:fragment="page_footer_fragment(issuer)"
         data-color-scheme="dark">
     <div> <!--/* this div holds first row of footer. do not remove! */-->
         <div>
@@ -43,11 +43,19 @@
         </div>
 
         <div>
-            <h2 class="ds-heading">Treng du hjelp?</h2>
+            <h2 class="ds-heading">Teknisk informasjon</h2>
 
+            <a class="ds-link" th:href="${issuer}">
+                Credential issuer API og metadata
+            </a>
             <a class="ds-link" href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
                 Om EUDI-wallet sandkassa
             </a>
+        </div>
+
+        <div>
+            <h2 class="ds-heading">Treng du hjelp?</h2>
+
             <a class="ds-link" href="mailto:servicedesk@digdir.no">
                 servicedesk@digdir.no
             </a>

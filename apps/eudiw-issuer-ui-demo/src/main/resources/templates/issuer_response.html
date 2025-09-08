@@ -25,11 +25,12 @@
     <div class="ds-card" style="max-width: 600px">
 
         <div id="cross-device-request">
-            <img th:src="${'data:image/png;base64,' + qrcode}" alt="QR kode for bevis" id="qrcode-cross-device" width="100%" />
+            <img th:src="${'data:image/png;base64,' + issuance.qrCode}" alt="QR kode for bevis" id="qrcode-cross-device"
+                 width="100%"/>
         </div>
 
         <div class="flex-container" style="min-width: unset">
-            <a th:href="${urlSameSite}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+            <a th:href="${issuance.encodedUri}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
                 Opne på mobilen
             </a>
             <a th:href="@{/}" class="ds-button" type="button" data-variant="secondary">
@@ -38,15 +39,30 @@
         </div>
     </div>
 
-    <p class="ds-paragraph">
-        Response som JSON frå issuer-server:
-    </p>
-    <code th:text="${offer}"></code>
-
+    <div id="tracing">
+        <details class="ds-details" data-variant="default">
+            <summary>Request til issuer-server</summary>
+            <div>
+                <code>POST <span th:text="${request.endpoint}"></span></code>
+                <br/>
+                <code><span th:text="${request.token}"></span></code>
+                <br/>
+                <code><span th:text="${request.headers}"></span></code>
+                <br/><br/>
+                <code th:text="${request.body}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+            </div>
+        </details>
+        <details class="ds-details" data-variant="default">
+            <summary>Response frå issuer-server</summary>
+            <div>
+                <code th:text="${issuance.issuanceResponse}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+            </div>
+        </details>
+    </div>
 
 
 </main>
 
-<footer th:replace="~{fragments/general :: page_footer_fragment}"></footer>
+<footer th:replace="fragments/general :: page_footer_fragment(issuer=${issuerUrl})"></footer>
 </body>
 </html>

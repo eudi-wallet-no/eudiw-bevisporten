@@ -27,5 +27,8 @@ public class IssuerServerProperties {
         this.issuanceEndpoint = issuanceEndpoint;
     }
 
+    public String getIssuanceUrl() {
+        return baseUrl + issuanceEndpoint;
+    }
 
 }
