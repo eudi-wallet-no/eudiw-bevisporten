@@ -3,7 +3,7 @@ package no.idporten.eudiw.issuer.ui.issuer;
 import no.idporten.eudiw.issuer.ui.exception.IssuerServerException;
 import no.idporten.eudiw.issuer.ui.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.issuer.config.IssuerServerProperties;
-import no.idporten.eudiw.issuer.ui.issuer.domain.IssuanceResponse;
+import no.idporten.eudiw.issuer.ui.issuer.domain.CredentialOffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class IssuerServerService {
@@ -29,22 +30,26 @@ public class IssuerServerService {
         this.restClient = restClient;
     }
 
-    public IssuanceResponse startIssuance(String json) {
-        String issuanceEndpoint = issuerServerProperties.getIssuanceEndpoint();
-        IssuanceResponse result;
+    public CredentialOffer startIssuance(String credentialConfigurationId) {
+        log.info("Starting issuance for credential configuration {}", credentialConfigurationId);
+        String issuanceCreatePath = issuerServerProperties.getIssuanceEndpoint();
+        String uri = UriComponentsBuilder.fromPath(issuanceCreatePath)
+                .queryParam("credential_configuration_id", credentialConfigurationId)
+                .toUriString();
+        CredentialOffer result;
         try {
-            result = restClient.post().uri(
-                            issuanceEndpoint).accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON).body(json).retrieve()
-                    .body(IssuanceResponse.class);
+            result = restClient.get().uri(
+                            uri).accept(MediaType.APPLICATION_JSON).retrieve()
+                    .body(CredentialOffer.class);
         } catch (HttpClientErrorException e) {
-            throw new IssuerServerException("Configuration error against issuer-server? path=" + issuanceEndpoint, e);
+            throw new IssuerServerException("Configuration error against issuer-server? uri=" + uri, e);
         } catch (HttpServerErrorException e) {
-            throw new IssuerServerException("callIssuerServer failed for input" + json, e);
+            throw new IssuerServerException("callIssuerServer failed for input" + credentialConfigurationId, e);
         }
-        if (result == null || result.credentialOffer() == null) {
-            throw new IssuerUiException("callIssuerServer returned null for input: " + json);
+        if (result == null) {
+            throw new IssuerUiException("callIssuerServer returned null for input: " + credentialConfigurationId);
         }
-        log.debug("Searched for " + json + ". Returned: " + result);
+        log.debug("Searched for " + credentialConfigurationId + ". Returned: " + result);
         return result;
     }
 
