@@ -7,6 +7,7 @@ import com.nimbusds.jwt.JWT;
 import id.walt.mdoc.doc.MDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
@@ -14,6 +15,7 @@ import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.service.PreAuthorizationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Base64;
@@ -23,6 +25,8 @@ import java.util.List;
 @Service
 public class CredentialIssuerService {
 
+    public static final String GRANT_TYPE_PRE_AUTHORIZED_CODE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
+    public static final String GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
     private final ClaimsSourceService claimsSourceService;
     private final AccessTokenValidationService accessTokenValidationService;
@@ -32,6 +36,9 @@ public class CredentialIssuerService {
     public StartIssuanceResponse startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
+        if (! GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+            throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
+        }
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         IssuerTransactionId issuerTransactionId = preAuthorizationService.generateIssuerTransactionCode();
         String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionId, startIssuanceRequest);
@@ -52,6 +59,18 @@ public class CredentialIssuerService {
         return StartIssuanceResponse.builder()
                 .credentialOffer(credentialOffer)
                 .issuerTransactionId(issuerTransactionId.getValue())
+                .build();
+    }
+
+    public CredentialOffer createCredentialOffer(String credentialConfigurationId) {
+        CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialConfigurationId);
+        if (! GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+            throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the authorization code flow", HttpStatus.BAD_REQUEST);
+        }
+        return CredentialOffer.builder()
+                .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
+                .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
+                .grants(Grants.builder().authorizedCodeGrant(AuthorizedCodeGrant.builder().build()).build())
                 .build();
     }
 

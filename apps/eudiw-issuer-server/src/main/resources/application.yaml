@@ -37,11 +37,13 @@ credential-issuer-server:
       scope: nobid:pid
       format: mso_mdoc
       doctype: eu.europa.ec.eudi.pid.1
+      grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
     - identifier: no.skatteetaten.nnid_mso_mdoc
       scope: eudiw:no:skatteetaten:nnid
       format: mso_mdoc
       doctype: no.skatteetaten.nnid.1
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
   claims-sources:
