@@ -10,16 +10,13 @@ import com.google.zxing.common.BitMatrix;
 import no.idporten.eudiw.issuer.ui.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.issuer.IssuerServerService;
 import no.idporten.eudiw.issuer.ui.issuer.config.IssuerServerProperties;
-import no.idporten.eudiw.issuer.ui.issuer.domain.IssuanceResponse;
+import no.idporten.eudiw.issuer.ui.issuer.domain.CredentialOffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -51,19 +48,22 @@ public class StartIssuanceController {
 
     @GetMapping("/")
     public String start(Model model) {
-        model.addAttribute("jsonRequest", new JsonRequest(defaultJsonRequest()));
+        model.addAttribute("credential_configuration_id", "");
         return "start";
     }
 
-    @PostMapping("/start-issuance")
-    public String startIssuance(@ModelAttribute("jsonRequest") JsonRequest jsonRequest, Model model) {
+    @GetMapping("/start-issuance")
+    public String startIssuance2(@RequestParam("credential_configuration_id") String credentialConfigurationId, Model model) {
+        logger.info("startIssuance2: "+credentialConfigurationId);
 
-        String normalizedJson = jsonRequest.json().replaceAll("\\s", ""); // TODO add validation
-        logger.info(normalizedJson);
+        if (credentialConfigurationId == null || credentialConfigurationId.isEmpty()) {
+            credentialConfigurationId = "no.digdir.eudiw.pid_mso_mdoc";
+        }
+        logger.info("Starting issuance for credential_configuration_id=" + credentialConfigurationId);
 
-        model.addAttribute("request", createRequestTraceing(jsonRequest));
+        model.addAttribute("request", createRequestTraceing(credentialConfigurationId));
 
-        IssuanceResponse response = issuerServerService.startIssuance(normalizedJson);
+        CredentialOffer response = issuerServerService.startIssuance(credentialConfigurationId);
 
         String uri = convertToCredentialOfferUri(response);
         String qrCode = null;
@@ -79,33 +79,31 @@ public class StartIssuanceController {
         return "issuer_response";
     }
 
-    private IssuanceRequest createRequestTraceing(JsonRequest jsonRequest) {
-        String contentType = "Content-Type: " + MediaType.APPLICATION_JSON;
-        String authorization = "Authorization: Bearer [Maskinporten-token]";
-        return new IssuanceRequest(jsonRequest.json(), properties.getIssuanceUrl(), authorization, contentType);
+    private IssuanceRequest createRequestTraceing(String offerId) {
+        return new IssuanceRequest(offerId, properties.getIssuanceUrl(), null);
     }
 
-    private String convertToCredentialOfferUri(IssuanceResponse response) {
-        String jsonString = toJsonString(response);
+    private String convertToCredentialOfferUri(CredentialOffer credentialOffer) {
+        String jsonString = toJsonString(credentialOffer);
         String offerEncoded = URLEncoder.encode(jsonString, StandardCharsets.UTF_8);
         String uri = "openid-credential-offer://?credential_offer=" + offerEncoded;
-        logger.info("Issuer offer: " + response);
+        logger.info("Issuer offer: " + credentialOffer);
         logger.info("Issuer offer encoded: " + offerEncoded);
         return uri;
     }
 
-    private String toJsonString(IssuanceResponse response) {
+    private String toJsonString(CredentialOffer credentialOffer) {
         try {
-            return objectMapper.writeValueAsString(response.credentialOffer());
+            return objectMapper.writeValueAsString(credentialOffer);
         } catch (JsonProcessingException e) {
-            throw new IssuerUiException("Failed to convert response to Json string", e);
+            throw new IssuerUiException("Failed to convert credentialOffer to Json string", e);
         }
     }
-    private String toPrettyJsonString(IssuanceResponse response) {
+    private String toPrettyJsonString(CredentialOffer credentialOffer) {
         try {
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(credentialOffer);
         } catch (JsonProcessingException e) {
-            throw new IssuerUiException("Failed to convert response to pretty Json string", e);
+            throw new IssuerUiException("Failed to convert credentialOffer to pretty Json string", e);
         }
     }
 
@@ -119,26 +117,5 @@ public class StartIssuanceController {
     }
 
 
-    private String defaultJsonRequest() {
-        return """
-                {
-                   "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
-                   "claims": [
-                     {
-                       "name": "norwegian_national_id_number",
-                       "value": "12345678901"
-                     },
-                     {
-                       "name": "norwegian_national_id_number_status",
-                       "value": "Kontrollert"
-                     },
-                     {
-                       "name": "norwegian_national_id_number_type",
-                       "value": "D-nummer"
-                     }
-                   ]
-                 }
-                """;
-    }
 
 }

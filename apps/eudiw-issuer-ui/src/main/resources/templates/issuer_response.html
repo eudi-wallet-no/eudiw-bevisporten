@@ -14,7 +14,7 @@
             Send bevis til mobilen
         </h1>
         <p class="ds-paragraph">
-            No er me i gong med å utferding av bevis, køyr på med mobilen!
+            Vel lenke om du er på mobilen no eller scan QR-koden med mobilen.
         </p>
     </div>
 
@@ -43,13 +43,7 @@
         <details class="ds-details" data-variant="default">
             <summary>Request til issuer-server</summary>
             <div>
-                <code>POST <span th:text="${request.endpoint}"></span></code>
-                <br/>
-                <code><span th:text="${request.token}"></span></code>
-                <br/>
-                <code><span th:text="${request.headers}"></span></code>
-                <br/><br/>
-                <code th:text="${request.body}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+                <code>GET <span th:text="${request.endpoint}"></span>?credential_configuration_id=<span th:text="${request.body}"></span></code>
             </div>
         </details>
         <details class="ds-details" data-variant="default">
