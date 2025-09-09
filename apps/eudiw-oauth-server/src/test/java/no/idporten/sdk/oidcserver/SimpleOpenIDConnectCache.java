@@ -58,4 +58,8 @@ class SimpleOpenIDConnectCache implements OpenIDConnectCache {
         return accessToken2authorizationMap.get(accessToken);
     }
 
+    public boolean isEmpty() {
+        return authorizationRequestMap.isEmpty() && code2authorizationMap.isEmpty() && accessToken2authorizationMap.isEmpty();
+    }
+
 }

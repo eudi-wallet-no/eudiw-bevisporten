@@ -74,6 +74,7 @@ public class TestUtils {
     public static OpenIDConnectSdkConfiguration.OpenIDConnectSdkConfigurationBuilder defaultSdkTestConfigurationBuilder() throws Exception {
         return OpenIDConnectSdkConfiguration.builder()
                 .issuer(new URI(defaultIssuer()))
+                .grantTypesSupported(List.of("urn:ietf:params:oauth:grant-type:pre-authorized_code", "authorization_code"))
                 .cache(new SimpleOpenIDConnectCache())
                 .jwk(new ECKeyGenerator(Curve.P_256)
                         .keyUse(KeyUse.SIGNATURE)
