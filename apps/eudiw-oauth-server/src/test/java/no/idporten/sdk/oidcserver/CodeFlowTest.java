@@ -59,6 +59,7 @@ class CodeFlowTest {
         request.addParameter("nonce", "n");
         request.addParameter("acr_values", "Level4 Level3");
         request.addParameter("resource", "https://api.idporten.junit/v1");
+        request.addParameter("issuer_state", "is");
 
         PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
         PushedAuthorizationResponse pushedAuthorizationResponse = openIDConnectSdk.process(pushedAuthorizationRequest);
@@ -152,6 +153,7 @@ class CodeFlowTest {
         assertEquals(clientMetadata.getClientId(), accessTokenClaimsSet.getClaim("client_id"));
         assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
         assertEquals("openid pid.mdoc", accessTokenClaimsSet.getClaim("scope"));
+        assertEquals("is", accessTokenClaimsSet.getClaim("issuer_state"));
 
         // 7. Process optional userinfo request
         request = new MockRequest();
