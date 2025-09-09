@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.ui.demo.web;
+package no.idporten.eudiw.issuer.ui.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,10 +7,10 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
-import no.idporten.eudiw.issuer.ui.demo.exception.IssuerUiException;
-import no.idporten.eudiw.issuer.ui.demo.issuer.IssuerServerService;
-import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
-import no.idporten.eudiw.issuer.ui.demo.issuer.domain.IssuanceResponse;
+import no.idporten.eudiw.issuer.ui.exception.IssuerUiException;
+import no.idporten.eudiw.issuer.ui.issuer.IssuerServerService;
+import no.idporten.eudiw.issuer.ui.issuer.config.IssuerServerProperties;
+import no.idporten.eudiw.issuer.ui.issuer.domain.IssuanceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

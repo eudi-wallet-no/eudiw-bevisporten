@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.ui.demo.issuer.config;
+package no.idporten.eudiw.issuer.ui.issuer.config;
 
 import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;

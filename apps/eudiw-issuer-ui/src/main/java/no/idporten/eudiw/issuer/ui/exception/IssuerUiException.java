@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.ui.demo.exception;
+package no.idporten.eudiw.issuer.ui.exception;
 
 public class IssuerUiException extends RuntimeException {
 

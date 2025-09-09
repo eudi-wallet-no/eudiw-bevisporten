@@ -1,10 +1,10 @@
-package no.idporten.eudiw.issuer.ui.demo.issuer.config;
+package no.idporten.eudiw.issuer.ui.issuer.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "issuer-ui-demo.issuer-server")
+@ConfigurationProperties(prefix = "issuer-ui.issuer-server")
 public class IssuerServerProperties {
 
 

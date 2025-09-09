@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.ui.demo.web;
+package no.idporten.eudiw.issuer.ui.web;
 
 import java.io.Serializable;
 
