@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("When testing the authorization code flow with the SDK")
-class CodeFlowTest {
+class AuthorizationCodeFlowTest {
 
     private OpenIDConnectIntegrationBase openIDConnectSdk;
     private SimpleOpenIDConnectCache cache;

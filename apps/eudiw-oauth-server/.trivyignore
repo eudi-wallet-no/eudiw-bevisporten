@@ -1,3 +1,2 @@
-# CVEs that Trivy will ignore
 # <CVE> # <package/affected code>. Fixed in <version>.
 CVE-2025-47907 # stdlib
