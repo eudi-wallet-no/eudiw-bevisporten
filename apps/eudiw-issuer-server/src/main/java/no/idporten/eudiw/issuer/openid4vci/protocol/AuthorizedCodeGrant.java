@@ -9,13 +9,10 @@ import lombok.Builder;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @Builder
 @AllArgsConstructor
-public class PreAuthorizedCodeGrant {
+public class AuthorizedCodeGrant {
 
-    @JsonProperty("pre-authorized_code")
-    private String preAuthorizedCode;
-
-    @JsonProperty("tx_code")
-    private TxCode txCode;
+    @JsonProperty("issuer_state")
+    private String issuerState;
 
     @JsonProperty("authorization_server")
     private String authorizationServer;

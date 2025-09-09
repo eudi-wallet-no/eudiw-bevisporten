@@ -37,7 +37,7 @@ public class StartCredentialIssuanceController {
 
     @Operation(
             summary = "Start credential issuance",
-            description = "Upload credential data for credential issuance.",
+            description = "Upload credential data for credential issuance through the pre-authorized code flow.",
             tags = {API_TAG},
             security = { @SecurityRequirement(name = "Maskinporten") }
     )

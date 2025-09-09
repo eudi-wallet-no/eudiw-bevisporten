@@ -23,6 +23,13 @@ credential-issuer-server:
       scope: eudiw:junit
       format: mso_mdoc
       doctype: junitdoc
+      grant-type: authorization_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+    - identifier: junitdoc_pre_mso_mdoc
+      scope: eudiw:junit
+      format: mso_mdoc
+      doctype: junitdoc
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
