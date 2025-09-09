@@ -162,10 +162,11 @@ public class PushedAuthorizationRequestTest {
         request.addParameter("acr_values", "l3 l4");
         request.addParameter("ui_locales", "nn nb");
         request.addParameter("authorization_details", "[{\"type\": \"foo\"}]");
+        request.addParameter("issuer_state", "is");
         PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
         AuditData auditData = pushedAuthorizationRequest.getAuditData();
         assertAll(
-                () -> assertEquals(10, auditData.getAttributes().size()),
+                () -> assertEquals(11, auditData.getAttributes().size()),
                 () -> assertEquals(clientId, auditData.getAttribute("client_id")),
                 () -> assertEquals(redirectUri, auditData.getAttribute("redirect_uri")),
                 () -> assertEquals("openid  profile ", auditData.getAttribute("scope")),
@@ -175,7 +176,8 @@ public class PushedAuthorizationRequestTest {
                 () -> assertEquals(responseMode, auditData.getAttribute("response_mode")),
                 () -> assertEquals("l3 l4", auditData.getAttribute("acr_values")),
                 () -> assertEquals("nn nb", auditData.getAttribute("ui_locales")),
-                () -> assertNotNull(auditData.getAttribute("authorization_details"))
+                () -> assertNotNull(auditData.getAttribute("authorization_details")),
+                () -> assertEquals("is", auditData.getAttribute("issuer_state"))
         );
     }
 

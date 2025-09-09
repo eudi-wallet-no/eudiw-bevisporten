@@ -85,6 +85,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         validateNonce(authorizationRequest, clientMetadata);
         validateAuthorizationDetails(authorizationRequest, clientMetadata);
         validateResource(authorizationRequest, clientMetadata);
+        validateIssuerState(authorizationRequest, clientMetadata);
     }
 
     protected void validateClientId(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
@@ -160,6 +161,13 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
     protected void validateState(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
         if (hasText(authorizationRequest.getState()) && !authorizationRequest.getState().matches("^[\\x20-\\x7E]+$")) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter state.", 400);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    protected void validateIssuerState(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
+        if (hasText(authorizationRequest.getIssuerState()) && !authorizationRequest.getIssuerState().matches("^[\\x20-\\x7E]+$")) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter issuer_state.", 400);
         }
     }
 
@@ -431,6 +439,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         authorization.setClientId(pushedAuthorizationRequest.getClientId());
         authorization.setAud(pushedAuthorizationRequest.getResource());
         authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
+        authorization.setIssuerState(pushedAuthorizationRequest.getIssuerState());
         if (!hasText(authorization.getAcr())) {
             authorization.setAcr(pushedAuthorizationRequest.getResolvedAcrValue());
         }
@@ -564,6 +573,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 .audience(authorization.getAud())
                 .claim("client_id", authorization.getClientId())
                 .claim("scope", authorization.getScope())
+                .claim("issuer_state", authorization.getIssuerState())
                 .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getAccessTokenLifetimeSeconds() * 1000L)))
                 .issueTime(new Date())
                 .subject(authorization.getSub());

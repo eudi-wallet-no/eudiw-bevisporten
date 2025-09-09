@@ -45,6 +45,7 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     private List<String> uiLocales;
     private List<AuthorizationDetail> authorizationDetails;
     private String resource;
+    private String issuerState;
     @Getter(AccessLevel.NONE)
     private Map<String, String> parameters = new HashMap<>();
 
@@ -77,6 +78,7 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
         uiLocales = convertSpaceDelimitedString(getFirstValue("ui_locales", parameters));
         authorizationDetails = convertAuthorizationDetails(getFirstValue("authorization_details", parameters));
         resource = getFirstValue("resource", parameters);
+        issuerState = getFirstValue("issuer_state", parameters);
         this.parameters = toMap(parameters);
     }
 
@@ -145,7 +147,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
                 "acr_values",
                 "ui_locales",
                 "authorization_details",
-                "resource"));
+                "resource",
+                "issuer_state"));
         Map<String, Object> auditData = new HashMap<>();
         auditData.putAll(parameters.entrySet()
                 .stream()
