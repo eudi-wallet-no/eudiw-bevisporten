@@ -7,7 +7,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: digital-lommebok-issuer-ui-demo
+    name: digital-lommebok-issuer-ui
     environment: default
 
 
@@ -29,7 +29,7 @@ management:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
 
-issuer-ui-demo:
+issuer-demo:
   issuer-server:
     issuance-endpoint: /api/v1/credential/start-issuance-transaction
 

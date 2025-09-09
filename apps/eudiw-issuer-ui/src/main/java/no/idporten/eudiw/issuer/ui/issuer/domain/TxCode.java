@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.ui.demo.issuer.domain;
+package no.idporten.eudiw.issuer.ui.issuer.domain;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;

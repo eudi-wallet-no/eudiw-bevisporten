@@ -17,7 +17,7 @@ jobs:
   build-publish-image:
     uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
     with:
-      image-name: digital-lommebok-issuer-ui-demo
+      image-name: digital-lommebok-issuer-ui
       java-version: 24
     secrets: inherit
 
@@ -25,10 +25,10 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     needs: build-publish-image
     with:
-      application-name: digital-lommebok-issuer-ui-demo
+      application-name: digital-lommebok-issuer-ui
       deployment-environment: systest
       image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
-      image-name: digital-lommebok-issuer-ui-demo
+      image-name: digital-lommebok-issuer-ui
       image-version: ${{ needs.build-publish-image.outputs.image-version }}
       kubernetes-repo: digital-lommebok-cd
       product-name: digital-lommebok

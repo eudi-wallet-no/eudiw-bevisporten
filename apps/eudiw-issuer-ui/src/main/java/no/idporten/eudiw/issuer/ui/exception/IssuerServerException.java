@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.ui.demo.exception;
+package no.idporten.eudiw.issuer.ui.exception;
 
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.HttpClientErrorException;

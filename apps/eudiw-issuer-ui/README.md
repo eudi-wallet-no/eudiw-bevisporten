@@ -1,2 +1,2 @@
-# eudiw-issuer-ui-demo
-EUDI wallet: Issuer-ui demo for pre-authorized flow
+# eudiw-issuer-ui
+EUDI wallet: Issuer-ui for issuance of verifiable credentials for Norway
