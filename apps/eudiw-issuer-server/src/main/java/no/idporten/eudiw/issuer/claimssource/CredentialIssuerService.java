@@ -35,10 +35,10 @@ public class CredentialIssuerService {
 
     public StartIssuanceResponse startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
-        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         if (! GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
             throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         IssuerTransactionId issuerTransactionId = preAuthorizationService.generateIssuerTransactionCode();
         String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionId, startIssuanceRequest);
