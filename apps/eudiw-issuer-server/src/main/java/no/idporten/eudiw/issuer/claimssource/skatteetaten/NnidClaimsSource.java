@@ -15,44 +15,58 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class NnidClaimsSource implements PreAuthorizedClaimsSource {
-
-    public static final String ATTRIBUTE_NNID = "norwegian_national_id_number";
-    public static final String ATTRIBUTE_NNID_STATUS = "norwegian_national_id_number_status";
-    public static final String ATTRIBUTE_NNID_TYPE = "norwegian_national_id_number_type";
-    private static final Map<String, String> REQUIRED_CLAIMS = new HashMap<>();
 
     private ClaimsSourceProperties properties;
 
     private final Map<String, Map<String, String>> claimsCache = new HashMap<>();
 
-    protected void validateClaim(String name, Map<String, String> claims) {
-        if (!claims.containsKey(name)) {
-            throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(name), HttpStatus.BAD_REQUEST);
-        }
-        String value = claims.get(name);
-        if (!StringUtils.hasLength(value)) {
-            throw new IssuerServerException("invalid_request", "Missing required value for claim %s".formatted(name), HttpStatus.BAD_REQUEST);
-        }
+    private final DocumentMetadata documentMetadata = new DocumentMetadata(
+            Map.of(
+                    "no", "Norsk identitetsnummer",
+                    "en", "Norwegian identification number"
+            ),
+            List.of(
+                    new ClaimMetadata("norwegian_national_id_number",
+                            Map.of(
+                                    "no", "Norsk identitetsnummer",
+                                    "en", "Norwegian identification number"),
+                            true,
+                            "^\\d{11}$"),
+                    new ClaimMetadata("norwegian_national_id_number_type",
+                            Map.of(
+                                    "no", "Type norsk identitetsnummer",
+                                    "en", "Type of Norwegian identification number"),
+                            true,
+                            "^[\\x20-\\x7EæøåÆØÅ]{1,255}$")
+            )
+    );
 
-        Pattern pattern = Pattern.compile(REQUIRED_CLAIMS.get(name), Pattern.CASE_INSENSITIVE);
-        Matcher match = pattern.matcher(value);
-        if (!match.matches() ) {
-            throw new IssuerServerException("invalid_request", "Invalid format for required value for claim %s".formatted(name), HttpStatus.BAD_REQUEST);
+    protected void validateClaim(ClaimMetadata claimMetadata, Map<String, String> claims) {
+        if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
+            throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
+        }
+        final String value = claims.get(claimMetadata.name());
+        if (claimMetadata.mandatory() && !StringUtils.hasLength(value)) {
+            throw new IssuerServerException("invalid_request", "Missing required value for claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
+        }
+        if (!value.matches(claimMetadata.validationRegex())) {
+            throw new IssuerServerException("invalid_request", "Invalid format for required value for claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
         }
     }
 
     public void validate(Map<String, String> claims) {
-        if (claims.size() != REQUIRED_CLAIMS.size()) {
-            throw new IssuerServerException("invalid_request", "Wrong number of claims provided, must be exactly %s".formatted(REQUIRED_CLAIMS.size()), HttpStatus.BAD_REQUEST);
+        // validate all known claims
+        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
+            validateClaim(claimMetadata, claims);
         }
-        for (String requiredClaim : REQUIRED_CLAIMS.keySet()) {
-            validateClaim(requiredClaim, claims);
+        // reject all unknown claims
+        for (String claimName : claims.keySet()) {
+            if (documentMetadata.findClaimMetadata(claimName) == null) {
+                throw new IssuerServerException("invalid_request", "Unsupported claims in request.", HttpStatus.BAD_REQUEST);
+            }
         }
-
     }
 
     @Override
@@ -62,12 +76,10 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
         return transactionId;
     }
 
+
     @Override
     public void init(ClaimsSourceProperties properties) {
         this.properties = properties;
-        REQUIRED_CLAIMS.put(ATTRIBUTE_NNID, "\\d{11}");
-        REQUIRED_CLAIMS.put(ATTRIBUTE_NNID_STATUS, "kontrollert|unik|ikke kontrollert");
-        REQUIRED_CLAIMS.put(ATTRIBUTE_NNID_TYPE, "d-nummer|f-nummer");
     }
 
     @Override
@@ -81,18 +93,21 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
 
     @Override
     public ClaimsSourceMetadata getMetadata() {
-        return ClaimsSourceMetadata.builder()
-                .display(Display.builder().name("Norwegian National identification number").build())
-                .claim(ClaimsDescription.builder()
-                        .path(namespace()).path(ATTRIBUTE_NNID)
-                        .display(Display.builder().name("ID-number").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path(namespace()).path(ATTRIBUTE_NNID_STATUS)
-                        .display(Display.builder().name("Status").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path(namespace()).path(ATTRIBUTE_NNID_TYPE)
-                        .display(Display.builder().name("Type").build()).build())
-                .build();
+        ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
+        builder.displays(documentMetadata.displayNames()
+                .entrySet()
+                .stream()
+                .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList());
+        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
+            builder.claim(ClaimsDescription.builder()
+                    .path(namespace()).path(claimMetadata.name())
+                    .displays(claimMetadata.displayNames()
+                            .entrySet()
+                            .stream()
+                            .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList())
+                    .build());
+        }
+        return builder.build();
     }
 
     @Override
@@ -104,10 +119,13 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
             throw new IssuerServerException("internal_server_error", "Missing claim in internal access token %s".formatted("tx_id"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         Map<String, String> storedClaims = claimsCache.get(transactionId);
-
-        return REQUIRED_CLAIMS.keySet().stream().map(claimName ->
+        return storedClaims.keySet().stream().map(claimName ->
                 Claim.builder().path(namespace()).path(claimName).value(storedClaims.get(claimName)).build()
         ).toList();
+    }
+
+    public DocumentMetadata getDocumentMetadata() {
+        return documentMetadata;
     }
 
 }

@@ -1,16 +1,25 @@
 package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.Claim;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import org.junit.jupiter.api.*;
 
-import java.util.Map;
+import java.util.*;
 
-import static no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource.ATTRIBUTE_NNID;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @DisplayName("NnidClaimsSource tests")
 class NnidClaimsSourceTest {
+
+    public static final String NORWEGIAN_NATIONAL_ID_NUMBER = "norwegian_national_id_number";
+    public static final String NORWEGIAN_NATIONAL_ID_NUMBER_TYPE = "norwegian_national_id_number_type";
+    public static final String NORWEGIAN_NATIONAL_ID_NUMBER_DOCTYPE = "no.skatteetaten.nnid.1";
 
     private NnidClaimsSource nnidClaimsSource;
 
@@ -18,6 +27,7 @@ class NnidClaimsSourceTest {
     void setUp() {
         nnidClaimsSource = new NnidClaimsSource();
         ClaimsSourceProperties properties = new ClaimsSourceProperties();
+        properties.setDoctype(NORWEGIAN_NATIONAL_ID_NUMBER_DOCTYPE);
         nnidClaimsSource.init(properties);
     }
 
@@ -28,77 +38,101 @@ class NnidClaimsSourceTest {
         @DisplayName("for claim norwegian_national_id_number is valid")
         @Test
         void validateClaimFnrIs11Digits() {
-            nnidClaimsSource.validateClaim(ATTRIBUTE_NNID, Map.of(ATTRIBUTE_NNID, "12345678901"));
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER);
+
+            nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901"));
         }
 
         @DisplayName("for claim norwegian_national_id_number is invalid when not 11 digits")
         @Test
         void validateClaimTextFnrIsNot11Digits() {
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(ATTRIBUTE_NNID, Map.of(ATTRIBUTE_NNID, "abcdefghijk")));
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(ATTRIBUTE_NNID, Map.of(ATTRIBUTE_NNID, "4d")));
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(ATTRIBUTE_NNID, Map.of(ATTRIBUTE_NNID, "")));
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER);
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "abcdefghijk")));
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "4d")));
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "")));
         }
-
-        @DisplayName("for claim norwegian_national_id_number_status is valid when Kontrollert or Ikke kontrollert")
-        @Test
-        void validateClaimStatusIsValidTerm() {
-            nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "Kontrollert"));
-            nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "unik"));
-            nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "Ikke kontrollert"));
-        }
-
-        @DisplayName("for claim norwegian_national_id_number_status is invalid when random text or empty string")
-        @Test
-        void validateClaimStatusIsNotValidTerm() {
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "dsf")));
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "")));
-        }
-
 
         @DisplayName("for claim norwegian_national_id_number_type is valid when D-nummer or F-nummer")
         @Test
         void validateClaimTypeIsValidTerm() {
-            nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "D-nummer"));
-            nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "F-nummer"));
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE);
+            nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer"));
+            nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "F-nummer"));
         }
 
         @DisplayName("for claim norwegian_national_id_number_type is invalid when random text or empty string")
         @Test
         void validateClaimTypeIsNotValidTerm() {
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "nummer")));
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, Map.of(NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "")));
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE);
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "")));
         }
 
         @DisplayName("when all required claims are present and valid then all is valid")
         @Test
         void validateAllClaimsOK() {
-            nnidClaimsSource.validate(Map.of(ATTRIBUTE_NNID, "11127911122",
-                    NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "Kontrollert",
-                    NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "D-nummer"));
+            nnidClaimsSource.validate(
+                    Map.of(
+                            NORWEGIAN_NATIONAL_ID_NUMBER, "11127911122",
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "Fødselsnummer"));
         }
 
         @DisplayName("when all required claims are present, but 1 invalid then all is invalid")
         @Test
         void validateOneClaimNotOK() {
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(Map.of(ATTRIBUTE_NNID, "4444",
-                    NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "Kontrollert",
-                    NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "D-nummer")));
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate
+                    (Map.of(
+                            NORWEGIAN_NATIONAL_ID_NUMBER, "4444",
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
         }
 
         @DisplayName("when not all required claims are present, then all is invalid")
         @Test
         void validateMissingClaimNotOK() {
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(Map.of(ATTRIBUTE_NNID, "4444",
-                    NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "D-nummer")));
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(
+                    Map.of(
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
         }
 
         @DisplayName("when all required claims are present and valid but also extra claim present, then all is invalid")
         @Test
         void validateExtraClaimNotOK() {
-            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(Map.of(ATTRIBUTE_NNID, "4444",
-                    NnidClaimsSource.ATTRIBUTE_NNID_STATUS, "Kontrollert",
-                    "extra-claim", "try-to-stop-me",
-                    NnidClaimsSource.ATTRIBUTE_NNID_TYPE, "D-nummer")));
+            assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(
+                    Map.of(
+                            NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
+                            "extra-claim", "try-to-stop-me",
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
         }
     }
+
+    @DisplayName("When using the claims source lifecycle methods")
+    @Nested
+    class LifecycleTest {
+
+        @DisplayName("then data can be validated, stored, retrieved and formatted")
+        @Test
+        void testClaimsSourceLifecycle() {
+            final String transactionId = "tid";
+            JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                    .issuer("https://junit.idporten.no")
+                    .claim("scope", "openid profile foo:bar")
+                    .claim("tx_id", transactionId)
+                    .build();
+            PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
+
+            NnidClaimsSource claimsSource = spy(nnidClaimsSource);
+            claimsSource.store(transactionId, new TreeMap<>(Map.of(
+                    NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
+                    NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+            verify(claimsSource).validate(anyMap());
+            List<Claim> claims = nnidClaimsSource.retrieveClaims(accessToken);
+            assertAll(
+                    () -> assertEquals(2, claims.size()),
+                    () -> assertEquals("12345678901", claims.getFirst().getValue()),
+                    () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number"), claims.getFirst().getPath()),
+                    () -> assertEquals("D-nummer", claims.getLast().getValue()),
+                    () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number_type"), claims.getLast().getPath())
+           );
+        }
+    }
+
 }

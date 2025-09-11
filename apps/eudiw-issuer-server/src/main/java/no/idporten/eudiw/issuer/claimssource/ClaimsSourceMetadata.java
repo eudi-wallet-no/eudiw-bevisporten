@@ -15,7 +15,7 @@ public class ClaimsSourceMetadata {
 
     @Singular("display")
     @JsonProperty("display")
-    private List<Display> display;
+    private List<Display> displays;
 
     @Singular("claim")
     @JsonProperty("claims")

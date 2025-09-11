@@ -51,7 +51,7 @@ public class CredentialIssuerService {
                                 .txCode(TxCode.builder()
                                         .inputMode("numeric")
                                         .length(4)
-                                        .description("Enter code from SMS to issue %s".formatted(claimsSource.getMetadata().getDisplay().getFirst().getName()))
+                                        .description("Enter code from SMS to issue %s".formatted(claimsSource.getMetadata().getDisplays().getFirst().getName()))
                                         .build())
                                 .build())
                         .build())
