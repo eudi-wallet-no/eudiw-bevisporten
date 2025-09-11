@@ -50,7 +50,7 @@ public class CredentialIssuerServerConfiguration {
                             .scope(credentialConfigurationProperties.getScope())
                             .doctype(credentialConfigurationProperties.getDoctype())
                             // config from claims source
-                            .display(claimsSourceMetadata.getDisplay())
+                            .display(claimsSourceMetadata.getDisplays())
                             .claims(claimsSourceMetadata.getClaims())
                             // config from issuer server
                             .cryptographicBindingMethods(properties.getCryptographicBindings())
