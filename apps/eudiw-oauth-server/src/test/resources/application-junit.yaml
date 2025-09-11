@@ -5,6 +5,7 @@ spring:
 
 # EUDIW auth server
 oauth-authorization-server:
+
   keystore:
     type: JKS
     location: classpath:./junit.jks
@@ -14,3 +15,4 @@ oauth-authorization-server:
   issuer: http://my-test-server
   scopes-supported:
     - ra
+  api-key: junit
