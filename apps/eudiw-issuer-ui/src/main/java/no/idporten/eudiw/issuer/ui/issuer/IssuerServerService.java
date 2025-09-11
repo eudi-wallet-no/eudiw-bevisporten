@@ -44,7 +44,7 @@ public class IssuerServerService {
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? uri=" + uri, e);
         } catch (HttpServerErrorException e) {
-            throw new IssuerServerException("callIssuerServer failed for input" + credentialConfigurationId, e);
+            throw new IssuerServerException("call IssuerServer failed for input" + credentialConfigurationId, e);
         }
         if (result == null) {
             throw new IssuerUiException("callIssuerServer returned null for input: " + credentialConfigurationId);
