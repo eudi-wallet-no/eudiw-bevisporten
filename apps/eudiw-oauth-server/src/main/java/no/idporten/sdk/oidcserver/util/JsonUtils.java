@@ -1,10 +1,10 @@
 package no.idporten.sdk.oidcserver.util;
 
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.ToNumberPolicy;
-import com.google.gson.reflect.TypeToken;
+import com.nimbusds.jose.shaded.gson.Gson;
+import com.nimbusds.jose.shaded.gson.GsonBuilder;
+import com.nimbusds.jose.shaded.gson.ToNumberPolicy;
+import com.nimbusds.jose.shaded.gson.reflect.TypeToken;
 import com.nimbusds.jose.util.JSONObjectUtils;
 
 import java.lang.reflect.Type;

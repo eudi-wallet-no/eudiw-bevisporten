@@ -24,7 +24,6 @@
         <log4j2.version>2.16.0</log4j2.version>
         <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.28</oauth2-oidc-sdk.version>
-        <gson.version>2.13.1</gson.version> <!-- Gson version used by nimbus-jose-jwt, but for some reason the wrong version is included. remove when fixed-->
         <lombok.version>1.18.40</lombok.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
     </properties>
@@ -92,22 +91,11 @@
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>${nimbus-jose-jwt.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>oauth2-oidc-sdk</artifactId>
             <version>${oauth2-oidc-sdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${gson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
