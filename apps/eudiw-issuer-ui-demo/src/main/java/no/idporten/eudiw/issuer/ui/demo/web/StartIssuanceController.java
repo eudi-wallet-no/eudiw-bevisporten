@@ -129,10 +129,6 @@ public class StartIssuanceController {
                        "value": "12345678901"
                      },
                      {
-                       "name": "norwegian_national_id_number_status",
-                       "value": "Kontrollert"
-                     },
-                     {
                        "name": "norwegian_national_id_number_type",
                        "value": "D-nummer"
                      }
