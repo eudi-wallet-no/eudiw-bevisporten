@@ -5,8 +5,7 @@ import no.idporten.sdk.oidcserver.OpenIDConnectIntegrationBase;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
-
-import java.util.Objects;
+import no.idporten.sdk.oidcserver.util.StringUtils;
 
 import static no.idporten.sdk.oidcserver.util.StringUtils.hasText;
 
@@ -55,17 +54,12 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
         }
     }
 
-    protected void validatePreAuthorization(Authorization authorization) {
-        Objects.requireNonNull(authorization);
-        Objects.requireNonNull(authorization.getSub(), "pre-authorization must have a sub");
-    }
-
     /**
      * Process pre-autghorization request.  Create an authorization, store in cache and generate a response
      * with pre.authorization_code.
      */
     public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest) {
-        String preAuthorizationCode = generateId();
+        validate(preAuthorizationRequest);
         Authorization preAuthorization = Authorization.builder()
                 .sub(preAuthorizationRequest.getSub())
                 .aud(preAuthorizationRequest.getAud())
@@ -74,7 +68,7 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
                 .attribute("tx_id", preAuthorizationRequest.getTxId())
                 .build();
         preAuthorization.setLifetimeSeconds(preAuthorizationRequest.getAuthorizationLifetimeSeconds() > 0 ? preAuthorizationRequest.getAuthorizationLifetimeSeconds() : getSDKConfiguration().getAuthorizationLifetimeSeconds());
-        validatePreAuthorization(preAuthorization);
+        String preAuthorizationCode = generateId();
         getSDKConfiguration().getCache().putAuthorization(preAuthorizationCode, preAuthorization);
         getSDKConfiguration().getAuditLogger().auditAuthorization(preAuthorization);
         PreAuthorizationResponse preAuthorizationResponse = PreAuthorizationResponse.builder()
@@ -83,5 +77,24 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
                 .build();
         return preAuthorizationResponse;
     }
+
+    public void validate(PreAuthorizationRequest preAuthorizationRequest) {
+        if (!StringUtils.hasText(preAuthorizationRequest.getSub())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid pre-authorization. Invalid subject.", 400);
+        }
+        if (!StringUtils.hasText(preAuthorizationRequest.getAud())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid pre-authorization. Invalid audience.", 400);
+        }
+        if (preAuthorizationRequest.getScope().isEmpty()) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid pre-authorization. Invalid scope.", 400);
+        }
+        if (!StringUtils.hasText(preAuthorizationRequest.getTxId())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid pre-authorization. Invalid tx_id.", 400);
+        }
+        if (preAuthorizationRequest.getAuthorizationLifetimeSeconds() < 1) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid pre-authorization. Invalid authorization token lifetime.", 400);
+        }
+    }
+
 
 }
