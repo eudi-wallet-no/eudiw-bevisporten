@@ -53,7 +53,7 @@ public class CredentialIssuerServiceTest {
         when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("n1").path("p1").value("v1").build()));
         when(credentialIssuerServerProperties.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfigurationProperties);
         when(claimsSourceService.findClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
-        List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
+        List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, accessToken).getCredentials();
         assertAll(
                 () -> assertEquals(1, credentials.size()),
                 () -> assertTrue(credentials.getFirst().getCredential().contains("n1")),

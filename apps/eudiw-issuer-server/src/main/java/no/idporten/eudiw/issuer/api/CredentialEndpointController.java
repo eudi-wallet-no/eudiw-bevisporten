@@ -6,11 +6,11 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssuerService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
-import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
 import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
 import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
+import no.idporten.eudiw.issuer.openid4vci.service.NotificationService;
 import no.idporten.eudiw.issuer.openid4vci.service.ProofService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,6 +33,7 @@ public class CredentialEndpointController {
     private final AccessTokenValidationService accessTokenValidationService;
     private final NonceService nonceService;
     private final ProofService proofService;
+    private final NotificationService notificationService;
 
     @PostMapping(path = Endpoints.CREDENTIAL_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialResponse> credentialEndpoint(@RequestBody CredentialRequest credentialRequest,
@@ -43,12 +44,10 @@ public class CredentialEndpointController {
             throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
         }
         proofService.validateProof(credentialRequest.getProof());
-        List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
+        CredentialResponse  credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .body(CredentialResponse.builder()
-                        .credentials(credentials)
-                        .build());
+                .body(credentialResponse);
     }
 
 }

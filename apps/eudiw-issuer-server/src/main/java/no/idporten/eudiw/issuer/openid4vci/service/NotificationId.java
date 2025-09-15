@@ -3,13 +3,13 @@ package no.idporten.eudiw.issuer.openid4vci.service;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.nimbusds.oauth2.sdk.id.Identifier;
 
-public class IssuerTransactionId extends Identifier {
+public class NotificationId extends Identifier {
 
-    public IssuerTransactionId() {
+    public NotificationId() {
         super();
     }
 
-    public IssuerTransactionId(String value) {
+    public NotificationId(String value) {
         super(value);
     }
 

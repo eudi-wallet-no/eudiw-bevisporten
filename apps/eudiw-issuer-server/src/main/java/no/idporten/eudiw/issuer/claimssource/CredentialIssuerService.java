@@ -14,6 +14,8 @@ import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
+import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
+import no.idporten.eudiw.issuer.openid4vci.service.NotificationService;
 import no.idporten.eudiw.issuer.openid4vci.service.PreAuthorizationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class CredentialIssuerService {
     private final AccessTokenValidationService accessTokenValidationService;
     private final MDocService mDocService;
     private final PreAuthorizationService preAuthorizationService;
+    private final NotificationService notificationService;
 
     public StartIssuanceResponse startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
@@ -40,8 +43,8 @@ public class CredentialIssuerService {
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
-        IssuerTransactionId issuerTransactionId = preAuthorizationService.generateIssuerTransactionCode();
-        String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionId, startIssuanceRequest);
+        final IssuerTransactionId issuerTransactionId = new IssuerTransactionId();
+        final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionId, startIssuanceRequest);
         claimsSource.store(issuerTransactionId.getValue(), startIssuanceRequest.getClaimsMap());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
@@ -56,9 +59,10 @@ public class CredentialIssuerService {
                                 .build())
                         .build())
                 .build();
+        notificationService.offerIssued(issuerTransactionId);
         return StartIssuanceResponse.builder()
                 .credentialOffer(credentialOffer)
-                .issuerTransactionId(issuerTransactionId.getValue())
+                .issuerTransactionId(issuerTransactionId)
                 .build();
     }
 
@@ -74,13 +78,20 @@ public class CredentialIssuerService {
                 .build();
     }
 
-    public List<Credential> issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
+    @SneakyThrows
+    public CredentialResponse issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope());
         JWK bindingKey = credentialRequest.getProof() != null ? credentialRequest.getProof().getBindingKey() : null;
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         List<Claim> claims = claimsSource.retrieveClaims(accessToken);
-        return createCredentials(bindingKey, credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
+        List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
+        NotificationId notificationId = accessToken.getJWTClaimsSet().getStringClaim("tx_id") != null ? notificationService.credentialIssued(new IssuerTransactionId(accessToken.getJWTClaimsSet().getStringClaim("tx_id"))) : null;
+
+        return CredentialResponse.builder()
+                .credentials(credentials)
+                .notificationId(notificationId) // TODO
+                .build();
     }
 
     @SneakyThrows
