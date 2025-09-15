@@ -30,6 +30,9 @@ public class CredentialIssuerMetadata {
     @JsonProperty("nonce_endpoint")
     private URI nonceEndpoint;
 
+    @JsonProperty("notification_endpoint")
+    private URI notificationEndpoint;
+
     @JsonProperty("credential_configurations_supported")
     private CredentialConfigurations credentialConfigurations;
 

@@ -8,6 +8,7 @@ import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
+import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
 import no.idporten.eudiw.issuer.openid4vci.service.ProofService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,7 @@ public class CredentialEndpointControllerTest {
     @Test
     void testPostCredentialRequest() throws Exception {
         setUpAccessTokenValidation();
-        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(List.of(Credential.builder().credential("foo").build()));
+        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
         mockMvc.perform(post("/openid4vci/credential")
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -122,7 +123,6 @@ public class CredentialEndpointControllerTest {
     @Test
     void testMissingProofCredentialRequest() throws Exception {
         setUpAccessTokenValidation();
-        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(List.of(Credential.builder().credential("foo").build()));
         mockMvc.perform(post("/openid4vci/credential")
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
