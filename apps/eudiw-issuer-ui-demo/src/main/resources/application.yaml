@@ -31,7 +31,7 @@ management:
 
 issuer-ui-demo:
   issuer-server:
-    issuance-endpoint: /api/v1/credential/start-issuance-transaction
+    issuance-endpoint: /api/v1/credential/issuance-transaction
 
 # Maskinporten
 maskinporten:
