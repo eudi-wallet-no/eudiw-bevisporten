@@ -34,7 +34,7 @@ public class StartCredentialIssuanceController {
     private final AccessTokenValidationService accessTokenValidationService;
 
     @Operation(
-            summary = "Start credential issuance",
+            summary = "Start credential issuance transaction",
             description = "Upload credential data for credential issuance through the pre-authorized code flow.",
             tags = {SwaggerConfiguration.API_TAG},
             security = { @SecurityRequirement(name = "Maskinporten") }
@@ -42,10 +42,10 @@ public class StartCredentialIssuanceController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "202", description = "Credential data received and ready to be issued", content = @Content(schema = @Schema(implementation = StartIssuanceResponse.class))),
     })
-    @PostMapping(path = Endpoints.START_CREDENTIAL_ISSUANCE_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<StartIssuanceResponse> startIssuanceEndpoint(
+    @PostMapping(path = Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<StartIssuanceResponse> startCredentialIssuanceEndpoint(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Start credential issue request",
+                    description = "Start credential issuance request",
                     content = {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = StartIssuanceRequest.class))},

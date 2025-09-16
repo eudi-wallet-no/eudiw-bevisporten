@@ -13,7 +13,7 @@ import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.IssuanceStatusResponse;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceStatus;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,16 +50,16 @@ public class IssuanceStatusController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Status for credential issuance process", content = @Content(schema = @Schema(implementation = IssuanceStatusResponse.class))),
     })
-    @GetMapping(path = Endpoints.CREDENTIAL_ISSUANCE_STATUS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_STATUS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<IssuanceStatusResponse> issuanceStatusEndpoint(
-            @Parameter(description = "Issuer transaction id", example = "xyz123...")
-            @PathVariable(name = "issuer_transaction_id") String issuerTransactionId,
+            @Parameter(description = "Issuance transaction id", example = "xyz123...")
+            @PathVariable(name = "issuance_transaction_id") String issuanceTransactionId,
             @Parameter(hidden = true)
             @RequestHeader(required = false, value = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         JWT accessToken = accessTokenValidationService.validateAccessTokenForCredentialConfiguration(authorizationHeader, authorizationServerService.getPreAuthorizationServers());
-        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.pollIssuerStatus(accessToken, new IssuerTransactionId(issuerTransactionId));
+        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, new IssuanceTransactionId(issuanceTransactionId));
         return ResponseEntity.ok(IssuanceStatusResponse.builder()
-                .issuerTransactionId(issuanceStatus.issuerTransactionId())
+                .issuanceTransactionId(issuanceStatus.issuanceTransactionId())
                 .status(issuanceStatus.status())
                 .build());
     }

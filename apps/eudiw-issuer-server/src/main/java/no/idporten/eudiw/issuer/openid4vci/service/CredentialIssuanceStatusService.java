@@ -31,13 +31,13 @@ public class CredentialIssuanceStatusService {
     }
 
     // TODO cache issuance state med expiry
-    private final Map<IssuerTransactionId, IssuanceStatus> issuanceStatusCache = new HashMap<>();
-    private final Map<NotificationId, IssuerTransactionId> notificationIdToIssuerTransactionIdCache = new HashMap<>();
+    private final Map<IssuanceTransactionId, IssuanceStatus> issuanceStatusCache = new HashMap<>();
+    private final Map<NotificationId, IssuanceTransactionId> notificationIdToIssuanceTransactionIdCache = new HashMap<>();
 
     @SneakyThrows
-    private IssuerTransactionId getIssuerTransactionId(JWT accessToken) {
+    private IssuanceTransactionId getIssuanceTransactionId(JWT accessToken) {
         if (accessToken.getJWTClaimsSet().getStringClaim("tx_id") != null) {
-            return new IssuerTransactionId(accessToken.getJWTClaimsSet().getStringClaim("tx_id"));
+            return new IssuanceTransactionId(accessToken.getJWTClaimsSet().getStringClaim("tx_id"));
         }
         return null;
     }
@@ -45,9 +45,9 @@ public class CredentialIssuanceStatusService {
     /**
      * Sets and returns initial credential issuance status.
      */
-    public IssuanceStatus offerIssued(IssuerTransactionId issuerTransactionId, String credentialConfigurationId) {
-        IssuanceStatus issuanceStatus = new IssuanceStatus(issuerTransactionId, credentialConfigurationId, "offer_issued");
-        issuerStatusUpdated(issuerTransactionId, issuanceStatus);
+    public IssuanceStatus offerIssued(IssuanceTransactionId issuanceTransactionId, String credentialConfigurationId) {
+        IssuanceStatus issuanceStatus = new IssuanceStatus(issuanceTransactionId, credentialConfigurationId, "offer_issued");
+        issuerStatusUpdated(issuanceTransactionId, issuanceStatus);
         return issuanceStatus;
     }
 
@@ -55,52 +55,52 @@ public class CredentialIssuanceStatusService {
      * Sets or creates credential issuance status and creates notification id for wallet.
      */
     public NotificationId credentialIssued(JWT accessToken, String credentialConfigurationId) {
-        IssuerTransactionId issuerTransactionId = getIssuerTransactionId(accessToken);
-        if (issuerTransactionId == null) {
+        IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
+        if (issuanceTransactionId == null) {
             return null;
         }
-        IssuanceStatus issuanceStatus = new IssuanceStatus(issuerTransactionId, credentialConfigurationId, "credential_issued");
-        issuerStatusUpdated(issuerTransactionId, issuanceStatus);
+        IssuanceStatus issuanceStatus = new IssuanceStatus(issuanceTransactionId, credentialConfigurationId, "credential_issued");
+        issuerStatusUpdated(issuanceTransactionId, issuanceStatus);
         NotificationId notificationId = new NotificationId();
-        notificationIdToIssuerTransactionIdCache.put(notificationId, issuerTransactionId);
+        notificationIdToIssuanceTransactionIdCache.put(notificationId, issuanceTransactionId);
         return notificationId;
     }
 
     /**
-     * Polls status using issuer transaction id.  Status is unknown if is not tracked.
+     * Get issuance status using issuance transaction id.  Status is unknown if is not tracked.
      */
-    public IssuanceStatus pollIssuerStatus(JWT accessToken, IssuerTransactionId issuerTransactionId) {
-        IssuanceStatus issuanceStatus = issuanceStatusCache.get(issuerTransactionId);
+    public IssuanceStatus getIssuanceStatus(JWT accessToken, IssuanceTransactionId issuanceTransactionId) {
+        IssuanceStatus issuanceStatus = issuanceStatusCache.get(issuanceTransactionId);
         if (issuanceStatus == null) {
-            log.info("No issuance status found for issuer_transaction_id {}", issuerTransactionId);
-            return new IssuanceStatus(issuerTransactionId, null, "unknown");
+            log.info("No issuance status found for issuance_transaction_id {}", issuanceTransactionId);
+            return new IssuanceStatus(issuanceTransactionId, null, "unknown");
         }
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         return issuanceStatus;
     }
 
-    public void issuerStatusUpdated(IssuerTransactionId issuerTransactionId, IssuanceStatus issuanceStatus) {
-        issuanceStatusCache.put(issuerTransactionId, issuanceStatus);
-        log.info("Recorded issuance status {} for issuer transaction id {}", issuanceStatus.status(), issuerTransactionId);
+    public void issuerStatusUpdated(IssuanceTransactionId issuanceTransactionId, IssuanceStatus issuanceStatus) {
+        issuanceStatusCache.put(issuanceTransactionId, issuanceStatus);
+        log.info("Recorded issuance status {} for issuance_transaction_id {}", issuanceStatus.status(), issuanceTransactionId);
     }
 
     /**
      * Updates status from wallet events.
      */
     public void walletStatusUpdated(NotificationId notificationId, String status) {
-        IssuerTransactionId issuerTransactionId = notificationIdToIssuerTransactionIdCache.get(notificationId);
-        if (issuerTransactionId == null) {
-            log.info("No issuer transaction id found for notification_id {}, ignoring status {}", notificationId, status);
+        IssuanceTransactionId issuanceTransactionId = notificationIdToIssuanceTransactionIdCache.get(notificationId);
+        if (issuanceTransactionId == null) {
+            log.info("No issuance transaction id found for notification_id {}, ignoring status {}", notificationId, status);
             return;
         }
-        IssuanceStatus issuanceStatus = issuanceStatusCache.get(issuerTransactionId);
+        IssuanceStatus issuanceStatus = issuanceStatusCache.get(issuanceTransactionId);
         if (issuanceStatus == null) {
-            log.info("No issuance status found for issuer_transaction_id {}, ignoring status {}", issuerTransactionId, status);
+            log.info("No issuance status found for issuance_transaction_id {}, ignoring status {}", issuanceTransactionId, status);
             return;
         }
-        issuanceStatusCache.put(issuerTransactionId, new IssuanceStatus(issuerTransactionId, issuanceStatus.credentialConfigurationId(), status));
-        log.info("Recorded issuance status {} for issuer transaction id {} from wallet with notification id {}", issuanceStatus.status(), issuerTransactionId, notificationId);
+        issuanceStatusCache.put(issuanceTransactionId, new IssuanceStatus(issuanceTransactionId, issuanceStatus.credentialConfigurationId(), status));
+        log.info("Recorded issuance status {} for issuance_transaction_id {} from wallet with notification id {}", issuanceStatus.status(), issuanceTransactionId, notificationId);
     }
 
 }

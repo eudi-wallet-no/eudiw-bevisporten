@@ -40,9 +40,9 @@ public class CredentialIssuerService {
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
-        final IssuerTransactionId issuerTransactionId = new IssuerTransactionId();
-        final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuerTransactionId, startIssuanceRequest);
-        claimsSource.store(issuerTransactionId.getValue(), startIssuanceRequest.getClaimsMap());
+        final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+        final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, startIssuanceRequest);
+        claimsSource.store(issuanceTransactionId.getValue(), startIssuanceRequest.getClaimsMap());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
@@ -56,10 +56,10 @@ public class CredentialIssuerService {
                                 .build())
                         .build())
                 .build();
-        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuerTransactionId, startIssuanceRequest.getCredentialConfigurationId());
+        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, startIssuanceRequest.getCredentialConfigurationId());
         return StartIssuanceResponse.builder()
                 .credentialOffer(credentialOffer)
-                .issuerTransactionId(issuerTransactionId)
+                .issuanceTransactionId(issuanceTransactionId)
                 .build();
     }
 

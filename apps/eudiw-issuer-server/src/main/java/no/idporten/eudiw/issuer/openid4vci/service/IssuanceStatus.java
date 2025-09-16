@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.openid4vci.service;
 
 public record IssuanceStatus(
-        IssuerTransactionId issuerTransactionId,
+        IssuanceTransactionId issuanceTransactionId,
         String credentialConfigurationId,
         String status) {
 }
