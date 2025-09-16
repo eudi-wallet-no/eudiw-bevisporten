@@ -10,6 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfiguration {
 
+    public final static String API_TAG = "eudiw-issuer-api-v1";
+    public static final String API_DESCRIPTION = "eIDAS 2.0 NO Sandbox Credential Issuer API";
+
     @Bean
     public OpenAPI openAPIConfig() {
         return new OpenAPI()

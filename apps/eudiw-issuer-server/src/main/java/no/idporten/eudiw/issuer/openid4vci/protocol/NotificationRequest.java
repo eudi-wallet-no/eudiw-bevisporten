@@ -27,7 +27,7 @@ public record NotificationRequest(
         if (!event().matches("credential_accepted|credential_failure|credential_deleted")) {
             throw new IssuerServerException("invalid_notification_request", "Unknown event value.", HttpStatus.BAD_REQUEST);
         }
-        // TODO event description
+        // TODO event description JIRA https://digdir.atlassian.net/browse/EUW-533
     }
 
 }
