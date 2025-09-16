@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 
 @Schema(description = "Start credential issue response", title = "Start credential issue response", type = "object")
 @Builder
@@ -32,8 +32,8 @@ public class StartIssuanceResponse {
     @JsonProperty("credential_offer")
     private CredentialOffer credentialOffer;
 
-    @Schema(description = "Credential issuer transaction id", example = "xyz123...")
-    @JsonProperty("issuer_transaction_id")
-    private IssuerTransactionId issuerTransactionId;
+    @Schema(description = "Credential issuance transaction id", example = "xyz123...")
+    @JsonProperty("issuance_transaction_id")
+    private IssuanceTransactionId issuanceTransactionId;
 
 }

@@ -5,7 +5,7 @@ import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceStatus;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import no.idporten.logging.audit.AuditLogger;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
@@ -79,14 +79,14 @@ public class IssuanceStatusControllerTest {
     @Test
     void testReturnCredentialIssuanceStatus() throws Exception {
         setUpAccessTokenValidation();
-        IssuerTransactionId issuerTransactionId = new IssuerTransactionId();
-        when(credentialIssuanceStatusService.pollIssuerStatus(any(), eq(issuerTransactionId))).thenReturn(new IssuanceStatus(issuerTransactionId, "foo", "credential_tested"));
-        mockMvc.perform(get("/api/v1/credential/issuance-transaction/{}}", issuerTransactionId)
+        IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+        when(credentialIssuanceStatusService.getIssuanceStatus(any(), eq(issuanceTransactionId))).thenReturn(new IssuanceStatus(issuanceTransactionId, "foo", "credential_tested"));
+        mockMvc.perform(get("/api/v1/credential/issuance-transaction/{}}", issuanceTransactionId)
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("credential_tested"))
-                .andExpect(jsonPath("$.issuer_transaction_id").value(issuerTransactionId.getValue()));
+                .andExpect(jsonPath("$.issuance_transaction_id").value(issuanceTransactionId.getValue()));
     }
 
 }
