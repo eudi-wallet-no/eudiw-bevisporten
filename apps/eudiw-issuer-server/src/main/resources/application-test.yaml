@@ -12,3 +12,10 @@ credential-issuer-server:
   pre-authorization-servers:
     - issuer: https://test.maskinporten.no/
       jwks-uri: https://test.maskinporten.no/jwk
+
+maskinporten:
+  oauth2:
+    issuer: https://test.maskinporten.no/
+
+  jwt-signing-config:
+    key-store-type: JKS
