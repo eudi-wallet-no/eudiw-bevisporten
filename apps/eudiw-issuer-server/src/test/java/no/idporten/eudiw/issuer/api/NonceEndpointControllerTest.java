@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.api;
 
 import com.nimbusds.openid.connect.sdk.Nonce;
 import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
+import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class NonceEndpointControllerTest {
 
     @MockitoBean
     private NonceService nonceService;
+
+    @MockitoBean
+    private AuditLogger auditLogger;
 
     @DisplayName("then a new nonce is returned for a nonce request")
     @Test

@@ -3,11 +3,13 @@ package no.idporten.eudiw.issuer.oauth2;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.Collections;
 
@@ -21,6 +23,8 @@ public class AccessTokenValidationServiceTest {
     @Autowired
     private AccessTokenValidationService accessTokenValidationService;
 
+    @MockitoBean
+    private AuditLogger auditLogger;
 
     @DisplayName("then an authorization header with bearer token is required")
     @Test

@@ -66,7 +66,7 @@ public class CredentialIssuerServerConfiguration {
         return UriComponentsBuilder.fromUri(issuerUri).path(path).build().toUri();
     }
 
-    @Bean
+    @Bean(name = "credentialSigningKeyProvider")
     public KeyProvider keyProvider(CredentialIssuerServerProperties credentialIssuerServerProperties) {
         KeyStoreProperties keyStoreProperties = credentialIssuerServerProperties.getKeyStore();
         KeyStoreProvider keyStoreProvider = new KeyStoreProvider(keyStoreProperties);

@@ -35,6 +35,12 @@
         <kotlinx-coroutines-core.version>1.10.2</kotlinx-coroutines-core.version>
         <kotlinx-datetime-jvm.version>0.7.1-0.6.x-compat</kotlinx-datetime-jvm.version>
         <kotlinx-serialization-json-jvm.version>1.9.0</kotlinx-serialization-json-jvm.version>
+
+        <freg-integration-lib.version>1.0.7</freg-integration-lib.version>
+        <maskinporten.client.version>4.0.2</maskinporten.client.version>
+        <log-event.version>1.5.0</log-event.version>
+        <idporten-log-audit.version>2.5.2</idporten-log-audit.version>
+
     </properties>
 
     <dependencies>
@@ -60,6 +66,16 @@
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
             <version>${idporten-access-log.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.logging</groupId>
+            <artifactId>idporten-log-audit-spring-boot-3-starter</artifactId>
+            <version>${idporten-log-audit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.digdir.logging</groupId>
+            <artifactId>log-event-spring-boot-starter</artifactId>
+            <version>${log-event.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -123,6 +139,18 @@
             <version>${kotlinx-coroutines-core.version}</version>
             <type>pom</type>
         </dependency>
+        <!-- Move to claims-source application for PID -->
+        <dependency>
+            <groupId>no.digdir.freg</groupId>
+            <artifactId>freg-integration-lib</artifactId>
+            <version>${freg-integration-lib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten</groupId>
+            <artifactId>lib-maskinporten-client</artifactId>
+            <version>${maskinporten.client.version}</version>
+        </dependency>
+        <!-- end: Move to claims-source -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -185,6 +213,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9245</jvmArguments>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

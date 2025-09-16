@@ -1,8 +1,6 @@
 package no.idporten.eudiw.issuer.openid4vci.mdoc;
 
-import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import id.walt.mdoc.COSECryptoProviderKeyInfo;
 import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.DataElement;
@@ -12,22 +10,23 @@ import id.walt.mdoc.doc.MDocBuilder;
 import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.Status;
 import kotlinx.datetime.Clock;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.claimssource.Claim;
 import no.idporten.eudiw.issuer.crypto.KeyProvider;
 import org.cose.java.OneKey;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
 public class MDocService {
 
     private final KeyProvider keyProvider;
+
+    public MDocService(@Qualifier("credentialSigningKeyProvider") KeyProvider keyProvider) {
+        this.keyProvider = keyProvider;
+    }
 
     public MDoc issueCredentials(JWK jwk, String docType, List<Claim> claims) throws Exception {
         var ISSUER_KEY_ID = "ISSUER_KEY";

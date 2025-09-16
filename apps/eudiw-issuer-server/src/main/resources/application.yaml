@@ -57,3 +57,47 @@ credential-issuer-server:
     password: ${ISSUER_KEYSTORE_PASSWORD}
     key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
     key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
+
+
+# Digdir standard logging
+digdir:
+  audit:
+    application-name:  ${spring.application.name}    # recommended naming convention is groupId:artifactId
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false                                     # optional - default 'true'
+      bearer-token: false                                    # optional - default 'true'
+      ip-address: true                                    # optional - default 'true'
+    prometheus:
+      counter: false                                     # optional - default 'true'
+  ## Eventlogging
+  event:
+    logging:
+      feature-enabled: false
+
+## Folkeregister integration
+freg:
+  # https://folkeregisteret-api-konsument.sits.no/
+  uri: https://folkeregisteret-api-konsument.sits.no/folkeregisteret/offentlig-med-hjemmel/api/
+  #confidential-service-endpoint: https://folkeregisteret.api.skatteetaten.no/folkeregisteret/offentlig-med-hjemmel/api # Prod
+  connect-timeout: 5000
+  read-timeout: 10000
+  max-connections: 20
+  max-connections-per-route: 20
+
+# Maskinporten
+maskinporten:
+  oauth2:
+    client-id: ${MASKINPORTEN_CLIENT_ID}
+    kid: ${MASKINPORTEN_CLIENT_KID}
+    audience:
+      - ${maskinporten.oauth2.issuer}
+    token-endpoint: ${maskinporten.oauth2.issuer}token
+    scope: folkeregister:deling/offentligmedhjemmel
+    #resource: ${issuer-ui-demo.issuer-server.base-url}
+  jwt-signing-config: #to authenticate towards maskinporten
+    key-store-type: JKS
+    key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+    key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+    key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+    key-password: ${MASKINPORTEN_KEY_PASSWORD}

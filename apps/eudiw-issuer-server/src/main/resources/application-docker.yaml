@@ -4,17 +4,19 @@ server:
 
 management:
   server:
-    port: 9241
+    port: 9240
 
 spring:
   application:
     environment: docker
 
 credential-issuer-server:
-  credential-issuer: http://digital-lommebok-issuer-server:9240
+  credential-issuer: http://localhost:9240
   authorization-servers:
-    - issuer: https://auth.eidas2sandkasse.dev
-      jwks-uri: https://auth.eidas2sandkasse.dev/jwks
+    - issuer: http://digital-lommebok-oauth-server:9260
+      jwks-uri: http://digital-lommebok-oauth-server:9260/jwks
+#    - issuer: https://auth.eidas2sandkasse.dev
+#      jwks-uri: https://auth.eidas2sandkasse.dev/jwks
       api-key: eudiw
   pre-authorization-servers:
     - issuer: https://maskinporten.dev/
@@ -25,3 +27,17 @@ credential-issuer-server:
     password: changeit
     key-alias: eudiw-issuer
     key-password: changeit
+
+
+maskinporten:
+  oauth2:
+    issuer: https://test.maskinporten.no/
+    client-id: freg-eudiw-maskinporten-test
+    kid: todo
+
+  jwt-signing-config: #to authenticate towards maskinporten
+    key-store-type: JKS
+    key-store-location: base64:todo
+    key-store-password:
+    key-alias: freg-eudiw-maskinporten-test
+    key-password:
