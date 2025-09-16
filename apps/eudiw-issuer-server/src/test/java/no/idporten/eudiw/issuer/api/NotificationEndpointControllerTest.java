@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.api;
 
 import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
 import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
+import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class NotificationEndpointControllerTest {
 
     @MockitoBean
     private CredentialIssuanceStatusService credentialIssuanceStatusService;
+
+    @MockitoBean
+    private AuditLogger auditLogger;
 
     @DisplayName("then notification status for the credential issuance is updated")
     @Test

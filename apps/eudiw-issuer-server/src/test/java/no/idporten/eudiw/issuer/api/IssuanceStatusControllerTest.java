@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceStatus;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuerTransactionId;
+import no.idporten.logging.audit.AuditLogger;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,9 @@ public class IssuanceStatusControllerTest {
     private AuthorizationServerService authorizationServerService;
 
     @MockitoBean
+    private AuditLogger auditLogger;
+
+    @MockitoBean(name = "preAuthorizationRestClient")
     private RestClient restClient;
 
     private String sampleBearerToken() {

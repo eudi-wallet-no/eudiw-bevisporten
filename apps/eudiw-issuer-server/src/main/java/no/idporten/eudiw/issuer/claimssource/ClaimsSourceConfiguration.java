@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource;
 import lombok.RequiredArgsConstructor;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.pid.PersonConverterService;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import org.slf4j.Logger;
@@ -30,9 +31,10 @@ public class ClaimsSourceConfiguration implements InitializingBean {
                     logger.info("Creating PIDClaimsSource with FregPIDService"+claimsSourceProperties.getClassName()+",   "+PIDClaimsSource.class.getName());
                     if(claimsSourceProperties.getClassName().equals(PIDClaimsSource.class.getName())) {
                         logger.info("Creating PIDClaimsSource with FregPIDService");
-                        // hack for now to get fregService injected
-                        FregService bean = applicationContext.getBean(FregService.class);
-                        claimsSource = (ClaimsSource) clazz.getConstructor(FregService.class).newInstance(bean);
+                        // hack for now to inject fregService and personConverterService
+                        FregService fregService = applicationContext.getBean(FregService.class);
+                        PersonConverterService personConverterService = applicationContext.getBean(PersonConverterService.class);
+                        claimsSource = (ClaimsSource) clazz.getConstructor(FregService.class, PersonConverterService.class).newInstance(fregService, personConverterService);
                     }else {
                         logger.info("Creating non pid ClaimsSource");
                         claimsSource = (ClaimsSource) clazz.getConstructor().newInstance();
