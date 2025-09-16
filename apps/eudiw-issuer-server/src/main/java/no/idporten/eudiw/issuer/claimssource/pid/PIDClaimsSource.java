@@ -13,10 +13,8 @@ import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.http.HttpStatus;
 
 import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A mock claims source generating test data.
@@ -27,18 +25,18 @@ public class PIDClaimsSource implements ClaimsSource {
     private ClaimsSourceProperties properties;
 
     private final FregService fregService;
+    private final PersonConverterService personConverterService;
 
-    // Convert ISO 3166-1 Alpha 3 to Alpha 2
-    private final SortedMap<String, String> iso3166_1Alpha3ToAlpha2Map = new TreeMap<>();
 
-    public PIDClaimsSource(FregService fregService) {
+    public PIDClaimsSource(FregService fregService, PersonConverterService personConverterService) {
         this.fregService = fregService;
+        this.personConverterService = personConverterService;
     }
 
     @Override
     public void init(ClaimsSourceProperties properties) {
         this.properties = properties;
-        this.iso3166_1Alpha3ToAlpha2Map.putAll(createISO3661ConversionMap());
+
     }
 
     @Override
@@ -62,9 +60,9 @@ public class PIDClaimsSource implements ClaimsSource {
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {
 
-        // TODO integrate with FREG , les pid rule book.
+        // TODO read pid rule book.
         //  https://eu-digital-identity-wallet.github.io/eudi-doc-architecture-and-reference-framework/latest/annexes/annex-3/annex-3.01-pid-rulebook/#2-pid-attributes-and-metadata
-        String fnr = null;
+        String fnr;
         try {
             fnr = accessToken.getJWTClaimsSet().getSubject();
         } catch (ParseException e) {
@@ -84,40 +82,17 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(Claim.builder().path(NAMESPACE).path("given_name").value(person.getNavn().getFornavn()).build());
         claims.add(Claim.builder().path(NAMESPACE).path("birth_date").value(person.getFoedselsdato()).build());
         claims.add(Claim.builder().path(NAMESPACE).path("birth_place").value(person.getFoedested()).build());
-        claims.add(Claim.builder().path(NAMESPACE).path("nationality").value(getFirstNationalityAlpha2(person.getStatsborgerskap())).build());
+        claims.add(Claim.builder().path(NAMESPACE).path("nationality").value(personConverterService.getFirstNationalityAlpha2(person.getStatsborgerskap())).build());
         // optional pid rulebook attributes
-        // TODO: use date of birth to calculate age_over_18
-        claims.add(Claim.builder().path(NAMESPACE).path("age_over_18").value("true").build());
+        boolean over18 = personConverterService.calcAgeOver18(person.getFoedselsdato());
+        claims.add(Claim.builder().path(NAMESPACE).path("age_over_18").value(Boolean.valueOf(over18).toString()).build());
         // mandatory metadata
-        claims.add(Claim.builder().path(NAMESPACE).path("expiry_date").value(calcPidExpiryDate()).build());
+        claims.add(Claim.builder().path(NAMESPACE).path("expiry_date").value(personConverterService.calcPidExpiryDate()).build());
         claims.add(Claim.builder().path(NAMESPACE).path("issuing_authority").value("NO").build());
         claims.add(Claim.builder().path(NAMESPACE).path("issuing_country").value("NO").build());
         return claims;
     }
 
-    private String calcPidExpiryDate() {
-        return LocalDate.now().plusDays(90).format(DateTimeFormatter.ISO_LOCAL_DATE);
-    }
 
-    private String getFirstNationalityAlpha2(List<String> nationalitiesAlpha3) {
-        String nationality = nationalitiesAlpha3.getFirst();
-
-        return iso3166_1Alpha3ToAlpha2Map.get(nationality);
-
-    }
-
-
-    // stolen from https://github.com/felleslosninger/idporten-c2id-server/blob/main/idporten-folkeregister-claims-source/src/main/java/no/idporten/c2id/server/spi/folkeregister/IDPortenFregClaimsSource.java#L87
-    protected Map<String, String> createISO3661ConversionMap() {
-        return Arrays.stream(Locale.getAvailableLocales())
-                .filter(locale -> {
-                    try {
-                        return !locale.getISO3Country().isEmpty();
-                    } catch (MissingResourceException e) {
-                        return false;
-                    }
-                })
-                .collect(Collectors.toMap(Locale::getISO3Country, Locale::getCountry, (key, duplicate) -> key));
-    }
 
 }
