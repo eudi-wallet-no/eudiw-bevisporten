@@ -5,11 +5,13 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import id.walt.mdoc.doc.MDoc;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.security.Security;
 import java.util.List;
@@ -28,6 +30,8 @@ public class MDocServiceTest {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
 
+    @MockitoBean
+    private AuditLogger auditLogger;
 
     @Test
     void testIssueMDocCredentials() throws Exception {
