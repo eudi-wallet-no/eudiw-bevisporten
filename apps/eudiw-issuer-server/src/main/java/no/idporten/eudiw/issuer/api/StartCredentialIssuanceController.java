@@ -24,12 +24,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = StartCredentialIssuanceController.API_TAG, description = "eIDAS 2.0 NO Sandbox Credential Issuer API")
+@Tag(name = SwaggerConfiguration.API_TAG, description = SwaggerConfiguration.API_DESCRIPTION)
 @RequiredArgsConstructor
 @RestController
 public class StartCredentialIssuanceController {
-
-    public final static String API_TAG = "eudiw-issuer-api-v1";
 
     private final CredentialIssuerService credentialIssuerService;
     private final AuthorizationServerService authorizationServerService;
@@ -38,10 +36,9 @@ public class StartCredentialIssuanceController {
     @Operation(
             summary = "Start credential issuance",
             description = "Upload credential data for credential issuance through the pre-authorized code flow.",
-            tags = {API_TAG},
+            tags = {SwaggerConfiguration.API_TAG},
             security = { @SecurityRequirement(name = "Maskinporten") }
     )
-
     @ApiResponses(value = {
             @ApiResponse(responseCode = "202", description = "Credential data received and ready to be issued", content = @Content(schema = @Schema(implementation = StartIssuanceResponse.class))),
     })

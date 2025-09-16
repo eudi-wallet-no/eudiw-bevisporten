@@ -9,6 +9,7 @@ public class Endpoints {
     public final static String NOTIFICATION_ENDPOINT = "/openid4vci/notification";
     // Issuer extended API
     public final static String START_CREDENTIAL_ISSUANCE_ENDPOINT = "/api/v1/credential/start-issuance-transaction";
+    public final static String CREDENTIAL_ISSUANCE_STATUS_ENDPOINT = "/api/v1/credential/issuance-transaction/{issuer_transaction_id}";
     public final static String CREATE_CREDENTIAL_OFFER_ENDPOINT = "/api/v1/credential-offer/create";
     public final static String OPENAPI_ENDPOINT = "/swagger-ui/index.html";
 

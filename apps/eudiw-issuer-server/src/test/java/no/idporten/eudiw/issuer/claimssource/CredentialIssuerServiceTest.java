@@ -7,6 +7,9 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
+import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
+import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
+import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +35,9 @@ public class CredentialIssuerServiceTest {
     @Mock
     private AccessTokenValidationService accessTokenValidationService;
 
+    @Mock
+    private CredentialIssuanceStatusService credentialIssuanceStatusService;
+
     @InjectMocks
     private CredentialIssuerService credentialIssuerService;
 
@@ -53,14 +59,18 @@ public class CredentialIssuerServiceTest {
         when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("n1").path("p1").value("v1").build()));
         when(credentialIssuerServerProperties.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfigurationProperties);
         when(claimsSourceService.findClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
-        List<Credential> credentials = credentialIssuerService.issueCredentials(credentialRequest, accessToken).getCredentials();
+        when(credentialIssuanceStatusService.credentialIssued(eq(accessToken), eq("cid"))).thenReturn(new NotificationId("nid"));
+        CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
+        List<Credential> credentials = credentialResponse.getCredentials();
         assertAll(
                 () -> assertEquals(1, credentials.size()),
                 () -> assertTrue(credentials.getFirst().getCredential().contains("n1")),
                 () -> assertTrue(credentials.getFirst().getCredential().contains("p1")),
-                () -> assertTrue(credentials.getFirst().getCredential().contains("v1"))
+                () -> assertTrue(credentials.getFirst().getCredential().contains("v1")),
+                () -> assertEquals("nid", credentialResponse.getNotificationId().getValue())
         );
         verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(eq(accessToken), eq("https://junit.idporten.no"), eq("foo:bar"));
+        verify(credentialIssuanceStatusService).credentialIssued(eq(accessToken), eq("cid"));
     }
 
 }

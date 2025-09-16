@@ -21,17 +21,13 @@ public class PreAuthorizationService {
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
     private final RestClient preAuthorizationRestClient;
 
-    public IssuerTransactionId generateIssuerTransactionCode() {
-        return new IssuerTransactionId();
-    }
-
-    public String preAuthorize(IssuerTransactionId issuerTransactionCode, StartIssuanceRequest startIssuanceRequest) {
+    public String preAuthorize(IssuerTransactionId issuerTransactionId, StartIssuanceRequest startIssuanceRequest) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
         PreAuthorizationRequest preAuthorizationRequest = PreAuthorizationRequest.builder()
                 .aud(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .sub("12345678901") // TODO egen sak på å finne hva som må i access_token
                 .scope(credentialConfigurationProperties.getScope())
-                .txId(issuerTransactionCode.getValue())
+                .txId(issuerTransactionId.getValue())
                 // .txCodeChallenge("A6xnQhbz4Vx2HuGl4lXwZ5U2I8iziLRFnhP5eNfIRvQ") // TODO tx_code senere feature
                 .authorizationLifetimeSeconds(600)
                 .build();

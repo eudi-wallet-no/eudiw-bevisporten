@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.api;
 
 
 import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
-import no.idporten.eudiw.issuer.openid4vci.service.NotificationService;
+import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class NotificationEndpointControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private NotificationService notificationService;
+    private CredentialIssuanceStatusService credentialIssuanceStatusService;
 
     @DisplayName("then notification status for the credential issuance is updated")
     @Test
@@ -44,7 +44,7 @@ public class NotificationEndpointControllerTest {
                                 }
                                 """))
                 .andExpect(status().isNoContent());
-        verify(notificationService).walletStatusUpdated(eq(new NotificationId("abc123")), eq("credential_accepted"));
+        verify(credentialIssuanceStatusService).walletStatusUpdated(eq(new NotificationId("abc123")), eq("credential_accepted"));
     }
 
     @DisplayName("then invalid requests are rejected")
@@ -60,7 +60,7 @@ public class NotificationEndpointControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("invalid_notification_request"));
-        verifyNoInteractions(notificationService);
+        verifyNoInteractions(credentialIssuanceStatusService);
     }
 
 }

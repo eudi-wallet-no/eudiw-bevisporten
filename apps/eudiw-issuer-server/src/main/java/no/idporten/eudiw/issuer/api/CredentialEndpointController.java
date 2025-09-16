@@ -10,7 +10,7 @@ import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
 import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
 import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
-import no.idporten.eudiw.issuer.openid4vci.service.NotificationService;
+import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.openid4vci.service.ProofService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,7 +33,7 @@ public class CredentialEndpointController {
     private final AccessTokenValidationService accessTokenValidationService;
     private final NonceService nonceService;
     private final ProofService proofService;
-    private final NotificationService notificationService;
+    private final CredentialIssuanceStatusService credentialIssuanceStatusService;
 
     @PostMapping(path = Endpoints.CREDENTIAL_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialResponse> credentialEndpoint(@RequestBody CredentialRequest credentialRequest,
