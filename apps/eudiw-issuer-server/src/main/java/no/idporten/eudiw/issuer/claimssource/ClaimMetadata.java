@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.claimssource.skatteetaten;
+package no.idporten.eudiw.issuer.claimssource;
 
 import java.util.Map;
 

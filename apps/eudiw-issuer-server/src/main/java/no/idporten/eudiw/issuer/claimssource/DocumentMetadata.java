@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.claimssource.skatteetaten;
+package no.idporten.eudiw.issuer.claimssource;
 
 
 import java.util.List;
@@ -10,7 +10,7 @@ public record DocumentMetadata (
         List<ClaimMetadata> claims
 ){
 
-    ClaimMetadata findClaimMetadata(String name) {
+    public ClaimMetadata findClaimMetadata(String name) {
         return claims().stream().filter(claim -> claim.name().equals(name)).findFirst().orElse(null);
     }
 
