@@ -24,7 +24,7 @@
         <log4j2.version>2.16.0</log4j2.version>
         <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.28</oauth2-oidc-sdk.version>
-        <lombok.version>1.18.40</lombok.version>
+        <lombok.version>1.18.42</lombok.version>
         <slf4j-api.version>2.0.17</slf4j-api.version>
     </properties>
     <dependencies>
