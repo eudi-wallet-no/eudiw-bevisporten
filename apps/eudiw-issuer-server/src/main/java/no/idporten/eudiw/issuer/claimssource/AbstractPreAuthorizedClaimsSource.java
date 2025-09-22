@@ -1,8 +1,7 @@
-package no.idporten.eudiw.issuer.claimssource.skatteetaten;
+package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
@@ -14,32 +13,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NnidClaimsSource implements PreAuthorizedClaimsSource {
+public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorizedClaimsSource {
 
     private ClaimsSourceProperties properties;
 
     private final Map<String, Map<String, String>> claimsCache = new HashMap<>();
 
-    private final DocumentMetadata documentMetadata = new DocumentMetadata(
-            Map.of(
-                    "no", "Norsk identitetsnummer",
-                    "en", "Norwegian identification number"
-            ),
-            List.of(
-                    new ClaimMetadata("norwegian_national_id_number",
-                            Map.of(
-                                    "no", "Norsk identitetsnummer",
-                                    "en", "Norwegian identification number"),
-                            true,
-                            "^\\d{11}$"),
-                    new ClaimMetadata("norwegian_national_id_number_type",
-                            Map.of(
-                                    "no", "Type norsk identitetsnummer",
-                                    "en", "Type of Norwegian identification number"),
-                            true,
-                            "^[\\x20-\\x7EæøåÆØÅ]{1,255}$")
-            )
-    );
+    protected abstract DocumentMetadata getDocumentMetadata();
 
     protected void validateClaim(ClaimMetadata claimMetadata, Map<String, String> claims) {
         if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
@@ -56,12 +36,12 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
 
     public void validate(Map<String, String> claims) {
         // validate all known claims
-        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
+        for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
             validateClaim(claimMetadata, claims);
         }
         // reject all unknown claims
         for (String claimName : claims.keySet()) {
-            if (documentMetadata.findClaimMetadata(claimName) == null) {
+            if (getDocumentMetadata().findClaimMetadata(claimName) == null) {
                 throw new IssuerServerException("invalid_request", "Unsupported claims in request.", HttpStatus.BAD_REQUEST);
             }
         }
@@ -92,11 +72,11 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
     @Override
     public ClaimsSourceMetadata getMetadata() {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
-        builder.displays(documentMetadata.displayNames()
+        builder.displays(getDocumentMetadata().displayNames()
                 .entrySet()
                 .stream()
                 .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList());
-        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
+        for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
             builder.claim(ClaimsDescription.builder()
                     .path(namespace()).path(claimMetadata.name())
                     .displays(claimMetadata.displayNames()
@@ -120,10 +100,6 @@ public class NnidClaimsSource implements PreAuthorizedClaimsSource {
         return storedClaims.keySet().stream().map(claimName ->
                 Claim.builder().path(namespace()).path(claimName).value(storedClaims.get(claimName)).build()
         ).toList();
-    }
-
-    public DocumentMetadata getDocumentMetadata() {
-        return documentMetadata;
     }
 
 }

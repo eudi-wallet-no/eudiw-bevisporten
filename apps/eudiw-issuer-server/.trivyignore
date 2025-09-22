@@ -1,2 +1,3 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-CVE-2025-47907 # stdlib
+# CVE-2025-47907 # stdlib
+CVE-2025-41249 # Spring Framework annotation detection mechanism

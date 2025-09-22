@@ -46,11 +46,20 @@ credential-issuer-server:
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+    - identifier: no.minid.mpid_mso_mdoc
+      scope: eudiw:no:minid:mpid
+      format: mso_mdoc
+      doctype: no.minid.mpid.1
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
     - doctype: no.skatteetaten.nnid.1
       class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource
+    - doctype: no.minid.mpid.1
+      class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
   key-store:
     type: ${ISSUER_KEYSTORE_TYPE}
     location: ${ISSUER_KEYSTORE_LOCATION}
