@@ -19,7 +19,7 @@
         <idporten-access-log.version>2.8.0</idporten-access-log.version>
         <idporten-audit-version>2.5.2</idporten-audit-version>
         <idporten-validators.version>1.6.0</idporten-validators.version>
-        <opentelemetry-api.version>1.54.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.54.1</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <log4j2.version>2.16.0</log4j2.version>
         <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
