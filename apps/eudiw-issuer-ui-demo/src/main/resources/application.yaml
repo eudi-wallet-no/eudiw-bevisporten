@@ -32,6 +32,55 @@ management:
 issuer-ui-demo:
   issuer-server:
     issuance-endpoint: /api/v1/credential/issuance-transaction
+    credential-configurations:
+      - credential-configuration-id: no.skatteetaten.nnid_mso_mdoc
+        description: Norsk identitetsnummer
+        json-request: |
+          {
+            "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
+            "claims": [
+              {
+                "name": "norwegian_national_id_number",
+                "value": "12345678901"
+              },
+              {
+                "name": "norwegian_national_id_number_type",
+                "value": "D-nummer"
+              }
+            ]
+          }
+      - credential-configuration-id: no.minid.mpid_mso_mdoc
+        description: MinID PID
+        json-request: |
+          {
+            "credential_configuration_id": "no.minid.mpid_mso_mdoc",
+            "claims": [
+              {
+                "name": "personal_administrative_number",
+                "value": "24838674964"
+              },
+              {
+                "name": "family_name",
+                "value": "KJENDIS"
+              },
+              {
+                "name": "given_name",
+                "value": "UTØRST"
+              },
+              {
+                "name": "birth_date",
+                "value": "1886-03-24"
+              },
+              {
+                "name": "expiry_date",
+                "value": "2025-11-01"
+              },
+              {
+                "name": "issuance_date",
+                "value": "2025-09-17"
+              }
+            ]
+          }
 
 # Maskinporten
 maskinporten:
@@ -41,7 +90,7 @@ maskinporten:
     audience:
       - ${maskinporten.oauth2.issuer}
     token-endpoint: ${maskinporten.oauth2.issuer}token
-    scope: eudiw:no:skatteetaten:nnid
+    scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid
     resource: ${issuer-ui-demo.issuer-server.base-url}
   jwt-signing-config: #to authenticate towards maskinporten
     key-store-type: JKS
