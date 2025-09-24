@@ -20,7 +20,7 @@ public class IssuerServerIntegration {
     public RestClient issuerServerRestClient(JwtGrantTokenInterceptor jwtGrantTokenInterceptor) {
 
         return RestClient.builder()
-                .baseUrl(issuerServerProperties.getBaseUrl())
+                .baseUrl(issuerServerProperties.credentialIssuer())
                 .requestInterceptor(jwtGrantTokenInterceptor)
                 .build();
     }
