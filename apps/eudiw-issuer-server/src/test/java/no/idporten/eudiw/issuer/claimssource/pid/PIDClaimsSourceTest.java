@@ -14,7 +14,10 @@ import no.digdir.freg.service.FregResultMapper;
 import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
+import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
+import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import no.idporten.logging.audit.AuditLogger;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +43,8 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("junit")
 class PIDClaimsSourceTest {
 
+    public static final int NUMBER_OF_CLAIMS = 9;
+
     @MockitoBean
     private ClaimsSourceProperties properties;
 
@@ -60,11 +65,40 @@ class PIDClaimsSourceTest {
     @MockitoBean
     private EventLogger eventLogger;
 
+
     @BeforeEach
     void manuallyConfigureBeans() {
         FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
         pidClaimsSource = new PIDClaimsSource(fregService, personConverterService);
         pidClaimsSource.init(properties);
+    }
+
+    @Test
+    @DisplayName("validate that metadata can be retrieved from PIDClaimsSource")
+    void verifyMetadata() {
+        ClaimsSourceMetadata metadata = pidClaimsSource.getMetadata();
+        assertNotNull(metadata);
+        assertNotNull(metadata.getClaims());
+        assertEquals(NUMBER_OF_CLAIMS, metadata.getClaims().size());
+        assertNotNull(metadata.getDisplays().stream()
+                .filter(display -> display.getName().contains("Norsk PID"))
+                .findFirst()
+                .orElse(null));
+
+
+        // Stikkprøve å finne eit kjendt claim
+        String expectedName = "Fødselsnummer";
+        boolean foundExpectedName = false;
+        for (ClaimsDescription desc : metadata.getClaims()) {
+            Display d = desc.getDisplays().stream().filter(display -> display.getName().contains(expectedName)).findFirst().orElse(null);
+            if (d != null) {
+                foundExpectedName = true;
+                assertEquals(expectedName, d.getName());
+                assertEquals("no", d.getLocale());
+                break;
+            }
+        }
+        assertTrue(foundExpectedName, "Did not find claim with name=%s".formatted(expectedName));
     }
 
     @Test
@@ -78,7 +112,7 @@ class PIDClaimsSourceTest {
         List<Claim> claims = pidClaimsSource.retrieveClaims(createAccessToken(fnr));
 
         assertNotNull(claims);
-        assertEquals(10, claims.size());
+        assertEquals(NUMBER_OF_CLAIMS, claims.size());
         // TODO testing of actual claim values
         verify(fregIntegration).getFolkeregisterPerson(eq(fnr), anyList());
     }

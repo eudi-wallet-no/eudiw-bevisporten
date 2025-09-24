@@ -4,7 +4,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,9 +29,15 @@ public class PersonConverterService {
     }
 
     public String calcPidExpiryDate() {
-        return LocalDate.now().plusDays(90).format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        int validityYears = 10; // PID administrative validity period in years
+        ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
+        return utcNow.plusYears(validityYears).truncatedTo(ChronoUnit.DAYS).toString();
     }
 
+    public String getNationalityAlpha2(String nationalityAlpha3) {
+        return iso3166_1Alpha3ToAlpha2Map.get(nationalityAlpha3);
+    }
     public String getFirstNationalityAlpha2(List<String> nationalitiesAlpha3) {
         String nationality = nationalitiesAlpha3.getFirst();
         return iso3166_1Alpha3ToAlpha2Map.get(nationality);
@@ -47,5 +55,13 @@ public class PersonConverterService {
                     }
                 })
                 .collect(Collectors.toMap(Locale::getISO3Country, Locale::getCountry, (key, duplicate) -> key));
+    }
+
+    public String truncateTo150(String value) {
+        if (value != null && value.length() > 150) {
+            return value.substring(0, 150);
+        } else {
+            return value;
+        }
     }
 }
