@@ -31,6 +31,16 @@ class PersonConverterServiceTest {
         return fodselsDato.format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
+    @DisplayName("verify that expiry date has correct format with 0 as time part and zulu timezone")
+    @Test
+    void verifyExpiredDateHasCorrectFormat() {
+        PersonConverterService service = new PersonConverterService();
+        String expiryDate = service.calcPidExpiryDate();
+        assertNotNull(expiryDate);
+        // e.g. 2035-09-22T00:00Z
+        assertTrue(expiryDate.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}Z"));
+    }
+
 
     @DisplayName("verify that country code NOR converts to NO")
     @Test

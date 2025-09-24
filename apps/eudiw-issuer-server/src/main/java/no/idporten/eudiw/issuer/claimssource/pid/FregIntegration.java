@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -18,7 +19,7 @@ import java.util.List;
 public class FregIntegration implements FregClientInterface {
 
     private final RestClient restClient;
-    private static final String PERSON_PATH = "v1/personer/{fnr}";
+    protected static final String PERSON_PATH = "v1/personer/{fnr}";
 
     public FregIntegration(@Qualifier("fregRestClient") RestClient restClient) {
         this.restClient = restClient;
@@ -34,21 +35,19 @@ public class FregIntegration implements FregClientInterface {
 
         URI uri = uriBuilder.buildAndExpand(fnr).toUri();
 
-        Folkeregisterperson person = restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON).retrieve()
-                .onStatus(status -> status.value() == 404, (request, response) -> {
-                    throw new UserNotFoundException("User not found in FREG");
-                })
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    throw new IssuerServerException("client_error", response.getStatusText(), HttpStatus.valueOf(response.getStatusCode().value()));
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                    throw new IssuerServerException("server_error", response.getStatusText(), HttpStatus.valueOf(response.getStatusCode().value()));
-                })
-                .body(Folkeregisterperson.class);
+        try {
+            return restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON).retrieve()
+                    .onStatus(status -> status.value() == 404, (request, response) -> {
+                        throw new UserNotFoundException("User not found in FREG");
+                    })
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        throw new IssuerServerException("client_error", response.getStatusText(), HttpStatus.INTERNAL_SERVER_ERROR); // user will see our application failing --> 500
+                    })
+                    .body(Folkeregisterperson.class);
+        }catch (ResourceAccessException e) {
+            throw new FregIOException("io_error", "IO error when calling FREG getPerson", e);
+        }
 
-        // TODO handle IOExceptions specifically to allow metrics
-
-        return person;
     }
 
     @Override
