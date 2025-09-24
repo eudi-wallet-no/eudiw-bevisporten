@@ -9,6 +9,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import no.idporten.eudiw.issuer.ui.demo.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.demo.issuer.IssuerServerService;
+import no.idporten.eudiw.issuer.ui.demo.issuer.config.CredentialConfiguration;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
 import no.idporten.eudiw.issuer.ui.demo.issuer.domain.IssuanceResponse;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,12 +48,22 @@ public class StartIssuanceController {
 
     @ModelAttribute("issuerUrl")
     public String issuerUrl() {
-        return properties.getBaseUrl();
+        return properties.credentialIssuer();
     }
 
     @GetMapping("/")
-    public String start(Model model) {
-        model.addAttribute("jsonRequest", new JsonRequest(defaultJsonRequest()));
+    public String index(Model model) {
+        model.addAttribute("credential_configurations", properties.credentialConfigurations());
+        return "index";
+    }
+
+    @GetMapping("/start-issuance")
+    public String start(
+            @RequestParam("credential_configuration_id") String credentialConfigurationId,
+            Model model) {
+        CredentialConfiguration credentialConfiguration = properties.findCredentialConfiguration(credentialConfigurationId);
+        model.addAttribute("credentialConfiguration", credentialConfiguration);
+        model.addAttribute("jsonRequest", new JsonRequest(credentialConfiguration.jsonRequest()));
         return "start";
     }
 
@@ -101,6 +113,7 @@ public class StartIssuanceController {
             throw new IssuerUiException("Failed to convert response to Json string", e);
         }
     }
+
     private String toPrettyJsonString(IssuanceResponse response) {
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
@@ -116,25 +129,6 @@ public class StartIssuanceController {
         ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
         MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
-    }
-
-
-    private String defaultJsonRequest() {
-        return """
-                {
-                   "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
-                   "claims": [
-                     {
-                       "name": "norwegian_national_id_number",
-                       "value": "12345678901"
-                     },
-                     {
-                       "name": "norwegian_national_id_number_type",
-                       "value": "D-nummer"
-                     }
-                   ]
-                 }
-                """;
     }
 
 }
