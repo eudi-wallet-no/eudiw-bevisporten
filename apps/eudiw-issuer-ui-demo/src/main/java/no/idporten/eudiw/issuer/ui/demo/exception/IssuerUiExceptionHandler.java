@@ -28,7 +28,7 @@ public class IssuerUiExceptionHandler {
     }
 
     private ModelAndView getModelAndView(String viewName) {
-        return new ModelAndView(viewName).addObject("issuerUrl", properties.getBaseUrl());
+        return new ModelAndView(viewName).addObject("issuerUrl", properties.credentialIssuer());
     }
 
     @ExceptionHandler(IssuerServerException.class)
