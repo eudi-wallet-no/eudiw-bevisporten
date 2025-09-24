@@ -13,8 +13,7 @@
                 <h1 class="ds-heading" data-size="lg">
                     Start utferdig av bevis
                 </h1>
-                <p class="ds-paragraph">
-                    Start utferdig av bevis med Digdir sin generelle utferdar (issuer)
+                <p class="ds-paragraph" th:text="|Start utferdig av ${credentialConfiguration.description} med Digdir sin generelle utferdar (issuer)|">
                 </p>
             </div>
 
@@ -29,10 +28,10 @@
                     <label for="eaa_data_field"
                            data-weight="medium"
                            class="ds-label">
-                        Attributter for utferdig av bevis (i JSON-format)
+                        Attributter for utferding av bevis (i JSON-format)
                     </label>
                     <textarea id="eaa_data_field"
-                           placeholder="{nnid:123456789}"
+                           placeholder=""
                            class="ds-input"
                               th:field="*{json}">
                     </textarea>
@@ -42,7 +41,7 @@
                         type="submit"
                         form="send_attributes_form"
                         data-variant="primary">
-                    Start utferdig av bevis
+                    Start utferding av bevis
                 </button>
             </form>
 
