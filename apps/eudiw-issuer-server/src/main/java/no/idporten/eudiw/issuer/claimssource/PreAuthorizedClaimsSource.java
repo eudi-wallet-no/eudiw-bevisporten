@@ -1,11 +1,55 @@
 package no.idporten.eudiw.issuer.claimssource;
 
+import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.IssuerServerException;
+import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
+
 import java.util.Map;
 
+/**
+ * A pre-authorized claims source ensures that data is present and stored before a credential offer is created.
+ * The claims source will either support a push mode (receive the data from the client application), or a pull mode
+ * (it can retrieve the data itself).  Data is validated and stored by the claims source.
+ */
 public interface PreAuthorizedClaimsSource extends ClaimsSource {
 
     /**
-     * Store claims
+     * Pre-authorize credential issuance by validating and storing claims data.  Data can be provided by calling
+     * system or fetched by the claims source if the pull() method is implemented.
+     *
+     * @param issuanceTransactionId
+     * @param accessToken
+     * @param pushedClaims
+     */
+    default void preAuthorize(String issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims) {
+        final Map<String, String> validatedClaims;
+        if (!CollectionUtils.isEmpty(pushedClaims)) {
+            validatedClaims = validate(push(issuanceTransactionId, accessToken, pushedClaims));
+        } else {
+            validatedClaims = validate(pull(issuanceTransactionId, accessToken));
+        }
+        store(issuanceTransactionId, validatedClaims);
+    }
+
+    /**
+     * Pull claims data from authoritative source.  Disabled by default.
+     */
+    default Map<String, String> pull(String issuanceTransactionId, JWT accessToken) {
+        throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
+    }
+
+    default Map<String, String> push(String issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+        throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Validate claims data.
+     */
+    Map<String, String> validate(Map<String, String> claims);
+
+    /**
+     * Store claims data in cache.
      *
      * @param txId
      * @param claims

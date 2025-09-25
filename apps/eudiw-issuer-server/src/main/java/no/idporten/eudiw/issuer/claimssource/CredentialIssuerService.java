@@ -42,7 +42,7 @@ public class CredentialIssuerService {
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, startIssuanceRequest);
-        claimsSource.store(issuanceTransactionId.getValue(), startIssuanceRequest.getClaimsMap());
+        claimsSource.preAuthorize(issuanceTransactionId.getValue(), accessToken, startIssuanceRequest.getClaimsMap());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())

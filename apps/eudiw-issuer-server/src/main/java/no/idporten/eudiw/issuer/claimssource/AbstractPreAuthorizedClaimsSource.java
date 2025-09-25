@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorized
 
     protected abstract DocumentMetadata getDocumentMetadata();
 
-    protected void validateClaim(ClaimMetadata claimMetadata, Map<String, String> claims) {
+    public final void validateClaim(ClaimMetadata claimMetadata, Map<String, String> claims) {
         if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
             throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
         }
@@ -34,7 +35,7 @@ public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorized
         }
     }
 
-    public void validate(Map<String, String> claims) {
+    public final Map<String, String> validate(Map<String, String> claims) {
         // validate all known claims
         for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
             validateClaim(claimMetadata, claims);
@@ -45,15 +46,14 @@ public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorized
                 throw new IssuerServerException("invalid_request", "Unsupported claims in request.", HttpStatus.BAD_REQUEST);
             }
         }
+        return Collections.unmodifiableMap(claims);
     }
 
     @Override
-    public String store(String transactionId, Map<String, String> claims) {
-        validate(claims);
+    public final String store(String transactionId, Map<String, String> claims) {
         claimsCache.put(transactionId, claims);
         return transactionId;
     }
-
 
     @Override
     public void init(ClaimsSourceProperties properties) {
@@ -61,7 +61,7 @@ public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorized
     }
 
     @Override
-    public ClaimsSourceProperties getProperties() {
+    public final ClaimsSourceProperties getProperties() {
         return properties;
     }
 
@@ -70,7 +70,7 @@ public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorized
     }
 
     @Override
-    public ClaimsSourceMetadata getMetadata() {
+    public final ClaimsSourceMetadata getMetadata() {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
         builder.displays(getDocumentMetadata().displayNames()
                 .entrySet()
@@ -89,7 +89,7 @@ public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorized
     }
 
     @Override
-    public List<Claim> retrieveClaims(JWT accessToken) {
+    public final List<Claim> retrieveClaims(JWT accessToken) {
         final String transactionId;
         try {
             transactionId = accessToken.getJWTClaimsSet().getStringClaim("tx_id");

@@ -109,7 +109,7 @@ class NnidClaimsSourceTest {
     @Nested
     class LifecycleTest {
 
-        @DisplayName("then data can be validated, stored, retrieved and formatted")
+        @DisplayName("then pre-authorized data are validated, stored, retrieved and formatted")
         @Test
         void testClaimsSourceLifecycle() {
             final String transactionId = "tid";
@@ -121,9 +121,12 @@ class NnidClaimsSourceTest {
             PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
 
             NnidClaimsSource claimsSource = spy(nnidClaimsSource);
-            claimsSource.store(transactionId, new TreeMap<>(Map.of(
-                    NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
-                    NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+            claimsSource.preAuthorize(
+                    transactionId,
+                    accessToken,
+                    new TreeMap<>(Map.of(
+                            NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
             verify(claimsSource).validate(anyMap());
             List<Claim> claims = nnidClaimsSource.retrieveClaims(accessToken);
             assertAll(
@@ -132,7 +135,7 @@ class NnidClaimsSourceTest {
                     () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number"), claims.getFirst().getPath()),
                     () -> assertEquals("D-nummer", claims.getLast().getValue()),
                     () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number_type"), claims.getLast().getPath())
-           );
+            );
         }
     }
 

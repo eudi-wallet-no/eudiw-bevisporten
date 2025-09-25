@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.minid;
 
+import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
@@ -46,6 +47,11 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
     @Override
     protected DocumentMetadata getDocumentMetadata() {
         return documentMetadata;
+    }
+
+    @Override
+    public Map<String, String> push(String issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+        return claims;
     }
 
 }
