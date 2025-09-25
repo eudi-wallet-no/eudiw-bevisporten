@@ -38,7 +38,7 @@
 
         <freg-integration-lib.version>1.0.7</freg-integration-lib.version>
         <maskinporten.client.version>4.0.2</maskinporten.client.version>
-        <log-event.version>1.5.0</log-event.version>
+        <log-event.version>1.5.1</log-event.version>
         <idporten-log-audit.version>2.5.2</idporten-log-audit.version>
 
     </properties>
