@@ -6,7 +6,7 @@ import no.idporten.eudiw.issuer.ui.demo.issuer.config.CredentialConfiguration;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
 import no.idporten.eudiw.issuer.ui.demo.issuer.domain.IssuanceResponse;
 import no.idporten.eudiw.issuer.ui.demo.web.StartIssuanceForm;
-import no.idporten.lib.maskinporten.client.UserBoundJwtHelper;
+import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,21 +28,22 @@ public class IssuerServerService {
 
     private final IssuerServerProperties issuerServerProperties;
     private final RestClient restClient;
-    private final UserBoundJwtHelper userBoundJwtHelper;
+    private final MaskinportenClient maskinportenClient;
 
     @Autowired
     public IssuerServerService(@Qualifier("issuerServerRestClient") RestClient restClient,
                                IssuerServerProperties issuerServerProperties,
-                               UserBoundJwtHelper userBoundJwtHelper) {
+                               MaskinportenClient maskinportenClient) {
         this.issuerServerProperties = issuerServerProperties;
         this.restClient = restClient;
-        this.userBoundJwtHelper = userBoundJwtHelper;
+        this.maskinportenClient = maskinportenClient;
     }
 
     private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
-        return userBoundJwtHelper.getAccessTokenValue(
-                List.of(credentialConfiguration.scope()),
-                StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null);
+        return maskinportenClient.getAccessToken(
+                        List.of(credentialConfiguration.scope()),
+                        StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null)
+                .getValue();
     }
 
     public IssuanceResponse startIssuance(CredentialConfiguration credentialConfiguration, StartIssuanceForm json) {

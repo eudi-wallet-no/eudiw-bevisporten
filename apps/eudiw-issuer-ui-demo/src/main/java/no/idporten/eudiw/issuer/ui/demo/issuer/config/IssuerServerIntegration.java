@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.ui.demo.issuer.config;
 
-import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -17,11 +16,9 @@ public class IssuerServerIntegration {
     }
 
     @Bean("issuerServerRestClient")
-    public RestClient issuerServerRestClient(JwtGrantTokenInterceptor jwtGrantTokenInterceptor) {
-
+    public RestClient issuerServerRestClient() {
         return RestClient.builder()
                 .baseUrl(issuerServerProperties.credentialIssuer())
-                .requestInterceptor(jwtGrantTokenInterceptor)
                 .build();
     }
 
