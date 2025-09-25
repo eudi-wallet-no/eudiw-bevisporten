@@ -96,7 +96,6 @@ issuer-ui-demo:
 # Maskinporten
 maskinporten:
   oauth2:
-    user-bound-jwt-helper-bean: true
     client-id: ${MASKINPORTEN_CLIENT_ID}
     kid: ${MASKINPORTEN_CLIENT_KID}
     audience:
