@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,12 +31,23 @@ public class StartIssuanceRequest {
     @JsonProperty("credential_configuration_id")
     private String credentialConfigurationId;
 
+    @Schema(description = "Subject identifier.  Must match with subject identifier in access token.", example = "12345678901")
+    @JsonProperty("subject_identifier")
+    private String subjectIdentifier;
+
+    @Schema(description = "Type of subject identifier.", example = "Fødselsnummer")
+    @JsonProperty("subject_identifier_type")
+    private String subjectIdentifierType;
+
     @ArraySchema(schema = @Schema(implementation = Claim.class))
     @JsonProperty("claims")
     private List<Claim> claims = new ArrayList<>();
 
     @JsonIgnore
     public Map<String, String> getClaimsMap() {
+        if (claims == null) {
+            return Collections.emptyMap();
+        }
         return claims.stream().collect(Collectors.toMap(Claim::getName, Claim::getValue));
     }
 
