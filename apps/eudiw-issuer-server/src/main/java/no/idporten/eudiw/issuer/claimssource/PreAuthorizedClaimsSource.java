@@ -12,7 +12,7 @@ import java.util.Map;
  * The claims source will either support a push mode (receive the data from the client application), or a pull mode
  * (it can retrieve the data itself).  Data is validated and stored by the claims source.
  */
-public interface PreAuthorizedClaimsSource extends ClaimsSource {
+public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits AbstractPreAuthorizedClaimsSource {
 
     /**
      * Pre-authorize credential issuance by validating and storing claims data.  Data can be provided by calling
