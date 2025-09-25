@@ -1,52 +1,65 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
-    <head>
-        <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-        <title>EUDIW sandkassa for digital lommebok: Test issuer</title>
-    </head>
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>EUDIW sandkassa for digital lommebok: Test issuer</title>
+</head>
 
-    <body>
-        <header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
-        <main>
-            <div>
-                <h1 class="ds-heading" data-size="lg">
-                    Start utferdig av bevis
-                </h1>
-                <p class="ds-paragraph" th:text="|Start utferdig av ${credentialConfiguration.description} med Digdir sin generelle utferdar (issuer)|">
-                </p>
-            </div>
+<main>
+    <div>
+        <h1 class="ds-heading" data-size="lg">
+            Start utferdig av bevis
+        </h1>
+        <p class="ds-paragraph"
+           th:text="|Start utferdig av ${credentialConfiguration.description} med Digdir sin generelle utferdar (issuer)|">
+        </p>
+    </div>
 
-            <form th:fragment="send_attributes_form_fragment"
-                  id="send_attributes_form"
-                  th:action="@{/start-issuance}"
-                  th:object="${jsonRequest}"
-                  method="POST">
+    <form th:fragment="send_attributes_form_fragment"
+          id="send_attributes_form"
+          th:action="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
+          th:object="${startIssuanceForm}"
+          method="POST">
 
 
-                <p class="ds-paragraph">
-                    <label for="eaa_data_field"
-                           data-weight="medium"
-                           class="ds-label">
-                        Attributter for utferding av bevis (i JSON-format)
-                    </label>
-                    <textarea id="eaa_data_field"
-                           placeholder=""
-                           class="ds-input"
-                              th:field="*{json}">
+        <p class="ds-paragraph" th:if="${credentialConfiguration.personIdentifier()}">
+            <label for="person_identifier"
+                   data-weight="medium"
+                   class="ds-label">
+                Personidentifikator
+            </label>
+            <input id="person_identifier"
+                      placeholder=""
+                      class="ds-input"
+                      th:field="*{personIdentifier}" />
+        </p>
+
+        <p class="ds-paragraph">
+            <label for="eaa_data_field"
+                   data-weight="medium"
+                   class="ds-label">
+                Attributter for utferding av bevis (i JSON-format)
+            </label>
+            <textarea id="eaa_data_field"
+                      placeholder=""
+                      class="ds-input"
+                      th:field="*{json}">
                     </textarea>
-                </p>
+        </p>
 
-                <button class="ds-button ds-button--primary"
-                        type="submit"
-                        form="send_attributes_form"
-                        data-variant="primary">
-                    Start utferding av bevis
-                </button>
-            </form>
+        <button class="ds-button ds-button--primary"
+                type="submit"
+                form="send_attributes_form"
+                data-variant="primary">
+            Start utferding av bevis
+        </button>
+    </form>
 
-        </main>
+</main>
 
-        <footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
-    </body>
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
 </html>

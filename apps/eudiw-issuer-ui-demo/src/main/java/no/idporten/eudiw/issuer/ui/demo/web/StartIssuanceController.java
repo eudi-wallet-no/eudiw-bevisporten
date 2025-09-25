@@ -18,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -57,25 +54,27 @@ public class StartIssuanceController {
         return "index";
     }
 
-    @GetMapping("/start-issuance")
+    @GetMapping("/start-issuance/{credential_configuration_id}")
     public String start(
-            @RequestParam("credential_configuration_id") String credentialConfigurationId,
+            @PathVariable("credential_configuration_id") String credentialConfigurationId,
             Model model) {
         CredentialConfiguration credentialConfiguration = properties.findCredentialConfiguration(credentialConfigurationId);
         model.addAttribute("credentialConfiguration", credentialConfiguration);
-        model.addAttribute("jsonRequest", new JsonRequest(credentialConfiguration.jsonRequest()));
+        model.addAttribute("startIssuanceForm", new StartIssuanceForm(credentialConfiguration.jsonRequest(), credentialConfiguration.personIdentifier()));
         return "start";
     }
 
-    @PostMapping("/start-issuance")
-    public String startIssuance(@ModelAttribute("jsonRequest") JsonRequest jsonRequest, Model model) {
-
-        String normalizedJson = jsonRequest.json().replaceAll("\\s", ""); // TODO add validation
+    @PostMapping("/start-issuance/{credential_configuration_id}")
+    public String startIssuance(@PathVariable("credential_configuration_id") String credentialConfigurationId,
+                                @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
+                                Model model) {
+        CredentialConfiguration credentialConfiguration = properties.findCredentialConfiguration(credentialConfigurationId);
+        String normalizedJson = startIssuanceForm.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
 
-        model.addAttribute("request", createRequestTraceing(jsonRequest));
+        model.addAttribute("request", createRequestTraceing(startIssuanceForm));
 
-        IssuanceResponse response = issuerServerService.startIssuance(normalizedJson);
+        IssuanceResponse response = issuerServerService.startIssuance(credentialConfiguration, startIssuanceForm);
 
         String uri = convertToCredentialOfferUri(response);
         String qrCode = null;
@@ -91,10 +90,10 @@ public class StartIssuanceController {
         return "issuer_response";
     }
 
-    private IssuanceRequest createRequestTraceing(JsonRequest jsonRequest) {
+    private IssuanceRequest createRequestTraceing(StartIssuanceForm startIssuanceForm) {
         String contentType = "Content-Type: " + MediaType.APPLICATION_JSON;
         String authorization = "Authorization: Bearer [Maskinporten-token]";
-        return new IssuanceRequest(jsonRequest.json(), properties.getIssuanceUrl(), authorization, contentType);
+        return new IssuanceRequest(startIssuanceForm.json(), properties.getIssuanceUrl(), authorization, contentType);
     }
 
     private String convertToCredentialOfferUri(IssuanceResponse response) {
