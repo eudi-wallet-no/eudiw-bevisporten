@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
 import com.nimbusds.jwt.JWT;
+import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
@@ -37,8 +38,15 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
         return documentMetadata;
     }
 
+    @SneakyThrows
     @Override
     public Map<String, String> pull(String issuanceTransactionId, JWT accessToken) {
+        // Dette er en gave til vår jurist - det fjernes så snart vi har ekte data
+        if ("63879500925".equals(accessToken.getJWTClaimsSet().getStringClaim("pid"))) {
+            return Map.of("tittel", "Frilynt advokat",
+                    "etternavn", "Hagelin",
+                    "fornavn", "Hans Gunnar");
+        }
         return Map.of("tittel", "Advokat",
                 "etternavn", "Tastad",
                 "fornavn", "Hans");

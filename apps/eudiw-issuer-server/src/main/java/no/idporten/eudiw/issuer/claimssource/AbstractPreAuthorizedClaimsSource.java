@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractPreAuthorizedClaimsSource implements PreAuthorizedClaimsSource {
+public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements PreAuthorizedClaimsSource {
 
     private ClaimsSourceProperties properties;
 
