@@ -3,9 +3,9 @@ package no.idporten.eudiw.issuer.claimssource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Slf4j
-@DependsOn("claimsSourceConfiguration")
 @RequiredArgsConstructor
 @Service
 public class ClaimsSourceService implements InitializingBean {
@@ -31,10 +30,12 @@ public class ClaimsSourceService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("Claims source service managing {} claims sources", claimsSources.size());
-        for (ClaimsSource claimsSource : claimsSources) {
-            log.info("Claims source for doctype {}: {}", claimsSource.getProperties().getDoctype(), claimsSource.getClass().getName());
+        for (ClaimsSourceProperties claimsSourceProperties : credentialIssuerServerProperties.getClaimsSources()) {
+            ClaimsSource claimsSource = (ClaimsSource) applicationContext.getBean(Class.forName(claimsSourceProperties.getClassName()));
+            claimsSource.init(claimsSourceProperties);
+            log.info("Claims source initialized for doctype {}: {}", claimsSource.getProperties().getDoctype(), claimsSource.getClass().getName());
         }
+        log.info("Claims source service managing {} claims sources", claimsSources.size());
     }
 
 }

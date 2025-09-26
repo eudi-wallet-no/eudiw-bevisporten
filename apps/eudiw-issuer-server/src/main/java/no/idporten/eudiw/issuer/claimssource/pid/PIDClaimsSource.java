@@ -12,6 +12,7 @@ import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ import java.util.*;
 /**
  * Claims source for Norwegian PID data from FREG
  */
+@Service
 public class PIDClaimsSource implements ClaimsSource {
 
     public static final String NAMESPACE = "eu.europa.ec.eudi.pid.1";

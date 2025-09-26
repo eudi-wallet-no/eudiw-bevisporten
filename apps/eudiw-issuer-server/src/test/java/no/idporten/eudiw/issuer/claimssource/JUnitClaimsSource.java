@@ -5,9 +5,11 @@ import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class JUnitClaimsSource implements ClaimsSource {
 
     private ClaimsSourceProperties properties;

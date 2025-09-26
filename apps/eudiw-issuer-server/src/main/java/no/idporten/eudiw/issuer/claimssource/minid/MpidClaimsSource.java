@@ -4,10 +4,12 @@ import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     private final DocumentMetadata documentMetadata;
