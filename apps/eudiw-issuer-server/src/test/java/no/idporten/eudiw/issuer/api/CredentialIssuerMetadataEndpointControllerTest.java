@@ -46,14 +46,14 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.credential_configurations_supported").exists())
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']").exists())
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['doctype']").value("eu.europa.ec.eudi.pid.1"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['scope']").value("nobid:pid"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['format']").value("mso_mdoc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['display'][0]['name']").value("Norsk PID"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['claims'][0]['path'][0]").value("eu.europa.ec.eudi.pid.1"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['no.digdir.eudiw.pid_mso_mdoc']['claims'][0]['path'][1]").value("personal_administrative_number"));
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']").exists())
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['doctype']").value("junitdoc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['scope']").value("eudiw:junit"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['format']").value("mso_mdoc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['display'][0]['name']").value("Junit doc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['claims'][0]['path'][0]").value("junit"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['claims'][0]['path'][1]").value("attr1"));
     }
 
 }
