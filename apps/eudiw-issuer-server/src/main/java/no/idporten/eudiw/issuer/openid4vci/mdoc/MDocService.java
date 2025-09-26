@@ -7,13 +7,9 @@ import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocBuilder;
 import id.walt.mdoc.mso.DeviceKeyInfo;
-import id.walt.mdoc.mso.Status;
 import kotlinx.datetime.Clock;
 import kotlinx.datetime.Instant;
-import no.idporten.eudiw.issuer.claimssource.Claim;
-import no.idporten.eudiw.issuer.claimssource.DateTimeValue;
-import no.idporten.eudiw.issuer.claimssource.FullDateValue;
-import no.idporten.eudiw.issuer.claimssource.StringValue;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.crypto.KeyProvider;
 import org.cose.java.OneKey;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,7 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class MDocService {
@@ -54,38 +50,64 @@ public class MDocService {
 
         MDocBuilder mDocBuilder = new MDocBuilder(docType);
         for (Claim entry : claims) {
-            if (entry.getValue() instanceof StringValue(String value)) {
-                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new StringElement(value));
-            } else if (entry.getValue() instanceof DateTimeValue(ZonedDateTime value)) {
-                kotlinx.datetime.Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);
-                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new DateTimeElement(datetime, DEDateTimeMode.tdate));
-            } else if (entry.getValue() instanceof FullDateValue(LocalDate value)) {
+            DataElement data = getDataElement(entry.getValue());
+            mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), data);
+        }
+        return mDocBuilder.sign(
+                new id.walt.mdoc.mso.ValidityInfo(
+
+                        Clock.System.INSTANCE.now(),
+                        Clock.System.INSTANCE.now(),
+                        new Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS)),
+                        new Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS))
+                ),
+                deviceKeyInfo,
+                cryptoProvider,
+                ISSUER_KEY_ID,
+                null
+        );
+    }
+
+    private static DataElement getDataElement(ClaimValue claimValue) {
+        switch (claimValue) {
+            case StringValue(String value) -> {
+                return new StringElement(value);
+            }
+            case DateTimeValue(ZonedDateTime value) -> {
+                Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);
+                return new DateTimeElement(datetime, DEDateTimeMode.tdate);
+            }
+            case FullDateValue(LocalDate value) -> {
                 kotlinx.datetime.LocalDate kxDate = new kotlinx.datetime.LocalDate(
                         value.getYear(),
                         value.getMonthValue(),
                         value.getDayOfMonth()
                 );
-                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new FullDateElement(kxDate, DEFullDateMode.full_date_str));
-            } else {
-                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new StringElement(String.valueOf(entry.getValue())));
+                return new FullDateElement(kxDate, DEFullDateMode.full_date_str);
             }
-
+            case ListValue(List<ClaimValue> listValue) -> {
+                List<DataElement> dataElements = new ArrayList<>();
+                for (ClaimValue v : listValue) {
+                    dataElements.add(getDataElement(v)); // risky?
+                }
+                return new ListElement(dataElements);
+            }
+            case MapValue(Map<String, ClaimValue> m) -> {
+                Map<MapKey, DataElement> map = new HashMap<>();
+                for (Map.Entry<String, ClaimValue> mapEntry : m.entrySet()) {
+                    if (mapEntry.getValue() instanceof StringValue(String value)) {
+                        map.put(new MapKey(mapEntry.getKey()), new StringElement(value));
+                    } else {
+                        throw new IllegalArgumentException("Unsupported map value type: " + mapEntry.getValue().getClass());
+                    }
+                }
+                return new MapElement(map);
+            }
+            case null, default -> {
+                // TODO: throw error instead?
+                return new StringElement(String.valueOf(claimValue));
+            }
         }
-        MDoc mDoc = mDocBuilder.sign(
-                new id.walt.mdoc.mso.ValidityInfo(
-
-                        Clock.System.INSTANCE.now(),
-                        Clock.System.INSTANCE.now(),
-                        new kotlinx.datetime.Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS)),
-                        new kotlinx.datetime.Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS))
-                ),
-                deviceKeyInfo,
-                cryptoProvider,
-                ISSUER_KEY_ID,
-                (Status) null
-        );
-        return mDoc;
 
     }
-
 }

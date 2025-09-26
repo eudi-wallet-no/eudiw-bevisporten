@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.claimssource;
+package no.idporten.eudiw.issuer.claimssource.domain;
 
 import java.time.LocalDate;
 

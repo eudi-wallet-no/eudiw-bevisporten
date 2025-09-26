@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;

@@ -8,6 +8,7 @@ import id.walt.mdoc.doc.MDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
@@ -81,7 +82,7 @@ public class CredentialIssuerService {
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope());
         JWK bindingKey = credentialRequest.getProof() != null ? credentialRequest.getProof().getBindingKey() : null;
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
-        List<Claim> claims = claimsSource.retrieveClaims(accessToken);
+        List<no.idporten.eudiw.issuer.claimssource.domain.Claim> claims = claimsSource.retrieveClaims(accessToken);
         List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(accessToken, credentialRequest.getCredentialConfigurationId());
         return CredentialResponse.builder()
