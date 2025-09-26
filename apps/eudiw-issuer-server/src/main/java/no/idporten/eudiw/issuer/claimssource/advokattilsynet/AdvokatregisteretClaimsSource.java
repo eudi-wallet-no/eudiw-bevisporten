@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
+import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,8 +15,10 @@ import java.util.Map;
 public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     private final DocumentMetadata documentMetadata;
+    private final AdvokatregisteretIntegration advokatregisteretIntegration;
 
-    public AdvokatregisteretClaimsSource() {
+    public AdvokatregisteretClaimsSource(AdvokatregisteretIntegration advokatregisteretIntegration) {
+        this.advokatregisteretIntegration = advokatregisteretIntegration;
         this.documentMetadata = new DocumentMetadata(
                 Map.of("no", "Advokatbevilling"),
                 List.of(
@@ -43,15 +46,12 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
     @SneakyThrows
     @Override
     public Map<String, String> pull(String issuanceTransactionId, JWT accessToken) {
-        // Dette er en gave til vår jurist - det fjernes så snart vi har ekte data
-        if ("63879500925".equals(accessToken.getJWTClaimsSet().getStringClaim("pid"))) {
-            return Map.of("tittel", "Frilynt advokat",
-                    "etternavn", "Hagelin",
-                    "fornavn", "Hans Gunnar");
-        }
-        return Map.of("tittel", "Advokat",
-                "etternavn", "Tastad",
-                "fornavn", "Hans");
+        PersonPrivate personPrivate = advokatregisteretIntegration.retrieve(accessToken.getJWTClaimsSet().getStringClaim("pid"));
+        return Map.of(
+                "tittel", personPrivate.tittel(),
+                "etternavn", personPrivate.etternavn(),
+                "fornavn", personPrivate.fornavn()
+        );
     }
 
 }
