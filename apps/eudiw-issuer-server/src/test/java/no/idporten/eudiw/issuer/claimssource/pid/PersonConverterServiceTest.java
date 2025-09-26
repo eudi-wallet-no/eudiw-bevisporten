@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,24 +51,27 @@ class PersonConverterServiceTest {
     void verifyNORasNationalityReturnsCountryCodeNO() {
         PersonConverterService service = new PersonConverterService();
         // norsk
-        String nor = service.getFirstNationalityAlpha2(Collections.singletonList("NOR"));
-        assertEquals("NO", nor);
+        List<String> nor = service.getNationalitiesAlpha2(Collections.singletonList("NOR"));
+        assertEquals("NO", nor.getFirst());
     }
 
-    @DisplayName("verify that country code POL converts to PL")
+    @DisplayName("verify that list of country code POL and SWE converts to PL and SE")
     @Test
-    void verifyPOLasNationalityReturnsCountryCodePL() {
+    void verifyManyNationalityReturnsManyCountryCode() {
         PersonConverterService service = new PersonConverterService();
-        // polsk
-        String pl = service.getFirstNationalityAlpha2(Collections.singletonList("POL"));
-        assertEquals("PL", pl);
+        List<String> nationalities = new ArrayList<>();
+        nationalities.add("POL");
+        nationalities.add("SWE");
+        List<String> pl = service.getNationalitiesAlpha2(nationalities);
+        assertEquals("PL", pl.getFirst());
+        assertEquals("SE", pl.getLast());
     }
 
     @DisplayName("verify that unknown country code return null")
     @Test
     void verifyInvalidNationalityReturnsNull() {
         PersonConverterService service = new PersonConverterService();
-        String unknown = service.getFirstNationalityAlpha2(Collections.singletonList("XXY"));
-        assertNull(unknown);
+        List<String> unknown = service.getNationalitiesAlpha2(Collections.singletonList("XXY"));
+        assertTrue(unknown.isEmpty());
     }
 }

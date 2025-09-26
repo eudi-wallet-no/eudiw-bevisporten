@@ -3,9 +3,9 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
-import no.idporten.eudiw.issuer.claimssource.StringValue;
+import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import org.junit.jupiter.api.*;
 

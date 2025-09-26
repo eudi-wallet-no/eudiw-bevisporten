@@ -29,7 +29,6 @@ public class PersonConverterService {
     }
 
     public ZonedDateTime calcPidExpiryDate() {
-
         int validityYears = 10; // PID administrative validity period in years
         ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
         return utcNow.plusYears(validityYears).truncatedTo(ChronoUnit.DAYS);
@@ -38,9 +37,12 @@ public class PersonConverterService {
     public String getNationalityAlpha2(String nationalityAlpha3) {
         return iso3166_1Alpha3ToAlpha2Map.get(nationalityAlpha3);
     }
-    public String getFirstNationalityAlpha2(List<String> nationalitiesAlpha3) {
-        String nationality = nationalitiesAlpha3.getFirst();
-        return iso3166_1Alpha3ToAlpha2Map.get(nationality);
+
+    public List<String> getNationalitiesAlpha2(List<String> nationalitiesAlpha3) {
+        if (nationalitiesAlpha3 == null) {
+            throw new IllegalArgumentException("nationalityAlpha3 cannot be null");
+        }
+        return nationalitiesAlpha3.stream().map(this::getNationalityAlpha2).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 

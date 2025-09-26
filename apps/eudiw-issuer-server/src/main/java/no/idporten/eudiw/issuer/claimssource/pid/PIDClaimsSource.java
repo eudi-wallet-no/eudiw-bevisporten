@@ -5,7 +5,9 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.*;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
@@ -15,8 +17,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Claims source for Norwegian PID data from FREG
@@ -102,8 +103,8 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(getStringClaim("family_name", getEtternavn(person.getNavn())));
         claims.add(getStringClaim("given_name", getFornavn(person.getNavn())));
         claims.add(getFullDateClaim("birth_date", person.getFoedselsdato()));
-        claims.add(getStringClaim("birth_place", personConverterService.getNationalityAlpha2(person.getFoedested()))); // TODO: return map with country=value
-        claims.add(getStringClaim("nationality", personConverterService.getFirstNationalityAlpha2(person.getStatsborgerskap()))); // TODO: return array of all nationalities
+        claims.add(getMapClaim("birth_place", convertBirthPlace(person)));
+        claims.add(getListClaim("nationality", personConverterService.getNationalitiesAlpha2(person.getStatsborgerskap())));
 
         // mandatory metadata attributes
         claims.add(getDateTimeClaim("expiry_date", personConverterService.calcPidExpiryDate()));
@@ -112,17 +113,41 @@ public class PIDClaimsSource implements ClaimsSource {
         return claims;
     }
 
+    private Map<String, String> convertBirthPlace(PersonResource person) {
+        String country = personConverterService.getNationalityAlpha2(person.getFoedested());
+        return Collections.singletonMap("country", country);
+    }
+
     private Claim getFullDateClaim(String key, String value) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
         // TODO handle DateTimeParseException
         return Claim.builder().path(NAMESPACE).path(key).value(new FullDateValue(date)).build();
     }
+
     private Claim getDateTimeClaim(String key, ZonedDateTime value) {
         return Claim.builder().path(NAMESPACE).path(key).value(new DateTimeValue(value)).build();
     }
+
     private Claim getStringClaim(String key, String value) {
         return Claim.builder().path(NAMESPACE).path(key).value(new StringValue(value)).build();
+    }
+
+    // Only support List of StringValue for now
+    private Claim getListClaim(String key, List<String> value) {
+        List<ClaimValue> list = new ArrayList<>();
+        for (String v : value) {
+            list.add(new StringValue(v));
+        }
+        return Claim.builder().path(NAMESPACE).path(key).value(new ListValue(list)).build();
+    }
+
+    // Only support Map of values of type StringValue for now
+    private Claim getMapClaim(String key, Map<String, String> value) {
+        Map<String, ClaimValue> map = new HashMap<>();
+        for (String k : value.keySet()) {
+            map.put(k, new StringValue(value.get(k)));
+        }
+        return Claim.builder().path(NAMESPACE).path(key).value(new MapValue(map)).build();
     }
 
     // Attributes in FREG can be 200 chars long, but PID spec says 150 max, must truncate names. Does not apply to the other attributes used here.
