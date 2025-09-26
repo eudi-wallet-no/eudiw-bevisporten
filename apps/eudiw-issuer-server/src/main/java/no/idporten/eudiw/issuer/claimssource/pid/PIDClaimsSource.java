@@ -6,6 +6,7 @@ import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.StringValue;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
@@ -112,7 +113,7 @@ public class PIDClaimsSource implements ClaimsSource {
     }
 
     private Claim getStringClaim(String key, String value) {
-        return Claim.builder().path(NAMESPACE).path(key).value(value).build();
+        return Claim.builder().path(NAMESPACE).path(key).value(new StringValue(value)).build();
     }
 
     // Attributes in FREG can be 200 chars long, but PID spec says 150 max, must truncate names. Does not apply to the other attributes used here.

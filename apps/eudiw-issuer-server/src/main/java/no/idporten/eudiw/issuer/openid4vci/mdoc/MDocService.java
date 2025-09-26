@@ -3,14 +3,14 @@ package no.idporten.eudiw.issuer.openid4vci.mdoc;
 import com.nimbusds.jose.jwk.JWK;
 import id.walt.mdoc.COSECryptoProviderKeyInfo;
 import id.walt.mdoc.SimpleCOSECryptoProvider;
-import id.walt.mdoc.dataelement.DataElement;
-import id.walt.mdoc.dataelement.StringElement;
+import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocBuilder;
 import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.Status;
 import kotlinx.datetime.Clock;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.StringValue;
 import no.idporten.eudiw.issuer.crypto.KeyProvider;
 import org.cose.java.OneKey;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,9 +49,10 @@ public class MDocService {
 
         MDocBuilder mDocBuilder = new MDocBuilder(docType);
         for (Claim entry : claims) {
-            if (entry.getValue() instanceof String) {
-                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new StringElement(entry.getValue()));
-                // TODO datatyoer egen sak
+            if (entry.getValue() instanceof StringValue(String value)) {
+                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new StringElement(value));
+
+             // TODO datatyoer egen sak
 //            } else if ("number".equals(entry.getType())) {
 //                mDocBuilder.addItemToSign(docType, entry.getKey(), new NumberElement((Number) entry.getValue()));
 //            } else if ("boolean".equals(entry.getType())) {

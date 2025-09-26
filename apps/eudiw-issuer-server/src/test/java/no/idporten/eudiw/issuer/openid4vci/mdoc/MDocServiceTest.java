@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import id.walt.mdoc.doc.MDoc;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.StringValue;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,10 +37,11 @@ public class MDocServiceTest {
     @Test
     void testIssueMDocCredentials() throws Exception {
         JWK deviceKey = new ECKeyGenerator(Curve.P_256).generate();
+        Claim stringClaim = Claim.builder().path("foo").path("bar").value(new StringValue("foobar")).build();
         MDoc mdoc = mDocService.issueCredentials(
                 deviceKey,
                 "foo",
-                List.of(Claim.builder().path("foo").path("bar").value("foobar").build()));
+                List.of(stringClaim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
