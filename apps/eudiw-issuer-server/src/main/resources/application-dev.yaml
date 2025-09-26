@@ -26,6 +26,9 @@ credential-issuer-server:
     key-alias: eudiw-issuer
     key-password: changeit
 
+advoktatregisteret:
+  subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f
+
 maskinporten:
   oauth2:
     issuer: https://test.maskinporten.no/

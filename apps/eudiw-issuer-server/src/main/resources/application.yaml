@@ -103,6 +103,14 @@ freg:
   max-connections: 20
   max-connections-per-route: 20
 
+## Data.altinn.no for advokatbevis
+advoktatregisteret:
+  uri: https://test-api.data.altinn.no/v1/directharvest/AdvRegPersonPrivat/
+  subscription-key: ${ADVOKATREGISTERET_SUBSCRIPTION_KEY}
+  scope: altinn:dataaltinnno/advregpersonprivat
+  connect-timeout: 5s
+  read-timeout: 5s
+
 # Maskinporten
 maskinporten:
   oauth2:
@@ -111,8 +119,7 @@ maskinporten:
     audience:
       - ${maskinporten.oauth2.issuer}
     token-endpoint: ${maskinporten.oauth2.issuer}token
-    scope: folkeregister:deling/offentligmedhjemmel
-    #resource: ${issuer-ui-demo.issuer-server.base-url}
+    scope: folkeregister:deling/offentligmedhjemmel altinn:dataaltinnno/advregpersonprivat
   jwt-signing-config: #to authenticate towards maskinporten
     key-store-type: JKS
     key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
