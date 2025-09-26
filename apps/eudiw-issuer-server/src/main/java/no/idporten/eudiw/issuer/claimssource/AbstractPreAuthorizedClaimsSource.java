@@ -98,7 +98,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         }
         Map<String, String> storedClaims = claimsCache.get(transactionId);
         return storedClaims.keySet().stream().map(claimName ->
-                Claim.builder().path(namespace()).path(claimName).value(storedClaims.get(claimName)).build()
+                Claim.builder().path(namespace()).path(claimName).value(new StringValue(storedClaims.get(claimName))).build()
         ).toList();
     }
 

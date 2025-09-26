@@ -56,7 +56,7 @@ public class CredentialIssuerServiceTest {
                 .doctype("foodoc")
                 .build();
         ClaimsSource claimsSource = mock(ClaimsSource.class);
-        when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("n1").path("p1").value("v1").build()));
+        when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build()));
         when(credentialIssuerServerProperties.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfigurationProperties);
         when(claimsSourceService.findClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
         when(credentialIssuanceStatusService.credentialIssued(eq(accessToken), eq("cid"))).thenReturn(new NotificationId("nid"));

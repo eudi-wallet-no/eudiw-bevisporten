@@ -75,7 +75,7 @@ public class PreAuthorizedClaimsSourceTest {
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("junit.1", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("c", claims.getFirst().getPath().getLast()),
-                    () -> assertEquals("v", claims.getFirst().getValue())
+                    () -> assertEquals("v", ((StringValue)claims.getFirst().getValue()).value())
             );
             verify(claimsSource).pull(eq("tx"), any());
             verify(claimsSource).validate(any());
@@ -117,7 +117,7 @@ public class PreAuthorizedClaimsSourceTest {
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("junit.1", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("c", claims.getFirst().getPath().getLast()),
-                    () -> assertEquals("v", claims.getFirst().getValue())
+                    () -> assertEquals("v", ((StringValue)claims.getFirst().getValue()).value())
             );
             verify(claimsSource).push(eq("tx"), any(), any());
             verify(claimsSource).validate(any());

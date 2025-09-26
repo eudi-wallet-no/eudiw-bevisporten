@@ -12,6 +12,6 @@ public class Claim {
 
     @Singular("path")
     private List<String> path;
-    private String value;
+    private ClaimValue value;
 
 }

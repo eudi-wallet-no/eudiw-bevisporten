@@ -5,6 +5,7 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.Claim;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.StringValue;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import org.junit.jupiter.api.*;
 
@@ -131,9 +132,9 @@ class NnidClaimsSourceTest {
             List<Claim> claims = nnidClaimsSource.retrieveClaims(accessToken);
             assertAll(
                     () -> assertEquals(2, claims.size()),
-                    () -> assertEquals("12345678901", claims.getFirst().getValue()),
+                    () -> assertEquals("12345678901", ((StringValue)claims.getFirst().getValue()).value()),
                     () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number"), claims.getFirst().getPath()),
-                    () -> assertEquals("D-nummer", claims.getLast().getValue()),
+                    () -> assertEquals("D-nummer", ((StringValue)claims.getLast().getValue()).value()),
                     () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number_type"), claims.getLast().getPath())
             );
         }
