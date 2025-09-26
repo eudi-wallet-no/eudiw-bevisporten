@@ -9,13 +9,18 @@ import id.walt.mdoc.doc.MDocBuilder;
 import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.Status;
 import kotlinx.datetime.Clock;
+import kotlinx.datetime.Instant;
 import no.idporten.eudiw.issuer.claimssource.Claim;
+import no.idporten.eudiw.issuer.claimssource.DateTimeValue;
+import no.idporten.eudiw.issuer.claimssource.FullDateValue;
 import no.idporten.eudiw.issuer.claimssource.StringValue;
 import no.idporten.eudiw.issuer.crypto.KeyProvider;
 import org.cose.java.OneKey;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -51,16 +56,16 @@ public class MDocService {
         for (Claim entry : claims) {
             if (entry.getValue() instanceof StringValue(String value)) {
                 mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new StringElement(value));
-
-             // TODO datatyoer egen sak
-//            } else if ("number".equals(entry.getType())) {
-//                mDocBuilder.addItemToSign(docType, entry.getKey(), new NumberElement((Number) entry.getValue()));
-//            } else if ("boolean".equals(entry.getType())) {
-//                mDocBuilder.addItemToSign(docType, entry.getKey(), new BooleanElement((Boolean) entry.getValue()));
-//            } else if (entry.getValue() instanceof Collection<?>) {
-//                for (Object v : (Collection<?>) entry.getValue()) {
-//                    mDocBuilder.addItemToSign(docType, entry.getKey(), new StringElement(String.valueOf(v)));
-//                }
+            } else if (entry.getValue() instanceof DateTimeValue(ZonedDateTime value)) {
+                kotlinx.datetime.Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);
+                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new DateTimeElement(datetime, DEDateTimeMode.tdate));
+            } else if (entry.getValue() instanceof FullDateValue(LocalDate value)) {
+                kotlinx.datetime.LocalDate kxDate = new kotlinx.datetime.LocalDate(
+                        value.getYear(),
+                        value.getMonthValue(),
+                        value.getDayOfMonth()
+                );
+                mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new FullDateElement(kxDate, DEFullDateMode.full_date_str));
             } else {
                 mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), new StringElement(String.valueOf(entry.getValue())));
             }
