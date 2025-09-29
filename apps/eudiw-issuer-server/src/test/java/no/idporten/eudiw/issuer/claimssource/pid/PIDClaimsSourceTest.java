@@ -79,8 +79,7 @@ class PIDClaimsSourceTest {
         ClaimsSourceMetadata metadata = pidClaimsSource.getMetadata();
         assertNotNull(metadata);
         assertNotNull(metadata.getClaims());
-        int metadataClaimsIncludingMapDescriptions = NUMBER_OF_CLAIMS;// + 2;
-        assertEquals(metadataClaimsIncludingMapDescriptions, metadata.getClaims().size());
+        assertEquals(NUMBER_OF_CLAIMS, metadata.getClaims().size());
         assertNotNull(metadata.getDisplays().stream()
                 .filter(display -> display.getName().contains("Norsk PID"))
                 .findFirst()
