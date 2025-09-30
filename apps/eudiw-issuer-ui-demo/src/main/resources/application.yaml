@@ -39,6 +39,9 @@ issuer-ui-demo:
         json-request: |
           {
             "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
+            "subject": {
+              "identifier": "12345678901"
+            },
             "claims": [
               {
                 "name": "norwegian_national_id_number",
@@ -56,6 +59,9 @@ issuer-ui-demo:
         json-request: |
           {
             "credential_configuration_id": "no.minid.mpid_mso_mdoc",
+            "subject": {
+              "identifier": "24838674964"
+            },
             "claims": [
               {
                 "name": "personal_administrative_number",
@@ -86,12 +92,13 @@ issuer-ui-demo:
       - credential-configuration-id: no.advokattilsynet.advokatregisteret_mso_mdoc
         description: Advokatbevilling
         scope: eudiw:no:advokattilsynet:advokatregisteret
-        person-identifier: 012345678901
+        person-identifier: 16903349844
         json-request: |
           {
             "credential_configuration_id": "no.advokattilsynet.advokatregisteret_mso_mdoc",
-            "subject_identifier": "012345678901",
-            "subject_identifier_type": "Fødselsnummer"
+            "subject": {
+              "identifier": "16903349844"
+            }
           }
 # Maskinporten
 maskinporten:
