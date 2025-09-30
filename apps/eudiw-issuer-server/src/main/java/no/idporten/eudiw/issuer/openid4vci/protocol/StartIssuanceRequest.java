@@ -31,13 +31,9 @@ public class StartIssuanceRequest {
     @JsonProperty("credential_configuration_id")
     private String credentialConfigurationId;
 
-    @Schema(description = "Subject identifier.  Must match with subject identifier in access token.", example = "12345678901")
-    @JsonProperty("subject_identifier")
-    private String subjectIdentifier;
-
-    @Schema(description = "Type of subject identifier.", example = "Fødselsnummer")
-    @JsonProperty("subject_identifier_type")
-    private String subjectIdentifierType;
+    @Schema(description = "Subject for credential issuance.  The identifier must match with person identifier in access token.")
+    @JsonProperty("subject")
+    private Subject subject;
 
     @ArraySchema(schema = @Schema(implementation = Claim.class))
     @JsonProperty("claims")
