@@ -59,31 +59,44 @@ public class PIDClaimsSource implements ClaimsSource {
                 .display(Display.builder().locale("no").name("Norsk PID").build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("personal_administrative_number")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødselsnummer").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("given_name")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Førenamn").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("family_name")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Etternamn").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("birth_date")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødselsdato").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("birth_place").path("country")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødeland").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("nationality")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Nasjonalitet").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("expiry_date")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Gyldig til dato").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("issuing_authority")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Utsteda av").build()).build())
                 .claim(ClaimsDescription.builder()
                         .path(NAMESPACE).path("issuing_country")
+                        .mandatory(true)
                         .display(Display.builder().locale("no").name("Utsteda i land").build()).build())
+                .claim(ClaimsDescription.builder()
+                        .path(NAMESPACE).path("age_over_18")
+                        .mandatory(false)
+                        .display(Display.builder().locale("no").name("Over 18").build()).build())
                 .build();
     }
 
@@ -115,6 +128,11 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(getDateTimeClaim("expiry_date", personConverterService.calcPidExpiryDate()));
         claims.add(getStringClaim("issuing_authority", "DIGITALISERINGSDIREKTORATET"));
         claims.add(getStringClaim("issuing_country", "NO"));
+
+        // digdir non-spec attributes
+        boolean over18 = personConverterService.calcAgeOver18(person.getFoedselsdato());
+        claims.add(getBooleanClaim("age_over_18", over18));
+
         return claims;
     }
 
@@ -152,6 +170,9 @@ public class PIDClaimsSource implements ClaimsSource {
 
     private Claim getStringClaim(String key, String value) {
         return buildClaim(key, new StringValue(value));
+    }
+    private Claim getBooleanClaim(String key, Boolean value) {
+        return buildClaim(key, new BooleanValue(value));
     }
 
     // Only support List of StringValue for now

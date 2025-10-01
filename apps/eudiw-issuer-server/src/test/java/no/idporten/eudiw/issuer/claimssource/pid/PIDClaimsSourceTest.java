@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("junit")
 class PIDClaimsSourceTest {
 
-    public static final int NUMBER_OF_CLAIMS = 9;
+    public static final int NUMBER_OF_CLAIMS = 10;
 
     @MockitoBean
     private ClaimsSourceProperties properties;
