@@ -2,9 +2,9 @@ package no.idporten.eudiw.issuer.claimssource.pid;
 
 import no.digdir.freg.FregClientInterface;
 import no.digdir.freg.domain.json.*;
-import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+
+import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.FREG;
+import static no.idporten.eudiw.issuer.claimssource.pid.FregConfiguration.handleErrorResponseAs500;
 
 @Service
 public class FregIntegration implements FregClientInterface {
@@ -38,14 +41,12 @@ public class FregIntegration implements FregClientInterface {
         try {
             return restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON).retrieve()
                     .onStatus(status -> status.value() == 404, (request, response) -> {
-                        throw new UserNotFoundException("User not found in FREG");
+                        throw new ClaimsSourceDataNotFoundException(FREG.name(), "User not found in FREG");
                     })
-                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                        throw new IssuerServerException("client_error", response.getStatusText(), HttpStatus.INTERNAL_SERVER_ERROR); // user will see our application failing --> 500
-                    })
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponseAs500(response))
                     .body(Folkeregisterperson.class);
         }catch (ResourceAccessException e) {
-            throw new FregIOException("io_error", "IO error when calling FREG getPerson", e);
+            throw new ClaimsSourceIOException(FREG.name(), "IO error when calling FREG getPerson", e);
         }
 
     }

@@ -39,9 +39,6 @@ public class PersonConverterService {
     }
 
     public List<String> getNationalitiesAlpha2(List<String> nationalitiesAlpha3) {
-        if (nationalitiesAlpha3 == null) {
-            throw new IllegalArgumentException("nationalityAlpha3 cannot be null");
-        }
         return nationalitiesAlpha3.stream().map(this::getNationalityAlpha2).filter(Objects::nonNull).collect(Collectors.toList());
     }
 

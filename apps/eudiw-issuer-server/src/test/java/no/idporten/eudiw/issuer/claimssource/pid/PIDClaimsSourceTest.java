@@ -15,6 +15,10 @@ import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.FullDateValue;
+import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
@@ -29,8 +33,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -86,7 +92,7 @@ class PIDClaimsSourceTest {
                 .orElse(null));
 
 
-        // Stikkprøve å finne eit kjendt claim
+        // Stikkprøve å finne eit kjent claim
         String expectedName = "Fødselsnummer";
         boolean foundExpectedName = false;
         for (ClaimsDescription desc : metadata.getClaims()) {
@@ -102,7 +108,7 @@ class PIDClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("verify that claims can be retrieved from PIDClaimsSource for an access token with fnr as subject")
+    @DisplayName("when retriveClaims with a valid accesstoken with fnr as subject should return a valid Person from FREG mapped to Claims")
     void retrieveClaims() {
 
         String fnr = "12345678901";
@@ -113,8 +119,45 @@ class PIDClaimsSourceTest {
 
         assertNotNull(claims);
         assertEquals(NUMBER_OF_CLAIMS, claims.size());
-        // TODO testing of actual claim values
         verify(fregIntegration).getFolkeregisterPerson(eq(fnr), anyList());
+
+        // test personal_administrative_number is present in claims
+        Optional<Claim> fnrClaim = claims.stream().filter(c-> "personal_administrative_number".equals(c.getPath().get(1)))
+                .findFirst();
+        assertTrue(fnrClaim.isPresent());
+        assertInstanceOf(StringValue.class, fnrClaim.get().getValue());
+        assertEquals(fnr, fnrClaim.get().getValue().value());
+
+        // test birth_date is present in claims and of type FullDateValue
+        Optional<Claim> birthDateClaim = claims.stream().filter(c-> "birth_date".equals(c.getPath().get(1)))
+                .findFirst();
+        assertTrue(birthDateClaim.isPresent());
+        assertInstanceOf(FullDateValue.class, birthDateClaim.get().getValue());
+        assertEquals(LocalDate.of(2000, 1, 1), birthDateClaim.get().getValue().value());
+    }
+
+    @Test
+    @DisplayName("when retriveClaims and person in FREG without statsborgerskap should give ClaimsSourceInvalidDataException")
+    void personUtanStatsborgarskapGirException() {
+
+        String fnr = "12345678901";
+        Folkeregisterperson fregPerson = createFolkeregisterperson();
+        fregPerson.setStatsborgerskap(null);
+        when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenReturn(fregPerson);
+
+        assertThrows(ClaimsSourceInvalidDataException.class, ()-> pidClaimsSource.retrieveClaims(createAccessToken(fnr)));
+
+    }
+    @Test
+    @DisplayName("when retriveClaims and person not found in FREG should give ClaimsSourceDataNotFoundException")
+    void personIkkjeFunneIFregGirException() {
+
+        String fnr = "12345678901";
+        Folkeregisterperson fregPerson = createFolkeregisterperson();
+        fregPerson.setStatsborgerskap(null);
+        when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenThrow(new ClaimsSourceDataNotFoundException("",""));
+
+        assertThrows(ClaimsSourceDataNotFoundException.class, ()-> pidClaimsSource.retrieveClaims(createAccessToken(fnr)));
     }
 
     @NotNull
