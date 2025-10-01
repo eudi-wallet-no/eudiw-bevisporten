@@ -73,6 +73,9 @@ public class MDocService {
             case StringValue(String value) -> {
                 return new StringElement(value);
             }
+            case BooleanValue(Boolean value) -> {
+                return new BooleanElement(value);
+            }
             case DateTimeValue(ZonedDateTime value) -> {
                 Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);
                 return new DateTimeElement(datetime, DEDateTimeMode.tdate);
