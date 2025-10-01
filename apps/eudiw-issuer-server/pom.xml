@@ -12,7 +12,7 @@
     <artifactId>issuer-server</artifactId>
     <version>DEV-SNAPSHOT</version>
     <name>issuer-server</name>
-    <description>EUDIW Issuer Service</description>
+    <description>Digdir utferdar for norsk eidas2sandkasse</description>
 
     <properties>
         <java.version>24</java.version>
