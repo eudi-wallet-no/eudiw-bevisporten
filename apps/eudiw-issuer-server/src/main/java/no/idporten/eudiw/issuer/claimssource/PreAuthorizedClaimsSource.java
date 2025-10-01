@@ -39,6 +39,9 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
         throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * Receive pushed data from authoritative source.  Disabled by default.
+     */
     default Map<String, String> push(String issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
     }
