@@ -11,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements PreAuthorizedClaimsSource {
 
@@ -31,6 +28,9 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         final String value = claims.get(claimMetadata.name());
         if (claimMetadata.mandatory() && !StringUtils.hasLength(value)) {
             throw new IssuerServerException("invalid_request", "Missing required value for claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
+        }
+        if (!claimMetadata.mandatory() && !StringUtils.hasLength(value)) {
+            return;
         }
         if (!value.matches(claimMetadata.validationRegex())) {
             throw new IssuerServerException("invalid_request", "Invalid format for required value for claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
@@ -81,6 +81,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
             builder.claim(ClaimsDescription.builder()
                     .path(namespace()).path(claimMetadata.name())
+                    .mandatory(claimMetadata.mandatory())
                     .displays(claimMetadata.displayNames()
                             .entrySet()
                             .stream()
