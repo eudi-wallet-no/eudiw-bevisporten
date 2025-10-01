@@ -5,9 +5,11 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
@@ -18,7 +20,9 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
+
 
 /**
  * Claims source for Norwegian PID data from FREG
@@ -95,8 +99,7 @@ public class PIDClaimsSource implements ClaimsSource {
         PersonResource person = fregService.getEidasPerson(fnr, "EUDIW-ISSUER");
 
         if (person == null || person.getNavn() == null) {
-            // todo error handling
-            throw new IssuerServerException("invalid_request", "User not found in FREG", HttpStatus.BAD_REQUEST);
+            throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(), "User not found in FREG");
         }
 
         List<Claim> claims = new ArrayList<>();
@@ -106,7 +109,7 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(getStringClaim("given_name", getFornavn(person.getNavn())));
         claims.add(getFullDateClaim("birth_date", person.getFoedselsdato()));
         claims.add(getMapClaim("birth_place", convertBirthPlace(person)));
-        claims.add(getListClaim("nationality", personConverterService.getNationalitiesAlpha2(person.getStatsborgerskap())));
+        claims.add(getListClaim("nationality", getNationalities(person)));
 
         // mandatory metadata attributes
         claims.add(getDateTimeClaim("expiry_date", personConverterService.calcPidExpiryDate()));
@@ -115,23 +118,40 @@ public class PIDClaimsSource implements ClaimsSource {
         return claims;
     }
 
+    private List<String> getNationalities(PersonResource person) {
+        if (person.getStatsborgerskap() == null) {
+            throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(),"Found no Statsborgerskap in FREG on user");
+        }
+        return personConverterService.getNationalitiesAlpha2(person.getStatsborgerskap());
+    }
+
     private Map<String, String> convertBirthPlace(PersonResource person) {
         String country = personConverterService.getNationalityAlpha2(person.getFoedested());
         return Collections.singletonMap("country", country);
     }
 
     private Claim getFullDateClaim(String key, String value) {
-        LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
-        // TODO handle DateTimeParseException
-        return Claim.builder().path(NAMESPACE).path(key).value(new FullDateValue(date)).build();
+        if (value == null || value.isEmpty()) {
+            throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(), "Found no Foedselsdato in FREG on user");
+        }
+        try {
+            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            return buildClaim(key, new FullDateValue(date));
+        }catch(DateTimeParseException e){
+            throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(), "Invalid Foedselsdato format in FREG on user");
+        }
     }
 
     private Claim getDateTimeClaim(String key, ZonedDateTime value) {
-        return Claim.builder().path(NAMESPACE).path(key).value(new DateTimeValue(value)).build();
+        return buildClaim(key, new DateTimeValue(value));
+    }
+
+    private static Claim buildClaim(String key, ClaimValue claimValue) {
+        return Claim.builder().path(NAMESPACE).path(key).value(claimValue).build();
     }
 
     private Claim getStringClaim(String key, String value) {
-        return Claim.builder().path(NAMESPACE).path(key).value(new StringValue(value)).build();
+        return buildClaim(key, new StringValue(value));
     }
 
     // Only support List of StringValue for now
@@ -140,7 +160,7 @@ public class PIDClaimsSource implements ClaimsSource {
         for (String v : value) {
             list.add(new StringValue(v));
         }
-        return Claim.builder().path(NAMESPACE).path(key).value(new ListValue(list)).build();
+        return buildClaim(key, new ListValue(list));
     }
 
     // Only support Map of values of type StringValue for now
@@ -149,7 +169,7 @@ public class PIDClaimsSource implements ClaimsSource {
         for (String k : value.keySet()) {
             map.put(k, new StringValue(value.get(k)));
         }
-        return Claim.builder().path(NAMESPACE).path(key).value(new MapValue(map)).build();
+        return buildClaim(key, new MapValue(map));
     }
 
     // Attributes in FREG can be 200 chars long, but PID spec says 150 max, must truncate names. Does not apply to the other attributes used here.

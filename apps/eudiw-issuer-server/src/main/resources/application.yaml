@@ -95,13 +95,10 @@ digdir:
 
 ## Folkeregister integration
 freg:
-  # https://folkeregisteret-api-konsument.sits.no/
   uri: https://folkeregisteret-api-konsument.sits.no/folkeregisteret/offentlig-med-hjemmel/api/
-  #confidential-service-endpoint: https://folkeregisteret.api.skatteetaten.no/folkeregisteret/offentlig-med-hjemmel/api # Prod
-  connect-timeout: 5000
-  read-timeout: 10000
-  max-connections: 20
-  max-connections-per-route: 20
+  #uri: https://folkeregisteret.api.skatteetaten.no/folkeregisteret/offentlig-med-hjemmel/api # Prod
+  connect-timeout: 5s
+  read-timeout: 5s
 
 ## Data.altinn.no for advokatbevis
 advoktatregisteret:

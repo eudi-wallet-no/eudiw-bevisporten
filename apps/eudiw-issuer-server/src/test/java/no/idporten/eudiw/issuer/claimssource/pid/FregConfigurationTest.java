@@ -6,7 +6,8 @@ import no.digdir.freg.domain.json.Folkeregisterfoedsel;
 import no.digdir.freg.domain.json.Folkeregisterperson;
 import no.digdir.freg.domain.json.Folkeregisterpersonnavn;
 import no.digdir.freg.domain.json.Statsborgerskap;
-import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,10 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.web.client.MockServerRestClientCustomizer;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 
@@ -30,16 +29,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
-@RestClientTest(FregIntegration.class)
+@RestClientTest(components = {FregIntegration.class, FregProperties.class, FregConfiguration.class})
 @ActiveProfiles("junit")
-@Import(FregConfiguration.class)
 class FregConfigurationTest {
-
-    public static final String FREG_URI = "http://my-freg:80/";
 
     private static final String fnr = "12345678910";
 
-    @Autowired
     private FregIntegration client;
 
     @MockitoBean
@@ -85,29 +80,30 @@ class FregConfigurationTest {
 
     @DisplayName("")
     @Test
-    void fregCallReturns400ThenThrowsIssuerServerException() {
+    void fregCallReturns400ThenThrowsClaimSourceException() {
 
         customizer.getServer().expect(requestTo("v1/personer/%s?part=person-basis".formatted(fnr)))
                 .andRespond(withBadRequest());
 
         assertNotNull(client);
 
-        assertThrows(IssuerServerException.class, () ->
-            client.getFolkeregisterPerson(fnr, Collections.singletonList("person-basis"))
+        assertThrows(ClaimsSourceException.class, () ->
+                client.getFolkeregisterPerson(fnr, Collections.singletonList("person-basis"))
         );
 
     }
+
     @DisplayName("")
     @Test
-    void fregCallReturns404ThenThrowsUserNotFoundException() {
+    void fregCallReturns404ThenThrowsClaimSourceDataNotFoundException() {
 
         customizer.getServer().expect(requestTo("v1/personer/%s?part=person-basis".formatted(fnr)))
                 .andRespond(withResourceNotFound());
 
         assertNotNull(client);
 
-        assertThrows(UserNotFoundException.class, () ->
-            client.getFolkeregisterPerson(fnr, Collections.singletonList("person-basis"))
+        assertThrows(ClaimsSourceDataNotFoundException.class, () ->
+                client.getFolkeregisterPerson(fnr, Collections.singletonList("person-basis"))
         );
 
     }
@@ -116,8 +112,8 @@ class FregConfigurationTest {
         FregPerson fregPerson = new FregPerson();
 
         List<Folkeregisterpersonnavn> navnList = new ArrayList<>();
-        navnList.add(createFolkeregisterpersonnavn("Etternavnesen",true));
-        navnList.add(createFolkeregisterpersonnavn("GamaltEtternamn",false));
+        navnList.add(createFolkeregisterpersonnavn("Etternavnesen", true));
+        navnList.add(createFolkeregisterpersonnavn("GamaltEtternamn", false));
         fregPerson.setNavn(navnList);
 
         Folkeregisterfoedsel fodsel = new Folkeregisterfoedsel();
@@ -154,6 +150,5 @@ class FregConfigurationTest {
         return navnGjeldende;
 
     }
-
 
 }
