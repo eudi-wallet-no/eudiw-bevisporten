@@ -100,36 +100,6 @@ issuer-ui-demo:
               "identifier": "16903349844"
             }
           }
-      - credential-configuration-id: bong_mso_mdoc
-        description: Drikkebong
-        scope: eudiw:no:minid:mpid
-        person-identifier: 16903349844
-        json-request: |
-          {
-            "credential_configuration_id": "bong_mso_mdoc",
-            "subject": {
-              "identifier": "16903349844"
-            },
-            "claims": [
-              {
-                "name": "eining",
-                "value": "ØL"
-              },
-              {
-                "name": "nytar",
-                "value": "Thomas"
-              },
-              {
-                "name": "age_over_18",
-                "value": "true"
-              },
-              {
-                "name": "betalar",
-                "value": "Nina"
-              }
-            ]
-          }
-
 # Maskinporten
 maskinporten:
   oauth2:
