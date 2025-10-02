@@ -76,6 +76,9 @@ public class MDocService {
             case BooleanValue(Boolean value) -> {
                 return new BooleanElement(value);
             }
+            case NumberValue(Long value) -> {
+                return new NumberElement(value);
+            }
             case DateTimeValue(ZonedDateTime value) -> {
                 Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);
                 return new DateTimeElement(datetime, DEDateTimeMode.tdate);
@@ -107,8 +110,7 @@ public class MDocService {
                 return new MapElement(map);
             }
             case null, default -> {
-                // TODO: throw error instead?
-                return new StringElement(String.valueOf(claimValue));
+                throw new IllegalArgumentException("Unsupported data element type: " + claimValue);
             }
         }
 

@@ -1,7 +1,8 @@
 package no.idporten.eudiw.issuer.openid4vci.mdoc;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import id.walt.mdoc.dataelement.DataElement;
 import id.walt.mdoc.doc.MDoc;
@@ -40,90 +41,112 @@ public class MDocServiceTest {
 
     @Test
     void testIssueMDocCredentialsWithStringClaim() throws Exception {
-        JWK deviceKey = new ECKeyGenerator(Curve.P_256).generate();
-        Claim stringClaim1 = Claim.builder().path("foo").path("string1").value(new StringValue("foobar")).build();
-        Claim stringClaim2 = Claim.builder().path("foo").path("string2").value(new StringValue("foobar-foooooo")).build();
+        Claim stringClaim1 = buildClaim("foo", "string1", new StringValue("foobar"));
+        Claim stringClaim2 = buildClaim("foo", "string2", new StringValue("foobar-foooooo"));
 
-        MDoc mdoc = mDocService.issueCredentials(
-                deviceKey,
-                "foo",
-                List.of(stringClaim1, stringClaim2));
+        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), "foo", List.of(stringClaim1, stringClaim2));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
                 () -> assertEquals("string1", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
                 () -> assertEquals("foobar", mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()),
                 () -> assertEquals("string2", mdoc.getIssuerSignedItems("foo").getLast().getElementIdentifier().getValue()),
-                () -> assertEquals("foobar-foooooo", mdoc.getIssuerSignedItems("foo").getLast().getElementValue().getInternalValue())
+                () -> assertEquals("foobar-foooooo", mdoc.getIssuerSignedItems("foo").getLast().getElementValue().getInternalValue()),
+                () -> assertEquals(2, mdoc.getIssuerSignedItems("foo").size())
+        );
+    }
+
+    private static Claim buildClaim(String path, String key, ClaimValue value) {
+        return Claim.builder().path(path).path(key).value(value).build();
+    }
+
+    @Test
+    void testIssueMDocCredentialsWithBooleanClaim() throws Exception {
+        Claim claim = buildClaim("foo", "cool-id", new BooleanValue(true));
+
+        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), "foo", List.of(claim));
+        assertAll(
+                () -> assertNotNull(mdoc),
+                () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
+                () -> assertEquals("cool-id", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
+                () -> assertEquals(true, mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
+        );
+    }
+
+    @Test
+    void testIssueMDocCredentialsWithNumberClaim() throws Exception {
+        Claim claim = buildClaim("foo", "my-id", new NumberValue(12L));
+
+        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), "foo", List.of(claim));
+        assertAll(
+                () -> assertNotNull(mdoc),
+                () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
+                () -> assertEquals("my-id", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
+                () -> assertEquals(12L, mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
         );
     }
 
     @Test
     void testIssueMDocCredentialsDatetimeAndFullDate() throws Exception {
-        JWK deviceKey = new ECKeyGenerator(Curve.P_256).generate();
         LocalDate now = LocalDate.now();
         kotlinx.datetime.LocalDate expectedDate = new kotlinx.datetime.LocalDate(
                 now.getYear(),
                 now.getMonthValue(),
                 now.getDayOfMonth());
-        Claim fullDateClaim = Claim.builder().path("foo").path("fulldato").value(new FullDateValue(now)).build();
+        Claim fullDateClaim = buildClaim("foo", "fulldato", new FullDateValue(now));
         ZonedDateTime nowTime = ZonedDateTime.now();
         Instant expectedDatetime = Instant.Companion.fromEpochMilliseconds(nowTime.toEpochSecond() * 1000);
-        Claim datetimeClaim = Claim.builder().path("foo").path("datotid").value(new DateTimeValue(nowTime)).build();
+        Claim datetimeClaim = buildClaim("foo", "datotid", new DateTimeValue(nowTime));
 
-        MDoc mdoc = mDocService.issueCredentials(
-                deviceKey,
-                "foo",
-                List.of(fullDateClaim, datetimeClaim));
+        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), "foo", List.of(fullDateClaim, datetimeClaim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
                 () -> assertEquals("fulldato", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
                 () -> assertEquals(expectedDate, mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()),
                 () -> assertEquals("datotid", mdoc.getIssuerSignedItems("foo").getLast().getElementIdentifier().getValue()),
-                () -> assertEquals(expectedDatetime, mdoc.getIssuerSignedItems("foo").getLast().getElementValue().getInternalValue())
+                () -> assertEquals(expectedDatetime, mdoc.getIssuerSignedItems("foo").getLast().getElementValue().getInternalValue()),
+                () -> assertEquals(2, mdoc.getIssuerSignedItems("foo").size())
         );
     }
 
     @Test
     void testIssueMDocCredentialsList() throws Exception {
-        JWK deviceKey = new ECKeyGenerator(Curve.P_256).generate();
-
         List<ClaimValue> list = List.of(new StringValue("one"), new StringValue("two"), new StringValue("three"));
-        Claim claim = Claim.builder().path("path").path("mylist").value(new ListValue(list)).build();
+        Claim claim = buildClaim("path", "mylist", new ListValue(list));
 
-        MDoc mdoc = mDocService.issueCredentials(
-                deviceKey,
-                "foo",
-                List.of(claim));
+        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), "foo", List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
                 () -> assertEquals("mylist", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
-                () -> assertEquals(list.size(), ((List<DataElement>)mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size())
+                () -> assertEquals(list.size(), ((List<DataElement>) mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
         );
     }
 
     @Test
     void testIssueMDocCredentialsMap() throws Exception {
-        JWK deviceKey = new ECKeyGenerator(Curve.P_256).generate();
-
-        Map<String,ClaimValue> map = Map.of(
+        Map<String, ClaimValue> map = Map.of(
                 "key1", new StringValue("value1"),
                 "key2", new StringValue("value2")
         );
-        Claim claim = Claim.builder().path("path").path("mymap").value(new MapValue(map)).build();
+        Claim claim = buildClaim("path", "mymap", new MapValue(map));
 
-        MDoc mdoc = mDocService.issueCredentials(
-                deviceKey,
-                "foo",
-                List.of(claim));
+        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), "foo", List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
                 () -> assertEquals("mymap", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
-                () -> assertEquals(map.size(), ((Map<String, DataElement>)mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size())
+                () -> assertEquals(map.size(), ((Map<String, DataElement>) mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
         );
+    }
+
+    private static ECKey generateDeviceKey() throws JOSEException {
+        return new ECKeyGenerator(Curve.P_256).generate();
     }
 
 }
