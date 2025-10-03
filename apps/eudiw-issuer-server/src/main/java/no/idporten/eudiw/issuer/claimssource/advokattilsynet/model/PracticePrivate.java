@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record PracticePrivate(
         @JsonProperty("organisasjonsNummer")
-        String organisasjonsNummer,
+        long organisasjonsNummer,
         @JsonProperty("hovedpraksis")
         boolean hovedpraksis)
 {}

@@ -69,6 +69,7 @@ credential-issuer-server:
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
     - doctype: no.minid.mpid.1
       class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
+
   key-store:
     type: ${ISSUER_KEYSTORE_TYPE}
     location: ${ISSUER_KEYSTORE_LOCATION}

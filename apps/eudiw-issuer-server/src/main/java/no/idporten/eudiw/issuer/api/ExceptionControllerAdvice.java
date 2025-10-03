@@ -33,8 +33,12 @@ public class ExceptionControllerAdvice {
     }
 
     @ExceptionHandler(ClaimsSourceDataNotFoundException.class)
-    public ResponseEntity<ErrorResponse> claimSourceNotFoundException(ClaimsSourceDataNotFoundException claimsSourceDataNotFoundException) {
-        log.warn("Failed to find data in claims-source from authoritative-source", claimsSourceDataNotFoundException);
+    public ResponseEntity<ErrorResponse> claimSourceDataNotFoundException(ClaimsSourceDataNotFoundException claimsSourceDataNotFoundException) {
+        if(claimsSourceDataNotFoundException.getLogMessage() != null) {
+            log.error(claimsSourceDataNotFoundException.getLogMessage(), claimsSourceDataNotFoundException);
+        }else {
+            log.warn("Failed to find data in claims-source from authoritative source {}", claimsSourceDataNotFoundException.getAuthoritativeSource(), claimsSourceDataNotFoundException);
+        }
         return ResponseEntity
                 .status(claimsSourceDataNotFoundException.getHttpStatus())
                 .body(new ErrorResponse(claimsSourceDataNotFoundException.getError(), claimsSourceDataNotFoundException.getErrorDescription()));
