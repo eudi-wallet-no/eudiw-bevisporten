@@ -2,6 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+         
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -37,7 +38,7 @@
         <kotlinx-serialization-json-jvm.version>1.9.0</kotlinx-serialization-json-jvm.version>
 
         <freg-integration-lib.version>1.0.9</freg-integration-lib.version>
-        <maskinporten.client.version>5.0.0</maskinporten.client.version>
+        <maskinporten.client.version>4.0.2</maskinporten.client.version>
         <log-event.version>1.5.1</log-event.version>
         <idporten-log-audit.version>2.5.3</idporten-log-audit.version>
 
