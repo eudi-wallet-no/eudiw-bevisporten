@@ -107,7 +107,7 @@ maskinporten:
     issuer: dummy
     clients:
       default:
-        client-id: {MASKINPORTEN_CLIENT_ID}
+        client-id: ${MASKINPORTEN_CLIENT_ID}
         kid: ${MASKINPORTEN_CLIENT_KID}
         issuer: ${maskinporten.lib.issuer}
         audience:
