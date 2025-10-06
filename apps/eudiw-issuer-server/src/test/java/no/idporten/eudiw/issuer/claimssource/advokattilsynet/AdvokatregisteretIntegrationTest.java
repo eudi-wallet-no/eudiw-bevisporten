@@ -39,7 +39,7 @@ public class AdvokatregisteretIntegrationTest {
 
     @BeforeEach
     public void setUp() {
-        when(maskinportenClient.getAccessToken(anyList(), anyString())).thenReturn(mock(AccessToken.class));
+        when(maskinportenClient.getAccessToken(anyString(), anyList())).thenReturn(mock(AccessToken.class));
         customizer = new MockServerRestClientCustomizer();
         RestClient.Builder builder = RestClient.builder();
         customizer.customize(builder);

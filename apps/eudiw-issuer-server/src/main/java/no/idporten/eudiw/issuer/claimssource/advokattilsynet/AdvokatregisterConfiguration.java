@@ -1,5 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
+import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +19,7 @@ public class AdvokatregisterConfiguration {
     }
 
     @Bean
-    public RestClient advokatregisterRestClient() {
+    public RestClient advokatregisteretRestClient() {
         SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         clientHttpRequestFactory.setConnectTimeout(advokatregisteretProperties.connectTimeout());
         clientHttpRequestFactory.setReadTimeout(advokatregisteretProperties.readTimeout());
@@ -26,6 +28,11 @@ public class AdvokatregisterConfiguration {
                 .baseUrl(advokatregisteretProperties.uri())
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
+    }
+
+    @Bean
+    public MaskinportenClient advokatregisteretMaskinportenClient(MaskinportenClients maskinportenClients) {
+        return maskinportenClients.getClient("advokatregisteret");
     }
 
 }
