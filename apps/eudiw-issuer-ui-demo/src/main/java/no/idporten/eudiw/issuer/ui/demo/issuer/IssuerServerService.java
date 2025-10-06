@@ -41,8 +41,8 @@ public class IssuerServerService {
 
     private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
         return maskinportenClient.getAccessToken(
-                        List.of(credentialConfiguration.scope()),
-                        StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null)
+                        StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null,
+                        List.of(credentialConfiguration.scope()))
                 .getValue();
     }
 

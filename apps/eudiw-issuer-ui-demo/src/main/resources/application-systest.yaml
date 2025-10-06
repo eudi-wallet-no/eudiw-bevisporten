@@ -8,5 +8,5 @@ issuer-ui-demo:
     base-url: https://utsteder.eidas2sandkasse.dev
 
 maskinporten:
-  oauth2:
+  lib:
     issuer: https://test.maskinporten.no/
