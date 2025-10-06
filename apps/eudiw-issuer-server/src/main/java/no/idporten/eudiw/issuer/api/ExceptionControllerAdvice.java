@@ -6,7 +6,10 @@ import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundE
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
 import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -70,6 +73,22 @@ public class ExceptionControllerAdvice {
         return ResponseEntity
                 .status(500)
                 .body(new ErrorResponse("server_error", "The server encountered an unexpected condition that prevented it from fulfilling the request"));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.warn("Failed to process request", e);
+        return ResponseEntity
+                .status(e.getStatusCode())
+                .body(new ErrorResponse("invalid_request", e.getBindingResult().getFieldError().getDefaultMessage()));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        log.warn("Failed to process request", e);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse("invalid_request", "HTTP request not readable."));
     }
 
 }

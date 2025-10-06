@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssuerService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
@@ -50,10 +51,11 @@ public class StartCredentialIssuanceController {
                             @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                                     schema = @Schema(implementation = StartIssuanceRequest.class))},
                     required = true)
-            @RequestBody StartIssuanceRequest startIssuanceRequest,
+            @RequestBody @Valid StartIssuanceRequest startIssuanceRequest,
             @Parameter(hidden = true)
             @RequestHeader(required = false, value = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         JWT accessToken = accessTokenValidationService.validateAccessTokenForCredentialConfiguration(authorizationHeader, authorizationServerService.getPreAuthorizationServers());
+        accessTokenValidationService.validateAccessTokenBoundToSubject(accessToken, startIssuanceRequest.getSubject().getIdentifier());
         StartIssuanceResponse startIssuanceResponse = credentialIssuerService.startIssuerTransaction(startIssuanceRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
