@@ -36,16 +36,17 @@ issuer-ui-demo:
       - credential-configuration-id: no.skatteetaten.nnid_mso_mdoc
         description: Norsk identitetsnummer
         scope: eudiw:no:skatteetaten:nnid
+        person-identifier: 50917500484
         json-request: |
           {
             "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
             "subject": {
-              "identifier": "12345678901"
+              "identifier": "50917500484"
             },
             "claims": [
               {
                 "name": "norwegian_national_id_number",
-                "value": "12345678901"
+                "value": "50917500484"
               },
               {
                 "name": "norwegian_national_id_number_type",
@@ -56,6 +57,7 @@ issuer-ui-demo:
       - credential-configuration-id: no.minid.mpid_mso_mdoc
         description: MinID PID
         scope: eudiw:no:minid:mpid
+        person-identifier: 24838674964
         json-request: |
           {
             "credential_configuration_id": "no.minid.mpid_mso_mdoc",
