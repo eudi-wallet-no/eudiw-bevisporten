@@ -102,20 +102,31 @@ issuer-ui-demo:
           }
 # Maskinporten
 maskinporten:
-  oauth2:
-    client-id: ${MASKINPORTEN_CLIENT_ID}
-    kid: ${MASKINPORTEN_CLIENT_KID}
-    audience:
-      - ${maskinporten.oauth2.issuer}
-    token-endpoint: ${maskinporten.oauth2.issuer}token
-    scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret
-    resource: ${issuer-ui-demo.issuer-server.base-url}
-  jwt-signing-config: #to authenticate towards maskinporten
-    key-store-type: JKS
-    key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
-    key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
-    key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
-    key-password: ${MASKINPORTEN_KEY_PASSWORD}
+  lib:
+    enabled: true
+    issuer: dummy
+    clients:
+      default:
+        client-id: {MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+        issuer: ${maskinporten.lib.issuer}
+        audience:
+          - ${maskinporten.lib.issuer}
+        token-endpoint: ${maskinporten.lib.issuer}token
+        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret
+        resource: ${issuer-ui-demo.issuer-server.base-url}
+        connect-timeout-ms: 5000
+        read-timeout-ms: 2000
+        key-store-name: default
+idporten-key-manager:
+  default-keystore: default
+  keystores:
+    default:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
 
 # Digdir standard logging
 digdir:
@@ -123,4 +134,3 @@ digdir:
     logging:
       filtering:
         static-resources: true
-
