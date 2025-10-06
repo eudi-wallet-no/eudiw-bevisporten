@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.pid;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
 import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
+import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -26,9 +27,13 @@ public class FregConfiguration {
         this.fregProperties = fregProperties;
     }
 
+    @Bean
+    public JwtGrantTokenInterceptor jwtGrantTokenInterceptor(MaskinportenClients maskinportenClients) {
+        return new JwtGrantTokenInterceptor(maskinportenClients.getClient("freg"));
+    }
+
     @Bean("fregRestClient")
     public RestClient issuerServerRestClient(JwtGrantTokenInterceptor jwtGrantTokenInterceptor) {
-
         return RestClient.builder()
                 .baseUrl(fregProperties.uri())
                 .requestFactory(getClientHttpRequestFactory())

@@ -42,15 +42,15 @@ public class AdvokatregisteretIntegration {
 
     @Autowired
     public AdvokatregisteretIntegration(AdvokatregisteretProperties advokatregisteretProperties,
-                                        MaskinportenClient maskinportenClient,
-                                        @Qualifier("advokatregisterRestClient") RestClient advokatregisterRestClient) {
+                                        @Qualifier("advokatregisteretMaskinportenClient") MaskinportenClient maskinportenClient,
+                                        @Qualifier("advokatregisteretRestClient") RestClient advokatregisterRestClient) {
         this.advokatregisteretProperties = advokatregisteretProperties;
         this.maskinportenClient = maskinportenClient;
         this.advokatregisterRestClient = advokatregisterRestClient;
     }
 
     protected AccessToken createAccessToken(String personIdentifier) {
-        return maskinportenClient.getAccessToken(List.of(advokatregisteretProperties.scope()), personIdentifier);
+        return maskinportenClient.getAccessToken(personIdentifier, List.of(advokatregisteretProperties.scope()));
     }
 
     public PersonPrivate retrieve(String personIdentifier) {
