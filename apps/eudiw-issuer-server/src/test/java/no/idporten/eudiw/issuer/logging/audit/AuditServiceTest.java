@@ -87,7 +87,7 @@ class AuditServiceTest {
         assertEquals(authorizationServer, actualEntry.getAttributes().get(AuditService.AUTHORIZATION_SERVER));
         assertEquals(credentialConfigId, actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
         assertEquals(format, actualEntry.getAttributes().get(AuditService.FORMAT));
-        assertEquals(notificationId, actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
+        assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
         assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
         assertNotNull(actualEntry.getAttributes().get(AuditService.ACCESS_TOKEN));
     }
@@ -108,7 +108,7 @@ class AuditServiceTest {
         assertEquals(AuditID.WALLET_UPDATED_STATUS.auditIdentifier().auditId(), actualEntry.getAuditId().auditId());
         assertEquals(credentialConfigId, actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
         assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
-        assertEquals(notificationId, actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
+        assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
         assertEquals(status, actualEntry.getAttributes().get(AuditService.STATUS));
     }
 
