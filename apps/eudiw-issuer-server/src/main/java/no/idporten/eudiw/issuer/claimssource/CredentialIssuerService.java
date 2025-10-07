@@ -88,7 +88,7 @@ public class CredentialIssuerService {
         JWK bindingKey = credentialRequest.getProof() != null ? credentialRequest.getProof().getBindingKey() : null;
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         List<no.idporten.eudiw.issuer.claimssource.domain.Claim> claims = claimsSource.retrieveClaims(accessToken);
-        List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
+        List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
 
@@ -113,10 +113,10 @@ public class CredentialIssuerService {
 
 
     @SneakyThrows
-    protected List<Credential> createCredentials(JWK bindingKey, String format, String docType, List<Claim> claims) {
+    protected List<Credential> createCredentials(JWK bindingKey, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
         ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        if ("mso_mdoc".equals(format)) {
-            MDoc mDoc = mDocService.issueCredentials(bindingKey, docType, claims);
+        if ("mso_mdoc".equals(credentialConfigurationProperties.getFormat())) {
+            MDoc mDoc = mDocService.issueCredentials(bindingKey, credentialConfigurationProperties, claims);
             String encodedMDoc = Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
             return List.of(Credential.builder().credential(encodedMDoc).build());
         } else {

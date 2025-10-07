@@ -57,4 +57,9 @@ public class CredentialConfigurationProperties {
      */
     private String preAuthorizationServer;
 
+    /**
+     * Name of keystore for provider signing certificate
+     */
+    @NotNull
+    private String keyStoreName;
 }

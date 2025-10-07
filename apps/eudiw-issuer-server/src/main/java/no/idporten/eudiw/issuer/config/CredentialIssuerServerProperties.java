@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.crypto.KeyStoreProperties;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +37,6 @@ public class CredentialIssuerServerProperties {
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
     @NotEmpty
     private List<@Valid ClaimsSourceProperties> claimsSources;
-    @NotNull
-    private KeyStoreProperties keyStore;
 
     public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
         return credentialConfigurations.stream()
