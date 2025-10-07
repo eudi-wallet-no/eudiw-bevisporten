@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NonceService {
 
+    // Add audit logging here later when implemented?
     public Nonce generateNonce() {
         return new Nonce();
     }

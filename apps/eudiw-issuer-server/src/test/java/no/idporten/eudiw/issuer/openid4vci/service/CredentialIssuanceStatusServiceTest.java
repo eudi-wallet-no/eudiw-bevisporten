@@ -6,6 +6,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +20,7 @@ import org.mockito.quality.Strictness;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @DisplayName("When handling notifications")
@@ -31,6 +33,9 @@ public class CredentialIssuanceStatusServiceTest {
 
     @Mock
     private AccessTokenValidationService accessTokenValidationService;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private CredentialIssuanceStatusService credentialIssuanceStatusService;
@@ -70,7 +75,7 @@ public class CredentialIssuanceStatusServiceTest {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
         credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "cid");
-        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(accessToken, "cid");
+        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued("cid", issuanceTransactionId);
         IssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, issuanceTransactionId);
         assertAll(
                 () -> assertEquals("credential_issued", issuanceStatus.status()),
@@ -85,15 +90,18 @@ public class CredentialIssuanceStatusServiceTest {
     void testUpdateAndPollStatus() {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
-        credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "cid");
-        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(accessToken, "cid");
-        credentialIssuanceStatusService.walletStatusUpdated(notificationId, "credential_accepted");
+        String cid = "cid";
+        credentialIssuanceStatusService.offerIssued(issuanceTransactionId, cid);
+        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(cid, issuanceTransactionId);
+        String status = "credential_accepted";
+        credentialIssuanceStatusService.walletStatusUpdated(notificationId, status);
         IssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, issuanceTransactionId);
         assertAll(
-                () -> assertEquals("credential_accepted", issuanceStatus.status()),
+                () -> assertEquals(status, issuanceStatus.status()),
                 () -> assertEquals(issuanceTransactionId, issuanceStatus.issuanceTransactionId()),
-                () -> assertEquals("cid", issuanceStatus.credentialConfigurationId())
+                () -> assertEquals(cid, issuanceStatus.credentialConfigurationId())
         );
+        verify(auditService).logWalletStatusUpdate(eq(cid), eq(issuanceTransactionId), eq(notificationId), eq(status));
     }
 
     @DisplayName("then an unknown reference has the unknown status")
