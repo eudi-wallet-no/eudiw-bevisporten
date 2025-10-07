@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.logging.audit;
 
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
+import com.nimbusds.oauth2.sdk.id.Identifier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.issuer.IssuerServerException;
@@ -40,7 +41,7 @@ public class AuditService {
                 .logNullAttributes(false)
                 .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
                 .attribute(CREDENTIAL_ISSUER, credentialIssuer)
-                .attribute(ISSUANCE_TRANSACTION_ID, issuanceTransactionId.getValue())
+                .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))
                 .attribute(ACCESS_TOKEN, maskJWT(accessToken))
                 .build());
     }
@@ -61,10 +62,25 @@ public class AuditService {
                 .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
                 .attribute(AUTHORIZATION_SERVER, authorizationServer)
                 .attribute(FORMAT, format)
-                .attribute(NOTIFICATION_ID, notificationId)
+                .attribute(NOTIFICATION_ID, identifierValue(notificationId))
                 .attribute(ACCESS_TOKEN, maskJWT(accessToken))
-                .attribute(ISSUANCE_TRANSACTION_ID, issuanceTransactionId.getValue())
+                .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))
                 .build());
+    }
+
+    public void logWalletStatusUpdate(String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, NotificationId notificationId, String status) {
+        auditLogger.log(AuditEntry.builder()
+                .auditId(AuditID.WALLET_UPDATED_STATUS.auditIdentifier())
+                .logNullAttributes(false)
+                .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
+                .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))
+                .attribute(NOTIFICATION_ID, identifierValue(notificationId))
+                .attribute(STATUS, status)
+                .build());
+    }
+
+    protected static String identifierValue(Identifier identifier) {
+        return identifier != null ? identifier.getValue() : null;
     }
 
     protected static String maskJWT(JWT accessToken) {
@@ -75,14 +91,4 @@ public class AuditService {
         return "%s.%s.".formatted(parsedParts[0].toString(), parsedParts[1].toString());
     }
 
-    public void logWalletStatusUpdate(String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, NotificationId notificationId, String status) {
-        auditLogger.log(AuditEntry.builder()
-                .auditId(AuditID.WALLET_UPDATED_STATUS.auditIdentifier())
-                .logNullAttributes(false)
-                .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
-                .attribute(ISSUANCE_TRANSACTION_ID, issuanceTransactionId.getValue())
-                .attribute(NOTIFICATION_ID, notificationId)
-                .attribute(STATUS, status)
-                .build());
-    }
 }
