@@ -39,6 +39,7 @@ credential-issuer-server:
       doctype: eu.europa.ec.eudi.pid.1
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      key-store-name: pid-provider
     - identifier: no.skatteetaten.nnid_mso_mdoc
       scope: eudiw:no:skatteetaten:nnid
       format: mso_mdoc
@@ -46,6 +47,7 @@ credential-issuer-server:
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
     - identifier: no.advokattilsynet.advokatregisteret_mso_mdoc
       scope: eudiw:no:advokattilsynet:advokatregisteret
       format: mso_mdoc
@@ -53,6 +55,7 @@ credential-issuer-server:
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
     - identifier: no.minid.mpid_mso_mdoc
       scope: eudiw:no:minid:mpid
       format: mso_mdoc
@@ -60,6 +63,7 @@ credential-issuer-server:
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
   claims-sources:
     - doctype: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
@@ -69,14 +73,6 @@ credential-issuer-server:
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
     - doctype: no.minid.mpid.1
       class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
-
-  key-store:
-    type: ${ISSUER_KEYSTORE_TYPE}
-    location: ${ISSUER_KEYSTORE_LOCATION}
-    password: ${ISSUER_KEYSTORE_PASSWORD}
-    key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
-    key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
-
 
 # Digdir standard logging
 digdir:
@@ -125,7 +121,7 @@ maskinporten:
         scope: folkeregister:deling/offentligmedhjemmel
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
-        key-store-name: default
+        key-store-name: maskinporten-freg
       advokatregisteret:
         client-id: ${MASKINPORTEN_CLIENT_ID}
         kid: ${MASKINPORTEN_CLIENT_KID}
@@ -136,11 +132,28 @@ maskinporten:
         scope: altinn:dataaltinnno/advregpersonprivat
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
-        key-store-name: default
+        key-store-name: maskinporten-advokatregisteret
 idporten-key-manager:
-  default-keystore: default
   keystores:
-    default:
+    pid-provider:
+      key-store-type: ${ISSUER_KEYSTORE_TYPE}
+      key-store-location: ${ISSUER_KEYSTORE_LOCATION}
+      key-store-password: ${ISSUER_KEYSTORE_PASSWORD}
+      key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
+      key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
+    eaa-provider:
+      key-store-type: ${ISSUER_KEYSTORE_TYPE}
+      key-store-location: ${ISSUER_KEYSTORE_LOCATION}
+      key-store-password: ${ISSUER_KEYSTORE_PASSWORD}
+      key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
+      key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
+    maskinporten-freg:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
+    maskinporten-advokatregisteret:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}

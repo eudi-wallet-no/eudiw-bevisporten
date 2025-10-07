@@ -10,29 +10,36 @@ import id.walt.mdoc.mso.DeviceKeyInfo;
 import kotlinx.datetime.Clock;
 import kotlinx.datetime.Instant;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
-import no.idporten.eudiw.issuer.crypto.KeyProvider;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.lib.keystore.KeyProvider;
+import no.idporten.lib.keystore.KeystoreManager;
 import org.cose.java.OneKey;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class MDocService {
 
-    private final KeyProvider keyProvider;
+    private final KeystoreManager keystoreManager;
 
-    public MDocService(@Qualifier("credentialSigningKeyProvider") KeyProvider keyProvider) {
-        this.keyProvider = keyProvider;
+    public MDocService(KeystoreManager keystoreManager) {
+        this.keystoreManager = keystoreManager;
     }
 
-    public MDoc issueCredentials(JWK jwk, String docType, List<Claim> claims) throws Exception {
+    public MDoc issueCredentials(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws Exception {
         var ISSUER_KEY_ID = "ISSUER_KEY";
         var DEVICE_KEY_ID = "DEVICE_KEY";
         var READER_KEY_ID = "READER_KEY";
+        KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfigurationProperties.getKeyStoreName());
+        String docType = credentialConfigurationProperties.getDoctype();
 
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(
                 List.of(
@@ -41,8 +48,8 @@ public class MDocService {
                                 org.cose.java.AlgorithmID.ECDSA_256,
                                 keyProvider.publicKey(),
                                 keyProvider.privateKey(),
-                                List.of(keyProvider.certificate()),
-                                List.of(keyProvider.certificate())) // TODO root certs
+                                List.of((X509Certificate) keyProvider.certificate()),
+                                List.of((X509Certificate) keyProvider.certificate())) // TODO root certs
                 ));
         DeviceKeyInfo deviceKeyInfo = new DeviceKeyInfo(DataElement.Companion.fromCBOR(new OneKey(jwk.toECKey().toECPublicKey(), null).AsCBOR().EncodeToBytes()),
                 null,

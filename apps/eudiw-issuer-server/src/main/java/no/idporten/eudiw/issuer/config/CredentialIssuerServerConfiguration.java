@@ -5,9 +5,6 @@ import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
-import no.idporten.eudiw.issuer.crypto.KeyProvider;
-import no.idporten.eudiw.issuer.crypto.KeyStoreProperties;
-import no.idporten.eudiw.issuer.crypto.KeyStoreProvider;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
@@ -64,13 +61,6 @@ public class CredentialIssuerServerConfiguration {
 
     protected URI endpointURI(URI issuerUri, String path) {
         return UriComponentsBuilder.fromUri(issuerUri).path(path).build().toUri();
-    }
-
-    @Bean(name = "credentialSigningKeyProvider")
-    public KeyProvider keyProvider(CredentialIssuerServerProperties credentialIssuerServerProperties) {
-        KeyStoreProperties keyStoreProperties = credentialIssuerServerProperties.getKeyStore();
-        KeyStoreProvider keyStoreProvider = new KeyStoreProvider(keyStoreProperties);
-        return new KeyProvider(keyStoreProvider.keyStore(), keyStoreProperties.keyAlias(), keyStoreProperties.keyPassword());
     }
 
     @Bean
