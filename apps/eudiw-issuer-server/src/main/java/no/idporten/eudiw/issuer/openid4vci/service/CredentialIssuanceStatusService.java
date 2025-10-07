@@ -1,9 +1,9 @@
 package no.idporten.eudiw.issuer.openid4vci.service;
 
 import com.nimbusds.jwt.JWT;
-import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,25 +22,19 @@ public class CredentialIssuanceStatusService {
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
     private final AccessTokenValidationService accessTokenValidationService;
+    private final AuditService auditService;
 
     public CredentialIssuanceStatusService(
             CredentialIssuerServerProperties credentialIssuerServerProperties,
-            AccessTokenValidationService accessTokenValidationService) {
+            AccessTokenValidationService accessTokenValidationService, AuditService auditService) {
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
         this.accessTokenValidationService = accessTokenValidationService;
+        this.auditService = auditService;
     }
 
     // TODO cache issuance state med expiry
     private final Map<IssuanceTransactionId, IssuanceStatus> issuanceStatusCache = new HashMap<>();
     private final Map<NotificationId, IssuanceTransactionId> notificationIdToIssuanceTransactionIdCache = new HashMap<>();
-
-    @SneakyThrows
-    private IssuanceTransactionId getIssuanceTransactionId(JWT accessToken) {
-        if (accessToken.getJWTClaimsSet().getStringClaim("tx_id") != null) {
-            return new IssuanceTransactionId(accessToken.getJWTClaimsSet().getStringClaim("tx_id"));
-        }
-        return null;
-    }
 
     /**
      * Sets and returns initial credential issuance status.
@@ -54,8 +48,7 @@ public class CredentialIssuanceStatusService {
     /**
      * Sets or creates credential issuance status and creates notification id for wallet.
      */
-    public NotificationId credentialIssued(JWT accessToken, String credentialConfigurationId) {
-        IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
+    public NotificationId credentialIssued(String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId) {
         if (issuanceTransactionId == null) {
             return null;
         }
@@ -101,6 +94,7 @@ public class CredentialIssuanceStatusService {
         }
         issuanceStatusCache.put(issuanceTransactionId, new IssuanceStatus(issuanceTransactionId, issuanceStatus.credentialConfigurationId(), status));
         log.info("Recorded issuance status {} for issuance_transaction_id {} from wallet with notification id {}", issuanceStatus.status(), issuanceTransactionId, notificationId);
+        auditService.logWalletStatusUpdate(issuanceStatus.credentialConfigurationId(), issuanceTransactionId, notificationId, status);
     }
 
 }

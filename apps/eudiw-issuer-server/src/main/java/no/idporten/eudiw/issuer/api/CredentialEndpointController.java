@@ -9,8 +9,8 @@ import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
 import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
-import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
 import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
+import no.idporten.eudiw.issuer.openid4vci.service.NonceService;
 import no.idporten.eudiw.issuer.openid4vci.service.ProofService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,7 +44,7 @@ public class CredentialEndpointController {
             throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
         }
         proofService.validateProof(credentialRequest.getProof());
-        CredentialResponse  credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
+        CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
                 .body(credentialResponse);

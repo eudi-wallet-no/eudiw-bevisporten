@@ -11,6 +11,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
@@ -18,6 +19,7 @@ import no.idporten.eudiw.issuer.openid4vci.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.util.Base64;
 import java.util.List;
 
@@ -33,11 +35,12 @@ public class CredentialIssuerService {
     private final MDocService mDocService;
     private final PreAuthorizationService preAuthorizationService;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
+    private final AuditService auditService;
 
     public StartIssuanceResponse startIssuerTransaction(StartIssuanceRequest startIssuanceRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(startIssuanceRequest.getCredentialConfigurationId());
-        if (! GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
-            throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
+        if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+            throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
@@ -58,6 +61,7 @@ public class CredentialIssuerService {
                         .build())
                 .build();
         IssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, startIssuanceRequest.getCredentialConfigurationId());
+        auditService.logStartCredentialIssuanceTransaction(credentialOffer.getCredentialIssuer(), startIssuanceRequest.getCredentialConfigurationId(), issuanceTransactionId, accessToken);
         return StartIssuanceResponse.builder()
                 .credentialOffer(credentialOffer)
                 .issuanceTransactionId(issuanceTransactionId)
@@ -66,9 +70,10 @@ public class CredentialIssuerService {
 
     public CredentialOffer createCredentialOffer(String credentialConfigurationId) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialConfigurationId);
-        if (! GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+        if (!GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfigurationProperties.getGrantType())) {
             throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the authorization code flow", HttpStatus.BAD_REQUEST);
         }
+        auditService.logCreateCredentialOffer(credentialIssuerServerProperties.getCredentialIssuer().toString(), credentialConfigurationId);
         return CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
@@ -84,12 +89,28 @@ public class CredentialIssuerService {
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
         List<no.idporten.eudiw.issuer.claimssource.domain.Claim> claims = claimsSource.retrieveClaims(accessToken);
         List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getDoctype(), claims);
-        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(accessToken, credentialRequest.getCredentialConfigurationId());
+        IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
+        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
+
+        auditService.logIssueCredentials(credentialConfigurationProperties.getAuthorizationServer(), credentialRequest.getCredentialConfigurationId(), issuanceTransactionId, credentialConfigurationProperties.getFormat(), notificationId, accessToken);
         return CredentialResponse.builder()
                 .credentials(credentials)
                 .notificationId(notificationId)
                 .build();
     }
+
+
+    private IssuanceTransactionId getIssuanceTransactionId(JWT accessToken) {
+        try {
+            if (accessToken.getJWTClaimsSet().getStringClaim("tx_id") != null) {
+                return new IssuanceTransactionId(accessToken.getJWTClaimsSet().getStringClaim("tx_id"));
+            }
+        } catch (ParseException e) {
+            throw new IssuerServerException(IssuerServerException.INVALID_CREDENTIAL_REQUEST, "Invalid token", HttpStatus.BAD_REQUEST);
+        }
+        return null;
+    }
+
 
     @SneakyThrows
     protected List<Credential> createCredentials(JWK bindingKey, String format, String docType, List<Claim> claims) {
