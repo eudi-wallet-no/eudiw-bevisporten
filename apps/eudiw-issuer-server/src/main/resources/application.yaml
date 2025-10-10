@@ -136,17 +136,17 @@ maskinporten:
 idporten-key-manager:
   keystores:
     pid-provider:
-      key-store-type: ${ISSUER_KEYSTORE_TYPE}
-      key-store-location: ${ISSUER_KEYSTORE_LOCATION}
-      key-store-password: ${ISSUER_KEYSTORE_PASSWORD}
-      key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
-      key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
+      key-store-type: ${PID_PROVIDER_KEYSTORE_TYPE}
+      key-store-location: ${PID_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${PID_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: ${PID_PROVIDER_KEYSTORE_KEY_ALIAS}
+      key-password: ${PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
     eaa-provider:
-      key-store-type: ${ISSUER_KEYSTORE_TYPE}
-      key-store-location: ${ISSUER_KEYSTORE_LOCATION}
-      key-store-password: ${ISSUER_KEYSTORE_PASSWORD}
-      key-alias: ${ISSUER_KEYSTORE_KEY_ALIAS}
-      key-password: ${ISSUER_KEYSTORE_KEY_PASSWORD}
+      key-store-type: ${EAA_PROVIDER_KEYSTORE_TYPE}
+      key-store-location: ${EAA_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: ${EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
+      key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
     maskinporten-freg:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
