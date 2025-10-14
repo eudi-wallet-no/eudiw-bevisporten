@@ -4,7 +4,7 @@ EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate u
 
 
 ## Requirements
-- Java 24
+- Java 25
 - Maven
 - Docker
 - Redis
