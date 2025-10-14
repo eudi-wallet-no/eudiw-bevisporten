@@ -11,7 +11,8 @@ spring:
     environment: dev
 
 credential-issuer-server:
-  credential-issuer: http://localhost:9240
+#  credential-issuer: http://localhost:9240 # bevisporten funkar/lommebok
+  credential-issuer: http://issuer-server:9240 # demo-issuer-ui funkar
   authorization-servers:
     - issuer: http://digital-lommebok-oauth-server:9260
       jwks-uri: http://digital-lommebok-oauth-server:9260/jwks

@@ -1,8 +1,9 @@
 # eudiw-issuer-server
-EUDIW Credential Issuer Server
+EUDIW Credential Issuer Server.
+Digdir generic credential issuer server for issuing verifiable credentials to digital wallets in eidas2sandkasse.
 
 ## Requirements
-- Java 24
+- Java 25
 - Maven
 - Docker
 
