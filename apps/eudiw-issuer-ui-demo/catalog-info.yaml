@@ -12,4 +12,5 @@ spec:
   system: digital-lommebok-issuer-ui-demo
   dependsOn:
     - component:digital-lommebok-issuer-server
+    - component:digital-lommebok-oauth-server
 
