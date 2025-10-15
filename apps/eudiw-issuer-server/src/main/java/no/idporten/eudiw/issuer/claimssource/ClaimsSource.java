@@ -26,10 +26,10 @@ public interface ClaimsSource {
     ClaimsSourceMetadata getMetadata();
 
     /**
-     * Check if this claims source supports doctype
+     * Check if this claims source supports credential type
      */
-    default boolean supports(String doctype) {
-        return Objects.equals(doctype, getProperties().getDoctype());
+    default boolean supports(String credentialType) {
+        return Objects.equals(credentialType, getProperties().getCredentialType());
     }
 
     /**

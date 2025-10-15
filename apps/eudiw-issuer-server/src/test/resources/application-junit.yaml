@@ -17,25 +17,32 @@ credential-issuer-server:
     - identifier: junitdoc_mso_mdoc
       scope: eudiw:junit
       format: mso_mdoc
-      doctype: junitdoc
+      credential-type: junitdoc
+      grant-type: authorization_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      key-store-name: eaa-provider
+    - identifier: junitdoc_sd_jwt_vc
+      scope: eudiw:junit
+      format: dc+sd-jwt
+      credential-type: junitdoc
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
     - identifier: junitdoc_pre_mso_mdoc
       scope: eudiw:junit
       format: mso_mdoc
-      doctype: junitdoc-pre
+      credential-type: junitdoc-pre
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
   claims-sources:
-    - doctype: eu.europa.ec.eudi.pid.1
+    - credential-type: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
-    - doctype: junitdoc
+    - credential-type: junitdoc
       class-name: no.idporten.eudiw.issuer.claimssource.JUnitClaimsSource
-    - doctype: junitdoc-pre
+    - credential-type: junitdoc-pre
       class-name: no.idporten.eudiw.issuer.claimssource.JUnitPreAuthorizedClaimsSource
-    - doctype: no.advokattilsynet.advokatregisteret.1
+    - credential-type: no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
 
 maskinporten:

@@ -42,7 +42,7 @@ public class AdvokatregisteretClaimsSourceTest {
                 () -> assertNotNull(claimsSource.getProperties()),
                 () -> assertEquals(
                         "no.advokattilsynet.advokatregisteret.1",
-                        claimsSource.getProperties().getDoctype())
+                        claimsSource.getProperties().getCredentialType())
         );
     }
 

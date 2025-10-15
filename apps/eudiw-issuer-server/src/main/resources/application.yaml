@@ -30,20 +30,22 @@ credential-issuer-server:
     - jwk
   proof-signing-algorithms:
     - ES256
+  credential-signing-algorithms:
+    - ES256
   formats:
     - mso_mdoc
   credential-configurations:
     - identifier: no.digdir.eudiw.pid_mso_mdoc
       scope: nobid:pid
       format: mso_mdoc
-      doctype: eu.europa.ec.eudi.pid.1
+      credential-type: eu.europa.ec.eudi.pid.1
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: pid-provider
     - identifier: no.skatteetaten.nnid_mso_mdoc
       scope: eudiw:no:skatteetaten:nnid
       format: mso_mdoc
-      doctype: no.skatteetaten.nnid.1
+      credential-type: no.skatteetaten.nnid.1
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
@@ -51,7 +53,7 @@ credential-issuer-server:
     - identifier: no.advokattilsynet.advokatregisteret_mso_mdoc
       scope: eudiw:no:advokattilsynet:advokatregisteret
       format: mso_mdoc
-      doctype: no.advokattilsynet.advokatregisteret.1
+      credential-type: no.advokattilsynet.advokatregisteret.1
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
@@ -59,19 +61,19 @@ credential-issuer-server:
     - identifier: no.minid.mpid_mso_mdoc
       scope: eudiw:no:minid:mpid
       format: mso_mdoc
-      doctype: no.minid.mpid.1
+      credential-type: no.minid.mpid.1
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
   claims-sources:
-    - doctype: eu.europa.ec.eudi.pid.1
+    - credential-type: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
-    - doctype: no.skatteetaten.nnid.1
+    - credential-type: no.skatteetaten.nnid.1
       class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource
-    - doctype: no.advokattilsynet.advokatregisteret.1
+    - credential-type: no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
-    - doctype: no.minid.mpid.1
+    - credential-type: no.minid.mpid.1
       class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
 
 # Digdir standard logging

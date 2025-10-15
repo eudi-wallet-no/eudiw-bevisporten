@@ -31,6 +31,8 @@ public class CredentialIssuerServerProperties {
     @NotEmpty
     private List<@NotNull String> proofSigningAlgorithms;
     @NotEmpty
+    private List<@NotNull String> credentialSigningAlgorithms;
+    @NotEmpty
     private List<AuthorizationServer> authorizationServers;
     private List<AuthorizationServer> preAuthorizationServers = new ArrayList<>();
     @NotEmpty

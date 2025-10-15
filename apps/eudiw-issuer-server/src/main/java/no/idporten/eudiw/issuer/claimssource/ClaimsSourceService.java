@@ -21,11 +21,11 @@ public class ClaimsSourceService implements InitializingBean {
     private final GenericApplicationContext applicationContext;
     private final List<ClaimsSource> claimsSources;
 
-    public ClaimsSource findClaimsSource(String doctype) {
+    public ClaimsSource findClaimsSource(String credentialType) {
         return claimsSources.stream()
-                .filter(claimsSource -> claimsSource.supports(doctype))
+                .filter(claimsSource -> claimsSource.supports(credentialType))
                 .findFirst()
-                .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for doctype [%s]".formatted(doctype), HttpStatus.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for credential type [%s]".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     @Override
@@ -33,7 +33,7 @@ public class ClaimsSourceService implements InitializingBean {
         for (ClaimsSourceProperties claimsSourceProperties : credentialIssuerServerProperties.getClaimsSources()) {
             ClaimsSource claimsSource = (ClaimsSource) applicationContext.getBean(Class.forName(claimsSourceProperties.getClassName()));
             claimsSource.init(claimsSourceProperties);
-            log.info("Claims source initialized for doctype {}: {}", claimsSource.getProperties().getDoctype(), claimsSource.getClass().getName());
+            log.info("Claims source initialized for credential type {}: {}", claimsSource.getProperties().getCredentialType(), claimsSource.getClass().getName());
         }
         log.info("Claims source service managing {} claims sources", claimsSources.size());
     }

@@ -68,7 +68,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     }
 
     private String namespace() {
-        return getProperties().getDoctype();
+        return getProperties().getCredentialType();
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.net.URI;
 public class ClaimsSourceProperties {
 
     @NotNull
-    private String doctype;
+    private String credentialType;
     private URI resourceServer;
     @Min(1)
     private int connectTimeoutMillis = 3000;

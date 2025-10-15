@@ -31,7 +31,7 @@ public class PreAuthorizedClaimsSourceTest {
 
     ClaimsSourceProperties claimsSourceProperties() {
         ClaimsSourceProperties claimsSourceProperties = new ClaimsSourceProperties();
-        claimsSourceProperties.setDoctype("junit.1");
+        claimsSourceProperties.setCredentialType("junit.1");
         return claimsSourceProperties;
     }
 

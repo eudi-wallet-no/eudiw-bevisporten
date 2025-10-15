@@ -70,7 +70,7 @@ public class CredentialIssuerServiceTest {
                     .authorizationServer("https://junit.idporten.no")
                     .scope("foo:bar")
                     .format("mdoc")
-                    .doctype("foodoc")
+                    .credentialType("foodoc")
                     .build();
             ClaimsSource claimsSource = mock(ClaimsSource.class);
             when(claimsSource.retrieveClaims(eq(accessToken))).thenReturn(List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build()));

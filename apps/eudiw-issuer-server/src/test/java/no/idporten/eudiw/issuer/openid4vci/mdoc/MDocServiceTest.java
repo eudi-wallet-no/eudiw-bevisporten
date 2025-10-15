@@ -42,7 +42,7 @@ public class MDocServiceTest {
 
     private CredentialConfigurationProperties credentialConfigurationProperties(String docType, String keyStoreName) {
         CredentialConfigurationProperties credentialConfigurationProperties = new CredentialConfigurationProperties();
-        credentialConfigurationProperties.setDoctype(docType);
+        credentialConfigurationProperties.setCredentialType(docType);
         credentialConfigurationProperties.setKeyStoreName(keyStoreName);
         return credentialConfigurationProperties;
     }
