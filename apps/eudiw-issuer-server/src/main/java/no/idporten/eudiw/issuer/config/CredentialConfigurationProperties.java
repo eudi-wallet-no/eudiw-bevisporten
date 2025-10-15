@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
@@ -32,7 +33,7 @@ public class CredentialConfigurationProperties {
      * Credential format
      */
     @NotNull
-    private String format;
+    private CredentialFormat format;
 
     /**
      * Scope required in access_token at the credentials endpoint

@@ -7,6 +7,7 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
+import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +42,7 @@ public class CredentialIssuerServerConfiguration {
             ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
             CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
                     // credential-specific config
-                    .format(credentialConfigurationProperties.getFormat())
+                    .format(credentialConfigurationProperties.getFormat().formatIdentifier())
                     .scope(credentialConfigurationProperties.getScope())
                     // config from claims source
                     .display(claimsSourceMetadata.getDisplays())
@@ -51,9 +52,9 @@ public class CredentialIssuerServerConfiguration {
                     .credentialSigningAlgValuesSupported(properties.getCredentialSigningAlgorithms())
                     .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(properties.getProofSigningAlgorithms()).build()).build());
             // config for formats
-            if ("mso_mdoc".equals(credentialConfigurationProperties.getFormat())) {
+            if (CredentialFormat.MSO_MDOC.equals(credentialConfigurationProperties.getFormat())) {
                 credentialConfigurationBuilder.doctype(credentialConfigurationProperties.getCredentialType());
-            } else if ("dc+sd-jwt".equals(credentialConfigurationProperties.getFormat())) {
+            } else if (CredentialFormat.SD_JWT_VC.equals(credentialConfigurationProperties.getFormat())) {
                 credentialConfigurationBuilder.vct(credentialConfigurationProperties.getCredentialType());
             }
             credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfigurationBuilder.build());

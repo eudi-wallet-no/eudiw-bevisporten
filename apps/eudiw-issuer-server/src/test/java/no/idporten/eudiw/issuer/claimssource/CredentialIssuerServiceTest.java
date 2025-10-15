@@ -10,6 +10,7 @@ import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
+import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
 import no.idporten.eudiw.issuer.openid4vci.service.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
@@ -69,7 +70,7 @@ public class CredentialIssuerServiceTest {
             CredentialConfigurationProperties credentialConfigurationProperties = CredentialConfigurationProperties.builder()
                     .authorizationServer("https://junit.idporten.no")
                     .scope("foo:bar")
-                    .format("mdoc")
+                    .format(CredentialFormat.JSON_DEBUG)
                     .credentialType("foodoc")
                     .build();
             ClaimsSource claimsSource = mock(ClaimsSource.class);
@@ -91,7 +92,7 @@ public class CredentialIssuerServiceTest {
             );
             verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(eq(accessToken), eq("https://junit.idporten.no"), eq("foo:bar"));
             verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
-            verify(auditService).logIssueCredentials(eq("https://junit.idporten.no"), eq("cid"), eq(issuanceTransactionId), eq("mdoc"), eq(new NotificationId("nid")) ,eq(accessToken));
+            verify(auditService).logIssueCredentials(eq("https://junit.idporten.no"), eq("cid"), eq(issuanceTransactionId), eq(CredentialFormat.JSON_DEBUG), eq(new NotificationId("nid")) ,eq(accessToken));
         }
 
     }

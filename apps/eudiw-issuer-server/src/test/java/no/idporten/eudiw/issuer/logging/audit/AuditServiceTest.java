@@ -8,6 +8,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
@@ -75,7 +76,7 @@ class AuditServiceTest {
         String authorizationServer = "authServer";
         String credentialConfigId = "credentialConfigId";
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId("33");
-        String format = "jwt_vc";
+        CredentialFormat format = CredentialFormat.SD_JWT_VC;
         NotificationId notificationId = new NotificationId("222");
         JWT jwt = createAccessToken("12345678901");
 
@@ -86,7 +87,7 @@ class AuditServiceTest {
         assertEquals(AuditID.ISSUE_CREDENTIAL.auditIdentifier().auditId(), actualEntry.getAuditId().auditId());
         assertEquals(authorizationServer, actualEntry.getAttributes().get(AuditService.AUTHORIZATION_SERVER));
         assertEquals(credentialConfigId, actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
-        assertEquals(format, actualEntry.getAttributes().get(AuditService.FORMAT));
+        assertEquals(format.formatIdentifier(), actualEntry.getAttributes().get(AuditService.FORMAT));
         assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
         assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
         assertNotNull(actualEntry.getAttributes().get(AuditService.ACCESS_TOKEN));

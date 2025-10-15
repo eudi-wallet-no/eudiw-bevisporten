@@ -6,6 +6,7 @@ import com.nimbusds.oauth2.sdk.id.Identifier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
@@ -55,13 +56,13 @@ public class AuditService {
                 .build());
     }
 
-    public void logIssueCredentials(@NotNull String authorizationServer, @NotEmpty String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, @NotNull String format, NotificationId notificationId, @NotNull JWT accessToken) {
+    public void logIssueCredentials(@NotNull String authorizationServer, @NotEmpty String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, @NotNull CredentialFormat format, NotificationId notificationId, @NotNull JWT accessToken) {
         auditLogger.log(AuditEntry.builder()
                 .auditId(AuditID.ISSUE_CREDENTIAL.auditIdentifier())
                 .logNullAttributes(false)
                 .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
                 .attribute(AUTHORIZATION_SERVER, authorizationServer)
-                .attribute(FORMAT, format)
+                .attribute(FORMAT, format.formatIdentifier())
                 .attribute(NOTIFICATION_ID, identifierValue(notificationId))
                 .attribute(ACCESS_TOKEN, maskJWT(accessToken))
                 .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))

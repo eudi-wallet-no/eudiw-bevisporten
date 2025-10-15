@@ -11,6 +11,7 @@ import kotlinx.datetime.Clock;
 import kotlinx.datetime.Instant;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.cose.java.OneKey;
@@ -20,10 +21,7 @@ import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class MDocService {
@@ -34,7 +32,15 @@ public class MDocService {
         this.keystoreManager = keystoreManager;
     }
 
-    public MDoc issueCredentials(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws Exception {
+    public Credential issueCredential(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws Exception {
+        return Credential.builder().credential(encode(createMDoc(jwk, credentialConfigurationProperties, claims))).build();
+    }
+
+    protected String encode(MDoc mDoc) {
+        return Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
+    }
+
+    protected MDoc createMDoc(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws Exception {
         var ISSUER_KEY_ID = "ISSUER_KEY";
         var DEVICE_KEY_ID = "DEVICE_KEY";
         var READER_KEY_ID = "READER_KEY";
