@@ -2,11 +2,13 @@ package no.idporten.eudiw.issuer.openid4vci.sdjwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
@@ -15,8 +17,6 @@ import no.idporten.eudiw.issuer.claimssource.domain.ClaimValue;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
-import no.idporten.lib.keystore.KeyProvider;
-import no.idporten.lib.keystore.KeystoreManager;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.security.Security;
+import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.util.List;
 
@@ -37,9 +38,6 @@ public class SDJWTServiceTest {
 
     @Autowired
     private SDJWTService sdjwtService;
-
-    @Autowired
-    private KeystoreManager keystoreManager;
 
     @BeforeAll
     static void addBouncyCastle() {
@@ -69,19 +67,20 @@ public class SDJWTServiceTest {
         assertAll(
                 () -> assertNotNull(sdJwt)
         );
-        KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfigurationProperties.getKeyStoreName());
-        JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) keyProvider.publicKey());
+        SDJwt unverifiedSDJwt = SDJwt.Companion.parse(encodedSDJwt);
+        JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
+        X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
+        JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, null, jwsVerifier);
-        VerificationResult<SDJwt> verificationResult = SDJwt.Companion.verifyAndParse(encodedSDJwt, cryptoProvider);
+        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(cryptoProvider, null);
         assertAll(
                 () -> assertTrue(verificationResult.getVerified()),
                 () -> assertTrue(verificationResult.getSignatureVerified()),
                 () -> assertTrue(verificationResult.getDisclosuresVerified())
         );
-        SDJwt verified = verificationResult.getSdJwt();
+        SDJwt verifiedSDJwt = verificationResult.getSdJwt();
         assertAll(
-                () -> assertEquals(2, verified.getDisclosures().size())
-
+                () -> assertEquals(2, verifiedSDJwt.getDisclosures().size())
         );
     }
 
