@@ -12,5 +12,5 @@ spring:
 
 issuer-ui:
   issuer-server:
-  #  base-url: http://issuer-server:9240
-    base-url: https://utsteder.eidas2sandkasse.dev
+    base-url: http://issuer-server:9240
+#    base-url: https://utsteder.eidas2sandkasse.dev
