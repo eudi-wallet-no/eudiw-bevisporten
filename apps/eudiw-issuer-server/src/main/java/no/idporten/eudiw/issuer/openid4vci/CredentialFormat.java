@@ -1,0 +1,33 @@
+package no.idporten.eudiw.issuer.openid4vci;
+
+/**
+ * Credential formats.  The format() method gives the spec compliant value from
+ */
+public enum CredentialFormat {
+
+    /**
+     * Credential format identifier for ISO/IEC 18013 Mobile Documents: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-format-identifier-4
+     */
+    MSO_MDOC("mso_mdoc"),
+    /**
+     * Credential format identifier for IETF SD-JWT VC: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-format-identifier-5
+     */
+    SD_JWT_VC("dc+sd-jwt"),
+
+    /**
+     * JSON internal debugging (do not use in real documents, will be removed)
+     */
+    @Deprecated
+    JSON_DEBUG("json-debug");
+
+    CredentialFormat(String formatIdentifier) {
+        this.formatIdentifier = formatIdentifier;
+    }
+
+    private final String formatIdentifier;
+
+    public String formatIdentifier() {
+        return formatIdentifier;
+    }
+
+}

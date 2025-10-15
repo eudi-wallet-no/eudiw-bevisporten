@@ -52,7 +52,7 @@ public class MDocServiceTest {
         Claim stringClaim1 = buildClaim("foo", "string1", new StringValue("foobar"));
         Claim stringClaim2 = buildClaim("foo", "string2", new StringValue("foobar-foooooo"));
 
-        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(stringClaim1, stringClaim2));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(stringClaim1, stringClaim2));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
@@ -72,7 +72,7 @@ public class MDocServiceTest {
     void testIssueMDocCredentialsWithBooleanClaim() throws Exception {
         Claim claim = buildClaim("foo", "cool-id", new BooleanValue(true));
 
-        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
@@ -86,7 +86,7 @@ public class MDocServiceTest {
     void testIssueMDocCredentialsWithNumberClaim() throws Exception {
         Claim claim = buildClaim("foo", "my-id", new NumberValue(12L));
 
-        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
@@ -108,7 +108,7 @@ public class MDocServiceTest {
         Instant expectedDatetime = Instant.Companion.fromEpochMilliseconds(nowTime.toEpochSecond() * 1000);
         Claim datetimeClaim = buildClaim("foo", "datotid", new DateTimeValue(nowTime));
 
-        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(fullDateClaim, datetimeClaim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(fullDateClaim, datetimeClaim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
@@ -125,7 +125,7 @@ public class MDocServiceTest {
         List<ClaimValue> list = List.of(new StringValue("one"), new StringValue("two"), new StringValue("three"));
         Claim claim = buildClaim("path", "mylist", new ListValue(list));
 
-        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
@@ -143,7 +143,7 @@ public class MDocServiceTest {
         );
         Claim claim = buildClaim("path", "mymap", new MapValue(map));
 
-        MDoc mdoc = mDocService.issueCredentials(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),

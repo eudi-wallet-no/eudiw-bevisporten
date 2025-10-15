@@ -31,6 +31,7 @@
         <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.29.2</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>0.15.1</waltid-mdoc-credentials-jvm.version>
+        <waltid-sdjwt-jvm.version>0.15.1</waltid-sdjwt-jvm.version>
         <cose-java.version>1.1.1-SNAPSHOT</cose-java.version>
         <kotlinx-serialization-bom.version>1.9.0</kotlinx-serialization-bom.version>
         <kotlinx-coroutines-core.version>1.10.2</kotlinx-coroutines-core.version>
@@ -101,6 +102,11 @@
             <groupId>id.walt.mdoc-credentials</groupId>
             <artifactId>waltid-mdoc-credentials-jvm</artifactId>
             <version>${waltid-mdoc-credentials-jvm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.sdjwt</groupId>
+            <artifactId>waltid-sdjwt-jvm</artifactId>
+            <version>${waltid-sdjwt-jvm.version}</version>
         </dependency>
         <dependency>
             <groupId>org.cose</groupId>

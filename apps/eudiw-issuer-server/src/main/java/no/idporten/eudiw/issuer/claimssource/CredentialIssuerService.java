@@ -1,10 +1,8 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWT;
-import id.walt.mdoc.doc.MDoc;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.IssuerServerException;
@@ -15,12 +13,12 @@ import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
+import no.idporten.eudiw.issuer.openid4vci.sdjwt.SDJWTService;
 import no.idporten.eudiw.issuer.openid4vci.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.util.Base64;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -33,6 +31,7 @@ public class CredentialIssuerService {
     private final ClaimsSourceService claimsSourceService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final MDocService mDocService;
+    private final SDJWTService sdjwtService;
     private final PreAuthorizationService preAuthorizationService;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuditService auditService;
@@ -112,16 +111,19 @@ public class CredentialIssuerService {
     }
 
 
+    /**
+     * Creates credentials in the format configured on credential configuration.
+     */
     @SneakyThrows
     protected List<Credential> createCredentials(JWK bindingKey, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
-        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        if ("mso_mdoc".equals(credentialConfigurationProperties.getFormat())) {
-            MDoc mDoc = mDocService.issueCredentials(bindingKey, credentialConfigurationProperties, claims);
-            String encodedMDoc = Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
-            return List.of(Credential.builder().credential(encodedMDoc).build());
-        } else {
-            return List.of(Credential.builder().credential(objectWriter.writeValueAsString(claims)).build());
-        }
+        return switch (credentialConfigurationProperties.getFormat()) {
+            case MSO_MDOC ->
+                    List.of(mDocService.issueCredential(bindingKey, credentialConfigurationProperties, claims));
+            case SD_JWT_VC ->
+                    List.of(sdjwtService.issueCredential(bindingKey, credentialConfigurationProperties, claims));
+            case JSON_DEBUG ->
+                    List.of(Credential.builder().credential(new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(claims)).build());
+        };
     }
 
 }
