@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.openid4vci.metadata;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,10 +14,14 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CredentialConfiguration  {
 
     @JsonProperty("doctype")
     private String doctype;
+
+    @JsonProperty("vct")
+    private String vct;
 
     @JsonProperty("scope")
     private String scope;
@@ -26,6 +31,9 @@ public class CredentialConfiguration  {
 
     @JsonProperty("cryptographic_binding_methods_supported")
     private List<String> cryptographicBindingMethods;
+
+    @JsonProperty("credential_signing_alg_values_supported")
+    private List<String> credentialSigningAlgValuesSupported;
 
     @JsonProperty("display")
     private List<Display> display;

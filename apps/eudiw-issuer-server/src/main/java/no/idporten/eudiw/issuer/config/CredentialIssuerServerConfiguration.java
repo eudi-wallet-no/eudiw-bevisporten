@@ -37,23 +37,26 @@ public class CredentialIssuerServerConfiguration {
                 .notificationEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT));
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
-            ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
+            ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
             ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
-            credentialConfigurations.put(
-                    credentialConfigurationProperties.getIdentifier(),
-                    CredentialConfiguration.builder()
-                            // credential-specific config
-                            .doctype(credentialConfigurationProperties.getDoctype())
-                            .format(credentialConfigurationProperties.getFormat())
-                            .scope(credentialConfigurationProperties.getScope())
-                            .doctype(credentialConfigurationProperties.getDoctype())
-                            // config from claims source
-                            .display(claimsSourceMetadata.getDisplays())
-                            .claims(claimsSourceMetadata.getClaims())
-                            // config from issuer server
-                            .cryptographicBindingMethods(properties.getCryptographicBindings())
-                            .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(properties.getProofSigningAlgorithms()).build()).build())
-                    .build());
+            CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
+                    // credential-specific config
+                    .format(credentialConfigurationProperties.getFormat())
+                    .scope(credentialConfigurationProperties.getScope())
+                    // config from claims source
+                    .display(claimsSourceMetadata.getDisplays())
+                    .claims(claimsSourceMetadata.getClaims())
+                    // config from issuer server
+                    .cryptographicBindingMethods(properties.getCryptographicBindings())
+                    .credentialSigningAlgValuesSupported(properties.getCredentialSigningAlgorithms())
+                    .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(properties.getProofSigningAlgorithms()).build()).build());
+            // config for formats
+            if ("mso_mdoc".equals(credentialConfigurationProperties.getFormat())) {
+                credentialConfigurationBuilder.doctype(credentialConfigurationProperties.getCredentialType());
+            } else if ("dc+sd-jwt".equals(credentialConfigurationProperties.getFormat())) {
+                credentialConfigurationBuilder.vct(credentialConfigurationProperties.getCredentialType());
+            }
+            credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfigurationBuilder.build());
         }
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();

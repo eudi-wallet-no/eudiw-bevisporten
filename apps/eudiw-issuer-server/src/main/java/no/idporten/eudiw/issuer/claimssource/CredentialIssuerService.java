@@ -43,7 +43,7 @@ public class CredentialIssuerService {
             throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
-        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
+        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, startIssuanceRequest);
         claimsSource.preAuthorize(issuanceTransactionId.getValue(), accessToken, startIssuanceRequest.getClaimsMap());
@@ -86,7 +86,7 @@ public class CredentialIssuerService {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope());
         JWK bindingKey = credentialRequest.getProof() != null ? credentialRequest.getProof().getBindingKey() : null;
-        ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getDoctype());
+        ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
         List<no.idporten.eudiw.issuer.claimssource.domain.Claim> claims = claimsSource.retrieveClaims(accessToken);
         List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);

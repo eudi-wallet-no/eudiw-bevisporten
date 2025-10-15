@@ -26,7 +26,7 @@ public class CredentialConfigurationProperties {
      * Document type used in metadata.
      */
     @NotNull
-    private String doctype;
+    private String credentialType;
 
     /**
      * Credential format

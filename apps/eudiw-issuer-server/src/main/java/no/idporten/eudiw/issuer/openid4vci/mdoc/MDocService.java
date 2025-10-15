@@ -39,7 +39,7 @@ public class MDocService {
         var DEVICE_KEY_ID = "DEVICE_KEY";
         var READER_KEY_ID = "READER_KEY";
         KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfigurationProperties.getKeyStoreName());
-        String docType = credentialConfigurationProperties.getDoctype();
+        String docType = credentialConfigurationProperties.getCredentialType();
 
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(
                 List.of(
