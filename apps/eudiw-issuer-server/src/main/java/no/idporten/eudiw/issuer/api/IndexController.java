@@ -21,14 +21,15 @@ public class IndexController {
                 <head>
                   <meta charset="utf-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
-                  <title>eIDAS 2.0 NO Sandbox Credential Issuer</title>
+                  <title>Bevisporten EAA-utsteder fra Digdir</title>
                 </head>
                 <body>
-                  <h1>eIDAS 2.0 NO Sandbox Credential Issuer</h1>
+                  <h1>Bevisporten EAA-utsteder fra Digdir</h1>
+                  <p>Bevisporten er en del av <a href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">Nasjonal sandkasse for digital lommebok</a>.</p>
                   <ul>
                     <li><a href="%s">Credential Issuer Metadata</li>
                     <li><a href="%s">OpenAPI definition for extended issuer API</li>
-                  </ul>
+                  </ul>                  
                 </body>
                 </html>
                 """.formatted(Endpoints.METADATA_ENDPOINT, Endpoints.OPENAPI_ENDPOINT);
