@@ -32,6 +32,7 @@ public class StartIssuanceController {
     private final IssuerServerService issuerServerService;
 
     private final IssuerServerProperties properties;
+    
     protected final static String VIEW_ISSUANCE_RESPONSE = "issuer_response";;
 
     @Autowired
@@ -101,6 +102,5 @@ public class StartIssuanceController {
         MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
         return pngOutputStream.toByteArray();
     }
-
 
 }
