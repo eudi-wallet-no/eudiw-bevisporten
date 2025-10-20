@@ -30,7 +30,7 @@ public class AdvokatregisterConfiguration {
                 .build();
     }
 
-    @Bean
+    @Bean(value="advokatregisteretMaskinportenClient")
     public MaskinportenClient advokatregisteretMaskinportenClient(MaskinportenClients maskinportenClients) {
         return maskinportenClients.getClient("advokatregisteret");
     }
