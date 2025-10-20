@@ -36,7 +36,7 @@ credential-issuer-server:
     - mso_mdoc
   credential-configurations:
     - identifier: no.digdir.eudiw.pid_mso_mdoc
-      scope: nobid:pid
+      scope: eudiw:no:pid
       format: mso_mdoc
       credential-type: eu.europa.ec.eudi.pid.1
       grant-type: authorization_code
