@@ -2,5 +2,6 @@ package no.idporten.eudiw.issuer.claimssource;
 
 public enum AuthoritativeSource {
     FREG,
-    ADVOKATREGISTERET
+    ADVOKATREGISTERET,
+    KRR
 }

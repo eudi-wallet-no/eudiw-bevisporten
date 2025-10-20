@@ -66,6 +66,15 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
+    - identifier: no.kontaktregisteret.kontaktinformasjon_mso_mdoc
+      scope: eudiw:no:kontaktregisteret:kontaktinformasjon
+      format: mso_mdoc
+      credential-type: no:kontaktregisteret:kontaktinformasjon:1
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
+
   claims-sources:
     - credential-type: eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
@@ -75,6 +84,9 @@ credential-issuer-server:
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
     - credential-type: no.minid.mpid.1
       class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
+    - credential-type: no:kontaktregisteret:kontaktinformasjon:1
+      class-name: no.idporten.eudiw.issuer.claimssource.krr.KrrClaimsSource
+
 
 # Digdir standard logging
 digdir:
@@ -107,6 +119,13 @@ advoktatregisteret:
   connect-timeout: 5s
   read-timeout: 5s
 
+## KRR
+krr:
+  uri: https://test.kontaktregisteret.no/
+  scope: krr:global/kontaktinformasjon.read #krr:global/digitalpost.read
+  connect-timeout: 5s
+  read-timeout: 5s
+
 # Maskinporten
 maskinporten:
   lib:
@@ -124,6 +143,17 @@ maskinporten:
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: maskinporten-freg
+      krr:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+        issuer: ${maskinporten.lib.issuer}
+        audience:
+          - ${maskinporten.lib.issuer}
+        token-endpoint: ${maskinporten.lib.issuer}token
+        scope: krr:global/kontaktinformasjon.read # krr:global/digitalpost.read
+        connect-timeout-ms: 5000
+        read-timeout-ms: 2000
+        key-store-name: maskinporten-krr
       advokatregisteret:
         client-id: ${MASKINPORTEN_CLIENT_ID}
         kid: ${MASKINPORTEN_CLIENT_KID}
@@ -156,6 +186,12 @@ idporten-key-manager:
       key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
       key-password: ${MASKINPORTEN_KEY_PASSWORD}
     maskinporten-advokatregisteret:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
+    maskinporten-krr:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}

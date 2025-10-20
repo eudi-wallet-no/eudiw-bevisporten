@@ -2,10 +2,10 @@ package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
 import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
+import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
-import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

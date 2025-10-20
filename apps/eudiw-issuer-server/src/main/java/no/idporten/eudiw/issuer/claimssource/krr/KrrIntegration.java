@@ -1,0 +1,82 @@
+package no.idporten.eudiw.issuer.claimssource.krr;
+
+import com.nimbusds.oauth2.sdk.token.AccessToken;
+import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
+import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.List;
+
+import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.KRR;
+
+/**
+ * Integration with krr to retrieve info about reservations.
+ */
+@Service
+public class KrrIntegration {
+
+    private static final Logger log = LoggerFactory.getLogger(KrrIntegration.class);
+
+
+    private final KrrProperties krrProperties;
+    private final MaskinportenClient maskinportenClient;
+    private final RestClient krrRestClient;
+
+    @Autowired
+    public KrrIntegration(KrrProperties krrProperties,
+                          @Qualifier("krrMaskinportenClient") MaskinportenClient maskinportenClient,
+                          @Qualifier("krrRestClient") RestClient krrRestClient) {
+        this.krrProperties = krrProperties;
+        this.maskinportenClient = maskinportenClient;
+        this.krrRestClient = krrRestClient;
+    }
+
+    protected AccessToken createAccessToken(String personIdentifier) {
+        return maskinportenClient.getAccessToken(personIdentifier, List.of(krrProperties.scope()));
+    }
+
+    public PersonKrr retrieve(String personIdentifier) {
+        try {
+            PersonKrr personKrr = krrRestClient
+                    .get()
+                    .uri("rest/v2/person")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + createAccessToken(personIdentifier).getValue())
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
+                    .body(PersonKrr.class);
+            if (personKrr == null) {
+                throw new ClaimsSourceDataNotFoundException(KRR.name(), "No data available", "Failed to map response");
+            }
+            return personKrr;
+        } catch (ResourceAccessException e) {
+            throw new ClaimsSourceIOException(KRR.name(), "IO error when calling KRR", e);
+        } catch (RestClientException e) {
+            throw new ClaimsSourceException(KRR.name(), "server_error", "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, e);
+        }
+    }
+
+    void handleErrorResponse(ClientHttpResponse response) throws IOException {
+        final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
+        String logMessage = "Failed to get data fra authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
+        throw new ClaimsSourceException(KRR.name(), "server_error", "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+    }
+
+}

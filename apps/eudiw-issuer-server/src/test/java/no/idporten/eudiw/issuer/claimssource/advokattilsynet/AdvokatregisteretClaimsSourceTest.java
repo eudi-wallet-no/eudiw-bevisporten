@@ -8,9 +8,11 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
+import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -30,6 +32,10 @@ public class AdvokatregisteretClaimsSourceTest {
 
     @Autowired
     AdvokatregisteretClaimsSource claimsSource;
+
+    @Qualifier("advokatregisteretMaskinportenClient")
+    @Autowired
+    MaskinportenClient maskinportenClient;
 
     @MockitoBean
     AdvokatregisteretIntegration advokatregisteretIntegration;
