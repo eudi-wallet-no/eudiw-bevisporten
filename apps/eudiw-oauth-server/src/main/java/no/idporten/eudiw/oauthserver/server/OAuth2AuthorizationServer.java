@@ -17,6 +17,14 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
     }
 
     @Override
+    protected void validateScope(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
+        super.validateScope(authorizationRequest, clientMetadata);
+        if (! getSDKConfiguration().getScopesSupported().containsAll(authorizationRequest.getScope())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Client requested scopes not supported by authorization server.", 400);
+        }
+    }
+
+    @Override
     public TokenResponse process(TokenRequest tokenRequest) {
         if ("authorization_code".equals(tokenRequest.getGrantType())) {
             return super.process(tokenRequest);
