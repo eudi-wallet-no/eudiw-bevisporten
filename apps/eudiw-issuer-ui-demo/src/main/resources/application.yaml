@@ -102,6 +102,17 @@ issuer-ui-demo:
               "identifier": "16903349844"
             }
           }
+      - credential-configuration-id: no.kontaktregisteret.kontaktinformasjon_mso_mdoc
+        description: Digital kontaktinformasjon
+        scope: eudiw:no:kontaktregisteret:kontaktinformasjon
+        person-identifier: 16903349844
+        json-request: |
+          {
+            "credential_configuration_id": "no.kontaktregisteret.kontaktinformasjon_mso_mdoc",
+            "subject": {
+              "identifier": "16903349844"
+            }
+          }
 # Maskinporten
 maskinporten:
   lib:
@@ -115,7 +126,7 @@ maskinporten:
         audience:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
-        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret
+        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon
         resource: ${issuer-ui-demo.issuer-server.base-url}
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
