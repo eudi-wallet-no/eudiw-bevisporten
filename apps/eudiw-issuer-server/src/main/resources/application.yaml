@@ -122,7 +122,7 @@ advoktatregisteret:
 ## KRR
 krr:
   uri: https://test.kontaktregisteret.no/
-  scope: krr:global/kontaktinformasjon.read #krr:global/digitalpost.read
+  scope: krr:global/kontaktinformasjon.read krr:global/digitalpost.read
   connect-timeout: 5s
   read-timeout: 5s
 
@@ -150,7 +150,7 @@ maskinporten:
         audience:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
-        scope: krr:global/kontaktinformasjon.read # krr:global/digitalpost.read
+        scope: krr:global/kontaktinformasjon.read krr:global/digitalpost.read
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: maskinporten-krr

@@ -49,7 +49,7 @@ public class KrrIntegration {
     }
 
     protected AccessToken createAccessToken(String personIdentifier) {
-        return maskinportenClient.getAccessToken(personIdentifier, List.of(krrProperties.scope()));
+        return maskinportenClient.getAccessToken(personIdentifier, krrProperties.scopeAsList());
     }
 
     public PersonKrr retrieve(String personIdentifier) {

@@ -8,6 +8,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 
 @Validated
 @ConfigurationProperties("krr")
@@ -17,5 +18,8 @@ public record KrrProperties(
         @DefaultValue("3s") Duration connectTimeout,
         @DefaultValue("3s") Duration readTimeout
 ) {
+    public List<String> scopeAsList() {
+        return this.scope != null && !this.scope.isBlank() ? List.of(this.scope.split(" ")) : List.of();
+    }
 
 }
