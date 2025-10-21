@@ -35,7 +35,8 @@ public class CredentialIssuerServerConfiguration {
                 .authorizationServers(properties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
                 .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
                 .nonceEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT))
-                .notificationEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT));
+                .notificationEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT))
+                .displays(properties.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(properties.getDisplayNames().get(locale)).build()).toList());
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
             ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());

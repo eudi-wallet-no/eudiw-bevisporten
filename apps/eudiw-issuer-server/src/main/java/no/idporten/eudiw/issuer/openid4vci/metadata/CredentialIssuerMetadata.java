@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.net.URI;
 import java.util.List;
@@ -35,5 +36,9 @@ public class CredentialIssuerMetadata {
 
     @JsonProperty("credential_configurations_supported")
     private CredentialConfigurations credentialConfigurations;
+
+    @Singular("display")
+    @JsonProperty("display")
+    private List<Display> displays;
 
 }

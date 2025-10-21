@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Validated
@@ -24,6 +25,8 @@ public class CredentialIssuerServerProperties {
 
     @NotNull
     private URI credentialIssuer;
+    @NotEmpty
+    private Map<String, String> displayNames = Map.of("no", "Digitaliseringsdirektoratet");
     @NotEmpty
     private List<@NotNull String> formats;
     @NotEmpty
