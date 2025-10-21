@@ -9,6 +9,8 @@ public record PersonKrr(
         @JsonProperty("personidentifikator")
         String personidentifikator,
         @JsonProperty("kontaktinformasjon")
-        Kontaktinformasjon kontaktinformasjon
+        Kontaktinformasjon kontaktinformasjon,
+        @JsonProperty("digital_post")
+        DigitalPost digitalpost
 ) {
 }
