@@ -102,13 +102,13 @@ issuer-ui-demo:
               "identifier": "16903349844"
             }
           }
-      - credential-configuration-id: no.kontaktregisteret.kontaktinformasjon_mso_mdoc
+      - credential-configuration-id: no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc
         description: Digital kontaktinformasjon
         scope: eudiw:no:kontaktregisteret:kontaktinformasjon
         person-identifier: 16903349844
         json-request: |
           {
-            "credential_configuration_id": "no.kontaktregisteret.kontaktinformasjon_mso_mdoc",
+            "credential_configuration_id": "no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc",
             "subject": {
               "identifier": "16903349844"
             }
