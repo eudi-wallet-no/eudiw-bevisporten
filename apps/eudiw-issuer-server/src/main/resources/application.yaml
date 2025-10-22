@@ -74,17 +74,30 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
+    - identifier: no.kontaktregisteret.kontaktinformasjon_mso_mdoc
+      scope: eudiw:no:kontaktregisteret:kontaktinformasjon
+      format: mso_mdoc
+      credential-type: no:kontaktregisteret:kontaktinformasjon:1
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
 
   claims-sources:
-    - credential-type: eu.europa.ec.eudi.pid.1
+    - credential-types:
+        - eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
-    - credential-type: no.skatteetaten.nnid.1
+    - credential-types:
+        - no.skatteetaten.nnid.1
       class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource
-    - credential-type: no.advokattilsynet.advokatregisteret.1
+    - credential-types:
+        - no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
-    - credential-type: no.minid.mpid.1
+    - credential-types:
+        - no.minid.mpid.1
       class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
-    - credential-type: no:kontaktregisteret:kontaktinformasjon:1
+    - credential-types:
+        - no:kontaktregisteret:kontaktinformasjon:1
       class-name: no.idporten.eudiw.issuer.claimssource.krr.KrrClaimsSource
 
 

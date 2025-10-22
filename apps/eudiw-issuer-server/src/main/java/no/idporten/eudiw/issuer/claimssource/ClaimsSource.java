@@ -29,7 +29,7 @@ public interface ClaimsSource {
      * Check if this claims source supports credential type
      */
     default boolean supports(String credentialType) {
-        return Objects.equals(credentialType, getProperties().getCredentialType());
+        return getProperties().getCredentialTypes().contains(credentialType);
     }
 
     /**
