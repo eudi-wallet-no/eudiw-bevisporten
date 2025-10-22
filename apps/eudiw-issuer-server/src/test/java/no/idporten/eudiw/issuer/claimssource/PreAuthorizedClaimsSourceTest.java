@@ -75,8 +75,7 @@ public class PreAuthorizedClaimsSourceTest {
             List<Claim> claims = claimsSource.retrieveClaims(authProxyToken("tx"));
             assertAll(
                     () -> assertEquals(1, claims.size()),
-                    () -> assertEquals("junit.1", claims.getFirst().getPath().getFirst()),
-                    () -> assertEquals("c", claims.getFirst().getPath().getLast()),
+                    () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("v", ((StringValue)claims.getFirst().getValue()).value())
             );
             verify(claimsSource).pull(eq("tx"), any());
@@ -117,8 +116,7 @@ public class PreAuthorizedClaimsSourceTest {
             List<Claim> claims = claimsSource.retrieveClaims(authProxyToken("tx"));
             assertAll(
                     () -> assertEquals(1, claims.size()),
-                    () -> assertEquals("junit.1", claims.getFirst().getPath().getFirst()),
-                    () -> assertEquals("c", claims.getFirst().getPath().getLast()),
+                    () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("v", ((StringValue)claims.getFirst().getValue()).value())
             );
             verify(claimsSource).push(eq("tx"), any(), any());

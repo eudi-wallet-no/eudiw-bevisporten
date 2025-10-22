@@ -61,29 +61,29 @@ public class AdvokatregisteretClaimsSourceTest {
                 () -> assertEquals(
                         "Personidentifikator",
                         claimsSourceMetadata
-                                .findClaimsDescription("no.advokattilsynet.advokatregisteret.1", "personidentifikator")
+                                .findClaimsDescription("personidentifikator")
                                 .findDisplay("no")
                                 .getName()),
                 () -> assertEquals(
                         "Tittel",
                         claimsSourceMetadata
-                                .findClaimsDescription("no.advokattilsynet.advokatregisteret.1", "tittel")
+                                .findClaimsDescription("tittel")
                                 .findDisplay("no")
                                 .getName()),
                 () -> assertEquals(
                         "Etternavn",
                         claimsSourceMetadata
-                                .findClaimsDescription("no.advokattilsynet.advokatregisteret.1", "etternavn")
+                                .findClaimsDescription("etternavn")
                                 .findDisplay("no")
                                 .getName()),
                 () -> assertEquals(
                         "Fornavn",
                         claimsSourceMetadata
-                                .findClaimsDescription("no.advokattilsynet.advokatregisteret.1", "fornavn")
+                                .findClaimsDescription("fornavn")
                                 .findDisplay("no")
                                 .getName()),
-                () -> assertFalse(claimsSourceMetadata.findClaimsDescription("no.advokattilsynet.advokatregisteret.1", "mellomnavn").isMandatory()),
-                () -> assertTrue(claimsSourceMetadata.findClaimsDescription("no.advokattilsynet.advokatregisteret.1", "regnr").isMandatory())
+                () -> assertFalse(claimsSourceMetadata.findClaimsDescription("mellomnavn").isMandatory()),
+                () -> assertTrue(claimsSourceMetadata.findClaimsDescription("regnr").isMandatory())
         );
     }
 

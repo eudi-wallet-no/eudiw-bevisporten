@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.List;
 
@@ -38,6 +39,7 @@ public class CredentialConfiguration  {
     @JsonProperty("display")
     private List<Display> display;
 
+    @Singular("claim")
     @JsonProperty("claims")
     private List<ClaimsDescription> claims;
 
