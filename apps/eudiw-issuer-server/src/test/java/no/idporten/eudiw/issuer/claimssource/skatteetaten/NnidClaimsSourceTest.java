@@ -29,7 +29,7 @@ class NnidClaimsSourceTest {
     void setUp() {
         nnidClaimsSource = new NnidClaimsSource();
         ClaimsSourceProperties properties = new ClaimsSourceProperties();
-        properties.setCredentialType(NORWEGIAN_NATIONAL_ID_NUMBER_DOCTYPE);
+        properties.setCredentialTypes(Set.of(NORWEGIAN_NATIONAL_ID_NUMBER_DOCTYPE));
         nnidClaimsSource.init(properties);
     }
 

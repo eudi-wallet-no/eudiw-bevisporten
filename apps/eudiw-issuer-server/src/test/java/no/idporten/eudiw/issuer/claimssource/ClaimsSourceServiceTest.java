@@ -29,4 +29,15 @@ public class ClaimsSourceServiceTest {
         );
     }
 
+    @Test
+    void testClaimsSourceSupportsMultipleCredentialTypes() {
+        ClaimsSource claimsSourceForSdJWT = claimsSourceService.findClaimsSource("urn:junitdoc-pre");
+        ClaimsSource claimsSourceForMdoc = claimsSourceService.findClaimsSource("junitdoc-pre");
+        assertAll(
+                () -> assertNotNull(claimsSourceForSdJWT),
+                () -> assertSame(claimsSourceForSdJWT, claimsSourceForMdoc)
+        );
+    }
+
+
 }

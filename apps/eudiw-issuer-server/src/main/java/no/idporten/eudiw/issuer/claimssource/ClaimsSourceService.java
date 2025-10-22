@@ -33,7 +33,7 @@ public class ClaimsSourceService implements InitializingBean {
         for (ClaimsSourceProperties claimsSourceProperties : credentialIssuerServerProperties.getClaimsSources()) {
             ClaimsSource claimsSource = (ClaimsSource) applicationContext.getBean(Class.forName(claimsSourceProperties.getClassName()));
             claimsSource.init(claimsSourceProperties);
-            log.info("Claims source initialized for credential type {}: {}", claimsSource.getProperties().getCredentialType(), claimsSource.getClass().getName());
+            log.info("Claims source initialized for credential types {}: {}", claimsSource.getProperties().getCredentialTypes(), claimsSource.getClass().getName());
         }
         log.info("Claims source service managing {} claims sources", claimsSources.size());
     }

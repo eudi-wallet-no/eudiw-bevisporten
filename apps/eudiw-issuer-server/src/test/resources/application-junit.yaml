@@ -35,14 +35,27 @@ credential-issuer-server:
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
+    - identifier: junitdoc_pre_sd_jwt_vc
+      scope: eudiw:junit
+      format: sd_jwt_vc
+      credential-type: urn:junitdoc-pre
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      key-store-name: eaa-provider
+
   claims-sources:
-    - credential-type: eu.europa.ec.eudi.pid.1
+    - credential-types:
+        - eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
-    - credential-type: junitdoc
+    - credential-types:
+        - junitdoc
       class-name: no.idporten.eudiw.issuer.claimssource.JUnitClaimsSource
-    - credential-type: junitdoc-pre
+    - credential-types:
+        - junitdoc-pre
+        - urn:junitdoc-pre
       class-name: no.idporten.eudiw.issuer.claimssource.JUnitPreAuthorizedClaimsSource
-    - credential-type: no.advokattilsynet.advokatregisteret.1
+    - credential-types:
+        - no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
 
 maskinporten:
