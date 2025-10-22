@@ -18,7 +18,7 @@ import org.springframework.validation.annotation.Validated;
 public class CredentialConfigurationProperties {
 
     /**
-     * Credential identifier used in metadata, reqyests, responses
+     * Credential identifier used in metadata, requests, responses
      */
     @NotEmpty
     private String identifier;

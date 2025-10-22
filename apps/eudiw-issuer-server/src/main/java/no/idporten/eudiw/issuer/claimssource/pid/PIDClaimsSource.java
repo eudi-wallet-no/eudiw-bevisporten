@@ -30,7 +30,6 @@ import java.util.*;
 @Service
 public class PIDClaimsSource implements ClaimsSource {
 
-    public static final String NAMESPACE = "eu.europa.ec.eudi.pid.1";
     private ClaimsSourceProperties properties;
 
     private final FregService fregService;
@@ -58,43 +57,43 @@ public class PIDClaimsSource implements ClaimsSource {
         return ClaimsSourceMetadata.builder()
                 .display(Display.builder().locale("no").name("Norsk PID").build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("personal_administrative_number")
+                        .path("personal_administrative_number")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødselsnummer").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("given_name")
+                        .path("given_name")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Førenamn").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("family_name")
+                        .path("family_name")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Etternamn").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("birth_date")
+                        .path("birth_date")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødselsdato").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("birth_place").path("country")
+                        .path("birth_place").path("country")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødeland").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("nationality")
+                        .path("nationality")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Nasjonalitet").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("expiry_date")
+                        .path("expiry_date")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Gyldig til dato").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("issuing_authority")
+                        .path("issuing_authority")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Utsteda av").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("issuing_country")
+                        .path("issuing_country")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Utsteda i land").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path(NAMESPACE).path("age_over_18")
+                        .path("age_over_18")
                         .mandatory(false)
                         .display(Display.builder().locale("no").name("Over 18").build()).build())
                 .build();
@@ -165,7 +164,7 @@ public class PIDClaimsSource implements ClaimsSource {
     }
 
     private static Claim buildClaim(String key, ClaimValue claimValue) {
-        return Claim.builder().path(NAMESPACE).path(key).value(claimValue).build();
+        return Claim.builder().path(key).value(claimValue).build();
     }
 
     private Claim getStringClaim(String key, String value) {

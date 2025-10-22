@@ -20,6 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
@@ -47,7 +48,7 @@ public class CredentialIssuerServerConfiguration {
                     .scope(credentialConfigurationProperties.getScope())
                     // config from claims source
                     .display(claimsSourceMetadata.getDisplays())
-                    .claims(claimsSourceMetadata.getClaims())
+                    .claims(adjustClaimsDescriptionsToCredentialFormat(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getCredentialType(), claimsSourceMetadata.getClaims()))
                     // config from issuer server
                     .cryptographicBindingMethods(properties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(properties.getCredentialSigningAlgorithms())
@@ -62,6 +63,13 @@ public class CredentialIssuerServerConfiguration {
         }
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
+    }
+
+    /**
+     * Adjust claims description paths to credential format.  mdoc includes credential type in path.
+     */
+    List<ClaimsDescription> adjustClaimsDescriptionsToCredentialFormat(CredentialFormat credentialFormat, String credentialType, List<ClaimsDescription> claimsDescriptions) {
+        return claimsDescriptions.stream().map(claimsDescription -> claimsDescription.forFormat(credentialFormat, credentialType)).toList();
     }
 
     protected URI endpointURI(URI issuerUri, String path) {

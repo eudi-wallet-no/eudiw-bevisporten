@@ -122,14 +122,14 @@ class PIDClaimsSourceTest {
         verify(fregIntegration).getFolkeregisterPerson(eq(fnr), anyList());
 
         // test personal_administrative_number is present in claims
-        Optional<Claim> fnrClaim = claims.stream().filter(c-> "personal_administrative_number".equals(c.getPath().get(1)))
+        Optional<Claim> fnrClaim = claims.stream().filter(c-> "personal_administrative_number".equals(c.getPath().getFirst()))
                 .findFirst();
         assertTrue(fnrClaim.isPresent());
         assertInstanceOf(StringValue.class, fnrClaim.get().getValue());
         assertEquals(fnr, fnrClaim.get().getValue().value());
 
         // test birth_date is present in claims and of type FullDateValue
-        Optional<Claim> birthDateClaim = claims.stream().filter(c-> "birth_date".equals(c.getPath().get(1)))
+        Optional<Claim> birthDateClaim = claims.stream().filter(c-> "birth_date".equals(c.getPath().getFirst()))
                 .findFirst();
         assertTrue(birthDateClaim.isPresent());
         assertInstanceOf(FullDateValue.class, birthDateClaim.get().getValue());

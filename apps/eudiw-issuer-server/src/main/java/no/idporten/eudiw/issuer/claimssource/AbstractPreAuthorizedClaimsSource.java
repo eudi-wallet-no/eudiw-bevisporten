@@ -67,10 +67,6 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         return properties;
     }
 
-    private String namespace() {
-        return getProperties().getCredentialType();
-    }
-
     @Override
     public final ClaimsSourceMetadata getMetadata() {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
@@ -80,7 +76,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
                 .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList());
         for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
             builder.claim(ClaimsDescription.builder()
-                    .path(namespace()).path(claimMetadata.name())
+                    .path(claimMetadata.name())
                     .mandatory(claimMetadata.mandatory())
                     .displays(claimMetadata.displayNames()
                             .entrySet()
@@ -101,7 +97,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         }
         Map<String, String> storedClaims = claimsCache.get(transactionId);
         return storedClaims.keySet().stream().map(claimName ->
-                Claim.builder().path(namespace()).path(claimName).value(new StringValue(storedClaims.get(claimName))).build()
+                Claim.builder().path(claimName).value(new StringValue(storedClaims.get(claimName))).build()
         ).toList();
     }
 

@@ -29,7 +29,7 @@ public class JUnitClaimsSource implements ClaimsSource {
         return ClaimsSourceMetadata.builder()
                 .display(Display.builder().name("Junit doc").build())
                 .claim(ClaimsDescription.builder()
-                        .path("junit").path("attr1")
+                        .path("attr1")
                         .display(Display.builder().name("attribute1").build())
                         .build())
                 .build();

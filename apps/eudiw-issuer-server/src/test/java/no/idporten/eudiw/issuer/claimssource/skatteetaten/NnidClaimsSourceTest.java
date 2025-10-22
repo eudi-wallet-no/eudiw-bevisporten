@@ -133,9 +133,9 @@ class NnidClaimsSourceTest {
             assertAll(
                     () -> assertEquals(2, claims.size()),
                     () -> assertEquals("12345678901", ((StringValue)claims.getFirst().getValue()).value()),
-                    () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number"), claims.getFirst().getPath()),
+                    () -> assertEquals(List.of("norwegian_national_id_number"), claims.getFirst().getPath()),
                     () -> assertEquals("D-nummer", ((StringValue)claims.getLast().getValue()).value()),
-                    () -> assertEquals(List.of("no.skatteetaten.nnid.1", "norwegian_national_id_number_type"), claims.getLast().getPath())
+                    () -> assertEquals(List.of("norwegian_national_id_number_type"), claims.getLast().getPath())
             );
         }
     }
