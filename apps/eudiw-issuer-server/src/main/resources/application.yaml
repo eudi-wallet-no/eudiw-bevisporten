@@ -7,6 +7,10 @@ spring:
   application:
     name: digital-lommebok-issuer-server
     environment: default
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
 
 management:
   server:

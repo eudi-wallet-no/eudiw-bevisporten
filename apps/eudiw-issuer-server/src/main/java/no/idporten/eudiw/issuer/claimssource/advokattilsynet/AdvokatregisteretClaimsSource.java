@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
 
     @SneakyThrows
     @Override
-    public Map<String, String> pull(String issuanceTransactionId, JWT accessToken) {
+    public Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
         String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
         PersonPrivate personPrivate = advokatregisteretIntegration.retrieve(personIdentifier);
         Map<String, String> claims = new HashMap<>();

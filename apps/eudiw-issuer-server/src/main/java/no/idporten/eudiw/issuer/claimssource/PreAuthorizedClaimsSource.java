@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 
@@ -22,7 +23,7 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * @param accessToken
      * @param pushedClaims
      */
-    default void preAuthorize(String issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims) {
+    default void preAuthorize(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims) {
         final Map<String, String> validatedClaims;
         if (!CollectionUtils.isEmpty(pushedClaims)) {
             validatedClaims = validate(push(issuanceTransactionId, accessToken, pushedClaims));
@@ -35,14 +36,14 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
     /**
      * Pull claims data from authoritative source.  Disabled by default.
      */
-    default Map<String, String> pull(String issuanceTransactionId, JWT accessToken) {
+    default Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
     }
 
     /**
      * Receive pushed data from authoritative source.  Disabled by default.
      */
-    default Map<String, String> push(String issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+    default Map<String, String> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
     }
 
@@ -53,11 +54,7 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
 
     /**
      * Store claims data in cache.
-     *
-     * @param txId
-     * @param claims
-     * @return tx_id
      */
-    String store(String txId, Map<String, String> claims);
+    IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims);
 
 }

@@ -2,11 +2,14 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
@@ -17,9 +20,15 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
 
     private ClaimsSourceProperties properties;
 
-    private final Map<String, Map<String, String>> claimsCache = new HashMap<>();
+    private ClaimsSourceCache cache;
 
     protected abstract DocumentMetadata getDocumentMetadata();
+
+
+    @Autowired
+    public void setClaimsSourceCache(ClaimsSourceCache claimsSourceCache) {
+        this.cache = claimsSourceCache;
+    }
 
     public final void validateClaim(ClaimMetadata claimMetadata, Map<String, String> claims) {
         if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
@@ -52,14 +61,17 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     }
 
     @Override
-    public final String store(String transactionId, Map<String, String> claims) {
-        claimsCache.put(transactionId, claims);
-        return transactionId;
+    public final IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims) {
+        cache.storeClaims(issuanceTransactionId, claims);
+        return issuanceTransactionId;
     }
 
     @Override
     public void init(ClaimsSourceProperties properties) {
         this.properties = properties;
+        if (this.cache == null) {
+            throw new IllegalStateException("Claims cache not initialized for claims source supporting credential types %s".formatted(properties.getCredentialTypes()));
+        }
     }
 
     @Override
@@ -95,7 +107,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         } catch (ParseException e) {
             throw new IssuerServerException("internal_server_error", "Missing claim in internal access token %s".formatted("tx_id"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        Map<String, String> storedClaims = claimsCache.get(transactionId);
+        Map<String, String> storedClaims = cache.retrieveClaims(new IssuanceTransactionId(transactionId));
         return storedClaims.keySet().stream().map(claimName ->
                 Claim.builder().path(claimName).value(new StringValue(storedClaims.get(claimName))).build()
         ).toList();

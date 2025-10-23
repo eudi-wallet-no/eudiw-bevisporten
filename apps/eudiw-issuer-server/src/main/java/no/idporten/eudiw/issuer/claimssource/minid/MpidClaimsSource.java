@@ -4,6 +4,7 @@ import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    public Map<String, String> push(String issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+    public Map<String, String> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
         return claims;
     }
 

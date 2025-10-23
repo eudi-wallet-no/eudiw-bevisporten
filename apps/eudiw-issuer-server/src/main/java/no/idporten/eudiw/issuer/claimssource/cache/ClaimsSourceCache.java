@@ -1,0 +1,22 @@
+package no.idporten.eudiw.issuer.claimssource.cache;
+
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+
+import java.util.Map;
+
+/**
+ * Data cache for claims sources during issuance.
+ */
+public interface ClaimsSourceCache {
+
+    /**
+     * Stores claims in cache.
+     */
+    void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims);
+
+    /**
+     * Retrieves and deletes claims from cache.
+     */
+    Map<String, String> retrieveClaims(IssuanceTransactionId transactionId);
+
+}

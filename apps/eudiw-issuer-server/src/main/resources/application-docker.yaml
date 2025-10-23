@@ -9,6 +9,10 @@ management:
 spring:
   application:
     environment: docker
+  data:
+    redis:
+      port: 6379
+      host: redis
 
 credential-issuer-server:
   credential-issuer: http://issuer-server:9240
