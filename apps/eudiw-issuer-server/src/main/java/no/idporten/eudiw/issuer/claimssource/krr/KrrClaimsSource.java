@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @SneakyThrows
     @Override
-    public Map<String, String> pull(String issuanceTransactionId, JWT accessToken) {
+    public Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
         String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
         PersonKrr personPrivate = krrIntegration.retrieve(personIdentifier);
         Map<String, String> claims = new HashMap<>();

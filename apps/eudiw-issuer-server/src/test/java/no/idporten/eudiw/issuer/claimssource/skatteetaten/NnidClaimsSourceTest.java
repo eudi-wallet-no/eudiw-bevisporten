@@ -3,13 +3,21 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.InMemoryClaimsSourceCache;
+import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
-import org.junit.jupiter.api.*;
+import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -28,6 +36,7 @@ class NnidClaimsSourceTest {
     @BeforeEach
     void setUp() {
         nnidClaimsSource = new NnidClaimsSource();
+        nnidClaimsSource.setClaimsSourceCache(new InMemoryClaimsSourceCache());
         ClaimsSourceProperties properties = new ClaimsSourceProperties();
         properties.setCredentialTypes(Set.of(NORWEGIAN_NATIONAL_ID_NUMBER_DOCTYPE));
         nnidClaimsSource.init(properties);
@@ -113,11 +122,11 @@ class NnidClaimsSourceTest {
         @DisplayName("then pre-authorized data are validated, stored, retrieved and formatted")
         @Test
         void testClaimsSourceLifecycle() {
-            final String transactionId = "tid";
+            final IssuanceTransactionId transactionId = new IssuanceTransactionId();
             JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                     .issuer("https://junit.idporten.no")
                     .claim("scope", "openid profile foo:bar")
-                    .claim("tx_id", transactionId)
+                    .claim("tx_id", transactionId.getValue())
                     .build();
             PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
 
