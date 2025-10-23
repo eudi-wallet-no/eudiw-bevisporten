@@ -63,7 +63,7 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
     }
 
     /**
-     * Process pre-autghorization request.  Create an authorization, store in cache and generate a response
+     * Process pre-authorization request.  Create an authorization, store in cache and generate a response
      * with pre.authorization_code.
      */
     public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest) {

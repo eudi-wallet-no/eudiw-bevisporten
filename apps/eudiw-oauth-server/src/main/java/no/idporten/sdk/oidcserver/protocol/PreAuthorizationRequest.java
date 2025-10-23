@@ -21,7 +21,7 @@ public class PreAuthorizationRequest {
     private String txCodeChallenge;
     @JsonProperty("tx_id")
     private String txId;
-    @JsonProperty("authorization_token_lifetime")
+    @JsonProperty("authorization_lifetime")
     private int authorizationLifetimeSeconds = 120;
 
 }
