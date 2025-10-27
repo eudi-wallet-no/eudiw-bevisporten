@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource;
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
 import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class InMemoryClaimsSourceCache implements ClaimsSourceCache {
     private final Map<String, Map<String, String>> cache = new HashMap<>();
 
     @Override
-    public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims) {
+    public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims, Duration ignoredLifetime) {
         cache.put(transactionId.getValue(), claims);
     }
 

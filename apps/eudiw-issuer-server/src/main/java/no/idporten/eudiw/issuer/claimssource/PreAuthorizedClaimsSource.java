@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -22,15 +23,16 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * @param issuanceTransactionId
      * @param accessToken
      * @param pushedClaims
+     * @param authorizationLifetime
      */
-    default void preAuthorize(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims) {
+    default void preAuthorize(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims, Duration authorizationLifetime) {
         final Map<String, String> validatedClaims;
         if (!CollectionUtils.isEmpty(pushedClaims)) {
             validatedClaims = validate(push(issuanceTransactionId, accessToken, pushedClaims));
         } else {
             validatedClaims = validate(pull(issuanceTransactionId, accessToken));
         }
-        store(issuanceTransactionId, validatedClaims);
+        store(issuanceTransactionId, validatedClaims, authorizationLifetime);
     }
 
     /**
@@ -53,8 +55,8 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
     Map<String, String> validate(Map<String, String> claims);
 
     /**
-     * Store claims data in cache.
+     * Store claims data in cache for a given lifetime.
      */
-    IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims);
+    IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims, Duration lifetime);
 
 }

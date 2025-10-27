@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Duration;
+
 @Validated
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,6 +59,12 @@ public class CredentialConfigurationProperties {
      * Issuer of access_token at the start issuance endpoint in the pre-authorized flow
      */
     private String preAuthorizationServer;
+
+    /**
+     * Pre-authorization and credential offer lifetime in the pre-authorized flow
+     */
+    @NotNull
+    private Duration preAuthorizationLifetime = Duration.ofMinutes(10);
 
     /**
      * Name of keystore for provider signing certificate

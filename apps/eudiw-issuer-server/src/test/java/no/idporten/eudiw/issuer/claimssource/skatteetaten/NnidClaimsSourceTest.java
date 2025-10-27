@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -136,7 +137,8 @@ class NnidClaimsSourceTest {
                     accessToken,
                     new TreeMap<>(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")),
+                    Duration.ofMinutes(10));
             verify(claimsSource).validate(anyMap());
             List<Claim> claims = nnidClaimsSource.retrieveClaims(accessToken);
             assertAll(

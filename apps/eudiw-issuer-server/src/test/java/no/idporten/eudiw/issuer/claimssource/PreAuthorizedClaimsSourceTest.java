@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,7 +71,7 @@ public class PreAuthorizedClaimsSourceTest {
         void pushNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PullClaimsSource();
             claimsSource.init(claimsSourceProperties());
-            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(new IssuanceTransactionId(), maskinportenToken(), Map.of("some", "data")));
+            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(new IssuanceTransactionId(), maskinportenToken(), Map.of("some", "data"), Duration.ofMinutes(10)));
             assertTrue(e.getMessage().contains("does not support push"));
         }
 
@@ -80,7 +81,7 @@ public class PreAuthorizedClaimsSourceTest {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PullClaimsSource());
             claimsSource.init(claimsSourceProperties());
-            claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), null);
+            claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), null, Duration.ofMinutes(9));
             List<Claim> claims = claimsSource.retrieveClaims(authProxyToken(issuanceTransactionId.getValue()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
@@ -89,7 +90,7 @@ public class PreAuthorizedClaimsSourceTest {
             );
             verify(claimsSource).pull(eq(issuanceTransactionId), any());
             verify(claimsSource).validate(any());
-            verify(claimsSource).store(eq(issuanceTransactionId), any());
+            verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(9)));
             verify(claimsSource, never()).push(any(), any(), any());
         }
 
@@ -112,7 +113,7 @@ public class PreAuthorizedClaimsSourceTest {
         void pullNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PushClaimsSource();
             claimsSource.init(claimsSourceProperties());
-            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(new IssuanceTransactionId(), maskinportenToken(), null));
+            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(new IssuanceTransactionId(), maskinportenToken(), null, Duration.ofMinutes(10)));
             assertTrue(e.getMessage().contains("does not support pull"));
         }
 
@@ -122,7 +123,7 @@ public class PreAuthorizedClaimsSourceTest {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PushClaimsSource());
             claimsSource.init(claimsSourceProperties());
-            claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), Map.of("c", "v"));
+            claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), Map.of("c", "v"), Duration.ofMinutes(5));
             List<Claim> claims = claimsSource.retrieveClaims(authProxyToken(issuanceTransactionId.getValue()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
@@ -131,7 +132,7 @@ public class PreAuthorizedClaimsSourceTest {
             );
             verify(claimsSource).push(eq(issuanceTransactionId), any(), any());
             verify(claimsSource).validate(any());
-            verify(claimsSource).store(eq(issuanceTransactionId), any());
+            verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(5)));
             verify(claimsSource, never()).pull(any(), any());
         }
 

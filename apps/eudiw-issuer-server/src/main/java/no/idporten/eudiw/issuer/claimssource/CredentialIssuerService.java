@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -45,7 +46,7 @@ public class CredentialIssuerService {
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, startIssuanceRequest);
-        claimsSource.preAuthorize(issuanceTransactionId, accessToken, startIssuanceRequest.getClaimsMap());
+        claimsSource.preAuthorize(issuanceTransactionId, accessToken, startIssuanceRequest.getClaimsMap(), credentialConfigurationProperties.getPreAuthorizationLifetime());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
