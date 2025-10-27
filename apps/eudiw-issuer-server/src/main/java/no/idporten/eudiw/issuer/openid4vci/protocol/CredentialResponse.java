@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
-import no.idporten.eudiw.issuer.openid4vci.service.NotificationId;
+import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 
 import java.util.List;
 

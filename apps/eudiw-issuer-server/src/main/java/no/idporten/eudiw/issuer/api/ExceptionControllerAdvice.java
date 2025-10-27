@@ -2,10 +2,11 @@ package no.idporten.eudiw.issuer.api;
 
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.api.openid4vci.NonceErrorResponse;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
-import no.idporten.eudiw.issuer.openid4vci.protocol.InvalidProof;
+import no.idporten.eudiw.issuer.openid4vci.proofs.InvalidProof;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;

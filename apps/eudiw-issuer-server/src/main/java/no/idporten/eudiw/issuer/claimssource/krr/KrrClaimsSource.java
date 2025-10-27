@@ -3,10 +3,10 @@ package no.idporten.eudiw.issuer.claimssource.krr;
 import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimMetadata;
-import no.idporten.eudiw.issuer.claimssource.DocumentMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

@@ -3,7 +3,6 @@ package no.idporten.eudiw.issuer.claimssource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.GenericApplicationContext;
