@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.*;
 
 public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements PreAuthorizedClaimsSource {
@@ -61,8 +62,8 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     }
 
     @Override
-    public final IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims) {
-        cache.storeClaims(issuanceTransactionId, claims);
+    public final IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims, Duration lifetime) {
+        cache.storeClaims(issuanceTransactionId, claims, lifetime);
         return issuanceTransactionId;
     }
 

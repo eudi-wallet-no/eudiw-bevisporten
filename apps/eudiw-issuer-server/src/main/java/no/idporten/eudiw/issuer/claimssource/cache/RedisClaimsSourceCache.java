@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 @Service
@@ -24,9 +23,8 @@ public class RedisClaimsSourceCache implements ClaimsSourceCache {
     }
 
     @Override
-    public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims) {
-        // TODO egen sak på cache levetid, må kunne styres mot oauth2 server
-        cache.put(cacheKey(transactionId.getValue()), claims, Duration.of(30, ChronoUnit.MINUTES));
+    public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims, Duration lifetime) {
+        cache.put(cacheKey(transactionId.getValue()), claims, lifetime);
     }
 
     @SuppressWarnings("unchecked")
