@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.cache;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.cache.RedisCache;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

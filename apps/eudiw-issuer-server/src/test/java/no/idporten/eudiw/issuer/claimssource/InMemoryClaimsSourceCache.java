@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 
 import java.time.Duration;
 import java.util.HashMap;

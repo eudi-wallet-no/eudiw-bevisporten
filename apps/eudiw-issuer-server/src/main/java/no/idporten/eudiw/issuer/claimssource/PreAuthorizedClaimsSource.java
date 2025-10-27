@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 

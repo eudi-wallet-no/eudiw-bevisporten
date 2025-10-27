@@ -8,7 +8,7 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
-import no.idporten.eudiw.issuer.openid4vci.service.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

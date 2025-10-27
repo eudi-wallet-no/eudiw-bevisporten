@@ -1,5 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

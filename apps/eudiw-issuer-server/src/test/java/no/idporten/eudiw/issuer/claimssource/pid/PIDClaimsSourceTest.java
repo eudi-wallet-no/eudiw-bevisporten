@@ -19,7 +19,7 @@ import no.idporten.eudiw.issuer.claimssource.domain.FullDateValue;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import no.idporten.eudiw.issuer.config.ClaimsSourceProperties;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import no.idporten.logging.audit.AuditLogger;
