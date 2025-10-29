@@ -110,7 +110,9 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
             throw new IssuerServerException("internal_server_error", "Missing claim in internal access token %s".formatted("tx_id"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         Map<String, String> storedClaims = cache.retrieveClaims(new IssuanceTransactionId(transactionId));
-        return storedClaims.keySet().stream().map(claimName ->
+        return storedClaims.keySet().stream()
+                .filter(claimName -> getDocumentMetadata().findClaimMetadata(claimName) != null)
+                .map(claimName ->
                 Claim.builder().path(claimName).value(new StringValue(storedClaims.get(claimName))).build()
         ).toList();
     }

@@ -4,7 +4,7 @@ import no.idporten.eudiw.issuer.oauth2.AccessTokenValidator;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
-import no.idporten.eudiw.issuer.issuance.status.IssuanceStatus;
+import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.logging.audit.AuditLogger;
 import org.hamcrest.Matchers;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
 @SpringBootTest
-public class IssuanceStatusControllerTest {
+public class CredentialIssuanceStatusControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -80,12 +80,12 @@ public class IssuanceStatusControllerTest {
     void testReturnCredentialIssuanceStatus() throws Exception {
         setUpAccessTokenValidation();
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
-        when(credentialIssuanceStatusService.getIssuanceStatus(any(), eq(issuanceTransactionId))).thenReturn(new IssuanceStatus(issuanceTransactionId, "foo", "credential_tested"));
+        when(credentialIssuanceStatusService.getIssuanceStatus(any(), eq(issuanceTransactionId))).thenReturn(new CredentialIssuanceStatus(issuanceTransactionId, "foo", "credential_issued"));
         mockMvc.perform(get("/api/v1/credential/issuance-transaction/{}}", issuanceTransactionId)
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("credential_tested"))
+                .andExpect(jsonPath("$.status").value("credential_issued"))
                 .andExpect(jsonPath("$.issuance_transaction_id").value(issuanceTransactionId.getValue()));
     }
 

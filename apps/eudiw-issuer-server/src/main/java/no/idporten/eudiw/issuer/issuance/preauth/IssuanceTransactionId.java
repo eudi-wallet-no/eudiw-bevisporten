@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.issuance.preauth;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.nimbusds.oauth2.sdk.id.Identifier;
 
@@ -9,6 +10,7 @@ public class IssuanceTransactionId extends Identifier {
         super();
     }
 
+    @JsonCreator
     public IssuanceTransactionId(String value) {
         super(value);
     }
@@ -18,4 +20,5 @@ public class IssuanceTransactionId extends Identifier {
     public String toString() {
         return super.toString();
     }
+
 }

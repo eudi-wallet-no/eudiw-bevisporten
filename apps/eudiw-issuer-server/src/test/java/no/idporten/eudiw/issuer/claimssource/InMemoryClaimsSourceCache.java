@@ -16,7 +16,9 @@ public class InMemoryClaimsSourceCache implements ClaimsSourceCache {
 
     @Override
     public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims, Duration ignoredLifetime) {
-        cache.put(transactionId.getValue(), claims);
+        HashMap<String, String> claimsCopy = new HashMap<>(claims);
+        claimsCopy.put("@class", "TestThatJacksonSerializationIsIgnored");
+        cache.put(transactionId.getValue(), claimsCopy);
     }
 
     @Override

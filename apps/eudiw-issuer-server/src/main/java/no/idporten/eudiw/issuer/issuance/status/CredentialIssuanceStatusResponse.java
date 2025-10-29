@@ -10,7 +10,7 @@ import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 @Schema(description = "Credential issuance status response", title = "Issuance status response", type = "object")
 @Builder
 @AllArgsConstructor
-public class IssuanceStatusResponse {
+public class CredentialIssuanceStatusResponse {
 
     @Schema(description = "Credential issuance transaction id", example = "xyz123...")
     @JsonProperty("issuance_transaction_id")
