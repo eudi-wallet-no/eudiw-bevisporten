@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -38,6 +39,9 @@ public class CredentialIssuanceStatusServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Spy
+    private InMemoryCredentialIssuanceStatusCache credentialIssuanceStatusCache = new InMemoryCredentialIssuanceStatusCache();
 
     @InjectMocks
     private CredentialIssuanceStatusService credentialIssuanceStatusService;
@@ -63,7 +67,7 @@ public class CredentialIssuanceStatusServiceTest {
     @Test
     void createStatusWhenOfferIsIssued() {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
-        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "cid");
+        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "cid");
         assertAll(
                 () -> assertEquals(issuanceTransactionId, issuanceStatus.issuanceTransactionId()),
                 () -> assertEquals("cid", issuanceStatus.credentialConfigurationId()),
@@ -78,7 +82,7 @@ public class CredentialIssuanceStatusServiceTest {
         JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
         credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "cid");
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued("cid", issuanceTransactionId);
-        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, issuanceTransactionId);
+        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, issuanceTransactionId);
         assertAll(
                 () -> assertEquals("credential_issued", issuanceStatus.status()),
                 () -> assertEquals("cid", issuanceStatus.credentialConfigurationId()),
@@ -97,7 +101,7 @@ public class CredentialIssuanceStatusServiceTest {
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(cid, issuanceTransactionId);
         String status = "credential_accepted";
         credentialIssuanceStatusService.walletStatusUpdated(notificationId, status);
-        IssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, issuanceTransactionId);
+        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, issuanceTransactionId);
         assertAll(
                 () -> assertEquals(status, issuanceStatus.status()),
                 () -> assertEquals(issuanceTransactionId, issuanceStatus.issuanceTransactionId()),

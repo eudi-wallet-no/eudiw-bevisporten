@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,8 @@ public class CredentialIssuerServerProperties {
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
     @NotEmpty
     private List<@Valid ClaimsSourceProperties> claimsSources;
+    @NotNull
+    private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
 
     public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
         return credentialConfigurations.stream()
