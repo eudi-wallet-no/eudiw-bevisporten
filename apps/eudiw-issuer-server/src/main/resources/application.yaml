@@ -139,9 +139,9 @@ advoktatregisteret:
 ## KRR
 krr:
   uri: https://test.kontaktregisteret.no/
-  scope: krr:global/kontaktinformasjon.read krr:global/digitalpost.read
-  connect-timeout: 5s
-  read-timeout: 5s
+  scope: krr:global/kontaktinformasjon.read
+  connect-timeout: 2s
+  read-timeout: 2s
 
 # Maskinporten
 maskinporten:
