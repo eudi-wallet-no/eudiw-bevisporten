@@ -57,6 +57,10 @@ credential-issuer-server:
     - credential-types:
         - no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
+    - credential-types:
+        - no.kontaktregisteret.kontaktinformasjon.1
+      class-name: no.idporten.eudiw.issuer.claimssource.krr.KrrClaimsSource
+
 
 maskinporten:
   lib:

@@ -22,7 +22,6 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.List;
 
 import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.KRR;
 
@@ -54,14 +53,7 @@ public class KrrIntegration {
 
     public PersonKrr retrieve(String personIdentifier) {
         try {
-            PersonKrr personKrr = krrRestClient
-                    .get()
-                    .uri("rest/v2/person")
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + createAccessToken(personIdentifier).getValue())
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
-                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
-                    .body(PersonKrr.class);
+            PersonKrr personKrr = getPersonKrr(personIdentifier);
             if (personKrr == null) {
                 throw new ClaimsSourceDataNotFoundException(KRR.name(), "No data available", "Failed to map response");
             }
@@ -71,6 +63,18 @@ public class KrrIntegration {
         } catch (RestClientException e) {
             throw new ClaimsSourceException(KRR.name(), "server_error", "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
+    }
+
+    protected PersonKrr getPersonKrr(String personIdentifier) {
+        PersonKrr personKrr = krrRestClient
+                .get()
+                .uri("rest/v2/person")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + createAccessToken(personIdentifier).getValue())
+                .retrieve()
+                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
+                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
+                .body(PersonKrr.class);
+        return personKrr;
     }
 
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
