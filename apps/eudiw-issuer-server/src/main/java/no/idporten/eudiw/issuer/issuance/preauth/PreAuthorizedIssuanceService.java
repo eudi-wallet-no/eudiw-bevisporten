@@ -47,11 +47,13 @@ public class PreAuthorizedIssuanceService {
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
                 .grants(Grants.builder()
                         .preAuthorizedCodeGrant(PreAuthorizedCodeGrant.builder().preAuthorizedCode(preAuthorizedCode)
-                                .txCode(TxCode.builder()
-                                        .inputMode("numeric")
-                                        .length(4)
-                                        .description("Enter code from SMS to issue %s".formatted(claimsSource.getMetadata().getDisplays().getFirst().getName()))
-                                        .build())
+                                .txCode(credentialConfigurationProperties.isRequireTxCode() ?
+                                        TxCode.builder()
+                                                .inputMode("numeric")
+                                                .length(4)
+                                                .description("Enter code from SMS to issue %s".formatted(claimsSource.getMetadata().getDisplays().getFirst().getName()))
+                                                .build()
+                                        : null)
                                 .build())
                         .build())
                 .build();

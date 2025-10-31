@@ -67,6 +67,11 @@ public class CredentialConfigurationProperties {
     private Duration preAuthorizationLifetime = Duration.ofMinutes(10);
 
     /**
+     * Pre-authorization code flow requires tx code or not.
+     */
+    private boolean requireTxCode = true;
+
+    /**
      * Name of keystore for provider signing certificate
      */
     @NotNull
