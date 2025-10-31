@@ -2,10 +2,7 @@ package no.idporten.eudiw.issuer.openid4vci.metadata;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Singular;
+import lombok.*;
 
 import java.util.List;
 
@@ -36,12 +33,21 @@ public class CredentialConfiguration  {
     @JsonProperty("credential_signing_alg_values_supported")
     private List<String> credentialSigningAlgValuesSupported;
 
+
+    @Setter
     @JsonProperty("display")
+    @Deprecated // TODO: Remove once OpenID4VCI draft 15 support is no longer needed
     private List<Display> display;
 
+    @Setter
     @Singular("claim")
     @JsonProperty("claims")
+    @Deprecated // TODO: Remove once OpenID4VCI draft 15 support is no longer needed
     private List<ClaimsDescription> claims;
+
+    @Getter
+    @JsonProperty("credential_metadata")
+    private CredentialMetadata credentialMetadata;
 
     @JsonProperty("proof_types_supported")
     private ProofTypes proofTypes;
