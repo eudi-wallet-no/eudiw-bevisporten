@@ -55,6 +55,9 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['display'][0]['name']").value("Junit doc"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['claims'][0]['path'][0]").value("junitdoc"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['claims'][0]['path'][1]").value("attr1"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['name']").value("Junit doc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['claims'][0]['path'][0]").value("junitdoc"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['claims'][0]['path'][1]").value("attr1"))
 
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']").exists())
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['doctype']").doesNotExist())

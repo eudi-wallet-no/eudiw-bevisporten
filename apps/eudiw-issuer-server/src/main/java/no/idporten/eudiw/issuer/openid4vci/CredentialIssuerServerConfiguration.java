@@ -48,8 +48,10 @@ public class CredentialIssuerServerConfiguration {
                     .format(credentialConfigurationProperties.getFormat().formatIdentifier())
                     .scope(credentialConfigurationProperties.getScope())
                     // config from claims source
-                    .display(claimsSourceMetadata.getDisplays())
-                    .claims(adjustClaimsDescriptionsToCredentialFormat(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getCredentialType(), claimsSourceMetadata.getClaims()))
+                    .credentialMetadata(CredentialMetadata.builder()
+                            .display(claimsSourceMetadata.getDisplays())
+                            .claims(adjustClaimsDescriptionsToCredentialFormat(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getCredentialType(), claimsSourceMetadata.getClaims()))
+                            .build())
                     // config from issuer server
                     .cryptographicBindingMethods(properties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(properties.getCredentialSigningAlgorithms())
@@ -60,7 +62,11 @@ public class CredentialIssuerServerConfiguration {
             } else if (CredentialFormat.SD_JWT_VC.equals(credentialConfigurationProperties.getFormat())) {
                 credentialConfigurationBuilder.vct(credentialConfigurationProperties.getCredentialType());
             }
-            credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfigurationBuilder.build());
+            // fix for openid4vci draft 15
+            CredentialConfiguration credentialConfiguration = credentialConfigurationBuilder.build();
+            credentialConfiguration.setClaims(credentialConfiguration.getCredentialMetadata().getClaims());
+            credentialConfiguration.setDisplay(credentialConfiguration.getCredentialMetadata().getDisplay());
+            credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfiguration);
         }
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
