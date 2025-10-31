@@ -62,10 +62,10 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
-    - identifier: no.minid.mpid_mso_mdoc
+    - identifier: no.minid.mpid_sd_jwt_vc
       scope: eudiw:no:minid:mpid
-      format: mso_mdoc
-      credential-type: no.minid.mpid.1
+      format: sd_jwt_vc
+      credential-type: no:minid:mpid:1
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
@@ -99,7 +99,7 @@ credential-issuer-server:
         - no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
     - credential-types:
-        - no.minid.mpid.1
+        - no:minid:mpid:1
       class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
     - credential-types:
         - no:kontaktregisteret:kontaktinformasjon:1
