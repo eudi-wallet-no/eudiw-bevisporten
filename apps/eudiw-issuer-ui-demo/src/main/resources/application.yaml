@@ -54,13 +54,13 @@ issuer-ui-demo:
               }
             ]
           }
-      - credential-configuration-id: no.minid.mpid_mso_mdoc
+      - credential-configuration-id: no.minid.mpid_sd_jwt_vc
         description: MinID PID
         scope: eudiw:no:minid:mpid
         person-identifier: 24838674964
         json-request: |
           {
-            "credential_configuration_id": "no.minid.mpid_mso_mdoc",
+            "credential_configuration_id": "no.minid.mpid_sd_jwt_vc",
             "subject": {
               "identifier": "24838674964"
             },
