@@ -9,6 +9,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.X509CertUtils;
+import com.nimbusds.jwt.SignedJWT;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
@@ -28,6 +29,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
+import java.time.Clock;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,9 +49,9 @@ public class SDJWTServiceTest {
     @MockitoBean
     private AuditLogger auditLogger;
 
-    private CredentialConfigurationProperties credentialConfigurationProperties(String docType, String keyStoreName) {
+    private CredentialConfigurationProperties credentialConfigurationProperties(String credentialType, String keyStoreName) {
         CredentialConfigurationProperties credentialConfigurationProperties = new CredentialConfigurationProperties();
-        credentialConfigurationProperties.setCredentialType(docType);
+        credentialConfigurationProperties.setCredentialType(credentialType);
         credentialConfigurationProperties.setFormat(CredentialFormat.SD_JWT_VC);
         credentialConfigurationProperties.setKeyStoreName(keyStoreName);
         return credentialConfigurationProperties;
@@ -60,7 +62,7 @@ public class SDJWTServiceTest {
         Claim stringClaim1 = buildClaim("foo", "string1", new StringValue("foobar"));
         Claim stringClaim2 = buildClaim("foo", "string2", new StringValue("foobar-foooooo"));
         CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationProperties(
-                "foo",
+                "urn:foo",
                 "eaa-provider");
         SDJwt sdJwt = sdjwtService.createSDJwt(generateDeviceKey(), credentialConfigurationProperties, List.of(stringClaim1, stringClaim2));
         String encodedSDJwt = sdjwtService.encode(sdJwt);
@@ -69,6 +71,10 @@ public class SDJWTServiceTest {
         );
         SDJwt unverifiedSDJwt = SDJwt.Companion.parse(encodedSDJwt);
         JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
+        assertAll(
+                () -> assertEquals("dc+sd-jwt", jwsHeader.getType().getType()),
+                () -> assertEquals(1, jwsHeader.getX509CertChain().size())
+        );
         X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
         JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, null, jwsVerifier);
@@ -79,7 +85,21 @@ public class SDJWTServiceTest {
                 () -> assertTrue(verificationResult.getDisclosuresVerified())
         );
         SDJwt verifiedSDJwt = verificationResult.getSdJwt();
+        SignedJWT signedJwt = SignedJWT.parse(verifiedSDJwt.getJwt());
         assertAll(
+                () -> assertEquals("https://junit.eidas2sandkasse.dev/", signedJwt.getJWTClaimsSet().getIssuer()),
+                () -> assertEquals("urn:foo", signedJwt.getJWTClaimsSet().getStringClaim("vct")),
+                () -> assertEquals(
+                        Clock.systemUTC().instant().getEpochSecond(),
+                        signedJwt.getJWTClaimsSet().getIssueTime().toInstant().getEpochSecond(),
+                        1000),
+                () -> assertEquals(
+                        Clock.systemUTC().instant().getEpochSecond() + (60 * 60 * 24 * 365),
+                        signedJwt.getJWTClaimsSet().getExpirationTime().toInstant().getEpochSecond(),
+                        1000),
+                () -> assertNull(signedJwt.getJWTClaimsSet().getNotBeforeTime()),
+                () -> assertNull(signedJwt.getJWTClaimsSet().getClaim("string1")),
+                () -> assertNull(signedJwt.getJWTClaimsSet().getClaim("string2")),
                 () -> assertEquals(2, verifiedSDJwt.getDisclosures().size())
         );
     }

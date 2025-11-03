@@ -18,6 +18,7 @@ import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
 
 import java.security.interfaces.ECPrivateKey;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +54,7 @@ public class SDJWTService {
         JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
         claimsSetBuilder.issuer(credentialIssuerServerProperties.getCredentialIssuer().toString());
         claimsSetBuilder.issueTime(now);
-        claimsSetBuilder.notBeforeTime(now);
+        claimsSetBuilder.expirationTime(Date.from(now.toInstant().plus(365, ChronoUnit.DAYS)));
         claimsSetBuilder.claim("vct", credentialConfigurationProperties.getCredentialType());
         claimsSetBuilder.claim("_sd_alg", "sha-256");
         for(Claim claim : claims) {
