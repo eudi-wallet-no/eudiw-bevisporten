@@ -21,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -73,10 +74,29 @@ public class CredentialIssuerServerConfiguration {
     }
 
     /**
-     * Adjust claims description paths to credential format.  mdoc includes credential type in path.
+     * Adjust claims description paths to credential format.
+     * mdoc includes credential type in path.
+     * SD-JWT VC adds claims descriptions for timestamps iat and exp.
      */
     List<ClaimsDescription> adjustClaimsDescriptionsToCredentialFormat(CredentialFormat credentialFormat, String credentialType, List<ClaimsDescription> claimsDescriptions) {
-        return claimsDescriptions.stream().map(claimsDescription -> claimsDescription.forFormat(credentialFormat, credentialType)).toList();
+        List<ClaimsDescription> adjustedClaimsDescriptions = new ArrayList<>();
+        adjustedClaimsDescriptions.addAll(claimsDescriptions
+                .stream()
+                .map(claimsDescription -> claimsDescription.forFormat(credentialFormat, credentialType))
+                .toList());
+        if (CredentialFormat.SD_JWT_VC.equals(credentialFormat)) {
+            adjustedClaimsDescriptions.add(ClaimsDescription.builder()
+                    .path("iat")
+                    .display(Display.builder().locale("no").name("Utstedt").build())
+                    .display(Display.builder().locale("en").name("Issued").build())
+                    .build());
+            adjustedClaimsDescriptions.add(ClaimsDescription.builder()
+                    .path("exp")
+                    .display(Display.builder().locale("no").name("Gyldig til").build())
+                    .display(Display.builder().locale("en").name("Valid until").build())
+                    .build());
+        }
+        return adjustedClaimsDescriptions;
     }
 
     protected URI endpointURI(URI issuerUri, String path) {
