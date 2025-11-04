@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-verifier-proxy
+  description: EUDIWs verifier proxy
+  annotations:
+    github.com/project-slug: eudi-wallet-no/eudiw-verifier-proxy
+spec:
+  type: application
+  lifecycle: test
+  owner: team-digital-lommebok
+  system: digital-lommebok-verifier-proxy
+  dependsOn:
+    - component:digital-lommebok-issuer-server
+    - resource:digital-lommebok-redis

@@ -1,0 +1,16 @@
+---
+server:
+  port: 9285
+
+spring:
+  application:
+    environment: dev
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 9285
+
+
+verifier-proxy:
