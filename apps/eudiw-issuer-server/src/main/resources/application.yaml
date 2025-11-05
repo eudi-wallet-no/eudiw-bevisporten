@@ -46,6 +46,13 @@ credential-issuer-server:
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: pid-provider
+    - identifier: no.digdir.eudiw.pid_sd_jwt_vc
+      scope: eudiw:no:pid
+      format: sd_jwt_vc
+      credential-type: urn:eudi:pid:1
+      grant-type: authorization_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      key-store-name: pid-provider
     - identifier: no.skatteetaten.nnid_mso_mdoc
       scope: eudiw:no:skatteetaten:nnid
       format: mso_mdoc
@@ -91,6 +98,7 @@ credential-issuer-server:
   claims-sources:
     - credential-types:
         - eu.europa.ec.eudi.pid.1
+        - urn:eudi:pid:1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
     - credential-types:
         - no.skatteetaten.nnid.1
