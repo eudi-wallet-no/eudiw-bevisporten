@@ -24,7 +24,6 @@
           th:object="${startIssuanceForm}"
           method="POST">
 
-
         <p class="ds-paragraph" th:if="${credentialConfiguration.personIdentifier()}">
             <label for="person_identifier"
                    data-weight="medium"
@@ -46,6 +45,7 @@
             <textarea id="eaa_data_field"
                       placeholder=""
                       class="ds-input"
+                      style="max-height:500px;min-height:500px; resize: none"
                       th:field="*{json}">
                     </textarea>
         </p>
