@@ -19,8 +19,8 @@ credential-issuer-server:
   credential-issuer: http://issuer-server:9240 # demo-issuer-ui funkar
   authorization-servers:
      ##  Her må jeg ta en titt på URL til oauth
-    - issuer: http://digital-lommebok-oauth-server:9260
-      jwks-uri: http://digital-lommebok-oauth-server:9260/jwks
+    - issuer: http://oauth-server:9260
+      jwks-uri: http://oauth-server:9260/jwks
       api-key: eudiw
   pre-authorization-servers:
     - issuer: https://maskinporten.dev/
