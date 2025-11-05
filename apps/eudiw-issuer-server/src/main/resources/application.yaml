@@ -94,6 +94,14 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
+    - identifier: org.iso.18013.5.1.mDL_mso_mdoc
+      scope: eudiw:no:vegvesen:mdl
+      format: mso_mdoc
+      credential-type: org.iso.18013.5.1.mDL:1
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
 
   claims-sources:
     - credential-types:
@@ -112,7 +120,9 @@ credential-issuer-server:
     - credential-types:
         - no:kontaktregisteret:kontaktinformasjon:1
       class-name: no.idporten.eudiw.issuer.claimssource.krr.KrrClaimsSource
-
+    - credential-types:
+        - org.iso.18013.5.1.mDL:1
+      class-name: no.idporten.eudiw.issuer.claimssource.vegvesenet.ForerkortClaimsSource
 
 # Digdir standard logging
 digdir:

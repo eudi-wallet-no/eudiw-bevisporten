@@ -12,4 +12,5 @@ spec:
   system: digital-lommebok-issuer-server
   dependsOn:
     - component:digital-lommebok-oauth-server
+    - resource:digital-lommebok-redis
 
