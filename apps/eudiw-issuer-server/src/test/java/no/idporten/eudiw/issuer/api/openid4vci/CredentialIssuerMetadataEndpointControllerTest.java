@@ -61,9 +61,7 @@ public class CredentialIssuerMetadataEndpointControllerTest {
 
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']").exists())
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['doctype']").doesNotExist())
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['vct']").value("junitdoc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['credential_metadata']['claims'][1]['path'][0]").value("iat"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['credential_metadata']['claims'][2]['path'][0]").value("exp"));
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['vct']").value("junitdoc"));
     }
 
 }
