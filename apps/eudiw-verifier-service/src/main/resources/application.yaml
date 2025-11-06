@@ -27,3 +27,14 @@ management:
     tags:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
+
+# RP access keystore
+idporten-key-manager:
+  default-keystore: access
+  keystores:
+    access:
+      key-store-type: pkcs12
+      key-store-location: ${VERIFIER_PROXY_ACCESS_KEYSTORE}
+      key-store-password: ${VERIFIER_PROXY_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${VERIFIER_PROXY_ACCESS_KEYSTORE_KEY_ALIAS}
+      key-password: ${VERIFIER_PROXY_ACCESS_KEYSTORE_KEY_PASSWORD}
