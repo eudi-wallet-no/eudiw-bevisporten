@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.openid4vci.sdjwt;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import id.walt.sdjwt.DecoyMode;
@@ -48,8 +49,8 @@ public class SDJWTService {
     protected SDJwt createSDJwt(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws Exception {
         KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfigurationProperties.getKeyStoreName());
         JWSSigner jwsSigner = new ECDSASigner((ECPrivateKey) keyProvider.privateKey());
-
-        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, jwsSigner, null);
+        JWSAlgorithm jwsAlgorithm = ECDSA.resolveAlgorithm((ECPrivateKey) keyProvider.privateKey());
+        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, jwsSigner, null);
 
         Date now = new Date();
         JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
