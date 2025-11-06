@@ -9,7 +9,7 @@ import id.walt.sdjwt.DecoyMode;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SDPayload;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
@@ -18,6 +18,7 @@ import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
 
 import java.security.interfaces.ECPrivateKey;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
@@ -58,7 +59,7 @@ public class SDJWTService {
         claimsSetBuilder.claim("vct", credentialConfigurationProperties.getCredentialType());
         claimsSetBuilder.claim("_sd_alg", "sha-256");
         for(Claim claim : claims) {
-            claimsSetBuilder.claim(claim.getPath().getLast(), claim.getValue().value());
+            claimsSetBuilder.claim(claim.getPath().getLast(), convert(claim.getValue()));
         }
         JWTClaimsSet claimsSet = claimsSetBuilder.build();
         JWTClaimsSet.Builder undisclosedClaimsSetBuilder = new JWTClaimsSet.Builder(claimsSet);
@@ -74,6 +75,24 @@ public class SDJWTService {
                 credentialConfigurationProperties.getFormat().formatIdentifier(),
                 Map.of("x5c", List.of(Base64.getEncoder().encodeToString(keyProvider.certificate().getEncoded()))));
         return sdJwt;
+    }
+
+    /**
+     * Converts claim values to data types supported by JWT implementation (shaded GSON).
+     * @param claimValue claim value
+     * @return converted value
+     */
+    protected Object convert(ClaimValue claimValue) {
+        return switch (claimValue) {
+            case StringValue c -> c.value();
+            case NumberValue c -> c.value();
+            case BooleanValue c -> c.value();
+            case FullDateValue c -> Date.from(c.value().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+            case DateTimeValue c -> Date.from(c.value().toInstant());
+            case ListValue c -> c.value().stream().map(this::convert).collect(Collectors.toList());
+            case MapValue c -> c.value().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> convert(e.getValue())));
+            case null -> throw  new IllegalArgumentException("claimValue cannot be null");
+        };
     }
 
 }
