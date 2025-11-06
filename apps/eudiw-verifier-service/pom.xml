@@ -14,8 +14,17 @@
     <description>EUDIW verifier-proxy</description>
     <properties>
         <java.version>25</java.version>
+        <maven.compiler.proc>full</maven.compiler.proc>
+        <kotlin.version>2.2.21</kotlin.version>
+        <kotlinx-serialization-json-jvm.version>1.9.0</kotlinx-serialization-json-jvm.version>
+        <idporten.keystore.version>1.1.0</idporten.keystore.version>
         <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>2.8.2</idporten-access-log.version>
+        <nimbus-jose-jwt.version>10.5</nimbus-jose-jwt.version>
+        <oauth2-oidc-sdk.version>11.30</oauth2-oidc-sdk.version>
+        <waltid-mdoc-credentials-jvm.version>0.15.1</waltid-mdoc-credentials-jvm.version>
+        <waltid-sdjwt-jvm.version>0.15.1</waltid-sdjwt-jvm.version>
+        <cose-java.version>1.1.1-SNAPSHOT</cose-java.version>
         <opentelemetry-api.version>1.55.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
     </properties>
@@ -41,11 +50,34 @@
         </dependency>
 
         <dependency>
+            <groupId>no.idporten</groupId>
+            <artifactId>idporten-lib-keystore-spring-boot</artifactId>
+            <version>${idporten.keystore.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>oauth2-oidc-sdk</artifactId>
+            <version>${oauth2-oidc-sdk.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
             <version>${opentelemetry-api.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <optional>true</optional>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -53,9 +85,91 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>id.walt.mdoc-credentials</groupId>
+            <artifactId>waltid-mdoc-credentials-jvm</artifactId>
+            <version>0.15.1</version>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.sdjwt</groupId>
+            <artifactId>waltid-sdjwt-jvm</artifactId>
+            <version>${waltid-sdjwt-jvm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cose</groupId>
+            <artifactId>cose-java</artifactId>
+            <version>${cose-java.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-datetime-jvm</artifactId>
+            <version>0.7.1-0.6.x-compat</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-bom</artifactId>
+            <version>1.9.0</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-json-jvm</artifactId>
+            <version>${kotlinx-serialization-json-jvm.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.10.2</version>
+            <type>pom</type>
+        </dependency>
+
+
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <source>src/main/java</source>
+                                <source>target/generated-sources/annotations</source>
+                                <source>src/test/kotlin</source>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <source>src/test/java</source>
+                                <source>target/generated-test-sources/test-annotations</source>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jvmTarget>25</jvmTarget>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -66,11 +180,28 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
-
         </plugins>
     </build>
     <repositories>
+        <repository>
+            <id>waltid-repository-releases</id>
+            <name>walt.id Release Repository</name>
+            <url>https://maven.waltid.dev/releases</url>
+        </repository>
+        <repository>
+            <id>waltid-repository-snapshots</id>
+            <name>walt.id Snapshot Repository</name>
+            <url>https://maven.waltid.dev/snapshots</url>
+        </repository>
         <repository>
             <id>github</id>
             <name>GitHub felleslosninger Apache Maven Packages</name>
