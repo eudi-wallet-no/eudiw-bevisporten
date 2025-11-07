@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.proxy.api.openid4vp;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.openid4vp.OpenID4VPRequestService;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * API used by wallet to retrieve authz request and return response.
  */
+@Hidden
 @RestController
 public class OpenID4VPController {
 
@@ -35,7 +37,7 @@ public class OpenID4VPController {
     /**
      * Receive wallet response.
      */
-    @PostMapping(value = "/openid4vp/response/{verifier_transaction_id}")
+    @PostMapping(value = "/openid4vp/authz-response/{verifier_transaction_id}")
     public ResponseEntity<String> receiveResponse(@PathVariable("verifier_transaction_id") String verifierTransactionId,
                                                   EncryptedAuthorizationResponse encryptedAuthorizationResponse,
                                                   HttpServletRequest request

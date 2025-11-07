@@ -49,7 +49,7 @@ public class OpenID4VPRequestService {
     protected URI createResponseUri(String verifierTransactionId) {
         return UriComponentsBuilder
                 .fromUriString(verifierProxyProperties.getExternalBaseUri())
-                .pathSegment("openid4vp", "response", verifierTransactionId)
+                .pathSegment("openid4vp", "authz-response", verifierTransactionId)
                 .build()
                 .toUri();
     }

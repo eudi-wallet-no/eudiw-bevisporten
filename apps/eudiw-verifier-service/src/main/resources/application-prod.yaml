@@ -1,0 +1,11 @@
+---
+spring:
+  application:
+    environment: prod
+
+verifier-proxy:
+  siop2-client-id: verifier-proxy.eidas2sandkasse.no
+  client-identifier-scheme: x509_san_dns
+  external-base-uri: https://verifier-proxy.eidas2sandkasse.no
+  credential-issuers:
+    - https://utsteder.eidas2sandkasse.no
