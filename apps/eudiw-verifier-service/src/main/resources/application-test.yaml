@@ -4,3 +4,6 @@ spring:
     environment: test
 
 verifier-proxy:
+  siop2-client-id: verifier-proxy.test.eidas2sandkasse.net
+  client-identifier-scheme: x509_san_dns
+  external-base-uri: https://verifier-proxy.test.eidas2sandkasse.net
