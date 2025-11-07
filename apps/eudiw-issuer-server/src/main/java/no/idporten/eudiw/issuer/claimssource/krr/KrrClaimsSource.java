@@ -48,10 +48,10 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @SneakyThrows
     @Override
-    public Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+    public Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
         String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
         PersonKrr personPrivate = krrIntegration.retrieve(personIdentifier);
-        Map<String, String> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>();
         claims.put("personidentifikator", personIdentifier);
         claims.put("epostadresse", personPrivate.kontaktinformasjon().epostadresse());
         claims.put("mobiltelefonnummer", personPrivate.kontaktinformasjon().mobiltelefonnummer());

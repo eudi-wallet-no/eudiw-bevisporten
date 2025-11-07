@@ -23,14 +23,14 @@ public class RedisClaimsSourceCache implements ClaimsSourceCache {
     }
 
     @Override
-    public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims, Duration lifetime) {
+    public void storeClaims(IssuanceTransactionId transactionId, Map<String, Object> claims, Duration lifetime) {
         cache.put(cacheKey(transactionId.getValue()), claims, lifetime);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<String, String> retrieveClaims(IssuanceTransactionId transactionId) {
-        return (Map<String, String>) cache.remove(cacheKey(transactionId.getValue()));
+    public Map<String, Object> retrieveClaims(IssuanceTransactionId transactionId) {
+        return (Map<String, Object>) cache.remove(cacheKey(transactionId.getValue()));
     }
 
 }

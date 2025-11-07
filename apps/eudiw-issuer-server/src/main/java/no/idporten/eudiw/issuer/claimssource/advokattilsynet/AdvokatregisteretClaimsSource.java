@@ -60,10 +60,10 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
 
     @SneakyThrows
     @Override
-    public Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+    public Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
         String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
         PersonPrivate personPrivate = advokatregisteretIntegration.retrieve(personIdentifier);
-        Map<String, String> claims = new HashMap<>();
+        Map<String, Object> claims = new HashMap<>();
         claims.put("personidentifikator", personIdentifier);
         claims.put("tittel", personPrivate.tittel());
         claims.put("etternavn", personPrivate.etternavn());

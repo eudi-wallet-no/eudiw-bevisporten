@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,7 +63,7 @@ public class PreAuthorizedClaimsSourceTest {
 
         class PullClaimsSource extends AbstractJUnitClaimsSource {
             @Override
-            public Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+            public Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
                 return Map.of("c", "v");
             }
         }
@@ -103,8 +104,8 @@ public class PreAuthorizedClaimsSourceTest {
         class PushClaimsSource extends AbstractJUnitClaimsSource {
 
             @Override
-            public Map<String, String> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
-                return claims;
+            public Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+                return new HashMap<>(claims);
             }
 
         }

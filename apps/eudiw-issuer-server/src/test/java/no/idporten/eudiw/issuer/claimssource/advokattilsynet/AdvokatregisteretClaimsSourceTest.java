@@ -113,7 +113,7 @@ public class AdvokatregisteretClaimsSourceTest {
                 }""";
         PersonPrivate personPrivate = new ObjectMapper().readValue(response, PersonPrivate.class);
         when(advokatregisteretIntegration.retrieve(eq(personIdentifier))).thenReturn(personPrivate);
-        Map<String, String> claims = claimsSource.pull(new IssuanceTransactionId(), accessToken);
+        Map<String, Object> claims = claimsSource.pull(new IssuanceTransactionId(), accessToken);
         assertAll(
                 () -> assertEquals(5, claims.size()),
                 () -> assertEquals(personIdentifier, claims.get("personidentifikator")),

@@ -88,6 +88,7 @@ public class SDJWTService {
             case StringValue c -> c.value();
             case NumberValue c -> c.value();
             case BooleanValue c -> c.value();
+            case BinaryValue c -> c.value();
             case FullDateValue c -> Date.from(c.value().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
             case DateTimeValue c -> Date.from(c.value().toInstant());
             case ListValue c -> c.value().stream().map(this::convert).collect(Collectors.toList());

@@ -33,7 +33,9 @@ public class MDocService {
     }
 
     public Credential issueCredential(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws Exception {
-        return Credential.builder().credential(encode(createMDoc(jwk, credentialConfigurationProperties, claims))).build();
+        String mDoc = encode(createMDoc(jwk, credentialConfigurationProperties, claims));
+        //System.out.println("Issuing credential " + mDoc);
+        return Credential.builder().credential(mDoc).build();
     }
 
     protected String encode(MDoc mDoc) {
@@ -68,7 +70,6 @@ public class MDocService {
         }
         return mDocBuilder.sign(
                 new id.walt.mdoc.mso.ValidityInfo(
-
                         Clock.System.INSTANCE.now(),
                         Clock.System.INSTANCE.now(),
                         new Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS)),
@@ -91,6 +92,9 @@ public class MDocService {
             }
             case NumberValue(Long value) -> {
                 return new NumberElement(value);
+            }
+            case BinaryValue(byte[] value) -> {
+                return new ByteStringElement(value);
             }
             case DateTimeValue(ZonedDateTime value) -> {
                 Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);
@@ -116,6 +120,13 @@ public class MDocService {
                 for (Map.Entry<String, ClaimValue> mapEntry : m.entrySet()) {
                     if (mapEntry.getValue() instanceof StringValue(String value)) {
                         map.put(new MapKey(mapEntry.getKey()), new StringElement(value));
+                    } else if (mapEntry.getValue() instanceof FullDateValue(LocalDate value)) {
+                        kotlinx.datetime.LocalDate kxDate = new kotlinx.datetime.LocalDate(
+                                value.getYear(),
+                                value.getMonthValue(),
+                                value.getDayOfMonth()
+                        );
+                        map.put(new MapKey(mapEntry.getKey()), new FullDateElement(kxDate, DEFullDateMode.full_date_str));
                     } else {
                         throw new IllegalArgumentException("Unsupported map value type: " + mapEntry.getValue().getClass());
                     }

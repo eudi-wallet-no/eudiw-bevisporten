@@ -12,17 +12,17 @@ import java.util.Map;
  */
 public class InMemoryClaimsSourceCache implements ClaimsSourceCache {
 
-    private final Map<String, Map<String, String>> cache = new HashMap<>();
+    private final Map<String, Map<String, Object>> cache = new HashMap<>();
 
     @Override
-    public void storeClaims(IssuanceTransactionId transactionId, Map<String, String> claims, Duration ignoredLifetime) {
-        HashMap<String, String> claimsCopy = new HashMap<>(claims);
+    public void storeClaims(IssuanceTransactionId transactionId, Map<String, Object> claims, Duration ignoredLifetime) {
+        HashMap<String, Object> claimsCopy = new HashMap<>(claims);
         claimsCopy.put("@class", "TestThatJacksonSerializationIsIgnored");
         cache.put(transactionId.getValue(), claimsCopy);
     }
 
     @Override
-    public Map<String, String> retrieveClaims(IssuanceTransactionId transactionId) {
+    public Map<String, Object> retrieveClaims(IssuanceTransactionId transactionId) {
         return cache.remove(transactionId.getValue());
     }
 
