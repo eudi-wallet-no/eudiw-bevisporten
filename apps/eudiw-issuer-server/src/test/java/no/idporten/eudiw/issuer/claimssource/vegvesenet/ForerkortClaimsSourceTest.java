@@ -33,13 +33,13 @@ class ForerkortClaimsSourceTest {
         Map<String, String> inputClaims = new HashMap<>();
         inputClaims.put("family_name", "Testesen");
         inputClaims.put("given_name", "Test");
-        inputClaims.put("birth_date", "19900101");
+        inputClaims.put("birth_date", "1990-01-01");
         inputClaims.put("portrait", "0");
 
         JWT jwt = mock(JWT.class);
         IssuanceTransactionId txId = new IssuanceTransactionId("tx-123");
 
-        Map<String, String> result = source.push(txId, jwt, inputClaims);
+        Map<String, Object> result = source.push(txId, jwt, inputClaims);
 
         // Get all claim names from DocumentMetadata
         Set<String> expectedClaims = source.getDocumentMetadata().claims().stream()

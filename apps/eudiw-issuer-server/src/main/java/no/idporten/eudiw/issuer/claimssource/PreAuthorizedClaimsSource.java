@@ -20,13 +20,13 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * Pre-authorize credential issuance by validating and storing claims data.  Data can be provided by calling
      * system or fetched by the claims source if the pull() method is implemented.
      *
-     * @param issuanceTransactionId
-     * @param accessToken
-     * @param pushedClaims
-     * @param authorizationLifetime
+     * @param issuanceTransactionId the id of the issuance transaction
+     * @param accessToken Maskinporten user-bound access token presented by the client
+     * @param pushedClaims pushed claims data from client, or null if pull mode is used
+     * @param authorizationLifetime lifetime for stored claims data
      */
     default void preAuthorize(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims, Duration authorizationLifetime) {
-        final Map<String, String> validatedClaims;
+        final Map<String, Object> validatedClaims;
         if (!CollectionUtils.isEmpty(pushedClaims)) {
             validatedClaims = validate(push(issuanceTransactionId, accessToken, pushedClaims));
         } else {
@@ -38,25 +38,25 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
     /**
      * Pull claims data from authoritative source.  Disabled by default.
      */
-    default Map<String, String> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+    default Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
     }
 
     /**
      * Receive pushed data from authoritative source.  Disabled by default.
      */
-    default Map<String, String> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+    default Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
     }
 
     /**
      * Validate claims data.
      */
-    Map<String, String> validate(Map<String, String> claims);
+    Map<String, Object> validate(Map<String, Object> claims);
 
     /**
      * Store claims data in cache for a given lifetime.
      */
-    IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, String> claims, Duration lifetime);
+    IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, Object> claims, Duration lifetime);
 
 }

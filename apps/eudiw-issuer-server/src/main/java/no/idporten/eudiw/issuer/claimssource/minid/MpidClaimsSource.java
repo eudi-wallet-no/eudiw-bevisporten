@@ -7,6 +7,7 @@ import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,8 +58,8 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    public Map<String, String> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
-        return claims;
+    public Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+        return new HashMap<>(claims);
     }
 
 }

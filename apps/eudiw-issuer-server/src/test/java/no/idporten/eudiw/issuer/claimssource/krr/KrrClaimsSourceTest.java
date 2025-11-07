@@ -89,17 +89,17 @@ public class KrrClaimsSourceTest {
         String response = """
                 {
                     "personidentifikator": "12345678901",
-                    "kontaktinformasjon": 
+                    "kontaktinformasjon":
                         {
                             "epostadresse": "test@default.digdir.no",
                             "mobiltelefonnummer": "12345678"
                         }
-                    
+                
                 }""";
 
         PersonKrr personKrr = new ObjectMapper().readValue(response, PersonKrr.class);
         when(krrIntegration.retrieve(eq(personIdentifier))).thenReturn(personKrr);
-        Map<String, String> claims = claimsSource.pull(new IssuanceTransactionId(), accessToken);
+        Map<String, Object> claims = claimsSource.pull(new IssuanceTransactionId(), accessToken);
         assertAll(
                 () -> assertEquals(3, claims.size()),
                 () -> assertEquals(personIdentifier, claims.get("personidentifikator")),
