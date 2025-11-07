@@ -7,3 +7,5 @@ verifier-proxy:
   siop2-client-id: verifier-proxy.test.eidas2sandkasse.net
   client-identifier-scheme: x509_san_dns
   external-base-uri: https://verifier-proxy.test.eidas2sandkasse.net
+  credential-issuers:
+    - https://utsteder.test.eidas2sandkasse.net

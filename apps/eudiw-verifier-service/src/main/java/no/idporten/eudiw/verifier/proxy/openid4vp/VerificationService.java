@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.proxy.api.verification.StartVerificationReques
 import no.idporten.eudiw.verifier.proxy.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.proxy.api.verification.VerificationDataResponse;
 import no.idporten.eudiw.verifier.proxy.api.verification.VerificationStatusResponse;
+import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialIssuerMetadata;
 import org.springframework.stereotype.Service;
@@ -16,15 +17,20 @@ import java.util.UUID;
 @Service
 public class VerificationService {
 
+    private final VerifierProxyProperties verifierProxyProperties;
     private final OpenID4VPRequestService openID4VPRequestService;
     private final VerificationTransactionService verificationTransactionService;
 
-    public VerificationService(OpenID4VPRequestService openID4VPRequestService, VerificationTransactionService verificationTransactionService) {
+    public VerificationService(VerifierProxyProperties verifierProxyProperties, OpenID4VPRequestService openID4VPRequestService, VerificationTransactionService verificationTransactionService) {
+        this.verifierProxyProperties = verifierProxyProperties;
         this.openID4VPRequestService = openID4VPRequestService;
         this.verificationTransactionService = verificationTransactionService;
     }
 
     public StartVerificationResponse startVerification(@RequestBody StartVerificationRequest startVerificationRequest) throws Exception {
+        if (! verifierProxyProperties.getCredentialIssuers().contains(startVerificationRequest.credentialIssuer())) {
+            throw new VerificationException("invalid_request", "Unsupported credential issuer");
+        }
         CredentialIssuerMetadata credentialIssuerMetadata = CredentialIssuerMetadata.resolve(startVerificationRequest.credentialIssuer());
         CredentialConfiguration credentialConfiguration = credentialIssuerMetadata.findCredentialConfiguration(startVerificationRequest.credentialConfigurationId());
         if (credentialConfiguration == null) {
@@ -43,7 +49,7 @@ public class VerificationService {
     }
 
     public VerificationDataResponse retrieveVerificationData(String verifierTransactionId) {
-        return new VerificationDataResponse("OK", verifierTransactionId, verificationTransactionService.retrieveVerifiedCredentials(verifierTransactionId));
+        return new VerificationDataResponse(verifierTransactionId, verificationTransactionService.retrieveVerifiedCredentials(verifierTransactionId));
     }
 
 }
