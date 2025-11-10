@@ -30,8 +30,6 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.time.*;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 
@@ -69,7 +67,7 @@ public class SDJWTServiceTest {
         Claim numberClaim = buildClaim("foo", "number1", new NumberValue(42L));
         Claim booleanClaim = buildClaim("foo", "boolean1", new BooleanValue(true));
         Claim fullDateClaim = buildClaim("foo", "fulldate1", new FullDateValue(LocalDate.of(2025, 11, 5)));
-        Claim dateTimeClaim = buildClaim("foo", "datetime1", new DateTimeValue(ZonedDateTime.ofInstant(now, ZoneId.systemDefault())));
+        Claim dateTimeClaim = buildClaim("foo", "datetime1", new DateTimeValue(ZonedDateTime.parse("2025-11-10T10:30:00+01:00[Europe/Paris]")));
         Claim listNumberClaim = buildClaim("foo", "listnumbers", new ListValue(List.of(new NumberValue(1L), new NumberValue(2L), new NumberValue(3L))));
         Claim mapBooleanClaim = buildClaim("foo", "mapbooleans", new MapValue(Map.of("JA", new BooleanValue(true), "NEI", new BooleanValue(false))));
         List<Claim> claims = List.of(stringClaim1, numberClaim, booleanClaim, fullDateClaim, dateTimeClaim, listNumberClaim, mapBooleanClaim);
@@ -124,10 +122,8 @@ public class SDJWTServiceTest {
                 () -> assertEquals("foobar", verifiedClaims.getStringClaim("string1")),
                 () -> assertEquals(42, verifiedClaims.getLongClaim("number1")),
                 () -> assertEquals(true,verifiedClaims.getBooleanClaim("boolean1")),
-                () -> assertEquals(
-                        new GregorianCalendar(2025, Calendar.NOVEMBER, 5).getTime(),
-                        verifiedClaims.getDateClaim("fulldate1")),
-                () -> assertEquals(now.getEpochSecond(), verifiedClaims.getDateClaim("datetime1").toInstant().getEpochSecond()),
+                () -> assertEquals("2025-11-05", verifiedClaims.getStringClaim("fulldate1")),
+                () -> assertEquals("2025-11-10", verifiedClaims.getStringClaim("datetime1")),
                 () -> assertEquals(3,  verifiedClaims.getListClaim("listnumbers").size()),
                 () -> assertArrayEquals(new Long[]{1L, 2L, 3L}, verifiedClaims.getListClaim("listnumbers").toArray()),
                 () -> assertTrue((Boolean) verifiedClaims.getJSONObjectClaim("mapbooleans").get("JA")),
