@@ -1,29 +1,22 @@
 package no.idporten.eudiw.issuer.claimssource.pid;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
 import no.digdir.freg.audit.AuditLog;
-import no.digdir.freg.domain.json.Folkeregisterfoedsel;
 import no.digdir.freg.domain.json.Folkeregisterperson;
-import no.digdir.freg.domain.json.Folkeregisterpersonnavn;
-import no.digdir.freg.domain.json.Statsborgerskap;
 import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
 import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
+import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.FullDateValue;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import no.idporten.logging.audit.AuditLogger;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,10 +27,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static no.idporten.eudiw.issuer.claimssource.pid.FregTestUtils.createAccessToken;
+import static no.idporten.eudiw.issuer.claimssource.pid.FregTestUtils.createFolkeregisterperson;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -160,30 +154,6 @@ class PIDClaimsSourceTest {
         assertThrows(ClaimsSourceDataNotFoundException.class, ()-> pidClaimsSource.retrieveClaims(createAccessToken(fnr)));
     }
 
-    @NotNull
-    private static JWT createAccessToken(String fnr) {
-        JWTClaimsSet claimSet = new JWTClaimsSet.Builder().subject(fnr).build();
-        return new PlainJWT(claimSet);
-    }
 
-    @NotNull
-    private static Folkeregisterperson createFolkeregisterperson() {
-        Folkeregisterperson fregPerson = new Folkeregisterperson();
-        Folkeregisterpersonnavn navn = new Folkeregisterpersonnavn();
-        navn.setEtternavn("Etternavnesen");
-        navn.setFornavn("Forenavnesen");
-        navn.setErGjeldende(true);
-        fregPerson.setNavn(Collections.singletonList(navn));
-        Folkeregisterfoedsel fodsel = new Folkeregisterfoedsel();
-        fodsel.setFoedeland("NOR");
-        fodsel.setFoedselsdato("2000-01-01");
-        fodsel.setErGjeldende(true);
-        fregPerson.setFoedsel(Collections.singletonList(fodsel));
-        Statsborgerskap statsborgerskap = new Statsborgerskap();
-        statsborgerskap.setStatsborgerskap("NOR");
-        statsborgerskap.setErGjeldende(true);
-        fregPerson.setStatsborgerskap(Collections.singletonList(statsborgerskap));
-        return fregPerson;
-    }
 
 }

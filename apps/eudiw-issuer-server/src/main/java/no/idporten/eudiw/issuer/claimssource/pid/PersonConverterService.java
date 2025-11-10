@@ -28,6 +28,11 @@ public class PersonConverterService {
         return age.getYears() >= ageLimit;
     }
 
+    public ZonedDateTime calcExpiryDateInMonths(int monthsValid) {
+        ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
+        return utcNow.plusMonths(monthsValid).truncatedTo(ChronoUnit.DAYS);
+    }
+
     public ZonedDateTime calcPidExpiryDate() {
         int validityYears = 10; // PID administrative validity period in years
         ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
