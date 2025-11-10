@@ -76,6 +76,7 @@ oauth-authorization-server:
     - eudiw:no:minid:mpid
     - eudiw:no:advokattilsynet:advokatregisteret
     - eudiw:no:kontaktregisteret:kontaktinformasjon
+    - proof_of_age
   api-key: ${INTERNAL_API_KEY}
   keystore:
     type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
