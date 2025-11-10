@@ -19,7 +19,7 @@ import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
 
 import java.security.interfaces.ECPrivateKey;
-import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
@@ -89,8 +89,8 @@ public class SDJWTService {
             case NumberValue c -> c.value();
             case BooleanValue c -> c.value();
             case BinaryValue c -> c.value();
-            case FullDateValue c -> Date.from(c.value().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-            case DateTimeValue c -> Date.from(c.value().toInstant());
+            case FullDateValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            case DateTimeValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE);
             case ListValue c -> c.value().stream().map(this::convert).collect(Collectors.toList());
             case MapValue c -> c.value().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> convert(e.getValue())));
             case null -> throw  new IllegalArgumentException("claimValue cannot be null");
