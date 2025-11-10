@@ -86,10 +86,10 @@ public class AgeVerificationClaimsSource implements ClaimsSource {
         boolean over15 = personConverterService.calcAgeOver(person.getFoedselsdato(), 15);
         claims.add(getBooleanClaim("age_over_15", over15));
 
-        // mandatory metadata attributes
-        claims.add(getDateTimeClaim("expiry_date", personConverterService.calcPidExpiryDate()));
-        claims.add(getStringClaim("issuing_authority", "DIGITALISERINGSDIREKTORATET"));
-        claims.add(getStringClaim("issuing_country", "NO"));
+//        // mandatory metadata attributes
+//        claims.add(getDateTimeClaim("expiry_date", personConverterService.calcExpiryDateInMonths(1)));
+//        claims.add(getStringClaim("issuing_authority", "DIGITALISERINGSDIREKTORATET"));
+//        claims.add(getStringClaim("issuing_country", "NO"));
 
         return claims;
     }
@@ -105,6 +105,7 @@ public class AgeVerificationClaimsSource implements ClaimsSource {
     private Claim getStringClaim(String key, String value) {
         return buildClaim(key, new StringValue(value));
     }
+
     private Claim getBooleanClaim(String key, Boolean value) {
         return buildClaim(key, new BooleanValue(value));
     }
