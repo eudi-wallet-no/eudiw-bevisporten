@@ -17,15 +17,15 @@ class PersonConverterServiceTest {
 
     @DisplayName("verify that age over 18 is calculated correctly")
     @Test
-    void testCalcAgeOver18() {
+    void testCalcAgeOver() {
         PersonConverterService service = new PersonConverterService();
-        assertTrue(service.calcAgeOver18("1979-12-11"));
+        assertTrue(service.calcAgeOver("1979-12-11", 18));
 
         String exactly18Years = getYears(18);
-        assertTrue(service.calcAgeOver18(exactly18Years));
+        assertTrue(service.calcAgeOver(exactly18Years, 18));
 
         String not18Yet = getYears(10);
-        assertFalse(service.calcAgeOver18(not18Yet));
+        assertFalse(service.calcAgeOver(not18Yet, 18));
     }
 
     @NotNull
