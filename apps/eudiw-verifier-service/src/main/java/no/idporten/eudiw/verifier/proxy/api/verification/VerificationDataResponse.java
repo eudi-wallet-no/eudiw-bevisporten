@@ -10,6 +10,8 @@ import java.util.Map;
 public record VerificationDataResponse(
         @Schema(description = "Verification transaction id.", example = "xyz...")
         @JsonProperty("verifier_transaction_id") String verifierTransactionId,
+        @Schema(description = "vp_token from wallet.")
+        @JsonProperty("vp_token") String vpToken,
         @Schema(description = "Verified credentials.")
         @JsonProperty("credentials") Map<String, Object> credentials
         ) {

@@ -8,6 +8,7 @@ import no.idporten.eudiw.verifier.proxy.api.verification.VerificationStatusRespo
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialIssuerMetadata;
+import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -38,18 +39,19 @@ public class VerificationService {
         }
         String verifierTransactionId = UUID.randomUUID().toString();
         URI requestUri = openID4VPRequestService.createAuthorizationRequest(credentialConfiguration, verifierTransactionId);
-        verificationTransactionService.updateStatus(verifierTransactionId, "WAIT");
+        verificationTransactionService.initTransaction(verifierTransactionId, credentialConfiguration);
         return new StartVerificationResponse(requestUri, verifierTransactionId);
     }
 
     public VerificationStatusResponse verifierStatus(String verifierTransactionId) {
         return new VerificationStatusResponse(
-                verificationTransactionService.retrieveStatus(verifierTransactionId, "UNKNOWN"),
+                verificationTransactionService.retrieveStatus(verifierTransactionId),
                 verifierTransactionId);
     }
 
     public VerificationDataResponse retrieveVerificationData(String verifierTransactionId) {
-        return new VerificationDataResponse(verifierTransactionId, verificationTransactionService.retrieveVerifiedCredentials(verifierTransactionId));
+        VerifiedCredentials verifiedCredentials = verificationTransactionService.retrieveVerifiedCredentials(verifierTransactionId);
+        return new VerificationDataResponse(verifierTransactionId, verifiedCredentials.vpToken(), verifiedCredentials.credentials());
     }
 
 }
