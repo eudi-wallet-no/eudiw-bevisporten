@@ -129,7 +129,7 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(getStringClaim("issuing_country", "NO"));
 
         // digdir non-spec attributes
-        boolean over18 = personConverterService.calcAgeOver18(person.getFoedselsdato());
+        boolean over18 = personConverterService.calcAgeOver(person.getFoedselsdato(), 18);
         claims.add(getBooleanClaim("age_over_18", over18));
 
         return claims;

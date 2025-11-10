@@ -102,7 +102,13 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
-
+    - identifier: proof_of_age
+      scope: proof_of_age
+      format: mso_mdoc
+      credential-type: eu.europa.ec.av.1
+      grant-type: authorization_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      key-store-name: eaa-provider
   claims-sources:
     - credential-types:
         - eu.europa.ec.eudi.pid.1
@@ -123,7 +129,9 @@ credential-issuer-server:
     - credential-types:
         - org.iso.18013.5.1.mDL:1
       class-name: no.idporten.eudiw.issuer.claimssource.vegvesenet.ForerkortClaimsSource
-
+    - credential-types:
+        - eu.europa.ec.av.1
+      class-name: no.idporten.eudiw.issuer.claimssource.ageverification.AgeVerificationClaimsSource
 # Digdir standard logging
 digdir:
   audit:

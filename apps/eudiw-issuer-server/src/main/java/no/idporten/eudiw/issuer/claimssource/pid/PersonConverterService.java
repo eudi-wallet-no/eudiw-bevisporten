@@ -21,11 +21,11 @@ public class PersonConverterService {
     }
 
 
-    public boolean calcAgeOver18(final String fodselsdato) {
+    public boolean calcAgeOver(final String fodselsdato, int ageLimit) {
         LocalDate birthDate = LocalDate.parse(fodselsdato);
         LocalDate today = LocalDate.now();
         Period age = Period.between(birthDate, today);
-        return age.getYears() >= 18;
+        return age.getYears() >= ageLimit;
     }
 
     public ZonedDateTime calcPidExpiryDate() {
