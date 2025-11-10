@@ -17,7 +17,6 @@ import net.minidev.json.JSONObject;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.ClaimsDescription;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -93,7 +92,7 @@ public class OpenID4VPRequestService {
                 .claim("nonce", UUID.randomUUID().toString())
                 .claim("state", state)
                 .claim("client_id", verifierProxyProperties.getClientIdentifierScheme())
-                .claim("dcql_query", makeDCQLSDJwt(credentialConfiguration, state))
+                .claim("dcql_query", makeDCQLQuery(credentialConfiguration, state))
                 .claim("client_metadata", makeClientMetadata())
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
                 .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
@@ -110,6 +109,7 @@ public class OpenID4VPRequestService {
         signedJWT.sign(signer);
         return signedJWT;
     }
+
     @Deprecated
     private JSONObject makeVpFormats() {
         JSONArray algs = new JSONArray();
@@ -159,20 +159,21 @@ public class OpenID4VPRequestService {
     }
 
     @SneakyThrows
-    public JSONObject makeDCQLSDJwt(CredentialConfiguration credentialConfig, String id) {
+    public JSONObject makeDCQLQuery(CredentialConfiguration credentialConfiguration, String id) {
         JSONObject credential = new JSONObject()
                 .appendField("id", id)
-                .appendField("format", credentialConfig.getFormat())
-                .appendField("meta", new JSONObject().appendField(
-                        "vct_values", List.of(credentialConfig.getVct())));
-        JSONArray claims = new JSONArray();
-        for (ClaimsDescription claim : credentialConfig.getCredentialMetadata().getClaimsDescriptions()) {
-            claims.appendElement(new JSONObject()
-                    .appendField("path", claim.getPath()));
-        }
-        credential.put("claims", claims);
-        JSONObject dcql = new JSONObject().appendField("credentials", new JSONArray().appendElement(credential));
-        return dcql;
+                .appendField("format", credentialConfiguration.getFormat())
+                .appendField("meta",
+                        "dc+sd-jwt".equals(credentialConfiguration.getFormat())
+                                ?
+                                new JSONObject().appendField("vct_values", List.of(credentialConfiguration.getVct()))
+                                :
+                                new JSONObject().appendField("doctype_value", credentialConfiguration.getDoctype()))
+                .appendField("claims",
+                        credentialConfiguration.getCredentialMetadata().getClaimsDescriptions().stream()
+                                .map(cd -> new JSONObject().appendField("path", cd.getPath()))
+                                .toList());
+        return new JSONObject().appendField("credentials", new JSONArray().appendElement(credential));
     }
 
 }
