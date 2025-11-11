@@ -86,14 +86,6 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
-    - identifier: no.kontaktregisteret.kontaktinformasjon_mso_mdoc
-      scope: eudiw:no:kontaktregisteret:kontaktinformasjon
-      format: mso_mdoc
-      credential-type: no:kontaktregisteret:kontaktinformasjon:1
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-      key-store-name: eaa-provider
     - identifier: org.iso.18013.5.1.mDL_mso_mdoc
       scope: eudiw:no:vegvesen:mdl
       format: mso_mdoc
