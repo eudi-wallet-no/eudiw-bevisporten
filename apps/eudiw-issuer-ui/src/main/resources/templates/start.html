@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
-    <title>EUDIW sandkassa for digital lommebok: Bevisutferdar</title>
+    <title>EUDIW sandkassa for digital lommebok: Bevisporten</title>
 </head>
 
 <body>
@@ -18,25 +18,25 @@
         </p>
     </div>
     <div class="flex-container">
+        <a th:href="@{/start-issuance?credential_configuration_id=proof_of_age}" class="ds-card"
+           data-variant="neutral" style="max-width: 500px">
+            <h2 class="ds-heading">Aldersbevis</h2>
+            <p class="ds-paragraph" data-variant="neutral">
+                eu.europa.ec.av.1 (mdoc)
+            </p>
+        </a>
     <a th:href="@{/start-issuance?credential_configuration_id=no.digdir.eudiw.pid_mso_mdoc}" class="ds-card"
        data-variant="neutral" style="max-width: 500px">
-        <h2 class="ds-heading">PID mdoc</h2>
+        <h2 class="ds-heading">Norsk ID-bevis</h2>
         <p class="ds-paragraph" data-variant="neutral">
-            no.digdir.eudiw.pid_mso_mdoc
+            eu.europa.ec.eudi.pid.1 (mdoc)
         </p>
     </a>
     <a th:href="@{/start-issuance?credential_configuration_id=no.digdir.eudiw.pid_sd_jwt_vc}" class="ds-card"
        data-variant="neutral" style="max-width: 500px">
-        <h2 class="ds-heading">PID SD-JWT VC</h2>
+        <h2 class="ds-heading">Norsk ID-bevis</h2>
         <p class="ds-paragraph" data-variant="neutral">
-            urn:eudi:pid:1
-        </p>
-    </a>
-    <a th:href="@{/start-issuance?credential_configuration_id=proof_of_age}" class="ds-card"
-       data-variant="neutral" style="max-width: 500px">
-        <h2 class="ds-heading">Aldersbevis mdoc</h2>
-        <p class="ds-paragraph" data-variant="neutral">
-            eu.europa.ec.av.1
+            urn:eudi:pid:1 (SD-JWT VC)
         </p>
     </a>
     </div>
