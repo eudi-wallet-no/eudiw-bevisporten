@@ -81,7 +81,7 @@ class PIDClaimsSourceTest {
         assertNotNull(metadata.getClaims());
         assertEquals(NUMBER_OF_CLAIMS, metadata.getClaims().size());
         assertNotNull(metadata.getDisplays().stream()
-                .filter(display -> display.getName().contains("Norsk PID"))
+                .filter(display -> display.getName().contains("Norsk ID-bevis"))
                 .findFirst()
                 .orElse(null));
 
