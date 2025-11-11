@@ -55,7 +55,7 @@ public class PIDClaimsSource implements ClaimsSource {
     @Override
     public ClaimsSourceMetadata getMetadata() {
         return ClaimsSourceMetadata.builder()
-                .display(Display.builder().locale("no").name("Norsk PID").build())
+                .display(Display.builder().locale("no").name("Norsk ID-bevis").build())
                 .claim(ClaimsDescription.builder()
                         .path("personal_administrative_number")
                         .mandatory(true)
