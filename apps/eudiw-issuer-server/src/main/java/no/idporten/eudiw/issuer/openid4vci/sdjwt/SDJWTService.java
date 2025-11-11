@@ -56,7 +56,7 @@ public class SDJWTService {
         JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
         claimsSetBuilder.issuer(credentialIssuerServerProperties.getCredentialIssuer().toString());
         claimsSetBuilder.issueTime(now);
-        claimsSetBuilder.expirationTime(Date.from(now.toInstant().plus(365, ChronoUnit.DAYS)));
+        claimsSetBuilder.expirationTime(Date.from(now.toInstant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS)));
         claimsSetBuilder.claim("vct", credentialConfigurationProperties.getCredentialType());
         claimsSetBuilder.claim("_sd_alg", "sha-256");
         for(Claim claim : claims) {

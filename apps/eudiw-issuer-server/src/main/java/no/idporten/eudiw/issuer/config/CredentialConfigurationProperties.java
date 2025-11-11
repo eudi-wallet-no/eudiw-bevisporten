@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.config;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -36,6 +37,13 @@ public class CredentialConfigurationProperties {
      */
     @NotNull
     private CredentialFormat format;
+
+    /**
+     * For how many days the credential is technically valid
+     */
+    @Min(1)
+    @Builder.Default
+    private int validityDays = 365;
 
     /**
      * Scope required in access_token at the credentials endpoint

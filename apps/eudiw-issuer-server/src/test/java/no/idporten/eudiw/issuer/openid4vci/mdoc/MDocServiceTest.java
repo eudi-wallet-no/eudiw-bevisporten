@@ -20,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.security.Security;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
@@ -150,6 +151,22 @@ public class MDocServiceTest {
                 () -> assertEquals("mymap", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
                 () -> assertEquals(map.size(), ((Map<String, DataElement>) mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size()),
                 () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
+        );
+    }
+
+    @Test
+    void testIssueMDocWithValidity() throws Exception {
+        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationProperties("foo", "eaa-provider");
+        credentialConfigurationProperties.setValidityDays(42);
+        Claim claim = buildClaim("foo", "cool-id", new BooleanValue(true));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties, List.of(claim));
+        assertAll(
+                () -> assertNotNull(mdoc),
+                () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size()),
+                () -> assertEquals(
+                        java.time.Instant.now().plus(42, ChronoUnit.DAYS).toEpochMilli(),
+                        mdoc.getMSO().getValidityInfo().getValidUntil().getValue().toEpochMilliseconds(), 1000)
         );
     }
 

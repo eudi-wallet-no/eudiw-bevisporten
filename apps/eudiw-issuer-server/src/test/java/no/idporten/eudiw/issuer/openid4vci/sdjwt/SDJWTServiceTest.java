@@ -51,11 +51,12 @@ public class SDJWTServiceTest {
     @MockitoBean
     private AuditLogger auditLogger;
 
-    private CredentialConfigurationProperties credentialConfigurationProperties(String credentialType, String keyStoreName) {
+    private CredentialConfigurationProperties credentialConfigurationProperties(String credentialType, String keyStoreName, int validityDays) {
         CredentialConfigurationProperties credentialConfigurationProperties = new CredentialConfigurationProperties();
         credentialConfigurationProperties.setCredentialType(credentialType);
         credentialConfigurationProperties.setFormat(CredentialFormat.SD_JWT_VC);
         credentialConfigurationProperties.setKeyStoreName(keyStoreName);
+        credentialConfigurationProperties.setValidityDays(validityDays);
         return credentialConfigurationProperties;
     }
 
@@ -74,7 +75,8 @@ public class SDJWTServiceTest {
 
         CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationProperties(
                 "urn:foo",
-                "eaa-provider");
+                "eaa-provider",
+                30);
         SDJwt sdJwt = sdjwtService.createSDJwt(
                 generateDeviceKey(),
                 credentialConfigurationProperties,
@@ -108,7 +110,7 @@ public class SDJWTServiceTest {
                         signedJwt.getJWTClaimsSet().getIssueTime().toInstant().getEpochSecond(),
                         1000),
                 () -> assertEquals(
-                        Clock.systemUTC().instant().getEpochSecond() + (60 * 60 * 24 * 365),
+                        Clock.systemUTC().instant().getEpochSecond() + (60 * 60 * 24 * 30),
                         signedJwt.getJWTClaimsSet().getExpirationTime().toInstant().getEpochSecond(),
                         1000),
                 () -> assertNull(signedJwt.getJWTClaimsSet().getNotBeforeTime()),
