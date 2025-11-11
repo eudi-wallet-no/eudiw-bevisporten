@@ -72,8 +72,8 @@ public class MDocService {
                 new id.walt.mdoc.mso.ValidityInfo(
                         Clock.System.INSTANCE.now(),
                         Clock.System.INSTANCE.now(),
-                        new Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS)),
-                        new Instant(java.time.Clock.systemUTC().instant().plus(365, ChronoUnit.DAYS))
+                        new Instant(java.time.Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS)),
+                        new Instant(java.time.Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS))
                 ),
                 deviceKeyInfo,
                 cryptoProvider,
