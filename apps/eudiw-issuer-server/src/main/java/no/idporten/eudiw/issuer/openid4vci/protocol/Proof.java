@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 
 import java.text.ParseException;
 
+@Deprecated
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class Proof {

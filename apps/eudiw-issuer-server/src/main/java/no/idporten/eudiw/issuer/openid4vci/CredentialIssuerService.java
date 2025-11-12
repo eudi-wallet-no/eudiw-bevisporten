@@ -11,16 +11,14 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.preauth.PreAuthorizationService;
 import no.idporten.eudiw.issuer.openid4vci.mdoc.MDocService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
-import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
-import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
-import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
+import no.idporten.eudiw.issuer.openid4vci.protocol.*;
 import no.idporten.eudiw.issuer.openid4vci.sdjwt.SDJWTService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -46,10 +44,10 @@ public class CredentialIssuerService {
     public CredentialResponse issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope());
-        JWK bindingKey = credentialRequest.getProof() != null ? credentialRequest.getProof().getBindingKey() : null;
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
+        List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs(), credentialRequest.getProof());
         List<Claim> claims = claimsSource.retrieveClaims(accessToken);
-        List<Credential> credentials = createCredentials(bindingKey, credentialConfigurationProperties, claims);
+        List<Credential> credentials = createCredentials(bindingKeys, credentialConfigurationProperties, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
 
@@ -60,6 +58,10 @@ public class CredentialIssuerService {
                 .build();
     }
 
+    // Support OpenID4VCI 1 proofs vs older versions proof
+    protected List<JWK> getBindingKeys(Proofs proofs, Proof proof) {
+        return proofs != null ? proofs.getBindingKeys() : proof != null ? List.of(proof.getBindingKey()) : null;
+    }
 
     private IssuanceTransactionId getIssuanceTransactionId(JWT accessToken) {
         try {
@@ -77,14 +79,21 @@ public class CredentialIssuerService {
      * Creates credentials in the format configured on credential configuration.
      */
     @SneakyThrows
-    protected List<Credential> createCredentials(JWK bindingKey, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
+    protected List<Credential> createCredentials(List<JWK> bindingKeys, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
+        if (bindingKeys == null) {
+            // TODO this is most likely invalid - test with android and ios updated to OpenID4VCI 1!
+            return List.of(createCredential(null, credentialConfigurationProperties, claims));
+        }
+        return bindingKeys.stream().map(bindingKey -> createCredential(bindingKey, credentialConfigurationProperties, claims)).toList();
+    }
+
+    @SneakyThrows
+    private Credential createCredential(JWK bindingKey, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
         return switch (credentialConfigurationProperties.getFormat()) {
-            case MSO_MDOC ->
-                    List.of(mDocService.issueCredential(bindingKey, credentialConfigurationProperties, claims));
-            case SD_JWT_VC ->
-                    List.of(sdjwtService.issueCredential(bindingKey, credentialConfigurationProperties, claims));
+            case MSO_MDOC -> mDocService.issueCredential(bindingKey, credentialConfigurationProperties, claims);
+            case SD_JWT_VC -> sdjwtService.issueCredential(bindingKey, credentialConfigurationProperties, claims);
             case JSON_DEBUG ->
-                    List.of(Credential.builder().credential(new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(claims)).build());
+                    Credential.builder().credential(new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(claims)).build();
         };
     }
 
