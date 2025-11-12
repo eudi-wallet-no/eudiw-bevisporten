@@ -91,6 +91,32 @@ public class CredentialEndpointControllerTest {
         verify(proofService).validateProof(any());
     }
 
+    @DisplayName("then a valid credential request with proofs gives a credential response")
+    @Test
+    void testPostCredentialRequestWithMultipleProofs() throws Exception {
+        setUpAccessTokenValidation();
+        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
+        mockMvc.perform(post("/openid4vci/credential")
+                        .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("""
+                                {
+                                  "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
+                                  "proofs": {
+                                    "jwt": [
+                                      "eyJhbGciOiJFUzI1NiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiV2JPTGpWbXVUMVJxblFpOHUxdTY2VEhzM0FKQkcxU095QlhjT1lPR09fcyIsInkiOiI5bGhaQ0tFdU9uR2ZxanFpNS1TMF9hZ1pYYUN0NDROR0p5RWo3My0xYUVjIn19.eyJhdWQiOiJodHRwOi8vaXNzdWVyLXNlcnZlcjo5MjQwIiwiaWF0IjoxNzYyOTUzNDMxLCJpc3MiOiJ3YWxsZXQtZGV2Iiwibm9uY2UiOiJJMnNJd09KY1RoQTY0bVR3eldKXzh4dzZHZERJSUZ4U2xPamo4NlJxdzRVIn0.moH5imAAdS0M7Tj4tIlgVWCB3XzW4PIcxInnE488uDn3UjZGLzWrFNeFupxEqSrGgi7MA3LPlVAUcg2DvAwgSQ"
+                                    ]
+                                  }
+                                }"""))
+                .andExpect(status().isAccepted())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.credentials").isArray())
+                .andExpect(jsonPath("$.credentials").isNotEmpty())
+                .andExpect(jsonPath("$.credentials[0].credential").value("foo"));
+        verify(proofService).validateProofs(any());
+    }
+
+
     @DisplayName("then an empty credential request gives a credential error response")
     @Test
     void testEmptyCredentialRequest() throws Exception {

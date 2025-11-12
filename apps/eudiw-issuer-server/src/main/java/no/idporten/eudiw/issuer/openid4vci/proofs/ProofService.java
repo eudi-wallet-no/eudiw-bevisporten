@@ -18,6 +18,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proof;
+import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -32,17 +33,24 @@ public class ProofService {
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
+    @Deprecated
     public void validateProof(Proof proof) {
-        if (PROOF_TYPE_JWT.equals(proof.getProofType())) {
-            validateJwtProof(proof);
-        } else {
-            throw new InvalidProof(null, "Unsupported proof type.");
+            if (PROOF_TYPE_JWT.equals(proof.getProofType())) {
+                validateJwtProof(proof.getJwt());
+            } else {
+                throw new InvalidProof(null, "Unsupported proof type.");
         }
     }
 
-    public void validateJwtProof(Proof proof) {
+    public void validateProofs(Proofs proofs) {
+        for (String jwtProof : proofs.getJwt()) {
+            validateJwtProof(jwtProof);
+        }
+    }
+
+    public void validateJwtProof(String jwtProof) {
         try {
-            SignedJWT jwt = SignedJWT.parse(proof.getJwt());
+            SignedJWT jwt = SignedJWT.parse(jwtProof);
             JWSHeader jwsHeader = jwt.getHeader();
             JWK jwk = jwsHeader.getJWK();
             if (jwk == null) {
