@@ -29,9 +29,9 @@ public class OpenID4VPController {
     /**
      * Retrieve authz request.
      */
-    @GetMapping(value = "/openid4vp/authz-request/{verifier_transaction_id}", produces = "application/oauth-authz-req+jwt")
-    public ResponseEntity<String> retrieveRequest(@PathVariable("verifier_transaction_id") String verifierTransactionId) throws Exception {
-        return ResponseEntity.ok(openID4VPRequestService.retrieveAuthorizationRequest(verifierTransactionId));
+    @GetMapping(value = "/openid4vp/authz-request/{request_id}", produces = "application/oauth-authz-req+jwt")
+    public ResponseEntity<String> retrieveRequest(@PathVariable("request_id") String requestId) throws Exception {
+        return ResponseEntity.ok(openID4VPRequestService.retrieveAuthorizationRequest(requestId));
     }
 
     /**
