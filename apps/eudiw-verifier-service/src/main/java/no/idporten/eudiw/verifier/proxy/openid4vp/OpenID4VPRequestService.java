@@ -10,7 +10,6 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -29,18 +28,26 @@ import java.security.interfaces.ECPublicKey;
 import java.time.Clock;
 import java.util.*;
 
-@RequiredArgsConstructor
 @Service
 public class OpenID4VPRequestService {
 
     private final VerifierProxyProperties verifierProxyProperties;
     private final KeystoreManager keystoreManager;
-    private Map<String, String> authorizationRequests = new HashMap<>();
+    private final VerificationTransactionService verificationTransactionService;
 
-    protected URI createRequestUri(String verifierTransactionId) {
+    // Cache request_id -> verification_transaction_id
+    private Map<String, String> requestId2verificationTransactionId = new HashMap<>();
+
+    public OpenID4VPRequestService(VerifierProxyProperties verifierProxyProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService) {
+        this.verifierProxyProperties = verifierProxyProperties;
+        this.keystoreManager = keystoreManager;
+        this.verificationTransactionService = verificationTransactionService;
+    }
+
+    protected URI createRequestUri(String requestId) {
         return UriComponentsBuilder
                 .fromUriString(verifierProxyProperties.getExternalBaseUri())
-                .pathSegment("openid4vp", "authz-request", verifierTransactionId)
+                .pathSegment("openid4vp", "authz-request", requestId)
                 .build()
                 .toUri();
     }
@@ -53,30 +60,35 @@ public class OpenID4VPRequestService {
                 .toUri();
     }
 
-    protected URI createAuthorizationRequest(String verifierTransactionId) {
+    protected URI createAuthorizationRequest(String requestId) {
         return UriComponentsBuilder.newInstance()
                 .scheme("eudi-openid4vp")
                 .host(verifierProxyProperties.getSiop2ClientId())
                 .queryParam("client_id", verifierProxyProperties.getClientIdentifierScheme())
-                .queryParam("request_uri", createRequestUri(verifierTransactionId).toString())
+                .queryParam("request_uri", createRequestUri(requestId).toString())
                 .build()
                 .toUri();
     }
 
-    public String retrieveAuthorizationRequest(String verifierTransactionId) {
-        String authorizationRequest = authorizationRequests.remove(verifierTransactionId);
-        if (authorizationRequest == null) {
-            throw new VerificationException("invalid_request", "Unknown authorization request");
-        }
-        return authorizationRequest;
+    @SneakyThrows
+    public URI createAuthorizationRequest(CredentialConfiguration credentialConfiguration, String verifierTransactionId) {
+        String requestId = UUID.randomUUID().toString();
+        requestId2verificationTransactionId.put(requestId, verifierTransactionId);
+        return createAuthorizationRequest(requestId);
     }
 
     @SneakyThrows
-    public URI createAuthorizationRequest(CredentialConfiguration credentialConfiguration, String verifierTransactionId) {
-        JWT vpAuthorizationRequest = makeRequestJwt(credentialConfiguration, verifierTransactionId);
-        authorizationRequests.put(verifierTransactionId, vpAuthorizationRequest.serialize());
-        URI authorizationRequest = createAuthorizationRequest(verifierTransactionId);
-        return authorizationRequest;
+    public String retrieveAuthorizationRequest(String requestId) {
+        String verificationTransactionId = requestId2verificationTransactionId.remove(requestId);
+        if (verificationTransactionId == null) {
+            throw new VerificationException("invalid_request", "Unknown authorization request");
+        }
+        VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(verificationTransactionId);
+        if (verificationTransaction == null) {
+            throw new VerificationException("invalid_request", "Unknown verification transaction");
+        }
+        JWT authorizationRequest = makeRequestJwt(verificationTransaction.getCredentialConfiguration(), verificationTransactionId);
+        return authorizationRequest.serialize();
     }
 
     public JWT makeRequestJwt(CredentialConfiguration credentialConfiguration, String state) throws Exception {
