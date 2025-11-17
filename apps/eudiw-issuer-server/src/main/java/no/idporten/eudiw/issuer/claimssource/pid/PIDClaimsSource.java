@@ -124,7 +124,7 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(getListClaim("nationality", getNationalities(person)));
 
         // mandatory metadata attributes
-        claims.add(getDateTimeClaim("expiry_date", personConverterService.calcPidExpiryDate()));
+        claims.add(buildClaim("expiry_date", new FullDateValue(personConverterService.calcPidExpiryDate())));
         claims.add(getStringClaim("issuing_authority", "DIGITALISERINGSDIREKTORATET"));
         claims.add(getStringClaim("issuing_country", "NO"));
 
@@ -147,9 +147,9 @@ public class PIDClaimsSource implements ClaimsSource {
         return Collections.singletonMap("country", country);
     }
 
-    private Claim getFullDateClaim(String key, String value) {
+    public Claim getFullDateClaim(String key, String value) {
         if (value == null || value.isEmpty()) {
-            throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(), "Found no Foedselsdato in FREG on user");
+            throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(), "Found no %s in FREG on user".formatted(key));
         }
         try {
             LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);

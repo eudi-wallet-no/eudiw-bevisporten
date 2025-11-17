@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,11 +37,11 @@ class PersonConverterServiceTest {
     @Test
     void verifyExpiredDateHasCorrectFormat() {
         PersonConverterService service = new PersonConverterService();
-        ZonedDateTime expiryDate = service.calcPidExpiryDate();
+        LocalDate expiryDate = service.calcPidExpiryDate();
         assertNotNull(expiryDate);
         // e.g. 2035-09-22T00:00Z
-        assertTrue(expiryDate.toString().matches("\\d{4}-\\d{2}-\\d{2}T00:00Z"));
-        assertTrue(expiryDate.isAfter(ZonedDateTime.now()));
+        assertTrue(expiryDate.toString().matches("\\d{4}-\\d{2}-\\d{2}"));
+        assertTrue(expiryDate.isAfter(LocalDate.now()));
     }
 
 
