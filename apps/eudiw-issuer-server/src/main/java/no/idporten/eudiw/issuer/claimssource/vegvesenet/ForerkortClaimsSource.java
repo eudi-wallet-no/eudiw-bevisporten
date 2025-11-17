@@ -7,8 +7,10 @@ import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
@@ -112,25 +114,25 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
     @Override
     public Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
         Map<String, Object> completeClaims = new HashMap<>(claims);
-        // convert input birth-date to ZonedDateTime
+        // convert input birth_date to LocalDate
         if (claims.containsKey("birth_date")) {
             String birthDateStr = claims.get("birth_date");
-            ZonedDateTime birthDate = ZonedDateTime.parse(birthDateStr + "T00:00:00Z");
+            LocalDate birthDate = LocalDate.parse(birthDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
             completeClaims.put("birth_date", birthDate);
         }
 
-        // add our "hard coded" claim
+        // Add our "hard coded" claim
         ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
         ZonedDateTime nowDays = utcNow.truncatedTo(ChronoUnit.DAYS);
-        completeClaims.put("issue_date", nowDays);
-        completeClaims.put("expiry_date", nowDays.plusYears(1));
+        completeClaims.put("issue_date", nowDays.toLocalDate());
+        completeClaims.put("expiry_date", nowDays.plusYears(1).toLocalDate());
         completeClaims.put("issuing_country", "NO");
         completeClaims.put("issuing_authority", "Statens vegvesen");
         completeClaims.put("document_number", 123456789);
         Map<String, Object> drivingPrivilege = new HashMap<>();
         drivingPrivilege.put("vehicle_category_code", "B");
-        drivingPrivilege.put("issue_date", nowDays);
-        drivingPrivilege.put("expiry_date", nowDays.plusYears(1));
+        drivingPrivilege.put("issue_date", nowDays.toLocalDate());
+        drivingPrivilege.put("expiry_date", nowDays.plusYears(1).toLocalDate());
         drivingPrivilege.put("codes", "96"); // https://www.vegvesen.no/globalassets/forerkort/har-forerkort/koder-pa-forerkort.pdf // hengar BE-96 :-)
         completeClaims.put("driving_privileges", drivingPrivilege);
         completeClaims.put("un_distinguishing_sign", "N");
@@ -150,12 +152,12 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
             Map<String, Object> dp = (Map<String, Object>) storedClaims.get(claim.name());
             Map<String, ClaimValue> dpClaims = new HashMap<>();
             dpClaims.put("vehicle_category_code", new StringValue((String) dp.get("vehicle_category_code")));
-            dpClaims.put("issue_date", new FullDateValue(ZonedDateTime.parse((String) dp.get("issue_date"))));
-            dpClaims.put("expiry_date", new FullDateValue(ZonedDateTime.parse((String) dp.get("expiry_date"))));
+            dpClaims.put("issue_date", new FullDateValue(LocalDate.parse((String) dp.get("issue_date"))));
+            dpClaims.put("expiry_date", new FullDateValue(LocalDate.parse((String) dp.get("expiry_date"))));
             dpClaims.put("codes", new StringValue((String) dp.get("codes")));
             return Claim.builder().path(claim.name()).value(new MapValue(dpClaims)).build();
         } else if (claim.type().equals(TYPE_FULLDATE)) {
-            return Claim.builder().path(claim.name()).value(new FullDateValue(ZonedDateTime.parse((String) storedClaims.get(claim.name())))).build();
+            return Claim.builder().path(claim.name()).value(new FullDateValue(LocalDate.parse((String) storedClaims.get(claim.name())))).build();
         } else if (claim.type().equals(TYPE_NUMBER)) {
             return Claim.builder().path(claim.name()).value(new NumberValue((Integer) storedClaims.get(claim.name()))).build();
         }

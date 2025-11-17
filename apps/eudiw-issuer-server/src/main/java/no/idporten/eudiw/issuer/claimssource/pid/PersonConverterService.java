@@ -33,10 +33,10 @@ public class PersonConverterService {
         return utcNow.plusMonths(monthsValid).truncatedTo(ChronoUnit.DAYS);
     }
 
-    public ZonedDateTime calcPidExpiryDate() {
+    public LocalDate calcPidExpiryDate() {
         int validityYears = 10; // PID administrative validity period in years
         ZonedDateTime utcNow = ZonedDateTime.now(ZoneOffset.UTC);
-        return utcNow.plusYears(validityYears).truncatedTo(ChronoUnit.DAYS);
+        return utcNow.plusYears(validityYears).truncatedTo(ChronoUnit.DAYS).toLocalDate();
     }
 
     public String getNationalityAlpha2(String nationalityAlpha3) {
@@ -58,7 +58,7 @@ public class PersonConverterService {
                         return false;
                     }
                 })
-                .collect(Collectors.toMap(Locale::getISO3Country, Locale::getCountry, (key, duplicate) -> key));
+                .collect(Collectors.toMap(Locale::getISO3Country, Locale::getCountry, (key, _) -> key));
     }
 
     public String truncateTo150(String value) {
