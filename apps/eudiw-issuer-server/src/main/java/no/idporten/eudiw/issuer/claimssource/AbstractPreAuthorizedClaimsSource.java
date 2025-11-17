@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
 import java.time.Duration;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +43,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         if (ClaimMetadata.TYPE_STRING.equals(claimMetadata.type())) {
             validateStringValue(claimMetadata, claims);
         } else if (ClaimMetadata.TYPE_FULLDATE.equals(claimMetadata.type())) {
-            final ZonedDateTime value = (ZonedDateTime) claims.get(claimMetadata.name());
+            final LocalDate value = (LocalDate) claims.get(claimMetadata.name());
             if (claimMetadata.mandatory() && value == null) {
                 throw new IssuerServerException("invalid_request", "Missing required value for fulldate claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
             }
