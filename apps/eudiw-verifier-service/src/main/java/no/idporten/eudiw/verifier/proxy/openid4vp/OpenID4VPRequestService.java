@@ -87,24 +87,26 @@ public class OpenID4VPRequestService {
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction");
         }
-        JWT authorizationRequest = makeRequestJwt(verificationTransaction.getCredentialConfiguration(), verificationTransactionId);
+        String state = UUID.randomUUID().toString();
+        verificationTransaction.setState(state);
+        JWT authorizationRequest = makeRequestJwt(verificationTransaction.getCredentialConfiguration(), verificationTransactionId, state);
         return authorizationRequest.serialize();
     }
 
-    public JWT makeRequestJwt(CredentialConfiguration credentialConfiguration, String state) throws Exception {
+    public JWT makeRequestJwt(CredentialConfiguration credentialConfiguration, String verifierTransactionId, String state) throws Exception {
         KeyProvider keyProvider = keystoreManager.getKeyProvider("access");
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .audience("https://self-issued.me/v2")
                 .issuer(verifierProxyProperties.getExternalBaseUri())
-                .claim("response_uri", createResponseUri(state).toString())
+                .claim("response_uri", createResponseUri(verifierTransactionId).toString())
                 .claim("response_type", "vp_token")
                 .claim("response_mode", "direct_post.jwt")
                 .claim("nonce", UUID.randomUUID().toString())
                 .claim("state", state)
                 .claim("client_id", verifierProxyProperties.getClientIdentifierScheme())
-                .claim("dcql_query", makeDCQLQuery(credentialConfiguration, state))
+                .claim("dcql_query", makeDCQLQuery(credentialConfiguration, verifierTransactionId))
                 .claim("client_metadata", makeClientMetadata())
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
                 .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
@@ -139,6 +141,10 @@ public class OpenID4VPRequestService {
         JSONObject mdoc = new JSONObject();
         JSONObject format = new JSONObject();
         format.appendField("mso_mdoc", mdoc);
+        JSONObject sdJwt = new JSONObject();
+        sdJwt.appendField("sd-jwt_alg_values", List.of("ES256", "ES384"));
+        sdJwt.appendField("kb-jwt_alg_values", List.of("ES256", "ES384"));
+        format.appendField("dc+sd-jwt", sdJwt);
         return format;
     }
 

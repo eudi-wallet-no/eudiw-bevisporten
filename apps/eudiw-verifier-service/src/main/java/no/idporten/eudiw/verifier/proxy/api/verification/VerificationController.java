@@ -42,7 +42,7 @@ public class VerificationController {
      * Retrieve verification result.
      */
     @GetMapping(value = "/v1/verify/result/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<VerificationDataResponse> retrieveVerifiedCredentials(
+    public ResponseEntity<VerificationResultResponse> retrieveVerifiedCredentials(
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
             @PathVariable("verifier_transaction_id") String verifierTransactionId) {
         return ResponseEntity.ok(verificationService.retrieveVerificationData(verifierTransactionId));

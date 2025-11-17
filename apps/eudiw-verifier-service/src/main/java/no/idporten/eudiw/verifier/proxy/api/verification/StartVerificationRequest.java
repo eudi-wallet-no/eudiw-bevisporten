@@ -12,7 +12,7 @@ public record StartVerificationRequest(
         @JsonProperty("credential_issuer")
         String credentialIssuer,
 
-        @Schema(description = "Credential configuration id.", example = "no.digdir.eudiw.pid_sd_jwt_vc")
+        @Schema(description = "Credential configuration id.", example = "no.digdir.eudiw.pid_mso_mdoc")
         @JsonProperty("credential_configuration_id")
         String credentialConfigurationId
 ) {
