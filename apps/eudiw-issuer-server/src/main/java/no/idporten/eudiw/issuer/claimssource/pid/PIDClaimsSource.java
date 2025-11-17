@@ -92,10 +92,6 @@ public class PIDClaimsSource implements ClaimsSource {
                         .path("issuing_country")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Utsteda i land").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("age_over_18")
-                        .mandatory(false)
-                        .display(Display.builder().locale("no").name("Over 18").build()).build())
                 .build();
     }
 
@@ -127,10 +123,6 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(buildClaim("expiry_date", new FullDateValue(personConverterService.calcPidExpiryDate())));
         claims.add(getStringClaim("issuing_authority", "DIGITALISERINGSDIREKTORATET"));
         claims.add(getStringClaim("issuing_country", "NO"));
-
-        // digdir non-spec attributes
-        boolean over18 = personConverterService.calcAgeOver(person.getFoedselsdato(), 18);
-        claims.add(getBooleanClaim("age_over_18", over18));
 
         return claims;
     }
