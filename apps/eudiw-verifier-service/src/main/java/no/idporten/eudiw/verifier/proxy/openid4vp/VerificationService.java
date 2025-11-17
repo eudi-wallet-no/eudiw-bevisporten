@@ -3,7 +3,7 @@ package no.idporten.eudiw.verifier.proxy.openid4vp;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.proxy.api.verification.StartVerificationResponse;
-import no.idporten.eudiw.verifier.proxy.api.verification.VerificationDataResponse;
+import no.idporten.eudiw.verifier.proxy.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.proxy.api.verification.VerificationStatusResponse;
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
@@ -49,9 +49,9 @@ public class VerificationService {
                 verifierTransactionId);
     }
 
-    public VerificationDataResponse retrieveVerificationData(String verifierTransactionId) {
+    public VerificationResultResponse retrieveVerificationData(String verifierTransactionId) {
         VerifiedCredentials verifiedCredentials = verificationTransactionService.retrieveVerifiedCredentials(verifierTransactionId);
-        return new VerificationDataResponse(verifierTransactionId, verifiedCredentials.vpToken(), verifiedCredentials.credentials());
+        return new VerificationResultResponse(verifierTransactionId, verifiedCredentials.vpToken(), verifiedCredentials.credentials());
     }
 
 }

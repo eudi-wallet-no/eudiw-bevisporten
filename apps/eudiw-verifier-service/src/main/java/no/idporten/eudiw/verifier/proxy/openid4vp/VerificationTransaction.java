@@ -9,6 +9,8 @@ public class VerificationTransaction {
 
     private String status;
     private CredentialConfiguration credentialConfiguration;
+    private String state;
+    private String nonce;
     private VerifiedCredentials verifiedCredentials;
 
 }

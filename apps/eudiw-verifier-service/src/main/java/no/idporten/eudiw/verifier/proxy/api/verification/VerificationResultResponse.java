@@ -7,12 +7,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public record VerificationDataResponse(
+public record VerificationResultResponse(
         @Schema(description = "Verification transaction id.", example = "xyz...")
         @JsonProperty("verifier_transaction_id") String verifierTransactionId,
         @Schema(description = "vp_token from wallet.")
         @JsonProperty("vp_token") String vpToken,
         @Schema(description = "Verified credentials.")
-        @JsonProperty("credentials") Map<String, Object> credentials
+        @JsonProperty("claims") Map<String, Object> credentials
         ) {
 }

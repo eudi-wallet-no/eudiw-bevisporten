@@ -3,8 +3,8 @@ package no.idporten.eudiw.verifier.proxy.openid4vp;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
+import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import com.nimbusds.jwt.JWTClaimsSet;
 import id.walt.mdoc.dataelement.DataElement;
 import id.walt.mdoc.dataelement.EncodedCBORElement;
 import id.walt.mdoc.dataelement.MapElement;
@@ -17,6 +17,7 @@ import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.api.openid4vp.EncryptedAuthorizationResponse;
+import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Component;
@@ -24,9 +25,7 @@ import org.springframework.stereotype.Component;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class OpenID4VPResponseService {
@@ -47,6 +46,9 @@ public class OpenID4VPResponseService {
         Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse());
         String nonce = (String) claimsFromJwePayload.get("nonce");
         String state = (String) claimsFromJwePayload.get("state");
+        if (!Objects.equals(state, verificationTransaction.getState())) {
+            throw new VerificationException("invalid_request", "Invalid state in authorization response");
+        }
         final String vpToken = extractVpToken(verifierTransactionId, claimsFromJwePayload);
         final Map<String, Object> claims;
         if ("dc+sd-jwt".equals(verificationTransaction.getCredentialConfiguration().getFormat())) {
@@ -79,10 +81,18 @@ public class OpenID4VPResponseService {
         JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
         X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
         JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
-        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, null, jwsVerifier);
+        JWSAlgorithm jwsAlgorithm = ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
+        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
         VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(cryptoProvider, null);
-        SDJwt verifiedSDJwt = verificationResult.getSdJwt();
-        return JWTClaimsSet.parse(unverifiedSDJwt.getFullPayload().toString()).toJSONObject();
+        if (!verificationResult.getVerified()) {
+            throw new VerificationException("invalid_request", "Invalid vp_token signature or unverified disclosures");
+        }
+        Map<String, Object> claims = new HashMap<>();
+        for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
+            List<Object> parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
+            claims.put((String) parsedDisclosure.get(1), parsedDisclosure.get(2));
+        }
+        return claims;
     }
 
     protected Map<String, Object> retrieveClaimsFromMDocCredential(String vpToken) throws Exception {
