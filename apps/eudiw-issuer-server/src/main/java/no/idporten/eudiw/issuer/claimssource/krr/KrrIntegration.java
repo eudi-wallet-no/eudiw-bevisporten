@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.krr;
 
 import com.nimbusds.oauth2.sdk.token.AccessToken;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
@@ -16,14 +17,18 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Objects;
 
 import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.KRR;
+import static org.springframework.util.StringUtils.hasLength;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * Integration with krr to retrieve info about reservations.
@@ -56,6 +61,15 @@ public class KrrIntegration {
             PersonKrr personKrr = getPersonKrr(personIdentifier);
             if (personKrr == null) {
                 throw new ClaimsSourceDataNotFoundException(KRR.name(), "No data available", "Failed to map response");
+            } else if (!Objects.equals(personKrr.reservasjon(), "NEI")){
+                throw new ClaimsSourceInvalidDataException(KRR.name(), "invalid_request", "The request is not valid" , "Person RESERVED in KRR");
+            } else if (!Objects.equals(personKrr.status(), "AKTIV")) {
+                throw new ClaimsSourceInvalidDataException(KRR.name(), "invalid_request", "The request is not valid", "Person not ACTIVE in KRR");
+            } else if(!Objects.equals(personKrr.varslingsstatus(), "KAN_VARSLES")) {
+                throw new ClaimsSourceInvalidDataException(KRR.name(), "invalid_request", "The request is not valid", "Person not verified in KRR");
+            } else if(!hasText(personKrr.kontaktinformasjon().epostadresse()) &&
+                    !hasText(personKrr.kontaktinformasjon().mobiltelefonnummer())) {
+                throw new ClaimsSourceInvalidDataException(KRR.name(), "invalid_request", "The request is not valid", "Person has neither epost nor mobil in KRR");
             }
             return personKrr;
         } catch (ResourceAccessException e) {

@@ -17,4 +17,8 @@ public class ClaimsSourceInvalidDataException extends ClaimsSourceException {
         super(authoritativeSource, FAILED_CREDENTIAL_REQUEST, errorDescription, httpStatus, cause);
     }
 
+    public ClaimsSourceInvalidDataException(String authoritativeSource, String error, String errorDescription, String logMessage) {
+        super(authoritativeSource, error, errorDescription, httpStatus, logMessage);
+    }
+
 }

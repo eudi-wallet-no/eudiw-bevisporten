@@ -89,7 +89,10 @@ public class KrrClaimsSourceTest {
         String response = """
                 {
                     "personidentifikator": "12345678901",
-                    "kontaktinformasjon":
+                    "reservasjon": "NEI",
+                    "status": "AKTIV",
+                    "varslingsstatus": "KAN_IKKE_VARSLES",
+                    "kontaktinformasjon": 
                         {
                             "epostadresse": "test@default.digdir.no",
                             "mobiltelefonnummer": "12345678"
