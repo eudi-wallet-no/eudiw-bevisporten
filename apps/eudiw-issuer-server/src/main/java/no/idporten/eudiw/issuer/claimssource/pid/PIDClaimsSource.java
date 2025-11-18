@@ -73,7 +73,7 @@ public class PIDClaimsSource implements ClaimsSource {
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødselsdato").build()).build())
                 .claim(ClaimsDescription.builder()
-                        .path("birth_place").path("country")
+                        .path("place_of_birth")
                         .mandatory(true)
                         .display(Display.builder().locale("no").name("Fødeland").build()).build())
                 .claim(ClaimsDescription.builder()
