@@ -8,9 +8,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public record PersonKrr(
         @JsonProperty("personidentifikator")
         String personidentifikator,
+        @JsonProperty("reservasjon")
+        String reservasjon,
+        @JsonProperty("status")
+        String status,
+        @JsonProperty("varslingsstatus")
+        String varslingsstatus,
         @JsonProperty("kontaktinformasjon")
-        Kontaktinformasjon kontaktinformasjon,
-        @JsonProperty("digital_post")
-        DigitalPost digitalpost
+        Kontaktinformasjon kontaktinformasjon
 ) {
 }

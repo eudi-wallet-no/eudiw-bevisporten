@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.api.openid4vci.NonceErrorResponse;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.openid4vci.proofs.InvalidProof;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +47,18 @@ public class ExceptionControllerAdvice {
         return ResponseEntity
                 .status(claimsSourceDataNotFoundException.getHttpStatus())
                 .body(new ErrorResponse(claimsSourceDataNotFoundException.getError(), claimsSourceDataNotFoundException.getErrorDescription()));
+    }
+
+    @ExceptionHandler(ClaimsSourceInvalidDataException.class)
+    public ResponseEntity<ErrorResponse> claimSourceInvalidDataException(ClaimsSourceInvalidDataException claimsSourceInvalidDataException) {
+        if(claimsSourceInvalidDataException.getLogMessage() != null) {
+            log.info(claimsSourceInvalidDataException.getLogMessage(), claimsSourceInvalidDataException);
+        } else {
+            log.info("Invalid data in  claims-source from authoritative source {} ", claimsSourceInvalidDataException.getAuthoritativeSource(), claimsSourceInvalidDataException);
+        }
+        return ResponseEntity
+                .status(claimsSourceInvalidDataException.getHttpStatus())
+                .body(new ErrorResponse(claimsSourceInvalidDataException.getError(), claimsSourceInvalidDataException.getErrorDescription()));
     }
 
     @ExceptionHandler(ClaimsSourceException.class)
