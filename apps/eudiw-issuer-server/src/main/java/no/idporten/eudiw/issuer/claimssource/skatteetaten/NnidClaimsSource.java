@@ -15,9 +15,9 @@ import java.util.Map;
 public class NnidClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     private final DocumentMetadata documentMetadata = new DocumentMetadata(
-            Map.of(
-                    "no", "Norsk identitetsnummer",
-                    "en", "Norwegian identification number"
+            List.of(
+                    new DocumentMetadata.Display("no", "Norsk identitetsnummer"),
+                    new DocumentMetadata.Display("en", "Norwegian identification number")
             ),
             List.of(
                     new ClaimMetadata("norwegian_national_id_number",

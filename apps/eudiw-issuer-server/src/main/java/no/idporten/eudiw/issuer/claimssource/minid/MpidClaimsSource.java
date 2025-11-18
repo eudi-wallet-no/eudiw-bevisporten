@@ -18,7 +18,7 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     public MpidClaimsSource() {
         this.documentMetadata = new DocumentMetadata(
-                Map.of("no", "MinID PID"),
+                List.of(new DocumentMetadata.Display("no", "MinID PID")),
                 List.of(
                         new ClaimMetadata("personal_administrative_number",
                                 Map.of("no", "Norsk identitetsnummer"),
