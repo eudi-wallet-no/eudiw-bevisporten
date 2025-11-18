@@ -23,7 +23,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
     public KrrClaimsSource(KrrIntegration krrIntegration) {
         this.krrIntegration = krrIntegration;
         this.documentMetadata = new DocumentMetadata(
-                Map.of("no", "Digital kontaktinformasjon"),
+                List.of(new DocumentMetadata.Display("no", "Digital kontaktinformasjon")),
                 List.of(
                         new ClaimMetadata("personidentifikator",
                                 Map.of("no", "Personidentifikator"),

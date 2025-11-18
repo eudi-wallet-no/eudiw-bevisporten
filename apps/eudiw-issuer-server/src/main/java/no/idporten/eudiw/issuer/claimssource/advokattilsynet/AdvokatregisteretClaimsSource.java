@@ -23,7 +23,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
     public AdvokatregisteretClaimsSource(AdvokatregisteretIntegration advokatregisteretIntegration) {
         this.advokatregisteretIntegration = advokatregisteretIntegration;
         this.documentMetadata = new DocumentMetadata(
-                Map.of("no", "Advokatbevilling"),
+                List.of(new DocumentMetadata.Display("no", "Advokatbevilling")),
                 List.of(
                         new ClaimMetadata("personidentifikator",
                                 Map.of("no", "Personidentifikator"),

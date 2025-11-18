@@ -23,10 +23,15 @@ import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
 @Service
 public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
+    private static final String FORERKORT_DISCLAIMER_NO =
+        "MERK: dette er ikkje eit reelt førarkort kobla til test-førarkortregisteret. Alle testbrukarar får statisk satt klasse B.";
+    private static final String FORERKORT_DISCLAIMER_EN =
+        "NOTE: this is not a real driver's license tied to the test license register. All test users are granted class B license.";
+
     private final DocumentMetadata documentMetadata = new DocumentMetadata(
-            Map.of(
-                    "no", "Norsk førerkort",
-                    "en", "Norwegian driver's license"
+            List.of(
+                new DocumentMetadata.Display("no", "Norsk førerkort", FORERKORT_DISCLAIMER_NO),
+                new DocumentMetadata.Display("en", "Norwegian driver's license", FORERKORT_DISCLAIMER_EN)
             ),
             List.of(
                     new ClaimMetadata("family_name",

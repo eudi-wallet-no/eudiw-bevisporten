@@ -12,7 +12,7 @@ public class JUnitPreAuthorizedClaimsSource extends AbstractPreAuthorizedClaimsS
 
     @Override
     protected DocumentMetadata getDocumentMetadata() {
-        return new DocumentMetadata(Map.of("no", "Junit doc"), List.of(new ClaimMetadata("attr1", Map.of("no", "Attributt 1"), true, ".*")));
+        return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit doc")), List.of(new ClaimMetadata("attr1", Map.of("no", "Attributt 1"), true, ".*")));
     }
 
 }

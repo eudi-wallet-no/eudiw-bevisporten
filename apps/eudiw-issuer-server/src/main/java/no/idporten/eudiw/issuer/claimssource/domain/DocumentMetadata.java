@@ -2,16 +2,23 @@ package no.idporten.eudiw.issuer.claimssource.domain;
 
 
 import java.util.List;
-import java.util.Map;
 
-public record DocumentMetadata (
-        // locale -> text
-        Map<String, String> displayNames,
-        List<ClaimMetadata> claims
-){
+public record DocumentMetadata(
+    List<Display> displays,
+    List<ClaimMetadata> claims
+) {
 
     public ClaimMetadata findClaimMetadata(String name) {
         return claims().stream().filter(claim -> claim.name().equals(name)).findFirst().orElse(null);
     }
 
+    public record Display(
+        String locale,
+        String name,
+        String description
+    ) {
+        public Display(String locale, String name) {
+            this(locale, name, null);
+        }
+    }
 }

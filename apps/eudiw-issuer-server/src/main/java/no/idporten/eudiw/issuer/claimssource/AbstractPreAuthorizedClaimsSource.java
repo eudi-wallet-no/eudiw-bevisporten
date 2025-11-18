@@ -105,10 +105,9 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     @Override
     public final ClaimsSourceMetadata getMetadata() {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
-        builder.displays(getDocumentMetadata().displayNames()
-                .entrySet()
+        builder.displays(getDocumentMetadata().displays()
                 .stream()
-                .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList());
+                .map(display -> Display.builder().locale(display.locale()).name(display.name()).description(display.description()).build()).toList());
         for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
             builder.claim(ClaimsDescription.builder()
                     .path(claimMetadata.name())
