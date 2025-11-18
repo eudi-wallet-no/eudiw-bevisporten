@@ -116,7 +116,7 @@ public class PIDClaimsSource implements ClaimsSource {
         claims.add(getStringClaim("family_name", getEtternavn(person.getNavn())));
         claims.add(getStringClaim("given_name", getFornavn(person.getNavn())));
         claims.add(getFullDateClaim("birth_date", person.getFoedselsdato()));
-        claims.add(getMapClaim("birth_place", convertBirthPlace(person)));
+        claims.add(getMapClaim("place_of_birth", convertBirthPlace(person)));
         claims.add(getListClaim("nationality", getNationalities(person)));
 
         // mandatory metadata attributes
