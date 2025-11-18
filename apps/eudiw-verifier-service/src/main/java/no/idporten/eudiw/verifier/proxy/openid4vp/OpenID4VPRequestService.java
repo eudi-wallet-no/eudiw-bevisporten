@@ -16,6 +16,7 @@ import net.minidev.json.JSONObject;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
+import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.ClaimsDescription;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -189,9 +190,20 @@ public class OpenID4VPRequestService {
                                 new JSONObject().appendField("doctype_value", credentialConfiguration.getDoctype()))
                 .appendField("claims",
                         credentialConfiguration.getCredentialMetadata().getClaimsDescriptions().stream()
-                                .map(cd -> new JSONObject().appendField("path", cd.getPath()))
+                                .map(cd -> new JSONObject().appendField("path", calculatePath(credentialConfiguration.getFormat(), cd)))
                                 .toList());
         return new JSONObject().appendField("credentials", new JSONArray().appendElement(credential));
+    }
+
+    protected List<String> calculatePath(String credentialFormat, ClaimsDescription claimsDescription) {
+        if ("dc+sd-jwt".equals(credentialFormat)) {
+            return claimsDescription.getPath();
+        }
+        // do not ask for map or list elements in mdoc credentials
+        if (claimsDescription.getPath().size() == 2) {
+            return claimsDescription.getPath();
+        }
+        return claimsDescription.getPath().subList(0, 2);
     }
 
 }
