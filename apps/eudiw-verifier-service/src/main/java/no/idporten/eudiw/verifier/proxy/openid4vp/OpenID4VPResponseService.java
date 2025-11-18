@@ -5,10 +5,7 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.mdoc.dataelement.DataElement;
-import id.walt.mdoc.dataelement.EncodedCBORElement;
-import id.walt.mdoc.dataelement.MapElement;
-import id.walt.mdoc.dataelement.MapKey;
+import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
@@ -26,6 +23,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class OpenID4VPResponseService {
@@ -112,13 +110,13 @@ public class OpenID4VPResponseService {
                 for (EncodedCBORElement element : elements) {
                     Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
                     String elementIdentifier = null;
-                    String elementValue = null;
+                    Object elementValue = null;
                     for (MapKey mapKey : elementMap.keySet()) {
                         if (mapKey.getStr().equals("elementIdentifier")) {
                             elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
                         }
                         if (mapKey.getStr().equals("elementValue")) {
-                            elementValue = String.valueOf(elementMap.get(mapKey).getInternalValue());
+                            elementValue = extractValue(elementMap.get(mapKey));
                         }
                     }
                     claims.put(elementIdentifier, elementValue);
@@ -127,5 +125,34 @@ public class OpenID4VPResponseService {
         }
         return claims;
     }
+    
+    protected Object extractValue(DataElement dataElement) {
+        if (dataElement == null) {
+            return null;
+        }
+        if (dataElement instanceof BooleanElement) {
+            return ((BooleanElement) dataElement).getValue();
+        }
+        return switch (dataElement.getType()) {
+            case number -> ((NumberElement) dataElement).getValue();
+            case textString -> ((StringElement) dataElement).getValue();
+            case dateTime ->  ((DateTimeElement) dataElement).getValue().toString();
+            case fullDate ->  ((FullDateElement) dataElement).getValue().toString();
+            case nil -> null;
+            case map ->  ((MapElement) dataElement).getValue().entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            e -> String.valueOf(e.getKey()),
+                            e -> extractValue(e.getValue())));
+            case list ->  ((ListElement) dataElement).getValue()
+                    .stream()
+                    .map(this::extractValue)
+                    .toList();
+            case byteString -> new String(Base64.getEncoder().encode(((ByteStringElement) dataElement).getValue()));
+            default -> String.valueOf(dataElement.getInternalValue());
+        };
+
+    }
+    
 
 }
