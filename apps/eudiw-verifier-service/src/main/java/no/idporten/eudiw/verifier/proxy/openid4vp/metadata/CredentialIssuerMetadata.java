@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.Objects;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,8 +27,22 @@ public class CredentialIssuerMetadata {
     @JsonProperty("credential_configurations_supported")
     private Map<String, CredentialConfiguration> credentialConfigurations;
 
-    public CredentialConfiguration findCredentialConfiguration(String credentialConfigurationId) {
+    public CredentialConfiguration findCredentialConfigurationById(String credentialConfigurationId) {
         return credentialConfigurations.get(credentialConfigurationId);
+    }
+
+    public CredentialConfiguration findCredentialConfigurationByDoctype(String doctype) {
+        return credentialConfigurations.values().stream()
+                .filter(cc -> Objects.equals(cc.getDoctype(), doctype))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public CredentialConfiguration findCredentialConfigurationByVct(String vct) {
+        return credentialConfigurations.values().stream()
+                .filter(cc -> Objects.equals(cc.getVct(), vct))
+                .findFirst()
+                .orElse(null);
     }
 
     public static URL resolveURL(final String issuer) throws GeneralException {

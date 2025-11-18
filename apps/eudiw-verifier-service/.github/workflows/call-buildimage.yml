@@ -15,10 +15,11 @@ on:
 
 jobs:
   build-publish-image:
-    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
+    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@PF-2108-test-cloudflare-outage-workaround
     with:
       image-name: digital-lommebok-verifier-proxy
       java-version: 25
+      java-distribution: temurin
     secrets: inherit
 
   call-update-image:
