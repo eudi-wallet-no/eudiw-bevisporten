@@ -10,6 +10,7 @@ import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfigurati
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialIssuerMetadata;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.net.URI;
@@ -32,8 +33,7 @@ public class VerificationService {
         if (! verifierProxyProperties.getCredentialIssuers().contains(startVerificationRequest.credentialIssuer())) {
             throw new VerificationException("invalid_request", "Unsupported credential issuer");
         }
-        CredentialIssuerMetadata credentialIssuerMetadata = CredentialIssuerMetadata.resolve(startVerificationRequest.credentialIssuer());
-        CredentialConfiguration credentialConfiguration = credentialIssuerMetadata.findCredentialConfiguration(startVerificationRequest.credentialConfigurationId());
+        CredentialConfiguration credentialConfiguration = findCredentialConfiguration(startVerificationRequest);
         if (credentialConfiguration == null) {
             throw new VerificationException("invalid_request", "Unknown credential configuration");
         }
@@ -42,6 +42,22 @@ public class VerificationService {
         verificationTransactionService.initTransaction(verifierTransactionId, credentialConfiguration);
         return new StartVerificationResponse(requestUri, verifierTransactionId);
     }
+
+
+    public CredentialConfiguration findCredentialConfiguration(StartVerificationRequest startVerificationRequest) throws Exception {
+        CredentialIssuerMetadata credentialIssuerMetadata = CredentialIssuerMetadata.resolve(startVerificationRequest.credentialIssuer());
+        if (StringUtils.hasText(startVerificationRequest.credentialConfigurationId())) {
+            return credentialIssuerMetadata.findCredentialConfigurationById(startVerificationRequest.credentialConfigurationId());
+        }
+        if (StringUtils.hasText(startVerificationRequest.doctype())) {
+            return credentialIssuerMetadata.findCredentialConfigurationByDoctype(startVerificationRequest.doctype());
+        }
+        if (StringUtils.hasText(startVerificationRequest.vct())) {
+            return credentialIssuerMetadata.findCredentialConfigurationByVct(startVerificationRequest.vct());
+        }
+        throw new VerificationException("invalid_request", "No parameters to identify credential configuration supplied by client");
+    }
+
 
     public VerificationStatusResponse verifierStatus(String verifierTransactionId) {
         return new VerificationStatusResponse(

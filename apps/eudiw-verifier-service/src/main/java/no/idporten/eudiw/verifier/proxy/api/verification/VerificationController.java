@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.proxy.api.verification;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.idporten.eudiw.verifier.proxy.openid4vp.VerificationService;
@@ -23,6 +24,10 @@ public class VerificationController {
     /**
      * Start verify.  Generate authz request uri response.
      */
+    @Operation(
+            summary = "Start verification.",
+            description = "Start verification by asking for a credential type (doctype or vct) or credential configuration id from a credential issuer's metadata.",
+            tags = {ApiDocProperties.API_TAG})
     @PostMapping("/v1/verify/start")
     public ResponseEntity<StartVerificationResponse> startVerification(@RequestBody StartVerificationRequest startVerificationRequest) throws Exception {
         return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest));
@@ -31,6 +36,10 @@ public class VerificationController {
     /**
      * Retrieve verification status.  Use for polling.
      */
+    @Operation(
+            summary = " Retrieve verification status.",
+            description = " Retrieve verification status using the verifier transaction id.",
+            tags = {ApiDocProperties.API_TAG})
     @GetMapping(value = "/v1/verify/status/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VerificationStatusResponse> retrieveStatus(
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
@@ -41,6 +50,10 @@ public class VerificationController {
     /**
      * Retrieve verification result.
      */
+    @Operation(
+            summary = " Retrieve verification result.",
+            description = " Retrieve verification result using the verifier transaction id.",
+            tags = {ApiDocProperties.API_TAG})
     @GetMapping(value = "/v1/verify/result/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VerificationResultResponse> retrieveVerifiedCredentials(
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
