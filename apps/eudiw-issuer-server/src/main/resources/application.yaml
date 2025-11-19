@@ -102,6 +102,14 @@ credential-issuer-server:
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
+    - identifier: no.skatteetaten.inntekt_sd_jwt_vc
+      scope: eudiw:no:skatteetaten:inntekt
+      format: sd_jwt_vc
+      credential-type: no.skatteetaten.inntekt.1
+      validity-days: 180
+      grant-type: authorization_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      key-store-name: eaa-provider
   claims-sources:
     - credential-types:
         - eu.europa.ec.eudi.pid.1
@@ -125,6 +133,10 @@ credential-issuer-server:
     - credential-types:
         - eu.europa.ec.av.1
       class-name: no.idporten.eudiw.issuer.claimssource.ageverification.AgeVerificationClaimsSource
+    - credential-types:
+        - no.skatteetaten.inntekt.1
+      class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.InntektClaimsSource
+
 # Digdir standard logging
 digdir:
   audit:
