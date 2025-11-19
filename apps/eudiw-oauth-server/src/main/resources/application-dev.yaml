@@ -24,7 +24,7 @@ spring:
 
 # EUDIW auth server
 oauth-authorization-server:
-  issuer: http://digital-lommebok-oauth-server:9260
+  issuer: http://oauth-server:9260
 
 oidc-proxy:
   redirect-uri: ${oauth-authorization-server.issuer}/callback

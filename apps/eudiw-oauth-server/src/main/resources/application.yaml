@@ -73,6 +73,7 @@ oauth-authorization-server:
     - openid
     - eudiw:no:pid
     - eudiw:no:skatteetaten:nnid
+    - eudiw:no:skatteetaten:inntekt
     - eudiw:no:minid:mpid
     - eudiw:no:advokattilsynet:advokatregisteret
     - eudiw:no:kontaktregisteret:kontaktinformasjon
