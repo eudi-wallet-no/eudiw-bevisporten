@@ -1,24 +1,24 @@
 package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.ClaimValue;
 import no.idporten.eudiw.issuer.claimssource.domain.MapValue;
 import no.idporten.eudiw.issuer.claimssource.domain.NumberValue;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Inntekt;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.InntektsOpplysninger;
-import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.OppgaveInntektsmottaker;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Respons;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +63,12 @@ public class InntektClaimsSource implements ClaimsSource {
     @SneakyThrows
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {
-        String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
+        String personIdentifier;
+        try {
+            personIdentifier = accessToken.getJWTClaimsSet().getSubject();
+        } catch (ParseException e) {
+            throw new IssuerServerException("invalid_token", "Failed to extract fnr/dnr from access token", HttpStatus.INTERNAL_SERVER_ERROR, e);
+        }
         Respons respons = inntektsApiIntegration.retrieve(personIdentifier);
         Map<String, Double> fastlonnMap = new HashMap<>();
         for (InntektsOpplysninger inntektsOpplysninger : respons.oppgaveInntektsmottaker()) {

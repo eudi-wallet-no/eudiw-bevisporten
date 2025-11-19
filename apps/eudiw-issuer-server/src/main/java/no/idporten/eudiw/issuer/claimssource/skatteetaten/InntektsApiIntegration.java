@@ -60,6 +60,7 @@ public class InntektsApiIntegration {
             Respons oppgaveInntektsmottaker = inntekstApiRestClient
                     .get()
                     // TODO beregn datoer
+                    // TODO url som feiler https://inntekt.api.skatteetaten-test.no/v1/lommebok/inntekter?fraOgMed=2025-01&tilOgMed=2025-11)
                     .uri("v1/lommebok/{personIdentifier}/inntekter?fraOgMed=2025-01&tilOgMed=2025-11", personIdentifier)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + createAccessToken(personIdentifier).getValue())
                     .retrieve()
