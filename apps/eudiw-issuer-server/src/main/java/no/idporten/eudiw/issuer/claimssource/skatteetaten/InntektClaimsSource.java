@@ -1,6 +1,8 @@
 package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWT;
+import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
@@ -8,12 +10,20 @@ import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimValue;
 import no.idporten.eudiw.issuer.claimssource.domain.MapValue;
 import no.idporten.eudiw.issuer.claimssource.domain.NumberValue;
+import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Inntekt;
+import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.InntektsOpplysninger;
+import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.OppgaveInntektsmottaker;
+import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Respons;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 
 /**
@@ -23,6 +33,11 @@ import java.util.Map;
 public class InntektClaimsSource implements ClaimsSource {
 
     private ClaimsSourceProperties properties;
+    private final InntektsApiIntegration inntektsApiIntegration;
+
+    public InntektClaimsSource(InntektsApiIntegration inntektsApiIntegration) {
+        this.inntektsApiIntegration = inntektsApiIntegration;
+    }
 
     @Override
     public void init(ClaimsSourceProperties properties) {
@@ -45,13 +60,33 @@ public class InntektClaimsSource implements ClaimsSource {
                 .build();
     }
 
+    @SneakyThrows
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {
-        Map<String, ClaimValue> fastlønnMap = Map.of(
-                "2025-07", new NumberValue(38744),
-                "2025-08", new NumberValue(38744)
+        String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
+        Respons respons = inntektsApiIntegration.retrieve(personIdentifier);
+        Map<String, Double> fastlonnMap = new HashMap<>();
+        for (InntektsOpplysninger inntektsOpplysninger : respons.oppgaveInntektsmottaker()) {
+            if (!CollectionUtils.isEmpty(inntektsOpplysninger.inntekt())) {
+                String maaned = inntektsOpplysninger.kalendermaaned();
+                double sumFastlonn = 0d;
+                for (Inntekt inntekt : inntektsOpplysninger.inntekt()) {
+                    sumFastlonn += inntekt.beloep();
+                }
+                fastlonnMap.put(maaned, fastlonnMap.getOrDefault(maaned, 0d) + sumFastlonn);
+            }
+        }
+        List<Claim> claims =  List.of(Claim.builder().path("fastlonn")
+                .value(new MapValue(
+                        new TreeMap<>(fastlonnMap
+                                .entrySet().
+                                stream()
+                                .collect(Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        e -> new NumberValue(e.getValue().longValue()))))))
+                .build()
         );
-        return List.of(Claim.builder().path("fastlonn").value(new MapValue(fastlønnMap)).build());
+        return  claims;
     }
 
 }
