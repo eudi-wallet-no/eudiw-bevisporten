@@ -187,6 +187,63 @@ issuer-ui-demo:
               }
             ]
           }
+      - credential-configuration-id: no.helsesektor.legeerklaring_mso_mdoc
+        description: Legeerklæringbevis
+        scope: eudiw:no:helsesektor:legeerklaring
+        person-identifier: 16903349844
+        json-request: |
+          {
+            "credential_configuration_id": "no.helsesektor.legeerklaring_mso_mdoc",
+            "subject": {
+              "identifier": "16903349844"
+            },
+            "claims": [
+              {
+                "name": "fornavn",
+                "value": "ØKONOMISK"
+              },
+              {
+                "name": "etternavn",
+                "value": "JERNBANE"
+              },
+              {
+                "name": "mellomnavn",
+                "value": "INITIATIVRIK"
+              },
+              {
+                "name": "pasienten_kjorer_bil",
+                "value": "GYLDIG"
+              },
+              {
+                "name": "behov",
+                "value": "P"
+              },
+              {
+                "name": "bor_ha_forerkort",
+                "value": "J"
+              },
+              {
+                "name": "beskrivelse",
+                "value": "Trenger kort vei fra bil til dør"
+              },
+              {
+                "name": "hjelpemidler",
+                "value": "briller,hatt"
+              },
+              {
+                "name": "gangdistanse_med_hjelpemiddel",
+                "value": "1000"
+              },
+              {
+                "name": "gangdistanse_uten_hjelpemiddel",
+                "value": "1"
+              },
+              {
+                "name": "gangdistanse_prognose",
+                "value": "Stadig svakere"
+              }
+            ]
+          }
 
 # Maskinporten
 maskinporten:
@@ -201,7 +258,7 @@ maskinporten:
         audience:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
-        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:no:kommunalsektor:hcregister
+        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:no:kommunalsektor:hcregister eudiw:no:helsesektor:legeerklaring
         resource: ${issuer-ui-demo.issuer-server.base-url}
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
