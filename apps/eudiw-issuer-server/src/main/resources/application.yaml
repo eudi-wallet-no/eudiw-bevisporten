@@ -118,7 +118,15 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
-#        - eudiw:no:helsesektor:legeerklaring
+    - identifier: no.helsesektor.legeerklaring_mso_mdoc
+      scope: eudiw:no:helsesektor:legeerklaring
+      format: mso_mdoc
+      credential-type: no:helsesektor:legeerklaring:1
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: eaa-provider
+
   claims-sources:
     - credential-types:
         - eu.europa.ec.eudi.pid.1
@@ -148,6 +156,9 @@ credential-issuer-server:
     - credential-types:
         - no:kommunalsektor:hcregister:1
       class-name: no.idporten.eudiw.issuer.claimssource.kommune.HandicapBevisClaimsSource
+    - credential-types:
+        - no:helsesektor:legeerklaring:1
+      class-name: no.idporten.eudiw.issuer.claimssource.helsesektor.LegeerklaringBevisClaimsSource
 
 # Digdir standard logging
 digdir:
