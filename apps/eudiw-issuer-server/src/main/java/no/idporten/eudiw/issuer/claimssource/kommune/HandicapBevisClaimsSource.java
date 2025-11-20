@@ -18,7 +18,7 @@ public class HandicapBevisClaimsSource extends AbstractPreAuthorizedClaimsSource
 
     public HandicapBevisClaimsSource() {
         this.documentMetadata = new DocumentMetadata(
-                List.of(new DocumentMetadata.Display("no", "Handicapbevis","Handicapbevis utstedt av kommune (Hackaton Brukerrådet 2025)")),
+                List.of(new DocumentMetadata.Display("no", "Handicapbevis","Handicapbevis utstedt av kommune (Hackathon Brukerrådet 2025)")),
                 List.of(
                         new ClaimMetadata("fodselsnummer",
                                 Map.of("no", "Fødselsnummer"),
@@ -27,11 +27,11 @@ public class HandicapBevisClaimsSource extends AbstractPreAuthorizedClaimsSource
                         new ClaimMetadata("bevis_nummer",
                                 Map.of("no", "Bevisnummer"),
                                 true,
-                                "^\\d{20}$"),
+                                "^\\d{1,20}$"),
                         new ClaimMetadata("kommune_nummer",
                                 Map.of("no", "Kommunenummer"),
                                 true,
-                                "^\\d{20}$"),
+                                "^\\d{1,20}$"),
                         new ClaimMetadata("status",
                                 Map.of("no", "Status"),
                                 false,
