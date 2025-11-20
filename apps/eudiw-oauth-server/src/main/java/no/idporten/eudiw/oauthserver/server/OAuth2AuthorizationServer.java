@@ -33,10 +33,17 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
     }
 
     /**
-     * Process Pre-authorized token reqyest.  Validate request, lookup authorization, check tx_code and create token response.
+     * Process Pre-authorized token request.  Validate request, lookup authorization, check tx_code and create token response.
      */
     protected TokenResponse processPreAuthorizedTokenRequest(TokenRequest tokenRequest) {
-        ClientMetadata clientMetadata = authenticateClient(tokenRequest);
+        final ClientMetadata clientMetadata;
+        if (! tokenRequest.isAuthenticatedRequest()) {
+            tokenRequest.clearAuthentication();
+            clientMetadata = ClientMetadata.builder().clientId("unauthenticated").build();
+
+        } else {
+            clientMetadata = authenticateClient(tokenRequest);
+        }
         validate(tokenRequest, clientMetadata);
         getSDKConfiguration().getAuditLogger().auditTokenRequest(tokenRequest);
         Authorization preAuthorization = getSDKConfiguration().getCache().getAuthorization(tokenRequest.getPreAuthorizedCode());
