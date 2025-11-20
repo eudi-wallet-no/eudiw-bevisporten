@@ -142,6 +142,52 @@ issuer-ui-demo:
               }
             ]
           }
+      - credential-configuration-id: no.kommunalsektor.hcregister_mso_mdoc
+        description: Handicapbevis
+        scope: eudiw:no:kommunalsektor:hcregister
+        person-identifier: 16903349844
+        json-request: |
+          {
+            "credential_configuration_id": "no.kommunalsektor.hcregister_mso_mdoc",
+            "subject": {
+              "identifier": "16903349844"
+            },
+          "claims": [
+              {
+                "name": "fodselsnummer",
+                "value": "16903349844"
+              },
+              {
+                "name": "bevis_nummer",
+                "value": "00004"
+              },
+              {
+                "name": "kommune_nummer",
+                "value": "0301"
+              },
+              {
+                "name": "status",
+                "value": "GYLDIG"
+              },
+              {
+                "name": "bruker_kode",
+                "value": "P"
+              },
+              {
+                "name": "type",
+                "value": "Person"
+              },
+              {
+                "name": "gyldig_fra",
+                "value": "2025-11-20"
+              },
+              {
+                "name": "gyldig_til",
+                "value": "2025-11-20"
+              }
+            ]
+          }
+
 # Maskinporten
 maskinporten:
   lib:
@@ -155,7 +201,7 @@ maskinporten:
         audience:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
-        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl
+        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:no:kommunalsektor:hcregister
         resource: ${issuer-ui-demo.issuer-server.base-url}
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
