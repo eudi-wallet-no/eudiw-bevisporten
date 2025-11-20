@@ -199,6 +199,10 @@ issuer-ui-demo:
             },
             "claims": [
               {
+                "name": "fodselsnummer",
+                "value": "16903349844"
+              },
+              {
                 "name": "fornavn",
                 "value": "ØKONOMISK"
               },
@@ -212,7 +216,7 @@ issuer-ui-demo:
               },
               {
                 "name": "pasienten_kjorer_bil",
-                "value": "GYLDIG"
+                "value": "J"
               },
               {
                 "name": "behov",
@@ -244,7 +248,6 @@ issuer-ui-demo:
               }
             ]
           }
-
 # Maskinporten
 maskinporten:
   lib:
