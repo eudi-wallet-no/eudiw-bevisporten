@@ -78,6 +78,8 @@ oauth-authorization-server:
     - eudiw:no:advokattilsynet:advokatregisteret
     - eudiw:no:kontaktregisteret:kontaktinformasjon
     - proof_of_age
+    - eudiw:no:kommunalsektor:hcregister
+    - eudiw:no:helsesektor:legeerklaring
   api-key: ${INTERNAL_API_KEY}
   keystore:
     type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
