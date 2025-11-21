@@ -37,12 +37,10 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
      */
     protected TokenResponse processPreAuthorizedTokenRequest(TokenRequest tokenRequest) {
         final ClientMetadata clientMetadata;
-        if (! tokenRequest.isAuthenticatedRequest()) {
-            tokenRequest.clearAuthentication();
-            clientMetadata = ClientMetadata.builder().clientId("unauthenticated").build();
-
-        } else {
+        if (tokenRequest.isAuthenticatedRequest()) {
             clientMetadata = authenticateClient(tokenRequest);
+        } else {
+            clientMetadata = handleUnauthenticatedClient(tokenRequest);
         }
         validate(tokenRequest, clientMetadata);
         getSDKConfiguration().getAuditLogger().auditTokenRequest(tokenRequest);
@@ -67,6 +65,20 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
         } catch (Exception e) {
             throw new OAuth2Exception("internal_error", "The server failed to process the request", 500, e);
         }
+    }
+
+    /**
+     * Handles OpenID4VCI unauthenticated token requests by creating a dummy client.
+     * @param tokenRequest pre-authorized token request
+     * @return client metadata for unauthenticated client
+     */
+    private ClientMetadata handleUnauthenticatedClient(TokenRequest tokenRequest) {
+        tokenRequest.clearAuthentication();
+        ClientMetadata clientMetadata = ClientMetadata.builder().clientId("unauthenticated-pre-authorized").build();
+        ClientAuthentication clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("none").build();
+        tokenRequest.setAuthenticatedClientId(clientAuthentication.getClientId());
+        getSDKConfiguration().getAuditLogger().auditClientAuthentication(clientAuthentication);
+        return clientMetadata;
     }
 
     /**
