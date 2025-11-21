@@ -1,12 +1,9 @@
 package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
 import com.nimbusds.oauth2.sdk.token.AccessToken;
-import io.micrometer.common.util.StringUtils;
-import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
-import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.OppgaveInntektsmottaker;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Respons;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.slf4j.Logger;
@@ -26,6 +23,8 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.INNTEKTSAPI;
@@ -57,20 +56,27 @@ public class InntektsApiIntegration {
 
     public Respons retrieve(String personIdentifier) {
         try {
-            Respons oppgaveInntektsmottaker = inntekstApiRestClient
+            DateTimeFormatter yyyyMMFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+            LocalDate to = LocalDate.now();
+            LocalDate from = to.minusMonths(6);
+            Respons respons = inntekstApiRestClient
                     .get()
-                    // TODO beregn datoer
-                    // TODO url som feiler https://inntekt.api.skatteetaten-test.no/v1/lommebok/inntekter?fraOgMed=2025-01&tilOgMed=2025-11)
-                    .uri("v1/lommebok/{personIdentifier}/inntekter?fraOgMed=2025-01&tilOgMed=2025-11", personIdentifier)
+                    .uri("v1/lommebok/{personIdentifier}/inntekter?fraOgMed={from}&tilOgMed={to}",
+                            personIdentifier,
+                            from.format(yyyyMMFormatter),
+                            to.format(yyyyMMFormatter))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + createAccessToken(personIdentifier).getValue())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
                     .body(Respons.class);
-            if (oppgaveInntektsmottaker == null) {
+            if (respons == null) {
                 throw new ClaimsSourceDataNotFoundException(INNTEKTSAPI.name(), "No data available", "Failed to map response");
             }
-            return oppgaveInntektsmottaker;
+            if (CollectionUtils.isEmpty(respons.oppgaveInntektsmottaker())) {
+                throw new ClaimsSourceDataNotFoundException(INNTEKTSAPI.name(), "No data available", "No data in response");
+            }
+            return respons;
         } catch (ResourceAccessException e) {
             throw new ClaimsSourceIOException(INNTEKTSAPI.name(), "IO error when calling Inntekts-api", e);
         } catch (RestClientException e) {
