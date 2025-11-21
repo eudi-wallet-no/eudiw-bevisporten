@@ -39,13 +39,13 @@ public class TestUtils {
      * A default client for testing.
      */
     public static ClientMetadata defaultClientMetadata() {
-        return defaultClientMetedataBuilder().build();
+        return defaultClientMetadataBuilder().build();
     }
 
     /**
      * A builder creating a default client for testing.
      */
-    public static ClientMetadata.ClientMetadataBuilder defaultClientMetedataBuilder() {
+    public static ClientMetadata.ClientMetadataBuilder defaultClientMetadataBuilder() {
         return ClientMetadata.builder()
                 .clientId("cid")
                 .clientSecret("86258f7f-4be6-4b4a-9391-1123ee1b567a")

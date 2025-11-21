@@ -14,7 +14,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client must have a client_id")
     public void testClientMustHaveAnId() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder().clientId(null).build();
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder().clientId(null).build();
         try {
             clientMetadata.validate();
             fail();
@@ -26,7 +26,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client must have a client_secret")
     public void testClientMustHaveASecret() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder().clientSecret(null).build();
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder().clientSecret(null).build();
         try {
             clientMetadata.validate();
             fail();
@@ -38,7 +38,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client must have at least one redirect_uri in redirect_uris")
     public void testClientMustHaveARedirectUri() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder().build();
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder().build();
         clientMetadata.setRedirectUris(Collections.emptyList());
         try {
             clientMetadata.validate();
@@ -51,7 +51,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client must support the openid scope")
     public void testClientMustSupportTheOpenidScope() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder().build();
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder().build();
         clientMetadata.setScopes(Collections.singletonList("profile"));
         try {
             clientMetadata.validate();
@@ -132,7 +132,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client can have optional metadata (client_name, logo_uri)")
     public void testOptionalMetadata() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder()
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder()
                 .clientName("myclient")
                 .logoUri("https://junit.digdir.no/logo.png")
                 .build();
@@ -147,7 +147,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client does not need to have optional metadata")
     public void testOptionalMetadataIsOptional() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder()
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder()
                 .build();
         assertAll(
                 () -> assertNull(clientMetadata.getClientName()),
@@ -161,7 +161,7 @@ public class ClientMetadataTest {
     @Test
     @DisplayName("then a client can have optional features")
     public void testOptionalFeatures() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetedataBuilder()
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder()
                 .feature("is_xxx", true)
                 .feature("something", "special")
                 .build();

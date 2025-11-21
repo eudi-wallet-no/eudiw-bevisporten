@@ -7,12 +7,13 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.oauthserver.server.OAuth2AuthorizationServer;
 import no.idporten.sdk.oidcserver.audit.OpenIDConnectAuditLogger;
-import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 import java.util.Set;
@@ -37,10 +38,11 @@ class PreAuthorizedCodeFlowTest {
         cache = (SimpleOpenIDConnectCache) sdkConfiguration.getCache();
     }
 
-
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"wallet"})
+    @NullAndEmptySource
     @DisplayName("then the SDK's public methods all work together to implement the protocol (this test tests everything...)")
-    void testPreAuthorizedCodeFlow() throws Exception {
+    void testPreAuthorizedCodeFlow(String clientId) throws Exception {
         // 1. Create pre-authorization
         PreAuthorizationRequest preAuthorizationRequest = new PreAuthorizationRequest();
         preAuthorizationRequest.setAud(oAuth2AuthorizationServer.getSDKConfiguration().getIssuer().toString());
@@ -55,9 +57,10 @@ class PreAuthorizedCodeFlowTest {
         final String preAuthorizedCode = preAuthorizationResponse.getPreAuthorizedCode();
 
         // 2. Process token request w/pre-authorized_code
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
         MockRequest request = new MockRequest();
-        request.addParameter("client_id", clientMetadata.getClientId());
+        if (clientId != null) {
+            request.addParameter("client_id", clientId);
+        }
         request.addParameter("grant_type", "urn:ietf:params:oauth:grant-type:pre-authorized_code");
         request.addParameter("pre-authorized_code", preAuthorizedCode);
         request.addParameter("resource", "https://junit-issuer.idporten.dev");
