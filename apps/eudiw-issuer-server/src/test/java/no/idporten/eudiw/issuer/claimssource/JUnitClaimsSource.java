@@ -40,7 +40,7 @@ public class JUnitClaimsSource implements ClaimsSource {
     }
 
     @Override
-    public List<Claim> retrieveClaims(JWT accessToken) {
+    public List<Claim> issueClaims(JWT accessToken) {
         return List.of();
     }
 }

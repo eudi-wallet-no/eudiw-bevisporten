@@ -140,7 +140,7 @@ class NnidClaimsSourceTest {
                             NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")),
                     Duration.ofMinutes(10));
             verify(claimsSource).validate(anyMap());
-            List<Claim> claims = nnidClaimsSource.retrieveClaims(accessToken);
+            List<Claim> claims = nnidClaimsSource.issueClaims(accessToken);
             assertAll(
                     () -> assertEquals(2, claims.size()),
                     () -> assertEquals("12345678901", ((StringValue)claims.getFirst().getValue()).value()),

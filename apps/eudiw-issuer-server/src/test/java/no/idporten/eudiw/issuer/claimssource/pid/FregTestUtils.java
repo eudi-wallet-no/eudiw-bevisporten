@@ -1,8 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource.pid;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
 import no.digdir.freg.domain.json.Folkeregisterfoedsel;
 import no.digdir.freg.domain.json.Folkeregisterperson;
 import no.digdir.freg.domain.json.Folkeregisterpersonnavn;
@@ -12,12 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 
 public class FregTestUtils {
-
-    @NotNull
-    public static JWT createAccessToken(String fnr) {
-        JWTClaimsSet claimSet = new JWTClaimsSet.Builder().subject(fnr).build();
-        return new PlainJWT(claimSet);
-    }
 
     @NotNull
     public static Folkeregisterperson createFolkeregisterperson() {

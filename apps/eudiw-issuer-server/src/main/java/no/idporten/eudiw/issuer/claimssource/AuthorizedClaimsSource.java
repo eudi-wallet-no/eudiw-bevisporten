@@ -9,28 +9,30 @@ import java.text.ParseException;
 import java.util.List;
 
 /**
- * A pre-authorized claims source ensures that data is present and stored before a credential offer is created.
- * The claims source will either support a push mode (receive the data from the client application), or a pull mode
- * (it can retrieve the data itself).  Data is validated and stored by the claims source.
+ * An authorized claims source ensures that it can pull data from an authoritative source based on the subject (fnr/dnr)
+ * present in the access token.
  */
 public sealed interface AuthorizedClaimsSource extends ClaimsSource permits AbstractAuthorizedClaimsSource {
 
 
     @Override
-    default List<Claim> retrieveClaims(JWT accessToken){
+    default List<Claim> issueClaims(JWT accessToken){
         String personIdentifier;
         try {
             personIdentifier = accessToken.getJWTClaimsSet().getSubject();
         } catch (ParseException e) {
             throw new IssuerServerException("invalid_token", "Failed to extract fnr/dnr from access token", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
-        return pull(accessToken); // TODO pass personIdentifier???
+        if(personIdentifier == null || personIdentifier.isBlank()){
+            throw new IssuerServerException("invalid_token", "Access token is missing subject (fnr/dnr)", HttpStatus.BAD_REQUEST);
+        }
+        return pull(personIdentifier);
     }
 
     /**
      * Pull claims data from authoritative source.  Disabled by default.
      */
-    default List<Claim> pull(JWT accessToken) {
+    default List<Claim> pull(String personIdentifier) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
     }
 

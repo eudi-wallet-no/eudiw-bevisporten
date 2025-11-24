@@ -84,7 +84,7 @@ public class PreAuthorizedClaimsSourceTest {
             PreAuthorizedClaimsSource claimsSource = spy(new PullClaimsSource());
             claimsSource.init(claimsSourceProperties());
             claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), null, Duration.ofMinutes(9));
-            List<Claim> claims = claimsSource.retrieveClaims(authProxyToken(issuanceTransactionId.getValue()));
+            List<Claim> claims = claimsSource.issueClaims(authProxyToken(issuanceTransactionId.getValue()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -126,7 +126,7 @@ public class PreAuthorizedClaimsSourceTest {
             PreAuthorizedClaimsSource claimsSource = spy(new PushClaimsSource());
             claimsSource.init(claimsSourceProperties());
             claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), Map.of("c", "v"), Duration.ofMinutes(5));
-            List<Claim> claims = claimsSource.retrieveClaims(authProxyToken(issuanceTransactionId.getValue()));
+            List<Claim> claims = claimsSource.issueClaims(authProxyToken(issuanceTransactionId.getValue()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),

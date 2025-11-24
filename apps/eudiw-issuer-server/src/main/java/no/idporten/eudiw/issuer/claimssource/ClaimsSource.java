@@ -32,8 +32,8 @@ public interface ClaimsSource {
     }
 
     /**
-     * Retrieves claims.
+     * Issue claims (credentials).
      */
-    List<Claim> retrieveClaims(JWT accessToken);
+    List<Claim> issueClaims(JWT accessToken);
 
 }
