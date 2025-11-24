@@ -1,8 +1,11 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
+import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,10 +27,11 @@ public class ClaimsSourceServiceTest {
     void testLoadAndInitClaimsSources() {
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource("junitdoc");
         assertAll(
-                () -> assertTrue(claimsSource instanceof JUnitClaimsSource),
+                () -> assertInstanceOf(JUnitClaimsSource.class, claimsSource),
                 () -> assertNotNull(claimsSource.getProperties())
         );
     }
+
 
     @Test
     void testClaimsSourceSupportsMultipleCredentialTypes() {
@@ -36,6 +40,25 @@ public class ClaimsSourceServiceTest {
         assertAll(
                 () -> assertNotNull(claimsSourceForSdJWT),
                 () -> assertSame(claimsSourceForSdJWT, claimsSourceForMdoc)
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"junitdoc", "urn:junitdoc-pre"})
+    void testGetMetadataExists(String credentialType) {
+        ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialType);
+        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource);
+
+        assertAll(
+                () -> assertNotNull(metadata),
+                () -> assertNotNull(metadata.getDisplays()),
+                () -> assertFalse(metadata.getDisplays().isEmpty()),
+                () -> assertNotNull(metadata.getClaims()),
+                () -> assertFalse(metadata.getClaims().isEmpty()),
+                () -> assertTrue(metadata.getClaims().stream()
+                        .allMatch(claim -> claim.getPath() != null)),
+                () -> assertTrue(metadata.getClaims().stream()
+                        .anyMatch(ClaimsDescription::isMandatory))
         );
     }
 

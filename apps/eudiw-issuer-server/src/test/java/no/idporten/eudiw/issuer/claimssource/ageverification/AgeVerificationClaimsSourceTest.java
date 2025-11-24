@@ -7,15 +7,10 @@ import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
 import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
-import no.idporten.eudiw.issuer.claimssource.domain.BooleanValue;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.ClaimValue;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.pid.FregIntegration;
 import no.idporten.eudiw.issuer.claimssource.pid.PersonConverterService;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,12 +70,12 @@ class AgeVerificationClaimsSourceTest {
     @Test
     @DisplayName("verify that call metadata returns correct number of claims")
     void getMetadata() {
-        ClaimsSourceMetadata metadata = aVClaimsSource.getMetadata();
+        DocumentMetadata metadata = aVClaimsSource.getDocumentMetadata();
         assertNotNull(metadata);
-        assertNotNull(metadata.getClaims());
-        assertEquals(NUMBER_OF_CLAIMS, metadata.getClaims().size());
-        assertNotNull(metadata.getDisplays().stream()
-                .filter(display -> display.getName().contains("Aldersbevis"))
+        assertNotNull(metadata.claims());
+        assertEquals(NUMBER_OF_CLAIMS, metadata.claims().size());
+        assertNotNull(metadata.displays().stream()
+                .filter(display -> display.name().contains("Aldersbevis"))
                 .findFirst()
                 .orElse(null));
 
@@ -88,12 +83,11 @@ class AgeVerificationClaimsSourceTest {
         // Stikkprøve å finne eit kjent claim
         String expectedDisplayName = "Over 18 år";
         boolean foundExpectedName = false;
-        for (ClaimsDescription desc : metadata.getClaims()) {
-            Display d = desc.getDisplays().stream().filter(display -> display.getName().contains(expectedDisplayName)).findFirst().orElse(null);
-            if (d != null) {
+        for (ClaimMetadata desc : metadata.claims()) {
+            String noDisplayName = desc.getDisplayName("no");
+            assertNotNull(noDisplayName);
+            if(expectedDisplayName.equals(noDisplayName)) {
                 foundExpectedName = true;
-                assertEquals(expectedDisplayName, d.getName());
-                assertEquals("no", d.getLocale());
                 break;
             }
         }

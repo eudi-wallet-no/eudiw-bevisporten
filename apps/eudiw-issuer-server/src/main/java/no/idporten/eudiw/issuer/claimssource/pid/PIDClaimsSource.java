@@ -5,14 +5,9 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,73 +23,67 @@ import java.util.*;
  * Claims source for Norwegian PID data from FREG
  */
 @Service
-public class PIDClaimsSource implements ClaimsSource {
-
-    private ClaimsSourceProperties properties;
+public class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
 
     private final FregService fregService;
     private final PersonConverterService personConverterService;
+
+    private final DocumentMetadata documentMetadata;
 
 
     public PIDClaimsSource(FregService fregService, PersonConverterService personConverterService) {
         this.fregService = fregService;
         this.personConverterService = personConverterService;
+        this.documentMetadata = new DocumentMetadata(
+                List.of(new DocumentMetadata.Display("no", "Norsk ID-bevis")),
+                List.of(
+                        new ClaimMetadata("personal_administrative_number",
+                                Map.of("no", "Fødselsnummer"),
+                                true,
+                                "^\\d{11}$"),
+                        new ClaimMetadata("given_name",
+                                Map.of("no", "Førenamn"),
+                                true,
+                                null),
+                        new ClaimMetadata("family_name",
+                                Map.of("no", "Etternamn"),
+                                true,
+                                null),
+                        new ClaimMetadata("birth_date",
+                                Map.of("no", "Fødselsdato"),
+                                true,
+                                null),
+                        new ClaimMetadata("place_of_birth",
+                                Map.of("no", "Fødeland"),
+                                true,
+                                null),
+                        new ClaimMetadata("nationality",
+                                Map.of("no", "Nasjonalitet"),
+                                true,
+                                null),
+                        new ClaimMetadata("expiry_date",
+                                Map.of("no", "Gyldig til dato"),
+                                true,
+                                null),
+                        new ClaimMetadata("issuing_authority",
+                                Map.of("no", "Utsteda av"),
+                                true,
+                                null),
+                        new ClaimMetadata("issuing_country",
+                                Map.of("no", "Utsteda i land"),
+                                true,
+                                null)
+
+                )
+        );
     }
 
     @Override
-    public void init(ClaimsSourceProperties properties) {
-        this.properties = properties;
-
+    public DocumentMetadata getDocumentMetadata() {
+        return documentMetadata;
     }
 
-    @Override
-    public ClaimsSourceProperties getProperties() {
-        return properties;
-    }
-
-    @Override
-    public ClaimsSourceMetadata getMetadata() {
-        return ClaimsSourceMetadata.builder()
-                .display(Display.builder().locale("no").name("Norsk ID-bevis").build())
-                .claim(ClaimsDescription.builder()
-                        .path("personal_administrative_number")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Fødselsnummer").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("given_name")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Førenamn").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("family_name")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Etternamn").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("birth_date")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Fødselsdato").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("place_of_birth")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Fødeland").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("nationality")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Nasjonalitet").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("expiry_date")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Gyldig til dato").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("issuing_authority")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Utsteda av").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("issuing_country")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Utsteda i land").build()).build())
-                .build();
-    }
-
+    // TODO rename to pull
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {
 

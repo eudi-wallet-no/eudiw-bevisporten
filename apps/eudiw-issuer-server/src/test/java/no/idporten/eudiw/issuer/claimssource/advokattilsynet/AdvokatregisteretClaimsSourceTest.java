@@ -6,8 +6,8 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.DisplayName;
@@ -54,35 +54,31 @@ public class AdvokatregisteretClaimsSourceTest {
     @DisplayName("then claims source metadata is provided to the issuer")
     @Test
     void testMetadata() {
-        ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
+        DocumentMetadata claimsSourceMetadata = claimsSource.getDocumentMetadata();
         assertAll(
-                () -> assertEquals(6, claimsSourceMetadata.getClaims().size()),
+                () -> assertEquals(6, claimsSourceMetadata.claims().size()),
                 () -> assertEquals(
                         "Personidentifikator",
                         claimsSourceMetadata
-                                .findClaimsDescription("personidentifikator")
-                                .findDisplay("no")
-                                .getName()),
+                                .findClaimMetadata("personidentifikator")
+                                .getDisplayName("no")),
                 () -> assertEquals(
                         "Tittel",
                         claimsSourceMetadata
-                                .findClaimsDescription("tittel")
-                                .findDisplay("no")
-                                .getName()),
+                                .findClaimMetadata("tittel")
+                                .getDisplayName("no")),
                 () -> assertEquals(
                         "Etternavn",
                         claimsSourceMetadata
-                                .findClaimsDescription("etternavn")
-                                .findDisplay("no")
-                                .getName()),
+                                .findClaimMetadata("etternavn")
+                                .getDisplayName("no")),
                 () -> assertEquals(
                         "Fornavn",
                         claimsSourceMetadata
-                                .findClaimsDescription("fornavn")
-                                .findDisplay("no")
-                                .getName()),
-                () -> assertFalse(claimsSourceMetadata.findClaimsDescription("mellomnavn").isMandatory()),
-                () -> assertTrue(claimsSourceMetadata.findClaimsDescription("regnr").isMandatory())
+                                .findClaimMetadata("fornavn")
+                                .getDisplayName("no")),
+                () -> assertFalse(claimsSourceMetadata.findClaimMetadata("mellomnavn").mandatory()),
+                () -> assertTrue(claimsSourceMetadata.findClaimMetadata("regnr").mandatory())
         );
     }
 

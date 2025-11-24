@@ -5,7 +5,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.DisplayName;
@@ -19,11 +19,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -51,27 +46,24 @@ public class KrrClaimsSourceTest {
     @DisplayName("then claims source metadata is provided to the issuer")
     @Test
     void testMetadata() {
-        ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
+        DocumentMetadata claimsSourceMetadata = claimsSource.getDocumentMetadata();
         assertAll(
-                () -> assertEquals(3, claimsSourceMetadata.getClaims().size()),
+                () -> assertEquals(3, claimsSourceMetadata.claims().size()),
                 () -> assertEquals(
                         "Personidentifikator",
                         claimsSourceMetadata
-                                .findClaimsDescription("personidentifikator")
-                                .findDisplay("no")
-                                .getName()),
+                                .findClaimMetadata("personidentifikator")
+                                .getDisplayName("no")),
                 () -> assertEquals(
                         "Epost",
                         claimsSourceMetadata
-                                .findClaimsDescription("epostadresse")
-                                .findDisplay("no")
-                                .getName()),
+                                .findClaimMetadata("epostadresse")
+                                .getDisplayName("no")),
                 () -> assertEquals(
                         "Telefonnummer",
                         claimsSourceMetadata
-                                .findClaimsDescription("mobiltelefonnummer")
-                                .findDisplay("no")
-                                .getName())
+                                .findClaimMetadata("mobiltelefonnummer")
+                                .getDisplayName("no"))
         );
     }
 

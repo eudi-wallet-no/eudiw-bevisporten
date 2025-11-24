@@ -5,7 +5,6 @@ import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    protected DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata() {
         return documentMetadata;
     }
 

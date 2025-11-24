@@ -5,11 +5,8 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -27,8 +24,6 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     private ClaimsSourceProperties properties;
 
     private ClaimsSourceCache cache;
-
-    protected abstract DocumentMetadata getDocumentMetadata();
 
 
     @Autowired
@@ -102,24 +97,6 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         return properties;
     }
 
-    @Override
-    public final ClaimsSourceMetadata getMetadata() {
-        ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
-        builder.displays(getDocumentMetadata().displays()
-                .stream()
-                .map(display -> Display.builder().locale(display.locale()).name(display.name()).description(display.description()).build()).toList());
-        for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
-            builder.claim(ClaimsDescription.builder()
-                    .path(claimMetadata.name())
-                    .mandatory(claimMetadata.mandatory())
-                    .displays(claimMetadata.displayNames()
-                            .entrySet()
-                            .stream()
-                            .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList())
-                    .build());
-        }
-        return builder.build();
-    }
 
     @Override
     public final List<Claim> retrieveClaims(JWT accessToken) {
