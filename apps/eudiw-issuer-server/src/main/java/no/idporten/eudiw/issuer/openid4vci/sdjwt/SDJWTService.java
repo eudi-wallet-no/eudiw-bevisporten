@@ -10,6 +10,7 @@ import id.walt.sdjwt.DecoyMode;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SDPayload;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
+import net.minidev.json.JSONObject;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
@@ -59,6 +60,7 @@ public class SDJWTService {
         claimsSetBuilder.expirationTime(Date.from(now.toInstant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS)));
         claimsSetBuilder.claim("vct", credentialConfigurationProperties.getCredentialType());
         claimsSetBuilder.claim("_sd_alg", "sha-256");
+        claimsSetBuilder.claim("cnf", new JSONObject().appendField("jwk", jwk.toPublicJWK().toJSONObject()));
         for(Claim claim : claims) {
             claimsSetBuilder.claim(claim.getPath().getLast(), convert(claim.getValue()));
         }
