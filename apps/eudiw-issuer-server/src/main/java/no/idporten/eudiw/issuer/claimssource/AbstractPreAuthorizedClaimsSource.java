@@ -99,7 +99,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
 
 
     @Override
-    public final List<Claim> retrieveClaims(JWT accessToken) {
+    public final List<Claim> issueClaims(JWT accessToken) {
         final String transactionId;
         try {
             transactionId = accessToken.getJWTClaimsSet().getStringClaim("tx_id");

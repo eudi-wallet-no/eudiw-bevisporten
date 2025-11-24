@@ -2,9 +2,6 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.MapValue;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Respons;
@@ -37,7 +34,6 @@ public class InntektClaimsSourceTest {
     @Test
     void testRetrieveFromAuthoritativeSource() throws Exception {
         String personIdentifier = "12345678901";
-        JWT accessToken = new PlainJWT(new JWTClaimsSet.Builder().claim("sub", personIdentifier).build());
         String response = """
                 {
                   "oppgaveInntektsmottaker": [
@@ -240,7 +236,7 @@ public class InntektClaimsSourceTest {
                 }""";
         Respons respons = new ObjectMapper().readValue(response, Respons.class);
         when(inntektsApiIntegration.retrieve(eq(personIdentifier))).thenReturn(respons);
-        List<Claim> claims = claimsSource.retrieveClaims(accessToken);
+        List<Claim> claims = claimsSource.pull(personIdentifier);
         assertAll(
                 () -> assertEquals(1, claims.size()),
                 () -> assertTrue(claims.getFirst().getValue() instanceof MapValue)

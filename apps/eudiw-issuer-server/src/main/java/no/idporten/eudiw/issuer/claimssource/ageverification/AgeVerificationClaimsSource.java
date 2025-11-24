@@ -1,18 +1,14 @@
 package no.idporten.eudiw.issuer.claimssource.ageverification;
 
-import com.nimbusds.jwt.JWT;
 import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.service.FregService;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.claimssource.pid.PersonConverterService;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,17 +49,10 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
         return documentMetadata;
     }
 
-    // TODO rename to pull
     @Override
-    public List<Claim> retrieveClaims(JWT accessToken) {
+    public List<Claim> pull(String personIdentifier) {
 
-        String fnr;
-        try {
-            fnr = accessToken.getJWTClaimsSet().getSubject();
-        } catch (ParseException e) {
-            throw new IssuerServerException("invalid_token", "Failed to extract fnr/dnr from access token", HttpStatus.INTERNAL_SERVER_ERROR, e);
-        }
-        PersonResource person = fregService.getEidasPerson(fnr, "EUDIW-ISSUER");
+        PersonResource person = fregService.getEidasPerson(personIdentifier, "EUDIW-ISSUER");
 
         if (person == null || person.getFoedselsdato() == null) {
             throw new ClaimsSourceInvalidDataException(AuthoritativeSource.FREG.name(), "User not found in FREG");

@@ -24,7 +24,6 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 import java.util.Optional;
 
-import static no.idporten.eudiw.issuer.claimssource.pid.FregTestUtils.createAccessToken;
 import static no.idporten.eudiw.issuer.claimssource.pid.FregTestUtils.createFolkeregisterperson;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -95,13 +94,13 @@ class AgeVerificationClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("verify that claims can be retrieved and contains BooleanValue claims age_over_18 and age_over_15")
-    void retrieveClaims() {
+    @DisplayName("verify that data can be retrieved from authoritative source and contains BooleanValue claims age_over_18 and age_over_15")
+    void pull() {
         String fnr = "12345678901";
         Folkeregisterperson fregPerson = createFolkeregisterperson("2000"); // above 15 and 18 years old
         when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenReturn(fregPerson);
 
-        List<Claim> claims = aVClaimsSource.retrieveClaims(createAccessToken(fnr));
+        List<Claim> claims = aVClaimsSource.pull(fnr);
 
         assertNotNull(claims);
         assertEquals(NUMBER_OF_CLAIMS, claims.size());

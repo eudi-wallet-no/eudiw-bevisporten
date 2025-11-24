@@ -25,7 +25,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static no.idporten.eudiw.issuer.claimssource.pid.FregTestUtils.createAccessToken;
 import static no.idporten.eudiw.issuer.claimssource.pid.FregTestUtils.createFolkeregisterperson;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -96,14 +95,14 @@ class PIDClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("when retriveClaims with a valid accesstoken with fnr as subject should return a valid Person from FREG mapped to Claims")
-    void retrieveClaims() {
+    @DisplayName("then data can be pulled from authoritative source with a valid accesstoken with fnr as subject should return a valid Person from FREG mapped to Claims")
+    void pull() {
 
         String fnr = "12345678901";
         Folkeregisterperson fregPerson = createFolkeregisterperson();
         when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenReturn(fregPerson);
 
-        List<Claim> claims = pidClaimsSource.retrieveClaims(createAccessToken(fnr));
+        List<Claim> claims = pidClaimsSource.pull(fnr);
 
         assertNotNull(claims);
         assertEquals(NUMBER_OF_CLAIMS, claims.size());
@@ -125,7 +124,7 @@ class PIDClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("when retriveClaims and person in FREG without statsborgerskap should give ClaimsSourceInvalidDataException")
+    @DisplayName("then data can be pulled from authoritative source and person in FREG without statsborgerskap should give ClaimsSourceInvalidDataException")
     void personUtanStatsborgarskapGirException() {
 
         String fnr = "12345678901";
@@ -133,11 +132,11 @@ class PIDClaimsSourceTest {
         fregPerson.setStatsborgerskap(null);
         when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenReturn(fregPerson);
 
-        assertThrows(ClaimsSourceInvalidDataException.class, ()-> pidClaimsSource.retrieveClaims(createAccessToken(fnr)));
+        assertThrows(ClaimsSourceInvalidDataException.class, ()-> pidClaimsSource.pull(fnr));
 
     }
     @Test
-    @DisplayName("when retriveClaims and person not found in FREG should give ClaimsSourceDataNotFoundException")
+    @DisplayName("then data can be pulled from authoritative source and person not found in FREG should give ClaimsSourceDataNotFoundException")
     void personIkkjeFunneIFregGirException() {
 
         String fnr = "12345678901";
@@ -145,7 +144,7 @@ class PIDClaimsSourceTest {
         fregPerson.setStatsborgerskap(null);
         when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenThrow(new ClaimsSourceDataNotFoundException("",""));
 
-        assertThrows(ClaimsSourceDataNotFoundException.class, ()-> pidClaimsSource.retrieveClaims(createAccessToken(fnr)));
+        assertThrows(ClaimsSourceDataNotFoundException.class, ()-> pidClaimsSource.pull(fnr));
     }
 
 
