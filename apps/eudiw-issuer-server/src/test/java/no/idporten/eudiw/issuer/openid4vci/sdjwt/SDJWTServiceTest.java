@@ -7,6 +7,7 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -72,13 +73,13 @@ public class SDJWTServiceTest {
         Claim listNumberClaim = buildClaim("foo", "listnumbers", new ListValue(List.of(new NumberValue(1L), new NumberValue(2L), new NumberValue(3L))));
         Claim mapBooleanClaim = buildClaim("foo", "mapbooleans", new MapValue(Map.of("JA", new BooleanValue(true), "NEI", new BooleanValue(false))));
         List<Claim> claims = List.of(stringClaim1, numberClaim, booleanClaim, fullDateClaim, dateTimeClaim, listNumberClaim, mapBooleanClaim);
-
         CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationProperties(
                 "urn:foo",
                 "eaa-provider",
                 30);
+        JWK deviceKey = generateDeviceKey();
         SDJwt sdJwt = sdjwtService.createSDJwt(
-                generateDeviceKey(),
+                deviceKey,
                 credentialConfigurationProperties,
                 claims);
         String encodedSDJwt = sdjwtService.encode(sdJwt);
@@ -130,6 +131,13 @@ public class SDJWTServiceTest {
                 () -> assertArrayEquals(new Long[]{1L, 2L, 3L}, verifiedClaims.getListClaim("listnumbers").toArray()),
                 () -> assertTrue((Boolean) verifiedClaims.getJSONObjectClaim("mapbooleans").get("JA")),
                 () -> assertFalse((Boolean) verifiedClaims.getJSONObjectClaim("mapbooleans").get("NEI"))
+        );
+        assertAll(
+                () -> assertTrue(deviceKey.isPrivate()),
+                () -> assertNotNull(verifiedClaims.getJSONObjectClaim("cnf")),
+                () -> assertEquals(
+                        deviceKey.toPublicJWK().toJSONObject(),
+                        verifiedClaims.getJSONObjectClaim("cnf").get("jwk"))
         );
     }
 
