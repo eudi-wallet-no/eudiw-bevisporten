@@ -23,4 +23,8 @@ public record ClaimMetadata (
     public ClaimMetadata(String name, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
         this(name, TYPE_STRING, displayNames, mandatory, validationRegex);
     }
+
+    public String getDisplayName(String locale) {
+        return displayNames.get(locale);
+    }
 }

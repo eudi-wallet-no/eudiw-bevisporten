@@ -7,15 +7,10 @@ import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
 import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.FullDateValue;
-import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -76,12 +71,12 @@ class PIDClaimsSourceTest {
     @Test
     @DisplayName("validate that metadata can be retrieved from PIDClaimsSource")
     void verifyMetadata() {
-        ClaimsSourceMetadata metadata = pidClaimsSource.getMetadata();
+        DocumentMetadata metadata = pidClaimsSource.getDocumentMetadata();
         assertNotNull(metadata);
-        assertNotNull(metadata.getClaims());
-        assertEquals(NUMBER_OF_CLAIMS, metadata.getClaims().size());
-        assertNotNull(metadata.getDisplays().stream()
-                .filter(display -> display.getName().contains("Norsk ID-bevis"))
+        assertNotNull(metadata.claims());
+        assertEquals(NUMBER_OF_CLAIMS, metadata.claims().size());
+        assertNotNull(metadata.displays().stream()
+                .filter(display -> display.name().contains("Norsk ID-bevis"))
                 .findFirst()
                 .orElse(null));
 
@@ -89,12 +84,11 @@ class PIDClaimsSourceTest {
         // Stikkprøve å finne eit kjent claim
         String expectedName = "Fødselsnummer";
         boolean foundExpectedName = false;
-        for (ClaimsDescription desc : metadata.getClaims()) {
-            Display d = desc.getDisplays().stream().filter(display -> display.getName().contains(expectedName)).findFirst().orElse(null);
-            if (d != null) {
+        for (ClaimMetadata desc : metadata.claims()) {
+            String noDisplayName = desc.getDisplayName("no");
+            assertNotNull(noDisplayName);
+            if (expectedName.equals(noDisplayName)) {
                 foundExpectedName = true;
-                assertEquals(expectedName, d.getName());
-                assertEquals("no", d.getLocale());
                 break;
             }
         }

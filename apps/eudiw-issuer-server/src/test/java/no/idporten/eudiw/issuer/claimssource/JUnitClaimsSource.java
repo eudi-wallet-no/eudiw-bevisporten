@@ -2,16 +2,32 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class JUnitClaimsSource implements ClaimsSource {
 
+    private final DocumentMetadata documentMetadata;
     private ClaimsSourceProperties properties;
+
+    public JUnitClaimsSource(){
+        this.documentMetadata = new DocumentMetadata(
+                List.of(new DocumentMetadata.Display("no", "Junit doc")),
+                List.of(new ClaimMetadata("attr1", Map.of("no", "attribute1"), true, ".*"))
+        );
+    }
+
+    @Override
+    public DocumentMetadata getDocumentMetadata() {
+        return documentMetadata;
+    }
 
     @Override
     public void init(ClaimsSourceProperties properties) {
@@ -21,17 +37,6 @@ public class JUnitClaimsSource implements ClaimsSource {
     @Override
     public ClaimsSourceProperties getProperties() {
         return properties;
-    }
-
-    @Override
-    public ClaimsSourceMetadata getMetadata() {
-        return ClaimsSourceMetadata.builder()
-                .display(Display.builder().name("Junit doc").build())
-                .claim(ClaimsDescription.builder()
-                        .path("attr1")
-                        .display(Display.builder().name("attribute1").build())
-                        .build())
-                .build();
     }
 
     @Override

@@ -3,10 +3,16 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 
 import java.util.List;
 
 public interface ClaimsSource {
+
+    /**
+     * Gets Document metadata about claims provided by claims source.
+     */
+    DocumentMetadata getDocumentMetadata();
 
     /**
      * Initializes claims source with properties.
@@ -17,11 +23,6 @@ public interface ClaimsSource {
      * Gets properties for this claims source.
      */
     ClaimsSourceProperties getProperties();
-
-    /**
-     * Gets metadata about claims provided by claims source.
-     */
-    ClaimsSourceMetadata getMetadata();
 
     /**
      * Check if this claims source supports credential type

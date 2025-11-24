@@ -57,7 +57,7 @@ public class HandicapBevisClaimsSource extends AbstractPreAuthorizedClaimsSource
     }
 
     @Override
-    protected DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata() {
         return documentMetadata;
     }
 

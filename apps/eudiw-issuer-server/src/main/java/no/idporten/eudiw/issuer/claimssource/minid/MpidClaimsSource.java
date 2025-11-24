@@ -53,7 +53,7 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    protected DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata() {
         return documentMetadata;
     }
 

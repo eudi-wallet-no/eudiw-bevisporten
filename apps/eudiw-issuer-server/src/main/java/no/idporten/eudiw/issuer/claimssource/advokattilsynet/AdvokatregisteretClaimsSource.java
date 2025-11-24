@@ -54,7 +54,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
     }
 
     @Override
-    protected DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata() {
         return documentMetadata;
     }
 

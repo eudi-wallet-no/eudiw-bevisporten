@@ -73,7 +73,7 @@ public class LegeerklaringBevisClaimsSource extends AbstractPreAuthorizedClaimsS
     }
 
     @Override
-    protected DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata() {
         return documentMetadata;
     }
 

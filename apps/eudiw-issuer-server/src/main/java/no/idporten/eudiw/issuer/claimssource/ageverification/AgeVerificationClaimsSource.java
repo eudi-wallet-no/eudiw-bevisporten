@@ -4,15 +4,11 @@ import com.nimbusds.jwt.JWT;
 import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.claimssource.pid.PersonConverterService;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +16,16 @@ import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
  * Claims source for Norwegian Age verification data from FREG
  */
 @Service
-public class AgeVerificationClaimsSource implements ClaimsSource {
+public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource {
 
-    private ClaimsSourceProperties properties;
+    private final DocumentMetadata documentMetadata;
 
     private final FregService fregService;
     private final PersonConverterService personConverterService;
@@ -37,33 +34,26 @@ public class AgeVerificationClaimsSource implements ClaimsSource {
     public AgeVerificationClaimsSource(FregService fregService, PersonConverterService personConverterService) {
         this.fregService = fregService;
         this.personConverterService = personConverterService;
+        this.documentMetadata = new DocumentMetadata(
+                List.of(new DocumentMetadata.Display("no", "Aldersbevis")),
+                List.of(
+                        new ClaimMetadata("age_over_18",
+                                Map.of("no", "Over 18 år"),
+                                true,
+                                "^true|false$"),
+                        new ClaimMetadata("age_over_15",
+                                Map.of("no", "Over 15 år"),
+                                true,
+                                "^true|false$")));
     }
+
 
     @Override
-    public void init(ClaimsSourceProperties properties) {
-        this.properties = properties;
+    public DocumentMetadata getDocumentMetadata() {
+        return documentMetadata;
     }
 
-    @Override
-    public ClaimsSourceProperties getProperties() {
-        return properties;
-    }
-
-    @Override
-    public ClaimsSourceMetadata getMetadata() {
-        return ClaimsSourceMetadata.builder()
-                .display(Display.builder().locale("no").name("Aldersbevis").build())
-                .claim(ClaimsDescription.builder()
-                        .path("age_over_18")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Over 18 år").build()).build())
-                .claim(ClaimsDescription.builder()
-                        .path("age_over_15")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Over 15 år").build()).build())
-                .build();
-    }
-
+    // TODO rename to pull
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {
 

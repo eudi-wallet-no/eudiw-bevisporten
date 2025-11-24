@@ -3,7 +3,10 @@ package no.idporten.eudiw.issuer.claimssource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
+import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,24 @@ public class ClaimsSourceService implements InitializingBean {
                 .filter(claimsSource -> claimsSource.supports(credentialType))
                 .findFirst()
                 .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for credential type [%s]".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    public final ClaimsSourceMetadata getMetadata(ClaimsSource claimsSource) {
+        ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
+        builder.displays(claimsSource.getDocumentMetadata().displays()
+                .stream()
+                .map(display -> Display.builder().locale(display.locale()).name(display.name()).description(display.description()).build()).toList());
+        for (ClaimMetadata claimMetadata : claimsSource.getDocumentMetadata().claims()) {
+            builder.claim(ClaimsDescription.builder()
+                    .path(claimMetadata.name())
+                    .mandatory(claimMetadata.mandatory())
+                    .displays(claimMetadata.displayNames()
+                            .entrySet()
+                            .stream()
+                            .map(displayName -> Display.builder().locale(displayName.getKey()).name(displayName.getValue()).build()).toList())
+                    .build());
+        }
+        return builder.build();
     }
 
     @Override

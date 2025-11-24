@@ -3,17 +3,11 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.MapValue;
-import no.idporten.eudiw.issuer.claimssource.domain.NumberValue;
+import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Inntekt;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.InntektsOpplysninger;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Respons;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -30,36 +24,29 @@ import java.util.stream.Collectors;
  * Claims source for Skatteetaten inntektsbevis.
  */
 @Service
-public class InntektClaimsSource implements ClaimsSource {
+public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
 
-    private ClaimsSourceProperties properties;
     private final InntektsApiIntegration inntektsApiIntegration;
+
+    private final DocumentMetadata documentMetadata;
 
     public InntektClaimsSource(InntektsApiIntegration inntektsApiIntegration) {
         this.inntektsApiIntegration = inntektsApiIntegration;
+        this.documentMetadata = new DocumentMetadata(
+                List.of(new DocumentMetadata.Display("no", "Inntektsbevis")),
+                List.of(
+                        new ClaimMetadata("fastlonn",
+                                Map.of("no", "Fastlønn"),
+                                true,
+                                "^[\\x20-\\x7E]{1,200}$")));
     }
 
     @Override
-    public void init(ClaimsSourceProperties properties) {
-        this.properties = properties;
+    public DocumentMetadata getDocumentMetadata() {
+        return documentMetadata;
     }
 
-    @Override
-    public ClaimsSourceProperties getProperties() {
-        return properties;
-    }
-
-    @Override
-    public ClaimsSourceMetadata getMetadata() {
-        return ClaimsSourceMetadata.builder()
-                .display(Display.builder().locale("no").name("Inntektsbevis").build())
-                .claim(ClaimsDescription.builder()
-                        .path("fastlonn")
-                        .mandatory(true)
-                        .display(Display.builder().locale("no").name("Fastlønn").build()).build())
-                .build();
-    }
-
+    // TODO rename to pull
     @SneakyThrows
     @Override
     public List<Claim> retrieveClaims(JWT accessToken) {

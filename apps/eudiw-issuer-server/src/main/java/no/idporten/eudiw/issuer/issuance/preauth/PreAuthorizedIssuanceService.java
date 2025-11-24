@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.issuance.preauth;
 import com.nimbusds.jwt.JWT;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
@@ -39,6 +40,7 @@ public class PreAuthorizedIssuanceService {
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
+        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource);
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
         claimsSource.preAuthorize(issuanceTransactionId, accessToken, preAuthorizedIssuanceRequest.getClaimsMap(), credentialConfigurationProperties.getPreAuthorizationLifetime());
@@ -51,7 +53,7 @@ public class PreAuthorizedIssuanceService {
                                         TxCode.builder()
                                                 .inputMode("numeric")
                                                 .length(4)
-                                                .description("Enter code from SMS to issue %s".formatted(claimsSource.getMetadata().getDisplays().getFirst().getName()))
+                                                .description("Enter code from SMS to issue %s".formatted(metadata.getDisplays().getFirst().getName()))
                                                 .build()
                                         : null)
                                 .build())

@@ -43,7 +43,7 @@ public class CredentialIssuerServerConfiguration {
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
             ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
-            ClaimsSourceMetadata claimsSourceMetadata = claimsSource.getMetadata();
+            ClaimsSourceMetadata claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource);
             CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
                     // credential-specific config
                     .format(credentialConfigurationProperties.getFormat().formatIdentifier())
