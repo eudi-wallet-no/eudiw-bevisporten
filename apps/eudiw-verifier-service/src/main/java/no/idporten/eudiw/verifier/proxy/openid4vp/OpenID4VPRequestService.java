@@ -80,8 +80,8 @@ public class OpenID4VPRequestService {
         if ("x509_hash".equals(verifierProxyProperties.getClientIdentifierScheme())) {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(keystoreManager.getKeyProvider("access").certificate().getEncoded());
-            String clientId = java.util.Base64.getUrlEncoder().encodeToString(md.digest());
-            return "x509_hash: " + clientId;
+            String clientId = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest());
+            return "x509_hash:" + clientId;
         }
         throw new IllegalStateException("Unknown client identifier scheme: " + verifierProxyProperties.getClientIdentifierScheme());
     }
