@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.krr;
 import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
@@ -57,5 +58,10 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
         claims.put("mobiltelefonnummer", personPrivate.kontaktinformasjon().mobiltelefonnummer());
         claims.values().removeIf(Objects::isNull);
         return claims;
+    }
+
+    @Override
+    public String getAuthorativeSourceName(){
+        return AuthoritativeSource.KRR.name();
     }
 }

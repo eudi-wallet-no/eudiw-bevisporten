@@ -1,19 +1,18 @@
 package no.idporten.eudiw.issuer.claimssource.vegvesenet;
 
+import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import com.nimbusds.jwt.JWT;
-import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import static org.mockito.Mockito.mock;
 
 class ForerkortClaimsSourceTest {
 

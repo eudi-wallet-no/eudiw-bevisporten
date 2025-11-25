@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Inntekt;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.InntektsOpplysninger;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_MAP;
 
 
 /**
@@ -30,7 +33,7 @@ public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Inntektsbevis")),
                 List.of(
-                        new ClaimMetadata("fastlonn",
+                        new ClaimMetadata("fastlonn", TYPE_MAP,
                                 Map.of("no", "Fastlønn"),
                                 true,
                                 "^[\\x20-\\x7E]{1,200}$")));
@@ -68,6 +71,12 @@ public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
                 .build()
         );
         return  claims;
+    }
+
+
+    @Override
+    public String getAuthorativeSourceName(){
+        return AuthoritativeSource.INNTEKTSAPI.name();
     }
 
 }
