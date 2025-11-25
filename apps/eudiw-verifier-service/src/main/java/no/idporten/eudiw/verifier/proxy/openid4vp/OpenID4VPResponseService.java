@@ -3,6 +3,7 @@ package no.idporten.eudiw.verifier.proxy.openid4vp;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.dataelement.*;
@@ -16,7 +17,6 @@ import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
-import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
@@ -28,11 +28,9 @@ import java.util.stream.Collectors;
 @Component
 public class OpenID4VPResponseService {
 
-    private final KeystoreManager keystoreManager;
     private final VerificationTransactionService verificationTransactionService;
 
-    public OpenID4VPResponseService(KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService) {
-        this.keystoreManager = keystoreManager;
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService) {
         this.verificationTransactionService = verificationTransactionService;
     }
 
@@ -41,7 +39,7 @@ public class OpenID4VPResponseService {
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
         }
-        Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse());
+        Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse(), verificationTransaction.getEncryptionKey());
         String nonce = (String) claimsFromJwePayload.get("nonce");
         String state = (String) claimsFromJwePayload.get("state");
         if (!Objects.equals(state, verificationTransaction.getState())) {
@@ -67,9 +65,9 @@ public class OpenID4VPResponseService {
         return vpToken;
     }
 
-    private Map<String, Object> decryptAndDeserializeJweResponse(String response) throws ParseException, JOSEException {
+    private Map<String, Object> decryptAndDeserializeJweResponse(String response, JWK encryptionKey) throws ParseException, JOSEException {
         JWEObject jwe = JWEObject.parse(response);
-        JWEDecrypter decrypter = new DefaultJWEDecrypterFactory().createJWEDecrypter(jwe.getHeader(), keystoreManager.getKeyProvider("access").privateKey());
+        JWEDecrypter decrypter = new DefaultJWEDecrypterFactory().createJWEDecrypter(jwe.getHeader(), encryptionKey.toECKey().toPrivateKey());
         jwe.decrypt(decrypter);
         return jwe.getPayload().toJSONObject();
     }

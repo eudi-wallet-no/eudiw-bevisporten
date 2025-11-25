@@ -2,10 +2,11 @@ package no.idporten.eudiw.verifier.proxy.openid4vp;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -24,8 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.security.MessageDigest;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
 import java.time.Clock;
 import java.util.*;
 
@@ -65,10 +66,24 @@ public class OpenID4VPRequestService {
         return UriComponentsBuilder.newInstance()
                 .scheme("eudi-openid4vp")
                 .host(verifierProxyProperties.getSiop2ClientId())
-                .queryParam("client_id", verifierProxyProperties.getClientIdentifierScheme())
+                .queryParam("client_id", makeClientId())
                 .queryParam("request_uri", createRequestUri(requestId).toString())
                 .build()
                 .toUri();
+    }
+
+    @SneakyThrows
+    private String makeClientId() {
+        if ("x509_san_dns".equals(verifierProxyProperties.getClientIdentifierScheme())) {
+            return "x509_san_dns:" + verifierProxyProperties.getSiop2ClientId();
+        }
+        if ("x509_hash".equals(verifierProxyProperties.getClientIdentifierScheme())) {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(keystoreManager.getKeyProvider("access").certificate().getEncoded());
+            String clientId = java.util.Base64.getUrlEncoder().encodeToString(md.digest());
+            return "x509_hash: " + clientId;
+        }
+        throw new IllegalStateException("Unknown client identifier scheme: " + verifierProxyProperties.getClientIdentifierScheme());
     }
 
     @SneakyThrows
@@ -89,12 +104,14 @@ public class OpenID4VPRequestService {
             throw new VerificationException("invalid_request", "Unknown verification transaction");
         }
         String state = UUID.randomUUID().toString();
+        JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(JWEAlgorithm.ECDH_ES).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
         verificationTransaction.setState(state);
-        JWT authorizationRequest = makeRequestJwt(verificationTransaction.getCredentialConfiguration(), verificationTransactionId, state);
+        verificationTransaction.setEncryptionKey(encryptionKey);
+        JWT authorizationRequest = makeRequestJwt(verificationTransaction.getCredentialConfiguration(), verificationTransactionId, encryptionKey, state);
         return authorizationRequest.serialize();
     }
 
-    public JWT makeRequestJwt(CredentialConfiguration credentialConfiguration, String verifierTransactionId, String state) throws Exception {
+    public JWT makeRequestJwt(CredentialConfiguration credentialConfiguration, String verifierTransactionId, JWK encryptionKey, String state) throws Exception {
         KeyProvider keyProvider = keystoreManager.getKeyProvider("access");
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
@@ -106,9 +123,9 @@ public class OpenID4VPRequestService {
                 .claim("response_mode", "direct_post.jwt")
                 .claim("nonce", UUID.randomUUID().toString())
                 .claim("state", state)
-                .claim("client_id", verifierProxyProperties.getClientIdentifierScheme())
+                .claim("client_id", makeClientId())
                 .claim("dcql_query", makeDCQLQuery(credentialConfiguration, verifierTransactionId))
-                .claim("client_metadata", makeClientMetadata())
+                .claim("client_metadata", makeClientMetadata(encryptionKey))
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
                 .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
                 .expirationTime(new Date(Clock.systemUTC().millis() + 120000));
@@ -125,19 +142,6 @@ public class OpenID4VPRequestService {
         return signedJWT;
     }
 
-    @Deprecated
-    private JSONObject makeVpFormats() {
-        JSONArray algs = new JSONArray();
-        algs.add(JWSAlgorithm.RS256.getName());
-        algs.add(JWSAlgorithm.ES256.getName());
-        algs.add(JWSAlgorithm.ES384.getName());
-        JSONObject mdoc = new JSONObject();
-        mdoc.appendField("alg", algs);
-        JSONObject format = new JSONObject();
-        format.appendField("mso_mdoc", mdoc);
-        return format;
-    }
-
     private JSONObject makeVpFormatsSupported() {
         JSONObject mdoc = new JSONObject();
         JSONObject format = new JSONObject();
@@ -149,32 +153,15 @@ public class OpenID4VPRequestService {
         return format;
     }
 
-    private JSONObject makeClientMetadata() {
+    private JSONObject makeClientMetadata(JWK encryptionKey) throws Exception {
         JSONObject metadata = new JSONObject();
-        metadata.appendField("jwks", makeJwks().toPublicJWKSet().toJSONObject());
+        metadata.appendField("jwks", new JWKSet(encryptionKey).toPublicJWKSet().toJSONObject());
         JSONArray encryptedResponseAlgs = new JSONArray();
         encryptedResponseAlgs.add(EncryptionMethod.A128GCM.getName());
+        encryptedResponseAlgs.add(EncryptionMethod.A256GCM.getName());
         metadata.appendField("encrypted_response_enc_values_supported", encryptedResponseAlgs);
         metadata.appendField("vp_formats_supported", makeVpFormatsSupported());
-        // JARM Android v24
-        metadata.appendField("id_token_signed_response_alg", JWSAlgorithm.RS256.getName());
-        metadata.appendField("authorization_encrypted_response_alg", JWEAlgorithm.ECDH_ES.getName());
-        metadata.appendField("authorization_encrypted_response_enc", EncryptionMethod.A128CBC_HS256.getName());
-        // VP formats Android v24
-        metadata.appendField("vp_formats", makeVpFormats());
         return metadata;
-    }
-
-    @SneakyThrows
-    private JWKSet makeJwks() {
-        List<JWK> jwkList = new ArrayList<>();
-        ECPublicKey publicKey = (ECPublicKey) keystoreManager.getKeyProvider("access").publicKey();
-        jwkList.add(new ECKey.Builder(ECUtils.curveFromKey(publicKey), publicKey)
-                .keyUse(KeyUse.ENCRYPTION)
-                .keyIDFromThumbprint()
-                .algorithm(JWEAlgorithm.ECDH_ES)
-                .build());
-        return new JWKSet(jwkList);
     }
 
     @SneakyThrows
