@@ -4,5 +4,6 @@ public enum AuthoritativeSource {
     FREG,
     ADVOKATREGISTERET,
     KRR,
-    INNTEKTSAPI
+    INNTEKTSAPI,
+    UNKNOWN
 }

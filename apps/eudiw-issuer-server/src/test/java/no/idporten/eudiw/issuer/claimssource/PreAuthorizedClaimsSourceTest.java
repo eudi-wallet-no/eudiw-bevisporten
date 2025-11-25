@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("When using pre-authorized claims sources")
 public class PreAuthorizedClaimsSourceTest {
 
-    abstract class AbstractJUnitClaimsSource extends AbstractPreAuthorizedClaimsSource {
+    abstract static class AbstractJUnitClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
         public AbstractJUnitClaimsSource() {
             setClaimsSourceCache(new InMemoryClaimsSourceCache());
@@ -61,7 +61,7 @@ public class PreAuthorizedClaimsSourceTest {
     @Nested
     class PullTests {
 
-        class PullClaimsSource extends AbstractJUnitClaimsSource {
+        static class PullClaimsSource extends AbstractJUnitClaimsSource {
             @Override
             public Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
                 return Map.of("c", "v");
@@ -88,7 +88,7 @@ public class PreAuthorizedClaimsSourceTest {
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
-                    () -> assertEquals("v", ((StringValue)claims.getFirst().getValue()).value())
+                    () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
             verify(claimsSource).pull(eq(issuanceTransactionId), any());
             verify(claimsSource).validate(any());
@@ -101,7 +101,7 @@ public class PreAuthorizedClaimsSourceTest {
     @Nested
     class PushTests {
 
-        class PushClaimsSource extends AbstractJUnitClaimsSource {
+        static class PushClaimsSource extends AbstractJUnitClaimsSource {
 
             @Override
             public Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
@@ -130,7 +130,7 @@ public class PreAuthorizedClaimsSourceTest {
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
-                    () -> assertEquals("v", ((StringValue)claims.getFirst().getValue()).value())
+                    () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
             verify(claimsSource).push(eq(issuanceTransactionId), any(), any());
             verify(claimsSource).validate(any());

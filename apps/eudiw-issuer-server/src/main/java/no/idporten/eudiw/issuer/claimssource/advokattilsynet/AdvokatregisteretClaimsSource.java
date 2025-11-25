@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
 import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
+import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
@@ -72,6 +73,11 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
         claims.put("regnr", personPrivate.regnr());
         claims.values().removeIf(Objects::isNull);
         return claims;
+    }
+
+    @Override
+    public String getAuthorativeSourceName(){
+        return AuthoritativeSource.ADVOKATREGISTERET.name();
     }
 
 }

@@ -5,7 +5,8 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
 
     private ClaimsSourceCache cache;
 
+    private final ClaimValueConverter claimValueConverter = new ClaimValueConverter();
 
     @Autowired
     public void setClaimsSourceCache(ClaimsSourceCache claimsSourceCache) {
@@ -108,15 +110,18 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         }
         Map<String, Object> storedClaims = cache.retrieveClaims(new IssuanceTransactionId(transactionId));
 
-        return storedClaims.keySet().stream()
-                .map(claimName -> getDocumentMetadata().findClaimMetadata(claimName))
-                .filter(Objects::nonNull)
-                .map(claimMetadata -> getClaim(claimMetadata, storedClaims) ).toList();
+        try {
+            return storedClaims.keySet().stream()
+                    .map(claimName -> getDocumentMetadata().findClaimMetadata(claimName))
+                    .filter(Objects::nonNull)
+                    .map(claimMetadata -> getClaim(claimMetadata, storedClaims)).toList();
+        } catch (ClaimsSourceFormatException e) {
+            throw new ClaimsSourceInvalidDataException(this.getAuthorativeSourceName(), e.getErrorDescription(), e);
+        }
     }
 
-    public Claim getClaim(ClaimMetadata claimMetadata, Map<String, Object> storedClaims) {
-        StringValue value = new StringValue((String) storedClaims.get(claimMetadata.name()));
-        return Claim.builder().path(claimMetadata.name()).value(value).build();
+    public Claim getClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
+        return claimValueConverter.convertClaim(claim, storedClaims);
     }
 
 }

@@ -12,7 +12,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,12 +146,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @Override
     public Claim getClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
-
-        if (claim.type().equals(TYPE_BINARY)) {
-            String base64Image = (String) storedClaims.get(claim.name());
-            byte[] imageAsBytes = Base64.getDecoder().decode(base64Image);
-            return Claim.builder().path(claim.name()).value(new BinaryValue(imageAsBytes)).build();
-        } else if (claim.type().equals(TYPE_MAP) && claim.name().equals("driving_privileges")) {
+       if (claim.type().equals(TYPE_MAP) && claim.name().equals("driving_privileges")) {
             // special handling of driving_privileges claim for now
             Map<String, Object> dp = (Map<String, Object>) storedClaims.get(claim.name());
             Map<String, ClaimValue> dpClaims = new HashMap<>();
@@ -161,10 +155,6 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
             dpClaims.put("expiry_date", new FullDateValue(LocalDate.parse((String) dp.get("expiry_date"))));
             dpClaims.put("codes", new StringValue((String) dp.get("codes")));
             return Claim.builder().path(claim.name()).value(new MapValue(dpClaims)).build();
-        } else if (claim.type().equals(TYPE_FULLDATE)) {
-            return Claim.builder().path(claim.name()).value(new FullDateValue(LocalDate.parse((String) storedClaims.get(claim.name())))).build();
-        } else if (claim.type().equals(TYPE_NUMBER)) {
-            return Claim.builder().path(claim.name()).value(new NumberValue((Integer) storedClaims.get(claim.name()))).build();
         }
         return super.getClaim(claim, storedClaims);
     }
