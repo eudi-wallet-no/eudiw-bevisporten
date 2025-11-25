@@ -15,7 +15,7 @@ management:
 
 verifier-proxy:
   siop2ClientId: abr.vc.local
-  client-identifier-scheme: x509_san_dns
+  client-identifier-scheme: x509_hash
   externalBaseUri: http://localhost:9285
   credential-issuers:
     - http://localhost:9240

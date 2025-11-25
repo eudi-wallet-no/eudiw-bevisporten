@@ -12,6 +12,7 @@ import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.UUID;
@@ -39,8 +40,9 @@ public class VerificationService {
         }
         String verifierTransactionId = UUID.randomUUID().toString();
         URI requestUri = openID4VPRequestService.createAuthorizationRequest(credentialConfiguration, verifierTransactionId);
+        URI haipRequestUri = UriComponentsBuilder.fromUri(requestUri).scheme("haip-vp").build().toUri();
         verificationTransactionService.initTransaction(verifierTransactionId, credentialConfiguration);
-        return new StartVerificationResponse(requestUri, verifierTransactionId);
+        return new StartVerificationResponse(requestUri, haipRequestUri, verifierTransactionId);
     }
 
 
