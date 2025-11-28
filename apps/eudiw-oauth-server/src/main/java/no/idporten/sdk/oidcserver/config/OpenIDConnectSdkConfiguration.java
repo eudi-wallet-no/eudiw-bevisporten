@@ -155,6 +155,11 @@ public final class OpenIDConnectSdkConfiguration {
     private int accessTokenLifetimeSeconds = 120;
 
     /**
+     * Default audience for access_token issued by this server.  Clients can override by using the resource parameter.
+     */
+    private URI accessTokenDefaultAudience;
+
+    /**
      * The set of clients this OAuth2 server will accept requests from.
      */
     @Singular("client")

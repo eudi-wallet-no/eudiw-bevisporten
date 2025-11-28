@@ -25,6 +25,7 @@ spring:
 oauth-authorization-server:
   issuer: http://oauth-server:9260
 #  issuer: http://localhost:9260
+  access-token-default-audience: http://issuer-server:9240
 
 oidc-proxy:
   redirect-uri: ${oauth-authorization-server.issuer}/callback
