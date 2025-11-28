@@ -4,8 +4,6 @@ import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
-import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +17,7 @@ public class JUnitClaimsSource implements ClaimsSource {
 
     public JUnitClaimsSource(){
         this.documentMetadata = new DocumentMetadata(
-                List.of(new DocumentMetadata.Display("no", "Junit doc")),
+                List.of(new DocumentMetadata.Display("no", "Junit doc", "Kun for junit-tester")),
                 List.of(new ClaimMetadata("attr1", Map.of("no", "attribute1"), true, ".*"))
         );
     }

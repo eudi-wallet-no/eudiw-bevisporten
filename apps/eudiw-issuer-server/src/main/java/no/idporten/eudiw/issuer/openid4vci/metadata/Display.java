@@ -26,4 +26,11 @@ public class Display {
     @Builder.Default
     @JsonProperty("locale")
     private String locale = "en";
+
+    @JsonProperty("background_color")
+    private String backgroundColor;
+
+    @JsonProperty("text_color")
+    private String textColor;
+
 }
