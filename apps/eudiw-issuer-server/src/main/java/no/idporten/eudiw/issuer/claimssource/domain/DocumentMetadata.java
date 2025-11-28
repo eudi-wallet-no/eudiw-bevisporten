@@ -15,10 +15,21 @@ public record DocumentMetadata(
     public record Display(
         String locale,
         String name,
-        String description
+        String description,
+        String backgroundColor,
+        String textColor
     ) {
         public Display(String locale, String name) {
             this(locale, name, null);
         }
+
+        public Display(String locale, String name, String description) {
+            this(locale, name, description, "#afcee9", "#002c54");
+        }
+
+        public Display(String locale, String name, String backgroundColor, String textColor) {
+            this(locale, name, null, backgroundColor, textColor);
+        }
+
     }
 }

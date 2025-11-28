@@ -34,7 +34,15 @@ public class ClaimsSourceService implements InitializingBean {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
         builder.displays(claimsSource.getDocumentMetadata().displays()
                 .stream()
-                .map(display -> Display.builder().locale(display.locale()).name(display.name()).description(display.description()).build()).toList());
+                .map(display ->
+                        Display.builder()
+                                .locale(display.locale())
+                                .name(display.name())
+                                .description(display.description())
+                                .backgroundColor(display.backgroundColor())
+                                .textColor(display.textColor())
+                                .build())
+                .toList());
         for (ClaimMetadata claimMetadata : claimsSource.getDocumentMetadata().claims()) {
             builder.claim(ClaimsDescription.builder()
                     .path(claimMetadata.name())
