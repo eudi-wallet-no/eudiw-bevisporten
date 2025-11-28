@@ -430,6 +430,16 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         return pushedAuthorizationRequest;
     }
 
+    protected String calcAudience(ResourceIndicatorSupport request) {
+        if (request.hasResourceIndicator()) {
+            return request.getResource();
+        }
+        if (sdkConfiguration.getAccessTokenDefaultAudience() != null) {
+            return sdkConfiguration.getAccessTokenDefaultAudience().toString();
+        }
+        return null;
+    }
+
     @Override
     public AuthorizationResponse authorize(PushedAuthorizationRequest pushedAuthorizationRequest, Authorization authorization) {
         String code = generateId();
@@ -437,7 +447,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         authorization.setCodeChallenge(pushedAuthorizationRequest.getCodeChallenge());
         authorization.setLifetimeSeconds(sdkConfiguration.getAuthorizationLifetimeSeconds());
         authorization.setClientId(pushedAuthorizationRequest.getClientId());
-        authorization.setAud(pushedAuthorizationRequest.getResource());
+        authorization.setAud(calcAudience(pushedAuthorizationRequest));
         authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
         authorization.setIssuerState(pushedAuthorizationRequest.getIssuerState());
         if (!hasText(authorization.getAcr())) {
@@ -515,6 +525,9 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid code_verifier.", 400);
         }
         sdkConfiguration.getCache().removeAuthorization(tokenRequest.getCode());
+        if (tokenRequest.hasResourceIndicator()) {
+            authorization.setAud(tokenRequest.getResource());
+        }
         try {
             TokenResponse tokenResponse = createTokenResponse(authorization);
             if (sdkConfiguration.getUserinfoEndpoint() != null) {

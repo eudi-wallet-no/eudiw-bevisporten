@@ -13,6 +13,7 @@ oauth-authorization-server:
     key-alias: junit
     key-password: secret
   issuer: http://my-test-server
+  access-token-default-audience: https://junit-issuer.eidas2sandkasse.dev
   scopes-supported:
     - ra
   api-key: junit

@@ -60,6 +60,10 @@ public class OpenIDConnectConfiguration implements InitializingBean {
     private int parLifetimeSeconds = 60;
     @Min(1)
     private int authorizationLifetimeSeconds = 60;
+
+    @NotNull
+    private URI accessTokenDefaultAudience;
+
     private boolean requirePkce = true;
     private KeyStoreProperties keyStore;
 
@@ -94,6 +98,7 @@ public class OpenIDConnectConfiguration implements InitializingBean {
                         .grantTypesSupported(grantTypesSupported)
                         .authorizationRequestLifetimeSeconds(parLifetimeSeconds)
                         .authorizationLifetimeSeconds(authorizationLifetimeSeconds)
+                        .accessTokenDefaultAudience(accessTokenDefaultAudience)
                         .requirePkce(requirePkce)
                         .responseMode("query")
 //                        .uiLocales(uiLocales)
