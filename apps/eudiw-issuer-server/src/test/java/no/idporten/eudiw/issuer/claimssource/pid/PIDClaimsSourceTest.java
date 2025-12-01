@@ -63,7 +63,7 @@ class PIDClaimsSourceTest {
     @BeforeEach
     void manuallyConfigureBeans() {
         FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
-        pidClaimsSource = new PIDClaimsSource(fregService, personConverterService);
+        pidClaimsSource = new PIDMdocClaimsSource(fregService, personConverterService);
         pidClaimsSource.init(properties);
     }
 
@@ -95,8 +95,8 @@ class PIDClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("then data can be pulled from authoritative source with a valid accesstoken with fnr as subject should return a valid Person from FREG mapped to Claims")
-    void pull() {
+    @DisplayName("then data can be pulled from authoritative source with a valid accesstoken with fnr as subject should return a valid Person from FREG mapped to Claims for mdoc format")
+    void pullMdoc() {
 
         String fnr = "12345678901";
         Folkeregisterperson fregPerson = createFolkeregisterperson();
@@ -106,6 +106,12 @@ class PIDClaimsSourceTest {
 
         assertNotNull(claims);
         assertEquals(NUMBER_OF_CLAIMS, claims.size());
+        assertTrue(claims.stream().anyMatch(c-> "family_name".equals(c.getPath().getFirst())));
+        assertTrue(claims.stream().anyMatch(c-> "given_name".equals(c.getPath().getFirst())));
+        assertTrue(claims.stream().anyMatch(c-> "birth_date".equals(c.getPath().getFirst())));
+        assertTrue(claims.stream().anyMatch(c-> "place_of_birth".equals(c.getPath().getFirst())));
+        assertTrue(claims.stream().anyMatch(c-> "nationality".equals(c.getPath().getFirst())));
+
         verify(fregIntegration).getFolkeregisterPerson(eq(fnr), anyList());
 
         // test personal_administrative_number is present in claims
@@ -121,6 +127,28 @@ class PIDClaimsSourceTest {
         assertTrue(birthDateClaim.isPresent());
         assertInstanceOf(FullDateValue.class, birthDateClaim.get().getValue());
         assertEquals(LocalDate.of(2000, 1, 1), birthDateClaim.get().getValue().value());
+    }
+
+    @Test
+    @DisplayName("then attribute names can be constructed for SD-JWT VC format")
+    void pullSDJwtVC() {
+        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
+        PIDSDJwtClaimsSource pidCs = new PIDSDJwtClaimsSource(fregService, personConverterService);
+        pidCs.init(properties);
+        String fnr = "12345678901";
+        Folkeregisterperson fregPerson = createFolkeregisterperson();
+        when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenReturn(fregPerson);
+
+        List<Claim> claims = pidCs.pull(fnr);
+        assertAll(
+                () -> assertNotNull(claims),
+                () -> assertEquals(NUMBER_OF_CLAIMS, claims.size()),
+                () -> assertTrue(claims.stream().anyMatch(c -> "family_name".equals(c.getPath().getFirst()))),
+                () -> assertTrue(claims.stream().anyMatch(c -> "given_name".equals(c.getPath().getFirst()))),
+                () -> assertTrue(claims.stream().anyMatch(c -> "birthdate".equals(c.getPath().getFirst()))),
+                () -> assertTrue(claims.stream().anyMatch(c -> "place_of_birth".equals(c.getPath().getFirst()))),
+                () -> assertTrue(claims.stream().anyMatch(c -> "nationalities".equals(c.getPath().getFirst())))
+        );
     }
 
     @Test

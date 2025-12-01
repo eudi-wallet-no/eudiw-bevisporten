@@ -130,8 +130,10 @@ credential-issuer-server:
   claims-sources:
     - credential-types:
         - eu.europa.ec.eudi.pid.1
+      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDMdocClaimsSource
+    - credential-types:
         - urn:eudi:pid:1
-      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDClaimsSource
+      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDSDJwtClaimsSource
     - credential-types:
         - no.skatteetaten.nnid.1
       class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource
