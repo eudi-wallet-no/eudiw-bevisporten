@@ -4,24 +4,28 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimValueConverter;
-import no.idporten.eudiw.issuer.claimssource.domain.*;
+import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.FREG;
 import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
 
 
 /**
- * Claims source for Norwegian PID data from FREG
+ * Claims source for Norwegian PID data from FREG.  Subclasses handles format specific claim formats.
+ *
+ * See https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md .
  */
-@Service
-public class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
+class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
 
     private final FregService fregService;
     private final PersonConverterService personConverterService;
@@ -36,43 +40,42 @@ public class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Norsk ID-bevis")),
                 List.of(
-                        new ClaimMetadata("personal_administrative_number",
+                        new ClaimMetadata(getAttributeIdentifier("personal_administrative_number"),
                                 Map.of("no", "Fødselsnummer"),
                                 true,
                                 "^\\d{11}$"),
-                        new ClaimMetadata("given_name",
+                        new ClaimMetadata(getAttributeIdentifier("given_name"),
                                 Map.of("no", "Førenamn"),
                                 true,
                                 null),
-                        new ClaimMetadata("family_name",
+                        new ClaimMetadata(getAttributeIdentifier("family_name"),
                                 Map.of("no", "Etternamn"),
                                 true,
                                 null),
-                        new ClaimMetadata("birth_date", TYPE_FULLDATE,
+                        new ClaimMetadata(getAttributeIdentifier("birth_date"), TYPE_FULLDATE,
                                 Map.of("no", "Fødselsdato"),
                                 true,
                                 null),
-                        new ClaimMetadata("place_of_birth", TYPE_MAP,
+                        new ClaimMetadata(getAttributeIdentifier("birth_place"), TYPE_MAP,
                                 Map.of("no", "Fødeland"),
                                 true,
                                 null),
-                        new ClaimMetadata("nationality", TYPE_LIST,
+                        new ClaimMetadata(getAttributeIdentifier("nationality"), TYPE_LIST,
                                 Map.of("no", "Nasjonalitet"),
                                 true,
                                 null),
-                        new ClaimMetadata("expiry_date", TYPE_FULLDATE,
+                        new ClaimMetadata(getAttributeIdentifier("expiry_date"), TYPE_FULLDATE,
                                 Map.of("no", "Gyldig til dato"),
                                 true,
                                 null),
-                        new ClaimMetadata("issuing_authority",
+                        new ClaimMetadata(getAttributeIdentifier("issuing_authority"),
                                 Map.of("no", "Utsteda av"),
                                 true,
                                 null),
-                        new ClaimMetadata("issuing_country",
+                        new ClaimMetadata(getAttributeIdentifier("issuing_country"),
                                 Map.of("no", "Utsteda i land"),
                                 true,
                                 null)
-
                 )
         );
     }
@@ -93,17 +96,17 @@ public class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
 
         List<Claim> claims = new ArrayList<>();
         // mandatory attributes
-        claims.add(claimValueConverter.getStringClaim("personal_administrative_number", personIdentifier));
-        claims.add(claimValueConverter.getStringClaim("family_name", getEtternavn(person.getNavn())));
-        claims.add(claimValueConverter.getStringClaim("given_name", getFornavn(person.getNavn())));
-        claims.add(claimValueConverter.getFullDateClaim("birth_date", getFoedselsdato(person)));
-        claims.add(claimValueConverter.getMapClaim("place_of_birth", convertBirthPlace(person)));
-        claims.add(claimValueConverter.getListClaim("nationality", getNationalities(person)));
+        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("personal_administrative_number"), personIdentifier));
+        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("family_name"), getEtternavn(person.getNavn())));
+        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("given_name"), getFornavn(person.getNavn())));
+        claims.add(claimValueConverter.getFullDateClaim(getAttributeIdentifier("birth_date"), getFoedselsdato(person)));
+        claims.add(claimValueConverter.getMapClaim(getAttributeIdentifier("place_of_birth"), convertBirthPlace(person)));
+        claims.add(claimValueConverter.getListClaim(getAttributeIdentifier("nationality"), getNationalities(person)));
 
         // mandatory metadata attributes
-        claims.add(claimValueConverter.getFullDateClaim("expiry_date", createPidExpiryDate()));
-        claims.add(claimValueConverter.getStringClaim("issuing_authority", "DIGITALISERINGSDIREKTORATET"));
-        claims.add(claimValueConverter.getStringClaim("issuing_country", "NO"));
+        claims.add(claimValueConverter.getFullDateClaim(getAttributeIdentifier("expiry_date"), createPidExpiryDate()));
+        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("issuing_authority"), "DIGITALISERINGSDIREKTORATET"));
+        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("issuing_country"), "NO"));
 
         return claims;
     }
@@ -146,6 +149,13 @@ public class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
     @Override
     public String getAuthorativeSourceName(){
         return FREG.name();
+    }
+
+    /**
+     * Gets format-specific attribute identifier.  Default is the data identifier itself.
+     */
+    protected String getAttributeIdentifier(String dataIdentifier) {
+        return dataIdentifier;
     }
 
 }
