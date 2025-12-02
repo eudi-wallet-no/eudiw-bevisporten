@@ -33,18 +33,6 @@ public class CredentialConfiguration  {
     @JsonProperty("credential_signing_alg_values_supported")
     private List<String> credentialSigningAlgValuesSupported;
 
-
-    @Setter
-    @JsonProperty("display")
-    @Deprecated // TODO: Remove once OpenID4VCI draft 15 support is no longer needed
-    private List<Display> display;
-
-    @Setter
-    @Singular("claim")
-    @JsonProperty("claims")
-    @Deprecated // TODO: Remove once OpenID4VCI draft 15 support is no longer needed
-    private List<ClaimsDescription> claims;
-
     @Getter
     @JsonProperty("credential_metadata")
     private CredentialMetadata credentialMetadata;

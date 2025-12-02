@@ -63,11 +63,7 @@ public class CredentialIssuerServerConfiguration {
             } else if (CredentialFormat.SD_JWT_VC.equals(credentialConfigurationProperties.getFormat())) {
                 credentialConfigurationBuilder.vct(credentialConfigurationProperties.getCredentialType());
             }
-            // fix for openid4vci draft 15
-            CredentialConfiguration credentialConfiguration = credentialConfigurationBuilder.build();
-            credentialConfiguration.setClaims(credentialConfiguration.getCredentialMetadata().getClaims());
-            credentialConfiguration.setDisplay(credentialConfiguration.getCredentialMetadata().getDisplay());
-            credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfiguration);
+            credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfigurationBuilder.build());
         }
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
