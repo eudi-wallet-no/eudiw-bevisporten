@@ -2,6 +2,8 @@ package no.idporten.eudiw.issuer.oauth2;
 
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.token.AccessToken;
+import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,6 @@ import java.util.Objects;
 @Service
 public class AccessTokenValidationService {
 
-    public static final String AUTHORIZATION_HEADER_BEARER_TOKEN_PREFIX = "Bearer ";
     private final AuthorizationServerService authorizationServerService;
 
     /**
@@ -29,22 +30,20 @@ public class AccessTokenValidationService {
         if (!StringUtils.hasText(authorizationHeader)) {
             throw new IssuerServerException("invalid_request", "Missing authorization header.", HttpStatus.UNAUTHORIZED);
         }
-        if (!authorizationHeader.startsWith(AUTHORIZATION_HEADER_BEARER_TOKEN_PREFIX)) {
-            throw new IssuerServerException("invalid_request", "Missing bearer token in authorization header.", HttpStatus.UNAUTHORIZED);
-        }
-        String bearerToken = authorizationHeader.substring(AUTHORIZATION_HEADER_BEARER_TOKEN_PREFIX.length());
         try {
-            JWT accessToken = SignedJWT.parse(bearerToken);
-            AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServer(accessToken.getJWTClaimsSet().getIssuer(), authorizationServers);
+            AccessToken accessToken = AccessToken.parse(authorizationHeader, AccessTokenType.DPOP);
+            JWT jwtAccessToken = SignedJWT.parse(accessToken.getValue());
+            AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServer(jwtAccessToken.getJWTClaimsSet().getIssuer(), authorizationServers);
             if (authorizationServer == null) {
                 throw new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED);
             }
-            return authorizationServer.getAccessTokenValidator().validate(accessToken);
+            return authorizationServer.getAccessTokenValidator().validate(jwtAccessToken);
         } catch (ParseException e) {
             throw new IssuerServerException("invalid_token", "Invalid token format.", HttpStatus.UNAUTHORIZED);
+        } catch (com.nimbusds.oauth2.sdk.ParseException e) {
+            throw new IssuerServerException("invalid_token", "Invalid authentication scheme.", HttpStatus.UNAUTHORIZED);
         }
     }
-
 
     /**
      * Validates that an access token meets the requirements of the credential configuration.
