@@ -70,8 +70,9 @@ public class MDocService {
         }
         return mDocBuilder.sign(
                 new id.walt.mdoc.mso.ValidityInfo(
-                        Clock.System.INSTANCE.now(),
-                        Clock.System.INSTANCE.now(),
+                        // TOODO hack for iOS wallet mdoc issue timestamp validation failure
+                        new Instant(java.time.Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES)),
+                        new Instant(java.time.Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES)),
                         new Instant(java.time.Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS)),
                         new Instant(java.time.Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS))
                 ),
