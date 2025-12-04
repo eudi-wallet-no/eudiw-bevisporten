@@ -35,7 +35,7 @@ public class PreAuthorizationEndpointController {
     public ResponseEntity<PreAuthorizationResponse> createPreAuthorization(@RequestHeader HttpHeaders headers,
                                                                            @RequestBody PreAuthorizationRequest preAuthorizationRequest) {
         checkApiKey(headers);
-        return ResponseEntity.ok(openIDConnectSdk.process(preAuthorizationRequest));
+        return ResponseEntity.ok(openIDConnectSdk.process(preAuthorizationRequest, headers));
     }
 
     private void checkApiKey(HttpHeaders headers) {

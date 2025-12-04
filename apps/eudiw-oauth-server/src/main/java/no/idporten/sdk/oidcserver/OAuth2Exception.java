@@ -16,6 +16,7 @@ public class OAuth2Exception extends RuntimeException {
     public static final String UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type";
     public static final String UNSUPPORTED_RESPONSE_TYPE = "unsupported_response_type";
     public static final String INVALID_SCOPE = "invalid_scope";
+    public static final String INVALID_DPOP_PROOF = "invalid_dpop_proof";
     public static final String INVALID_AUTHORIZATION_DETAILS = "invalid_authorization_details";
     public static final String SERVER_ERROR = "server_error";
     public static final String TEMPORARILY_UNAVAILABLE = "temporarily_unavailable";

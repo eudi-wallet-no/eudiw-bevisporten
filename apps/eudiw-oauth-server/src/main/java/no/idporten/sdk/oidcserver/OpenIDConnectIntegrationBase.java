@@ -7,6 +7,7 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.SneakyThrows;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
+import no.idporten.sdk.oidcserver.util.JsonObjectBuilder;
 import no.idporten.sdk.oidcserver.util.StringUtils;
 
 import java.net.URI;
@@ -22,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.text.ParseException;
 import java.util.*;
 
 import static no.idporten.sdk.oidcserver.util.StringUtils.hasText;
@@ -86,6 +89,15 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         validateAuthorizationDetails(authorizationRequest, clientMetadata);
         validateResource(authorizationRequest, clientMetadata);
         validateIssuerState(authorizationRequest, clientMetadata);
+        validateDpopJkt(authorizationRequest, clientMetadata);
+    }
+
+    private void validateDpopJkt(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
+        // TODO implement DPoP validation and correct error messages, see RFC.
+        if (authorizationRequest.getResolvedDpopJkt() != null && false) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid parameter dpop_jkt and header DPoP, must be equal to each other.", 400);
+        }
+
     }
 
     protected void validateClientId(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
@@ -201,7 +213,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             } catch (URISyntaxException e) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource.", 400);
             }
-            if (! uri.isAbsolute()) {
+            if (!uri.isAbsolute()) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_TARGET, "Invalid parameter resource. Must be absolute.", 400);
             }
             if (StringUtils.hasText(uri.getQuery())) {
@@ -246,19 +258,41 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
     /**
      * Creates a pushed authorization response to the pushed authorization request.  Clients must redirect the browser
      * to the authorization endpoint.
+     *
      * @param authorizationRequest client authz request
      * @return pushed authorization response with request_uri
      */
     protected final PushedAuthorizationResponse createPushedAuthorizationResponse(PushedAuthorizationRequest authorizationRequest) {
         String requestUri = createRequestUri();
         authorizationRequest.setLifetimeSeconds(sdkConfiguration.getAuthorizationRequestLifetimeSeconds());
+        if (authorizationRequest.getDPoPHeader() != null) {
+            String dpopJtk = findDpopJtk(authorizationRequest.getDPoPHeader());
+            authorizationRequest.setResolvedDpopJkt(dpopJtk);
+        }
         sdkConfiguration.getCache().putAuthorizationRequest(requestUri, authorizationRequest);
         return PushedAuthorizationResponse.builder().expiresIn(authorizationRequest.expiresInSeconds()).requestUri(requestUri).build();
+    }
+
+    protected static String findDpopJtk(String dPoPHeader) {
+        SignedJWT dPopProof;
+        try {
+            dPopProof = SignedJWT.parse(dPoPHeader);
+        } catch (ParseException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. Failed to parse DPop header", 400, e);
+        }
+        JWK jwk = dPopProof.getHeader().getJWK();
+        try {
+            Base64URL thumbprint = jwk.toPublicJWK().computeThumbprint();  // TODO algorithm
+            return thumbprint.toString();
+        } catch (JOSEException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. Failed to parse DPop header", 400, e);
+        }
     }
 
     /**
      * Creates a direct pushed authorization response to the pushed authorization request.  Clients must not redirect to
      * the authorization endpoint.  They must handle the custom response containing tokens.
+     *
      * @param authorizationRequest client authz request
      * @param authorization        base for token creation
      * @return direct pushed authorization response with tokens
@@ -337,7 +371,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown client.", 401);
         }
         if (!(Objects.equals(clientMetadata.getClientId(), clientId)
-                && Objects.equals(clientMetadata.getClientSecret(), clientSecret))) {
+              && Objects.equals(clientMetadata.getClientSecret(), clientSecret))) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication.", 401);
 
         }
@@ -425,6 +459,8 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         if (hasText(authorizationRequest.getClientId()) && !authorizationRequest.getClientId().equals(pushedAuthorizationRequest.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter client_id. The request was pushed by another client.", 400);
         }
+        // do only support PAR, no need to check incoming DPoP
+
         sdkConfiguration.getCache().removeAuthorizationRequest(authorizationRequest.getRequestUri());
         sdkConfiguration.getAuditLogger().auditAuthorizationRequest(authorizationRequest);
         return pushedAuthorizationRequest;
@@ -453,7 +489,10 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         if (!hasText(authorization.getAcr())) {
             authorization.setAcr(pushedAuthorizationRequest.getResolvedAcrValue());
         }
+
+        authorization.setDpopJkt(pushedAuthorizationRequest.getResolvedDpopJkt()); // parse og sjekk også dpop_jkt
         validateAuthorization(authorization);
+
         sdkConfiguration.getCache().putAuthorization(code, authorization);
         sdkConfiguration.getAuditLogger().auditAuthorization(authorization);
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
@@ -524,6 +563,14 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         if ((getSDKConfiguration().isRequirePkce() || hasText(authorization.getCodeChallenge())) && !validateCodeVerifier(tokenRequest.getCodeVerifier(), authorization.getCodeChallenge())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid code_verifier.", 400);
         }
+        if (tokenRequest.getDPoPHeader() != null) {
+            String dpopJtk = findDpopJtk(tokenRequest.getDPoPHeader());
+            if (!Objects.equals(dpopJtk, authorization.getDpopJkt())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
+            }
+            // TODO valider vidare
+        }
+
         sdkConfiguration.getCache().removeAuthorization(tokenRequest.getCode());
         if (tokenRequest.hasResourceIndicator()) {
             authorization.setAud(tokenRequest.getResource());
@@ -551,11 +598,14 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
     protected final TokenResponse createTokenResponse(Authorization authorization) throws JOSEException {
         validateAuthorization(authorization);
         boolean isOpenIDConnect = authorization.getScope().contains("openid");
-        return TokenResponse.builder()
+        TokenResponse.TokenResponseBuilder builder = TokenResponse.builder()
                 .idToken(isOpenIDConnect ? createIDToken(authorization) : null)
                 .accessToken(createAccessToken(authorization))
-                .expiresInSeconds(sdkConfiguration.getAccessTokenLifetimeSeconds())
-                .build();
+                .expiresInSeconds(sdkConfiguration.getAccessTokenLifetimeSeconds());
+        if (hasText(authorization.getDpopJkt())) {
+            builder.tokenType("DPoP");
+        }
+        return builder.build();
     }
 
     private String createIDToken(Authorization authorization) throws JOSEException {
@@ -590,6 +640,10 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 .expirationTime(new Date(new Date().getTime() + (sdkConfiguration.getAccessTokenLifetimeSeconds() * 1000L)))
                 .issueTime(new Date())
                 .subject(authorization.getSub());
+        if (hasText(authorization.getDpopJkt())) {
+            Map<String, Object> jkt = JsonObjectBuilder.builder().addAttribute("jkt", authorization.getDpopJkt()).build();
+            accessTokenClaimsSetBuilder.claim("cnf", jkt);
+        }
         authorization.getAttributes().forEach(accessTokenClaimsSetBuilder::claim);
         accessToken = signJwt("at+JWT", accessTokenClaimsSetBuilder.build());
         return accessToken;

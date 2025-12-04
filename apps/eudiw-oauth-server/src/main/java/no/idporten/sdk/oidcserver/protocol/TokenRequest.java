@@ -19,6 +19,7 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
     private transient String clientSecret;
     private transient String clientAssertion;
     private transient String clientAssertionType;
+    private String dPoPHeader;
     private String clientId;
     private String codeVerifier;
     private String code;
@@ -34,6 +35,7 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
     public TokenRequest(final Map<String, List<String>> headers, final Map<String, List<String>> parameters) {
         Map<String, List<String>> ciHeaders = caseInsensitiveMap(headers);
         authorizationHeader = getFirstValue("Authorization", ciHeaders);
+        dPoPHeader = getFirstValue("dpop", ciHeaders);
         clientId = getFirstValue("client_id", parameters);
         codeVerifier = getFirstValue("code_verifier", parameters);
         clientSecret = getFirstValue("client_secret", parameters);
