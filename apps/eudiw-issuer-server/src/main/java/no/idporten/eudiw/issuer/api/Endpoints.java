@@ -1,5 +1,9 @@
 package no.idporten.eudiw.issuer.api;
 
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+
 public class Endpoints {
 
     // OpenID4VCI endpoints
@@ -13,4 +17,10 @@ public class Endpoints {
     public final static String CREATE_CREDENTIAL_OFFER_ENDPOINT = "/api/v1/credential-offer/create";
     public final static String OPENAPI_ENDPOINT = "/swagger-ui/index.html";
 
+    /**
+     * Calculate endpoint uri from credential issuer uri.
+     */
+    public static URI endpointURI(URI issuerUri, String path) {
+        return UriComponentsBuilder.fromUri(issuerUri).path(path).build().toUri();
+    }
 }

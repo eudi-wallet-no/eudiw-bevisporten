@@ -16,9 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -36,9 +34,9 @@ public class CredentialIssuerServerConfiguration {
         CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
                 .credentialIssuer(properties.getCredentialIssuer())
                 .authorizationServers(properties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
-                .credentialEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
-                .nonceEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT))
-                .notificationEndpoint(endpointURI(properties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT))
+                .credentialEndpoint(Endpoints.endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
+                .nonceEndpoint(Endpoints.endpointURI(properties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT))
+                .notificationEndpoint(Endpoints.endpointURI(properties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT))
                 .displays(properties.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(properties.getDisplayNames().get(locale)).build()).toList());
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
@@ -81,10 +79,6 @@ public class CredentialIssuerServerConfiguration {
                 .map(claimsDescription -> claimsDescription.forFormat(credentialFormat, credentialType))
                 .toList());
         return adjustedClaimsDescriptions;
-    }
-
-    protected URI endpointURI(URI issuerUri, String path) {
-        return UriComponentsBuilder.fromUri(issuerUri).path(path).build().toUri();
     }
 
     @Bean
