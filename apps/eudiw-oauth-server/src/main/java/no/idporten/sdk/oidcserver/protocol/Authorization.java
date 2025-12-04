@@ -36,6 +36,7 @@ public class Authorization implements Cacheable, AuditDataProvider {
     private String amr;
     private String acr;
     private String issuerState;
+    private String dpopJkt;
 
     private long createdAtEpochMillis;
     private long expiresAtEpochMillis;

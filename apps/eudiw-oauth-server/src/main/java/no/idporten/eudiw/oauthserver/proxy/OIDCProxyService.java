@@ -136,13 +136,16 @@ public class OIDCProxyService {
 
     private Authorization buildAuthorization(PushedAuthorizationRequest authorizationRequest, OIDCTokens oidcTokens, IDTokenClaimsSet idTokenClaimsSet) throws BadJOSEException, JOSEException {
         final String personIdentifier = idTokenClaimsSet.getStringClaim("pid");
-        return Authorization.builder()
+        Authorization.AuthorizationBuilder builder = Authorization.builder()
                 .sub(personIdentifier)
                 .acr(idTokenClaimsSet.getACR().getValue())
                 .amr(idTokenClaimsSet.getAMR().getFirst().getValue())
                 .attribute("xid", oidcTokens.getIDTokenString())
-                .attribute("xat", oidcTokens.getAccessToken().getValue())
-                .build();
+                .attribute("xat", oidcTokens.getAccessToken().getValue());
+        if(authorizationRequest.getResolvedDpopJkt() != null) {
+             builder.dpopJkt(authorizationRequest.getDpopJkt());
+        }
+        return builder.build();
     }
 
     protected TokenResponse send(com.nimbusds.oauth2.sdk.TokenRequest tokenRequest) throws ParseException {

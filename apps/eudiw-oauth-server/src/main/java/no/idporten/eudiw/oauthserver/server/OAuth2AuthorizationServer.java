@@ -5,7 +5,12 @@ import no.idporten.sdk.oidcserver.OpenIDConnectIntegrationBase;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
+import no.idporten.sdk.oidcserver.util.MultiValuedMapUtils;
 import no.idporten.sdk.oidcserver.util.StringUtils;
+import org.springframework.http.HttpHeaders;
+
+import java.util.List;
+import java.util.Map;
 
 import static no.idporten.sdk.oidcserver.util.StringUtils.hasText;
 
@@ -19,7 +24,7 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
     @Override
     protected void validateScope(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
         super.validateScope(authorizationRequest, clientMetadata);
-        if (! getSDKConfiguration().getScopesSupported().containsAll(authorizationRequest.getScope())) {
+        if (!getSDKConfiguration().getScopesSupported().containsAll(authorizationRequest.getScope())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Client requested scopes not supported by authorization server.", 400);
         }
     }
@@ -55,6 +60,14 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
         if (hasText(preAuthorization.getCodeChallenge()) && !validateCodeVerifier(tokenRequest.getTxCode(), preAuthorization.getCodeChallenge())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid transaction code.", 400);
         }
+        if (tokenRequest.getDPoPHeader() != null) {
+            String dpopJtk = findDpopJtk(tokenRequest.getDPoPHeader());
+            if (!hasText(dpopJtk)) { // dummy greia, ta vekk
+                throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
+            }
+            // TODO valider vidare
+            preAuthorization.setDpopJkt(dpopJtk);
+        }
         if (tokenRequest.hasResourceIndicator()) {
             preAuthorization.setAud(tokenRequest.getResource());
         }
@@ -69,6 +82,7 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
 
     /**
      * Handles OpenID4VCI unauthenticated token requests by creating a dummy client.
+     *
      * @param tokenRequest pre-authorized token request
      * @return client metadata for unauthenticated client
      */
@@ -85,8 +99,9 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
      * Process pre-authorization request.  Create an authorization, store in cache and generate a response
      * with pre.authorization_code.
      */
-    public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest) {
+    public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest, HttpHeaders headers) {
         validate(preAuthorizationRequest);
+        Map<String, List<String>> headersMap = MultiValuedMapUtils.caseInsensitiveMap(headers);
         Authorization preAuthorization = Authorization.builder()
                 .sub(preAuthorizationRequest.getSub())
                 .aud(preAuthorizationRequest.getAud())

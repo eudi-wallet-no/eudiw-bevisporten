@@ -41,6 +41,8 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     public static final String AUTHORIZATION_SIGNING_ALG_VALUES_SUPPORTED = "authorization_signing_alg_values_supported";
     public static final String ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED = "id_token_signing_alg_values_supported";
     public static final String AUTHORIZATION_RESPONSE_ISS_PARAMETER_SUPPORTED = "authorization_response_iss_parameter_supported";
+    public static final String DPOP_SIGNING_ALG_VALUES_SUPPORTED = "dpop_signing_alg_values_supported";
+    public static final String DPOP_BOUND_ACCESS_TOKENS = "dpop_bound_access_tokens";
 
     @JsonProperty(ISSUER)
     private URI issuer;
@@ -124,6 +126,14 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     @Builder.Default
     private boolean authorizationResponseIssParameterSupported = true;
 
+    @JsonProperty(DPOP_SIGNING_ALG_VALUES_SUPPORTED)
+    @Builder.Default
+    private List<String> dpopSigningAlgValuesSupported = List.of("ES256"); // todo find algs we want to support
+
+    @JsonProperty(DPOP_BOUND_ACCESS_TOKENS)
+    @Builder.Default
+    private boolean dpopBoundAccessTokens = false;
+
     @Override
     public Map<String, Object> toJsonObject() {
         return JsonUtils.jsonObjectBuilder()
@@ -149,6 +159,8 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
                 .addAttribute(UI_LOCALES_SUPPORTED, uiLocalesSupported)
                 .addAttribute(CODE_CHALLENGE_METHODS_SUPPORTED, codeChallengeMethodsSupported)
                 .addAttribute(AUTHORIZATION_RESPONSE_ISS_PARAMETER_SUPPORTED, authorizationResponseIssParameterSupported)
+                .addAttribute(DPOP_SIGNING_ALG_VALUES_SUPPORTED, dpopSigningAlgValuesSupported)
+                .addAttribute(DPOP_BOUND_ACCESS_TOKENS, dpopBoundAccessTokens)
                 .build();
     }
 

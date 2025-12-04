@@ -32,6 +32,7 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     private transient String clientSecret;
     private transient String clientAssertion;
     private transient String clientAssertionType;
+    private transient String dPoPHeader;
     private String clientId;
     private String redirectUri;
     private String state;
@@ -46,6 +47,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     private List<AuthorizationDetail> authorizationDetails;
     private String resource;
     private String issuerState;
+    private transient String dpopJkt;
+
     @Getter(AccessLevel.NONE)
     private Map<String, String> parameters = new HashMap<>();
 
@@ -55,6 +58,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     private String resolvedUiLocale; // resolved from ui_locales
     @Setter
     private String resolvedResponseMode; // resolved from response_mode
+    @Setter
+    private String resolvedDpopJkt; // resolved from param dpopJkt and header dPoP
 
     private long createdAtEpochMillis;
     private long expiresAtEpochMillis;
@@ -62,6 +67,7 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     public PushedAuthorizationRequest(final Map<String, List<String>> headers, final Map<String, List<String>> parameters) {
         Map<String, List<String>> ciHeaders = caseInsensitiveMap(headers);
         this.authorizationHeader = getFirstValue("Authorization", ciHeaders);
+        this.dPoPHeader = getFirstValue("dpop", ciHeaders); // TODO feile om fleire dpop-headers
         clientId = getFirstValue("client_id", parameters);
         clientSecret = getFirstValue("client_secret", parameters);
         clientAssertion = getFirstValue("client_assertion", parameters);
@@ -79,6 +85,7 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
         authorizationDetails = convertAuthorizationDetails(getFirstValue("authorization_details", parameters));
         resource = getFirstValue("resource", parameters);
         issuerState = getFirstValue("issuer_state", parameters);
+        dpopJkt = getFirstValue("dpop_jkt", parameters);
         this.parameters = toMap(parameters);
     }
 
