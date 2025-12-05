@@ -7,8 +7,8 @@ import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocBuilder;
 import id.walt.mdoc.mso.DeviceKeyInfo;
-import kotlinx.datetime.Clock;
-import kotlinx.datetime.Instant;
+import id.walt.mdoc.mso.ValidityInfo;
+import kotlin.time.Instant;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
@@ -18,6 +18,7 @@ import org.cose.java.OneKey;
 import org.springframework.stereotype.Service;
 
 import java.security.cert.X509Certificate;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -68,14 +69,13 @@ public class MDocService {
             DataElement data = getDataElement(entry.getValue());
             mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), data);
         }
+        // TOODO hack for iOS wallet mdoc issue timestamp validation failure
+        Instant signedAt = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES).toEpochMilli());
+        Instant validFrom = signedAt;
+        Instant validTo = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS).toEpochMilli());
+        Instant expectedUpdateAt = validTo;
         return mDocBuilder.sign(
-                new id.walt.mdoc.mso.ValidityInfo(
-                        // TOODO hack for iOS wallet mdoc issue timestamp validation failure
-                        new Instant(java.time.Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES)),
-                        new Instant(java.time.Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES)),
-                        new Instant(java.time.Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS)),
-                        new Instant(java.time.Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS))
-                ),
+                new ValidityInfo(signedAt, validFrom, validTo, expectedUpdateAt),
                 deviceKeyInfo,
                 cryptoProvider,
                 ISSUER_KEY_ID,
