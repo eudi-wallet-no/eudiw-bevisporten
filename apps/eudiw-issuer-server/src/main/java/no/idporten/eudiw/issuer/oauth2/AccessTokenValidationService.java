@@ -12,12 +12,10 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.net.URI;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
@@ -30,29 +28,25 @@ public class AccessTokenValidationService {
     private final AuthorizationServerService authorizationServerService;
 
     /**
-     * Validate that access_token is valid for our service and issued by a trusted authorization server.
+     * Validate access_token.
+     *
+     * @param context validation context with headers and request info
+     * @return validated access_token JWT
      */
-    public JWT validateAccessTokenForCredentialConfiguration(String authorizationHeader, List<AuthorizationServer> authorizationServers) {
-        return validateAccessTokenForCredentialConfiguration(null, null, authorizationHeader, null, authorizationServers);
-    }
-    /**
-     * Validates that access_token that may be DPoP bound is valid for our service and issued by a trusted authorization server.
-     * Ignores DPoP if Bearer token or method or endpointURI is not specified.
-     */
-    public JWT validateAccessTokenForCredentialConfiguration(HttpMethod method, URI endpointUri, String authorizationHeader, String dPoPHeader, List<AuthorizationServer> authorizationServers) {
-        if (!StringUtils.hasText(authorizationHeader)) {
+    public JWT validateAccessToken(AccessTokenValidationContext context) {
+        if (!StringUtils.hasText(context.authorizationHeader())) {
             throw new IssuerServerException("invalid_request", "Missing authorization header.", HttpStatus.UNAUTHORIZED);
         }
         try {
-            AccessToken accessToken = AccessToken.parse(authorizationHeader, AccessTokenType.DPOP);
+            AccessToken accessToken = AccessToken.parse(context.authorizationHeader(), AccessTokenType.DPOP);
             JWT jwtAccessToken = SignedJWT.parse(accessToken.getValue());
-            AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServer(jwtAccessToken.getJWTClaimsSet().getIssuer(), authorizationServers);
+            AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServer(jwtAccessToken.getJWTClaimsSet().getIssuer(), context.authorizationServers());
             if (authorizationServer == null) {
                 throw new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED);
             }
             JWT validAccessToken = authorizationServer.getAccessTokenValidator().validate(jwtAccessToken);
             if (AccessTokenType.DPOP.equals(accessToken.getType())) {
-                validateDPopAccessToken(method, endpointUri, authorizationHeader, dPoPHeader);
+                validateDPopAccessToken(context);
             }
             return validAccessToken;
 
@@ -63,19 +57,25 @@ public class AccessTokenValidationService {
         }
     }
 
-    protected void validateDPopAccessToken(HttpMethod method, URI endpointUri, String authorizationHeader, String dPoPHeader) {
+    /**
+     * Additional validation of DPoP when provided in request or required by endpoint.
+     */
+    protected void validateDPopAccessToken(AccessTokenValidationContext context) {
         try {
-            if (method == null || endpointUri == null) {
-                return; // endpoint does not require DPoP
+            if ((context.endpointHttpMethod() == null || context.endpointURI() == null || !StringUtils.hasText(context.dpopHeader())) && !context.dPoPRequired()) {
+                return;
             }
-            if (! StringUtils.hasText(dPoPHeader)) {
+            if (context.dPoPRequired() && !StringUtils.hasText(context.dpopHeader())) {
                 throw new IssuerServerException("invalid_request", "Missing DPoP header.", HttpStatus.UNAUTHORIZED);
             }
-            DPoPAccessToken dPoPAccessToken = DPoPAccessToken.parse(authorizationHeader);
+            if (context.dPoPRequired() && (context.endpointHttpMethod() == null || context.endpointURI() == null)) {
+                throw new IssuerServerException("invalid_request", "Missing DPoP configuration", HttpStatus.UNAUTHORIZED);
+            }
+            DPoPAccessToken dPoPAccessToken = DPoPAccessToken.parse(context.authorizationHeader());
             JWT jwtAccessToken = SignedJWT.parse(dPoPAccessToken.getValue());
             String clientIdClaim = jwtAccessToken.getJWTClaimsSet().getStringClaim("client_id");
             ClientID clientID = new ClientID(StringUtils.hasText(clientIdClaim) ? clientIdClaim : "unknown-wallet");
-            SignedJWT dPopProof = SignedJWT.parse(dPoPHeader);
+            SignedJWT dPopProof = SignedJWT.parse(context.dpopHeader());
             JWKThumbprintConfirmation cnf = JWKThumbprintConfirmation.parse(jwtAccessToken.getJWTClaimsSet());
             DPoPProtectedResourceRequestVerifier requestVerifier = new DPoPProtectedResourceRequestVerifier(
                     Set.of(JWSAlgorithm.ES256),
@@ -83,8 +83,9 @@ public class AccessTokenValidationService {
                     120,
                     new InMemoryDPoPSingleUseChecker(120, 240));
             DPoPIssuer dpopIssuer = new DPoPIssuer(clientID);
-            requestVerifier.verify(method.name(),
-                    endpointUri,
+            requestVerifier.verify(
+                    context.endpointHttpMethod().name(),
+                    context.endpointURI(),
                     dpopIssuer,
                     dPopProof,
                     dPoPAccessToken,

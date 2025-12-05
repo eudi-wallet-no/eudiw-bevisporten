@@ -2,29 +2,28 @@ package no.idporten.eudiw.issuer.api.issuance;
 
 import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.api.SwaggerConfiguration;
-import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceService;
-import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
-import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceResponse;
-import org.springframework.http.HttpHeaders;
+import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationContext;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
+import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = SwaggerConfiguration.API_TAG, description = SwaggerConfiguration.API_DESCRIPTION)
@@ -54,9 +53,8 @@ public class PreAuthorizedCredentialIssuanceController {
                                     schema = @Schema(implementation = PreAuthorizedIssuanceRequest.class))},
                     required = true)
             @RequestBody @Valid PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest,
-            @Parameter(hidden = true)
-            @RequestHeader(required = false, value = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
-        JWT accessToken = accessTokenValidationService.validateAccessTokenForCredentialConfiguration(authorizationHeader, authorizationServerService.getPreAuthorizationServers());
+            HttpServletRequest request) {
+        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers()));
         accessTokenValidationService.validateAccessTokenBoundToSubject(accessToken, preAuthorizedIssuanceRequest.getSubject().getIdentifier());
         PreAuthorizedIssuanceResponse preAuthorizedIssuanceResponse = preAuthorizedIssuanceService.startIssuerTransaction(preAuthorizedIssuanceRequest, accessToken);
         return ResponseEntity
