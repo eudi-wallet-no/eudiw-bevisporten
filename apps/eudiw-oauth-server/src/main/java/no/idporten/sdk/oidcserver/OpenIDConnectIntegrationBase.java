@@ -66,6 +66,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 .authorizationSigningAlgValueSupported(sdkConfiguration.getDefaultSigningAlgorithm().getName())
                 .tokenEndpointAuthSigningAlgValuesSupported(sdkConfiguration.getTokenEndpointAuthSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
                 .authorizationResponseIssParameterSupported(sdkConfiguration.isAuthorizationResponseIssParameterSupported())
+                .preAuthorizedGrantAnonymousAccessSupported(sdkConfiguration.isPreAuthorizedGrantAnonymousAccessSupported())
                 .build();
     }
 

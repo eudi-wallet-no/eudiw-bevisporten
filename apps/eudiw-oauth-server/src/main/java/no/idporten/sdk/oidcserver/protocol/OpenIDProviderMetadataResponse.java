@@ -43,6 +43,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     public static final String AUTHORIZATION_RESPONSE_ISS_PARAMETER_SUPPORTED = "authorization_response_iss_parameter_supported";
     public static final String DPOP_SIGNING_ALG_VALUES_SUPPORTED = "dpop_signing_alg_values_supported";
     public static final String DPOP_BOUND_ACCESS_TOKENS = "dpop_bound_access_tokens";
+    public static final String PRE_AUTHORIZED_GRANT_ANONYMOUS_ACCESS_SUPPORTED = "pre-authorized_grant_anonymous_access_supported";
 
     @JsonProperty(ISSUER)
     private URI issuer;
@@ -134,6 +135,9 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     @Builder.Default
     private boolean dpopBoundAccessTokens = false;
 
+    @JsonProperty(PRE_AUTHORIZED_GRANT_ANONYMOUS_ACCESS_SUPPORTED)
+    private boolean preAuthorizedGrantAnonymousAccessSupported;
+
     @Override
     public Map<String, Object> toJsonObject() {
         return JsonUtils.jsonObjectBuilder()
@@ -161,6 +165,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
                 .addAttribute(AUTHORIZATION_RESPONSE_ISS_PARAMETER_SUPPORTED, authorizationResponseIssParameterSupported)
                 .addAttribute(DPOP_SIGNING_ALG_VALUES_SUPPORTED, dpopSigningAlgValuesSupported)
                 .addAttribute(DPOP_BOUND_ACCESS_TOKENS, dpopBoundAccessTokens)
+                .addAttribute(PRE_AUTHORIZED_GRANT_ANONYMOUS_ACCESS_SUPPORTED, preAuthorizedGrantAnonymousAccessSupported)
                 .build();
     }
 

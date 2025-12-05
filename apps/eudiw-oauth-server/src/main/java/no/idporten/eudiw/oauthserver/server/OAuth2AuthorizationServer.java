@@ -45,8 +45,12 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
         if (tokenRequest.isAuthenticatedRequest()) {
             clientMetadata = authenticateClient(tokenRequest);
         } else {
-            clientMetadata = handleUnauthenticatedClient(tokenRequest);
-        }
+            if (getSDKConfiguration().isPreAuthorizedGrantAnonymousAccessSupported()) {
+                clientMetadata = handleUnauthenticatedClient(tokenRequest);
+            } else {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Pre-authorized anonymous access not supported", 401);
+            }
+       }
         validate(tokenRequest, clientMetadata);
         getSDKConfiguration().getAuditLogger().auditTokenRequest(tokenRequest);
         Authorization preAuthorization = getSDKConfiguration().getCache().getAuthorization(tokenRequest.getPreAuthorizedCode());
