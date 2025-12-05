@@ -205,6 +205,9 @@ public final class OpenIDConnectSdkConfiguration {
     @Builder.Default
     private boolean authorizationResponseIssParameterSupported = true;
 
+    @Builder.Default
+    private boolean preAuthorizedGrantAnonymousAccessSupported = true;
+
     /**
      * Backward compatibility - avoid in new applications - ignore client_id parameter missing on pushed authorization requests
      * TODO: remove in future versions
