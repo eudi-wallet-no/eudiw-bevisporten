@@ -55,7 +55,7 @@ public class PreAuthorizedCredentialIssuanceControllerTest {
     @Test
     void testInvalidSubjectIdentifier() throws Exception {
         JWT accessToken = accessToken("16903349844");
-        doReturn(accessToken).when(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(anyString(), anyList());
+        doReturn(accessToken).when(accessTokenValidationService).validateAccessToken(any());
         mockMvc.perform(post("/api/v1/credential/issuance-transaction")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer " + accessToken.serialize())
@@ -75,7 +75,7 @@ public class PreAuthorizedCredentialIssuanceControllerTest {
     @Test
     void testValidRequestResponse() throws Exception {
         JWT accessToken = accessToken("16903349844");
-        doReturn(accessToken).when(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(anyString(), anyList());
+        doReturn(accessToken).when(accessTokenValidationService).validateAccessToken(any());
         when(preAuthorizedIssuanceService.startIssuerTransaction(any(), eq(accessToken))).thenReturn(PreAuthorizedIssuanceResponse
                 .builder()
                 .credentialOffer(CredentialOffer.builder().build())
