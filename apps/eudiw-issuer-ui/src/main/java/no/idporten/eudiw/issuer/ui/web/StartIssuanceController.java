@@ -65,16 +65,19 @@ public class StartIssuanceController {
 
         CredentialOffer response = issuerServerService.startIssuance(credentialConfigurationId);
 
-        String uri = convertToCredentialOfferUri(response);
+        String uri = convertToCredentialOfferUri(response, "openid-credential-offer");
+        String haipUri = convertToCredentialOfferUri(response, "haip-vci");
         String qrCode = null;
+        String haipQrCode = null;
         try {
             qrCode = Base64.getEncoder().encodeToString(createQRCodeImage(uri));
+            haipQrCode = Base64.getEncoder().encodeToString(createQRCodeImage(haipUri));
         } catch (IOException | WriterException e) {
             logger.error("Failed to create QRCode for uri=" + uri, e);
             model.addAttribute("error", "Generering av QR kode feila.");
         }
 
-        Issuance issuance = new Issuance(response.toPrettyJsonString(), uri, qrCode);
+        Issuance issuance = new Issuance(response.toPrettyJsonString(), uri, haipUri, qrCode, haipQrCode);
         model.addAttribute("issuance", issuance);
 
         return VIEW_ISSUANCE_RESPONSE;
@@ -85,12 +88,13 @@ public class StartIssuanceController {
         return new IssuanceRequest(requestUri);
     }
 
-    private String convertToCredentialOfferUri(CredentialOffer credentialOffer) {
+    private String convertToCredentialOfferUri(CredentialOffer credentialOffer, String scheme) {
         String jsonString = credentialOffer.toJsonString();
         String offerEncoded = URLEncoder.encode(jsonString, StandardCharsets.UTF_8);
-        String uri = "openid-credential-offer://?credential_offer=" + offerEncoded;
+        String uri = scheme + "://?credential_offer=" + offerEncoded;
         logger.info("Issuer offer: " + credentialOffer);
         logger.info("Issuer offer encoded: " + offerEncoded);
+        logger.info("Offer uri: " + uri);
         return uri;
     }
 
