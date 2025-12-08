@@ -23,12 +23,27 @@
 
 
     <div class="ds-card" style="max-width: 600px">
+        <h1>HAIP</h1>
+        <div id="haip-cross-device-request">
+            <img th:src="${'data:image/png;base64,' + issuance.haipQrCode}" alt="QR kode for bevis" id="haip-qrcode-cross-device"
+                 width="100%"/>
+        </div>
+        <div class="flex-container" style="min-width: unset">
+            <a th:href="${issuance.haipEncodedUri}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+                Opne på mobilen (HAIP)
+            </a>
+            <a th:href="@{/}" class="ds-button" type="button" data-variant="secondary">
+                Tilbake
+            </a>
+        </div>
+    </div>
 
+    <div class="ds-card" style="max-width: 600px">
+        <h1>NOT HAIP</h1>
         <div id="cross-device-request">
             <img th:src="${'data:image/png;base64,' + issuance.qrCode}" alt="QR kode for bevis" id="qrcode-cross-device"
                  width="100%"/>
         </div>
-
         <div class="flex-container" style="min-width: unset">
             <a th:href="${issuance.encodedUri}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
                 Opne på mobilen
