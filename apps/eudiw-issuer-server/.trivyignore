@@ -1,3 +1,4 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
 CVE-2025-12183 # org.lz4:lz4-java Fixed 1.8.1
+CVE-2025-66566 # org.lz4:lz4-java Fixed ???
 CVE-2025-61729 #stdlib:  Within HostnameError.Error(), when constructing an error string, there is no limit to the number of hosts that will be printed out. Fixed 1.24.11, 1.25.5
