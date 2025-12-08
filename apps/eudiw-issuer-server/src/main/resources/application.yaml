@@ -164,6 +164,11 @@ credential-issuer-server:
 
 # Digdir standard logging
 digdir:
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
   audit:
     application-name:  ${spring.application.name}    # recommended naming convention is groupId:artifactId
     application-environment: ${spring.application.environment}
