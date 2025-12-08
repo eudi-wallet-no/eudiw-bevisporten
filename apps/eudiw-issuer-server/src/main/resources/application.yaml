@@ -39,20 +39,6 @@ credential-issuer-server:
   formats:
     - mso_mdoc
   credential-configurations:
-    - identifier: no.digdir.eudiw.pid_mso_mdoc
-      scope: eudiw:no:pid
-      format: mso_mdoc
-      credential-type: eu.europa.ec.eudi.pid.1
-      grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      key-store-name: pid-provider
-    - identifier: no.digdir.eudiw.pid_sd_jwt_vc
-      scope: eudiw:no:pid
-      format: sd_jwt_vc
-      credential-type: urn:eudi:pid:1
-      grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      key-store-name: pid-provider
     - identifier: no.skatteetaten.nnid_mso_mdoc
       scope: eudiw:no:skatteetaten:nnid
       format: mso_mdoc
