@@ -569,7 +569,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             if (hasText(authorization.getDpopJkt()) && !Objects.equals(dpopJtk, authorization.getDpopJkt())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
             }
-            // TODO valider vidare
+            authorization.setDpopJkt(dpopJtk);
         }
 
         sdkConfiguration.getCache().removeAuthorization(tokenRequest.getCode());
