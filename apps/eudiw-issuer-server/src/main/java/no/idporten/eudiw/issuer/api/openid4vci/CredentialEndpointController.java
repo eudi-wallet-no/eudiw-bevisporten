@@ -55,7 +55,7 @@ public class CredentialEndpointController {
         }
         CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
         return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
+                .status(HttpStatus.OK)
                 .body(credentialResponse);
     }
 
