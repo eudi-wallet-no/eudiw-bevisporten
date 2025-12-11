@@ -83,7 +83,7 @@ public class CredentialEndpointControllerTest {
                                          "type": "jwt"
                                      }
                                  }"""))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.credentials").isArray())
                 .andExpect(jsonPath("$.credentials").isNotEmpty())
@@ -108,7 +108,7 @@ public class CredentialEndpointControllerTest {
                                     ]
                                   }
                                 }"""))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.credentials").isArray())
                 .andExpect(jsonPath("$.credentials").isNotEmpty())
