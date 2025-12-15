@@ -65,7 +65,7 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid transaction code.", 400);
         }
         if (tokenRequest.getDPoPHeader() != null) {
-            String dpopJtk = findDpopJtk(tokenRequest.getDPoPHeader());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), tokenRequest.getClientId(), getSDKConfiguration().getTokenEndpoint());
             if (!hasText(dpopJtk)) { // dummy greia, ta vekk
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
             }

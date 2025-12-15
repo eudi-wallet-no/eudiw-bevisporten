@@ -209,6 +209,18 @@ public final class OpenIDConnectSdkConfiguration {
     private boolean preAuthorizedGrantAnonymousAccessSupported = true;
 
     /**
+     * List of supported algorithms for DPoP signing.
+     */
+    @Builder.Default
+    private Set<JWSAlgorithm> dpopSigningAlgValuesSupported= Set.of(JWSAlgorithm.ES256);
+
+    /**
+     * Requires DPoP-bound access tokens.  Default false accepts both with and without DPoP.
+     */
+    @Builder.Default
+    private boolean dpopBoundAccessTokens = false;
+
+    /**
      * Backward compatibility - avoid in new applications - ignore client_id parameter missing on pushed authorization requests
      * TODO: remove in future versions
      */

@@ -7,9 +7,12 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
-import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.dpop.JWKThumbprintConfirmation;
+import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPIssuer;
+import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPTokenRequestVerifier;
+import com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPProofException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
@@ -67,6 +70,8 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 .tokenEndpointAuthSigningAlgValuesSupported(sdkConfiguration.getTokenEndpointAuthSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
                 .authorizationResponseIssParameterSupported(sdkConfiguration.isAuthorizationResponseIssParameterSupported())
                 .preAuthorizedGrantAnonymousAccessSupported(sdkConfiguration.isPreAuthorizedGrantAnonymousAccessSupported())
+                .dpopSigningAlgValuesSupported(sdkConfiguration.getDpopSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
+                .dpopBoundAccessTokens(sdkConfiguration.isDpopBoundAccessTokens())
                 .build();
     }
 
@@ -90,15 +95,20 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         validateAuthorizationDetails(authorizationRequest, clientMetadata);
         validateResource(authorizationRequest, clientMetadata);
         validateIssuerState(authorizationRequest, clientMetadata);
-        validateDpopJkt(authorizationRequest, clientMetadata);
+        validateDPoP(authorizationRequest, clientMetadata);
     }
 
-    private void validateDpopJkt(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
+    protected void validateDPoP(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
         // TODO implement DPoP validation and correct error messages, see RFC.
-        if (authorizationRequest.getResolvedDpopJkt() != null && false) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid parameter dpop_jkt and header DPoP, must be equal to each other.", 400);
+        if (authorizationRequest.getDPoPHeader() != null) {
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(authorizationRequest.getDPoPHeader(), authorizationRequest.getClientId(), sdkConfiguration.getPushedAuthorizationRequestEndpoint());
+            if(authorizationRequest.getDpopJkt() != null && !authorizationRequest.getDpopJkt().equals(dpopJtk)) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid parameter dpop_jkt and header DPoP, must be equal to each other.", 400);
+            }
+            authorizationRequest.setResolvedDpopJkt(dpopJtk);
+        } else if(authorizationRequest.getDpopJkt() != null) {
+            authorizationRequest.setResolvedDpopJkt(authorizationRequest.getDpopJkt());
         }
-
     }
 
     protected void validateClientId(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
@@ -266,28 +276,30 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
     protected final PushedAuthorizationResponse createPushedAuthorizationResponse(PushedAuthorizationRequest authorizationRequest) {
         String requestUri = createRequestUri();
         authorizationRequest.setLifetimeSeconds(sdkConfiguration.getAuthorizationRequestLifetimeSeconds());
-        if (authorizationRequest.getDPoPHeader() != null) {
-            String dpopJtk = findDpopJtk(authorizationRequest.getDPoPHeader());
-            authorizationRequest.setResolvedDpopJkt(dpopJtk);
-        }
         sdkConfiguration.getCache().putAuthorizationRequest(requestUri, authorizationRequest);
         return PushedAuthorizationResponse.builder().expiresIn(authorizationRequest.expiresInSeconds()).requestUri(requestUri).build();
     }
 
-    protected static String findDpopJtk(String dPoPHeader) {
+    protected String validateDPoPProofAndGetDPoPJtk(String dPoPHeader, String clientId, URI endpoint) {
         SignedJWT dPopProof;
         try {
             dPopProof = SignedJWT.parse(dPoPHeader);
         } catch (ParseException e) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. Failed to parse DPop header", 400, e);
         }
-        JWK jwk = dPopProof.getHeader().getJWK();
+
+        long maximumTimeSkewSeconds = 60;
+        long maxAgeSeconds = 600;
+        DPoPTokenRequestVerifier verifier = new DPoPTokenRequestVerifier(sdkConfiguration.getDpopSigningAlgValuesSupported(), endpoint, maximumTimeSkewSeconds, maxAgeSeconds, null);
         try {
-            Base64URL thumbprint = jwk.toPublicJWK().computeThumbprint();  // TODO algorithm
-            return thumbprint.toString();
+            JWKThumbprintConfirmation verify = verifier.verify(new DPoPIssuer(clientId), dPopProof, null); // TODO add Nonce later
+            return verify.getValue().toString();
+        } catch (InvalidDPoPProofException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. DPop Proof header invalid", 400, e);
         } catch (JOSEException e) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. Failed to parse DPop header", 400, e);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. DPop Proof header invalid JWK", 400, e);
         }
+
     }
 
     /**
@@ -565,7 +577,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid code_verifier.", 400);
         }
         if (tokenRequest.getDPoPHeader() != null) {
-            String dpopJtk = findDpopJtk(tokenRequest.getDPoPHeader());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), tokenRequest.getClientId(), sdkConfiguration.getTokenEndpoint());
             if (hasText(authorization.getDpopJkt()) && !Objects.equals(dpopJtk, authorization.getDpopJkt())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
             }
