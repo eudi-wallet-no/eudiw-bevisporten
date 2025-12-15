@@ -128,7 +128,7 @@ public class OpenIDConnectSDKConfigurationTest {
     @DisplayName("then the discovery endpoint uri is calculated from the issuer uri")
     void testCalculateDiscoveryEndpointUriFromIssuer() throws Exception {
         OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfiguration();
-        assertEquals("http://junittest.idporten.no/.well-known/openid-configuration", sdkConfiguration.getOidcDiscoveryEndpoint().toString());
+        assertEquals("http://my-test-server/.well-known/openid-configuration", sdkConfiguration.getOidcDiscoveryEndpoint().toString());
         sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder().issuer(URI.create("https://junit.idporten.no/foo")).build();
         assertEquals("https://junit.idporten.no/foo/.well-known/openid-configuration", sdkConfiguration.getOidcDiscoveryEndpoint().toString());
     }

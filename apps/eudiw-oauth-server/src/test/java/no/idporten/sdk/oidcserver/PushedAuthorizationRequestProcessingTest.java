@@ -3,15 +3,18 @@ package no.idporten.sdk.oidcserver;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.PushedAuthorizationRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
+import java.net.URI;
+
+import static no.idporten.sdk.oidcserver.TestUtils.findDpopJktFromDpopHeader;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("When processing a pushed authorization request")
 public class PushedAuthorizationRequestProcessingTest {
+
+    public static final String TOKEN_ENDPOINT_URI = "https://junit.idporten.no/token";
+    public static final String PAR_ENDPOINT_URI= "https://junit.idporten.no/par";
 
     private OpenIDConnectIntegrationBase openIDConnectSdk;
     private ClientMetadata client1;
@@ -23,6 +26,8 @@ public class PushedAuthorizationRequestProcessingTest {
         OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder()
                 .client(client1)
                 .authorizationDetailsTypeSupported("foo")
+                .tokenEndpoint(new URI(TOKEN_ENDPOINT_URI))
+                .pushedAuthorizationRequestEndpoint(new URI(PAR_ENDPOINT_URI))
                 .build();
         openIDConnectSdk = new OpenIDConnectIntegrationBase(sdkConfiguration);
         cache = (SimpleOpenIDConnectCache) sdkConfiguration.getCache();
@@ -334,6 +339,74 @@ public class PushedAuthorizationRequestProcessingTest {
         MockRequest request = new MockRequest();
         assertDoesNotThrow(() -> openIDConnectSdk.validateCodeChallenge(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
     }
+
+    @Nested
+    class TestDPoPValidation {
+
+        @Test
+        @DisplayName("then DPop header is valid if present")
+        public void testDPopHeader() throws Exception {
+            MockRequest request = new MockRequest();
+            request.addHeader("DPoP", TestUtils.createDpopHeader(openIDConnectSdk.getSDKConfiguration().getPushedAuthorizationRequestEndpoint()));
+            request.addParameter("client_id", client1.getClientId());
+
+            assertDoesNotThrow(() -> openIDConnectSdk.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        }
+
+        @Test
+        @DisplayName("then DPop header is invalid will fail")
+        public void testInvalidDPopHeader() {
+            MockRequest request = new MockRequest();
+            request.addHeader("DPoP", "not-valid-jwt");
+            request.addParameter("client_id", client1.getClientId());
+
+            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> openIDConnectSdk.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            assertAll(
+                    () -> assertEquals(OAuth2Exception.INVALID_DPOP_PROOF, e.error()),
+                    () -> assertTrue(e.errorDescription().contains("Failed to parse DPop header"))
+            );
+        }
+
+        @Test
+        @DisplayName("then dpop_jkt parameter is valid if present")
+        public void testDPopJktParam() throws Exception {
+            MockRequest request = new MockRequest();
+            request.addParameter("dpop_jkt", TestUtils.createDpopJtk());
+            request.addParameter("client_id", client1.getClientId());
+
+            assertDoesNotThrow(() -> openIDConnectSdk.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        }
+
+        @Test
+        @DisplayName("then dpop_jkt parameter and dpopHeader is valid if equal")
+        public void testDPopJktParamAndDpopHeader() throws Exception {
+
+            MockRequest request = new MockRequest();
+            String dpopHeader = TestUtils.createDpopHeader(openIDConnectSdk.getSDKConfiguration().getPushedAuthorizationRequestEndpoint());
+            request.addHeader("DPoP", dpopHeader);
+            request.addParameter("client_id", client1.getClientId());
+            request.addParameter("dpop_jkt", findDpopJktFromDpopHeader(dpopHeader));
+
+            assertDoesNotThrow(() -> openIDConnectSdk.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        }
+
+        @Test
+        @DisplayName("then dpop_jkt parameter and dpopHeader throws exception if different")
+        public void whenDifferentDPopJktParamAndDpopHeaderShouldFail() throws Exception {
+
+            MockRequest request = new MockRequest();
+            request.addHeader("DPoP", TestUtils.createDpopHeader(openIDConnectSdk.getSDKConfiguration().getPushedAuthorizationRequestEndpoint()));
+            request.addParameter("dpop_jkt", TestUtils.createDpopJtk());
+            request.addParameter("client_id", client1.getClientId());
+            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> openIDConnectSdk.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            assertAll(
+                    () -> assertEquals(OAuth2Exception.INVALID_DPOP_PROOF, e.error()),
+                    () -> assertTrue(e.errorDescription().contains("must be equal"))
+            );
+        }
+
+    }
+
 
     @Test
     @DisplayName("then a valid request is accepted")

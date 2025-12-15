@@ -5,19 +5,23 @@ import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.dpop.DPoPProofFactory;
 import no.idporten.sdk.oidcserver.audit.OpenIDConnectAuditLogger;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.Serializable;
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
 
+import static no.idporten.sdk.oidcserver.TestUtils.findDpopJktFromDpopHeader;
+import static no.idporten.sdk.oidcserver.TestUtils.getDPoPProofFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -27,6 +31,14 @@ class AuthorizationCodeFlowTest {
     private OpenIDConnectIntegrationBase openIDConnectSdk;
     private SimpleOpenIDConnectCache cache;
     private OpenIDConnectAuditLogger auditLogger;
+    private DPoPProofFactory proofFactory;
+
+    public enum DPopTestCase {
+        NONE, // no endpoint uses DPoP
+        DPOP_ALL, // all endpoints use DPoP (PAR, token)
+        DPOP_TOKEN; // only token endpoint uses DPoP
+    }
+
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -34,16 +46,22 @@ class AuthorizationCodeFlowTest {
         OpenIDConnectSdkConfiguration sdkConfiguration = TestUtils.defaultSdkTestConfigurationBuilder()
                 .responseMode("form_post")
                 .userinfoEndpoint(new URI(TestUtils.defaultIssuer() + "userinfo"))
+                .tokenEndpoint(new URI(TestUtils.defaultIssuer() + "token"))
+                .pushedAuthorizationRequestEndpoint(new URI(TestUtils.defaultIssuer() + "par"))
                 .auditLogger(auditLogger)
                 .build();
         openIDConnectSdk = new OpenIDConnectIntegrationBase(sdkConfiguration);
         cache = (SimpleOpenIDConnectCache) sdkConfiguration.getCache();
+        proofFactory = getDPoPProofFactory();
     }
 
 
-    @Test
+    @ParameterizedTest
+    @EnumSource(DPopTestCase.class)
     @DisplayName("then the SDK's public methods all work together to implement the protocol (this test tests everything...)")
-    void testCodeFlow() throws Exception {
+    void testCodeFlow(DPopTestCase hasDPoP) throws Exception {
+        final String dPoPHeader = hasDPoP == DPopTestCase.DPOP_ALL ? TestUtils.createDpopHeader(openIDConnectSdk.getSDKConfiguration().getPushedAuthorizationRequestEndpoint(), proofFactory) : null;
+
         // 1. Process pushed authorization request
         MockRequest request = new MockRequest();
         ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
@@ -52,7 +70,7 @@ class AuthorizationCodeFlowTest {
         request.addParameter("code_challenge", "WWHTYIjNclXxS69q1gerQ-eTlW5ab1YCpKTorurQ3zw");
         request.addParameter("code_challenge_method", "S256");
         request.addParameter("scope", "openid pid.mdoc");
-        request.addParameter("redirect_uri", clientMetadata.getRedirectUris().get(0));
+        request.addParameter("redirect_uri", clientMetadata.getRedirectUris().getFirst());
         request.addParameter("response_type", "code");
         request.addParameter("response_mode", "form_post");
         request.addParameter("state", "s");
@@ -60,7 +78,9 @@ class AuthorizationCodeFlowTest {
         request.addParameter("acr_values", "Level4 Level3");
         request.addParameter("resource", "https://api.idporten.junit/v1");
         request.addParameter("issuer_state", "is");
-
+        if (hasDPoP == DPopTestCase.DPOP_ALL) {
+            request.addHeader("dpop", dPoPHeader);
+        }
         PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
         PushedAuthorizationResponse pushedAuthorizationResponse = openIDConnectSdk.process(pushedAuthorizationRequest);
         assertNotNull(pushedAuthorizationResponse);
@@ -95,7 +115,7 @@ class AuthorizationCodeFlowTest {
         AuthorizationResponse authorizationResponse = openIDConnectSdk.authorize(cachedRequest, authorization);
         assertNotNull(authorizationResponse);
         assertNotNull(authorizationResponse.getCode());
-        assertEquals(clientMetadata.getRedirectUris().get(0), authorizationResponse.getRedirectUri());
+        assertEquals(clientMetadata.getRedirectUris().getFirst(), authorizationResponse.getRedirectUri());
         assertEquals("form_post", authorizationResponse.getResponseMode());
         assertEquals("s", authorizationResponse.getState());
         assertEquals(TestUtils.defaultIssuer(), authorizationResponse.getIss());
@@ -105,17 +125,26 @@ class AuthorizationCodeFlowTest {
         final String code = authorizationResponse.getCode();
 
         // 4. Process token request
+        final String dPoPHeaderToken = hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP == DPopTestCase.DPOP_TOKEN ? TestUtils.createDpopHeader(openIDConnectSdk.getSDKConfiguration().getTokenEndpoint(), proofFactory) : null;
         request = new MockRequest();
         request.addParameter("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
         request.addParameter("client_assertion", TestUtils.createClientSecretJWT(clientMetadata, openIDConnectSdk.getSDKConfiguration().getIssuer().toString()).serialize());
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", code);
-        request.addParameter("redirect_uri", clientMetadata.getRedirectUris().get(0));
+        request.addParameter("redirect_uri", clientMetadata.getRedirectUris().getFirst());
         request.addParameter("code_verifier", "1234567890123456789012345678901234567890123");
+        if (hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP == DPopTestCase.DPOP_TOKEN) {
+            request.addHeader("dpop", dPoPHeaderToken);
+        }
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
         TokenResponse tokenResponse = openIDConnectSdk.process(tokenRequest);
         assertNotNull(tokenResponse);
         assertNotNull(tokenResponse.getIdToken());
+        if (hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP == DPopTestCase.DPOP_TOKEN) {
+            assertEquals("DPoP", tokenResponse.getTokenType());
+        }else{
+            assertEquals("Bearer", tokenResponse.getTokenType());
+        }
         verify(auditLogger).auditTokenRequest(tokenRequest);
         verify(auditLogger).auditTokenResponse(tokenResponse);
 
@@ -154,6 +183,10 @@ class AuthorizationCodeFlowTest {
         assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
         assertEquals("openid pid.mdoc", accessTokenClaimsSet.getClaim("scope"));
         assertEquals("is", accessTokenClaimsSet.getClaim("issuer_state"));
+        if (hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP==DPopTestCase.DPOP_TOKEN) { // TODO verify test later for only DPoP on token
+            assertNotNull(accessTokenClaimsSet.getClaim("cnf"));
+            assertEquals(findDpopJktFromDpopHeader(dPoPHeaderToken), ((java.util.Map<String, Object>) accessTokenClaimsSet.getClaim("cnf")).get("jkt"));
+        }
 
         // 7. Process optional userinfo request
         request = new MockRequest();

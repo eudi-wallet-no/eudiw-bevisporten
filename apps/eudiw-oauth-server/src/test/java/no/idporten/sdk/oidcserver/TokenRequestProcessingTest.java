@@ -7,6 +7,10 @@ import no.idporten.sdk.oidcserver.protocol.TokenRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -171,14 +175,40 @@ public class TokenRequestProcessingTest {
     }
 
     @Test
+    @DisplayName("then requests with invalid DPoP header is rejected")
+    public void testInvalidDPoPHeader() {
+        MockRequest request = new MockRequest();
+        request.addParameter("client_id", "client1");
+        request.addParameter("client_secret", "secret");
+        request.addParameter("grant_type", "authorization_code");
+        request.addParameter("code", "c");
+        request.addParameter("code_verifier", "0bIIA7r2upg7LcYGak1kWWJlndTO4FtDW8smeRhjf_I");
+        request.addHeader("dPoP", "invalid-dpop-header");
+        TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
+        Authorization authorization = Authorization.builder().aud("client1").codeChallenge("J2dCSyTeiT6L9UtOYYbGY8QptRqlAA7ExQN5xsh-QzI").build();
+        authorization.setLifetimeSeconds(100);
+        authorization.setClientId(client1.getClientId());
+        cache.putAuthorization("c", authorization);
+        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> openIDConnectSdk.process(tokenRequest));
+        assertAll(
+                () -> assertEquals(OAuth2Exception.INVALID_DPOP_PROOF, e.error()),
+                () -> assertTrue(e.errorDescription().contains("Failed to parse DPop header"))
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
     @DisplayName("then a valid token request is accepted")
-    public void testValidateTokenRequest() throws Exception {
+    public void testValidateTokenRequest(boolean hasDPoP) throws Exception {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
         request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "yXbcA9SFmU5hAeMka1bj_E9B1yV_E-A1QdmKM-k8zw4");
+        if (hasDPoP) {
+            request.addHeader("dpop", TestUtils.createDpopHeader(URI.create("http://my-unit-test/token")));
+        }
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
         openIDConnectSdk.validate(tokenRequest, client1);
     }
