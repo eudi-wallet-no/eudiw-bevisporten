@@ -7,3 +7,4 @@ CVE-2025-58187 # stdlib
 CVE-2025-58188 # stdlib
 CVE-2025-61723 # stdlib
 CVE-2025-61724 # stdlib
+CVE-2025-61729 # stdlib v1.25.3: Host certificate validation. Fixed in 1.24.11, 1.25.5
