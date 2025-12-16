@@ -44,11 +44,38 @@ public class CredentialOfferControllerTest {
                 .andExpect(jsonPath("$.grants.authorization_code").isEmpty());
     }
 
-    @DisplayName("then a credential offer cannot be created for a credential configuration that uses the pre-authorized code flow")
+    @DisplayName("then a credential offer can be created for multiple credential configurations that uses the authorization code flow")
+    @Test
+    void testCreateCredentialOfferForMultipleCredentialConfigurationsAuthorizationCodeFlow() throws Exception {
+        mockMvc.perform(post("/api/v1/credential-offer/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "credential_configuration_ids": ["junitdoc_mso_mdoc", "junitdoc_sd_jwt_vc"]
+                                }
+                                """)
+                        .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.credential_issuer").value("https://junit.eidas2sandkasse.dev/"))
+                .andExpect(jsonPath("$.credential_configuration_ids").isArray())
+                .andExpect(jsonPath("$.credential_configuration_ids[0]").value("junitdoc_mso_mdoc"))
+                .andExpect(jsonPath("$.credential_configuration_ids[1]").value("junitdoc_sd_jwt_vc"))
+                .andExpect(jsonPath("$.grants.authorization_code").exists())
+                .andExpect(jsonPath("$.grants.authorization_code").isEmpty());
+    }
+
+    @DisplayName("then a credential offer cannot be created for credential configurations that uses the pre-authorized code flow")
     @Test
     void testNoCredentialOfferForPreAuthorizedCodeFlow() throws Exception {
-        mockMvc.perform(get("/api/v1/credential-offer/create")
-                        .queryParam("credential_configuration_id", "junitdoc_pre_mso_mdoc")
+        mockMvc.perform(post("/api/v1/credential-offer/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "credential_configuration_ids": ["junitdoc_mso_mdoc", "junitdoc_pre_mso_mdoc"]
+                                }
+                                """)
                         .accept(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isBadRequest())
@@ -59,9 +86,14 @@ public class CredentialOfferControllerTest {
 
     @DisplayName("then a credential offer cannot be created for an unknown credential configuration")
     @Test
-    void testNoCredentialOfferForUnkownCredentialConfiguration() throws Exception {
-        mockMvc.perform(get("/api/v1/credential-offer/create")
-                        .queryParam("credential_configuration_id", "banana_mso_mdoc")
+    void testNoCredentialOfferForUnknownCredentialConfiguration() throws Exception {
+        mockMvc.perform(post("/api/v1/credential-offer/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "credential_configuration_ids": ["xmas_mso_mdoc"]
+                                }
+                                """)
                         .accept(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isBadRequest())

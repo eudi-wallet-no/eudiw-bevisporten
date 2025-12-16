@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AuditService {
 
@@ -47,7 +49,7 @@ public class AuditService {
                 .build());
     }
 
-    public void logCreateCredentialOffer(@NotEmpty String credentialIssuer, @NotEmpty String credentialConfigurationId) {
+    public void logCreateCredentialOffer(@NotEmpty String credentialIssuer, @NotEmpty List<String> credentialConfigurationId) {
         auditLogger.log(AuditEntry.builder()
                 .auditId(AuditID.CREATE_CREDENTIAL_OFFER.auditIdentifier())
                 .logNullAttributes(false)
