@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-byob-service
+  description: EUDIWs eudiw-byob-service
+  annotations:
+    github.com/project-slug: eudi-wallet-no/eudiw-byob-service
+spec:
+  type: application
+  lifecycle: test
+  owner: team-digital-lommebok
+  system: digital-lommebok
+
+

@@ -1,0 +1,50 @@
+---
+server:
+  port: 8080
+
+spring:
+  application:
+    name: digital-lommebok-byob-service
+    environment: default
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+# Digdir standard logging
+digdir:
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
+  audit:
+    log-dir:
+    log-file:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false
+      bearer-token: false
+      correlation-id: false
+      ip-address: true
+    prometheus:
+      counter: true
+
+# byob-service: Bring your own bevis service properties
+byob-service:
+
