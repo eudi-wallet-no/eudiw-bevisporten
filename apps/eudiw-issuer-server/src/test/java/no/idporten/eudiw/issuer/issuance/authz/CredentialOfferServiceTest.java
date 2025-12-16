@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -47,7 +48,7 @@ public class CredentialOfferServiceTest {
                 () -> assertNotNull(credentialOffer.getGrants().getAuthorizedCodeGrant()),
                 () -> assertNull(credentialOffer.getGrants().getPreAuthorizedCodeGrant())
         );
-        verify(auditService).logCreateCredentialOffer(eq("https://junit.issuer.idporten.no"), eq("foo"));
+        verify(auditService).logCreateCredentialOffer(eq("https://junit.issuer.idporten.no"), eq(List.of("foo")));
     }
 
     @DisplayName("then an error is returned for credential configurations supporting only the pre-authorized code flow")

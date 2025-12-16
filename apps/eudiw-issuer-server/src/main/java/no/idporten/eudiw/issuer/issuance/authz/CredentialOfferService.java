@@ -11,6 +11,11 @@ import no.idporten.eudiw.issuer.openid4vci.protocol.Grants;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 
 @RequiredArgsConstructor
 @Service
@@ -21,14 +26,22 @@ public class CredentialOfferService {
     private final AuditService auditService;
 
     public CredentialOffer createCredentialOffer(String credentialConfigurationId) {
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialConfigurationId);
-        if (!GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfigurationProperties.getGrantType())) {
-            throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the authorization code flow", HttpStatus.BAD_REQUEST);
+        return createCredentialOffer(Collections.singleton(credentialConfigurationId));
+    }
+
+    public CredentialOffer createCredentialOffer(Set<String> credentialConfigurationIds) {
+        List<String> validCredentialConfigurationIds = new ArrayList<>();
+        for (String credentialConfigurationId : credentialConfigurationIds) {
+            CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialConfigurationId);
+            if (!GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+                throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the authorization code flow", HttpStatus.BAD_REQUEST);
+            }
+            validCredentialConfigurationIds.add(credentialConfigurationProperties.getIdentifier());
         }
-        auditService.logCreateCredentialOffer(credentialIssuerServerProperties.getCredentialIssuer().toString(), credentialConfigurationId);
+        auditService.logCreateCredentialOffer(credentialIssuerServerProperties.getCredentialIssuer().toString(), validCredentialConfigurationIds);
         return CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
-                .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
+                .credentialConfigurationIds(validCredentialConfigurationIds)
                 .grants(Grants.builder().authorizedCodeGrant(AuthorizedCodeGrant.builder().build()).build())
                 .build();
     }

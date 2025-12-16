@@ -24,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.ParseException;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -60,13 +62,13 @@ class AuditServiceTest {
     void testLogCreateCredentialOffer() {
         ArgumentCaptor<AuditEntry> auditEntry = ArgumentCaptor.forClass(AuditEntry.class);
 
-        auditService.logCreateCredentialOffer("issuer", "credentialConfigId");
+        auditService.logCreateCredentialOffer("issuer", List.of("credentialConfigId"));
 
         verify(auditLogger).log(auditEntry.capture());
         AuditEntry actualEntry = auditEntry.getValue();
         assertEquals(AuditID.CREATE_CREDENTIAL_OFFER.auditIdentifier().auditId(), actualEntry.getAuditId().auditId());
         assertEquals("issuer", actualEntry.getAttributes().get(AuditService.CREDENTIAL_ISSUER));
-        assertEquals("credentialConfigId", actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
+        assertEquals(Collections.singletonList("credentialConfigId"), actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
     }
 
     @DisplayName("then all audit entries are logged correctly for IssueCredentials")
