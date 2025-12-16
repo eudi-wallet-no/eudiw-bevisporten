@@ -16,7 +16,7 @@ public class CredentialConfigurationController {
 
     private Map<String, Object> persistenceLayer = new HashMap<>();
 
-    @PostMapping(path = "/v1/credential-configuration", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/credential-configurations", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> createCredentialConfiguration(@RequestBody Map<String, Object> json) {
         String credentialConfigurationId = UUID.randomUUID().toString();
         json.put("credential_configuration_id", credentialConfigurationId);
@@ -24,7 +24,7 @@ public class CredentialConfigurationController {
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping(value = "/v1/credential-configuration", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/v1/credential-configurations", produces =  MediaType.APPLICATION_JSON_VALUE)
     public  ResponseEntity<CredentialConfigurationResponse> retrieveAllCredentialConfigurations() {
         return ResponseEntity.ok(new CredentialConfigurationResponse(persistenceLayer.values().stream().toList()));
     }
