@@ -7,10 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @ConfigurationPropertiesScan
 @SpringBootApplication
-public class DemoApplication {
+public class ByobServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DemoApplication.class, args);
+		SpringApplication.run(ByobServiceApplication.class, args);
 	}
 
 }
