@@ -70,8 +70,8 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
                 .tokenEndpointAuthSigningAlgValuesSupported(sdkConfiguration.getTokenEndpointAuthSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
                 .authorizationResponseIssParameterSupported(sdkConfiguration.isAuthorizationResponseIssParameterSupported())
                 .preAuthorizedGrantAnonymousAccessSupported(sdkConfiguration.isPreAuthorizedGrantAnonymousAccessSupported())
-                .dpopSigningAlgValuesSupported(sdkConfiguration.getDpopSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
-                .dpopBoundAccessTokens(sdkConfiguration.isDpopBoundAccessTokens())
+                .dpopSigningAlgValuesSupported(sdkConfiguration.getDPopSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
+                .dpopBoundAccessTokens(sdkConfiguration.isDPopBoundAccessTokens())
                 .build();
     }
 
@@ -288,9 +288,9 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
             throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. Failed to parse DPop header", 400, e);
         }
 
-        long maximumTimeSkewSeconds = 60;
-        long maxAgeSeconds = 600;
-        DPoPTokenRequestVerifier verifier = new DPoPTokenRequestVerifier(sdkConfiguration.getDpopSigningAlgValuesSupported(), endpoint, maximumTimeSkewSeconds, maxAgeSeconds, null);
+        long maximumTimeSkewSeconds = sdkConfiguration.getDPopTimeSkewSeconds();
+        long maxAgeSeconds = sdkConfiguration.getDPopLifetimeSeconds();
+        DPoPTokenRequestVerifier verifier = new DPoPTokenRequestVerifier(sdkConfiguration.getDPopSigningAlgValuesSupported(), endpoint, maximumTimeSkewSeconds, maxAgeSeconds, null);
         try {
             JWKThumbprintConfirmation verify = verifier.verify(new DPoPIssuer(clientId), dPopProof, null); // TODO add Nonce later
             return verify.getValue().toString();

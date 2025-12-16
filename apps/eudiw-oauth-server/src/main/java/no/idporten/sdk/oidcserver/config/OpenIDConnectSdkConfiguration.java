@@ -212,13 +212,25 @@ public final class OpenIDConnectSdkConfiguration {
      * List of supported algorithms for DPoP signing.
      */
     @Builder.Default
-    private Set<JWSAlgorithm> dpopSigningAlgValuesSupported= Set.of(JWSAlgorithm.ES256);
+    private Set<JWSAlgorithm> dPopSigningAlgValuesSupported = Set.of(JWSAlgorithm.ES256);
 
     /**
      * Requires DPoP-bound access tokens.  Default false accepts both with and without DPoP.
      */
     @Builder.Default
-    private boolean dpopBoundAccessTokens = false;
+    private boolean dPopBoundAccessTokens = false;
+
+    /**
+     * Lifetime in seconds for dPop proofs accepted by this server.
+     */
+    @Builder.Default
+    private int dPopLifetimeSeconds = 120;
+
+    /**
+     * Time skew in seconds for dPop proofs accepted by this server.
+     */
+    @Builder.Default
+    private int dPopTimeSkewSeconds = 60;
 
     /**
      * Backward compatibility - avoid in new applications - ignore client_id parameter missing on pushed authorization requests
@@ -292,6 +304,8 @@ public final class OpenIDConnectSdkConfiguration {
         validateLifetime("authorizationRequestLifetimeSeconds", authorizationRequestLifetimeSeconds);
         validateLifetime("authorizationLifetimeSeconds", authorizationLifetimeSeconds);
         validateLifetime("idTokenLifetimeSeconds", idTokenLifetimeSeconds);
+        validateLifetime("dPopLifetimeSeconds", dPopLifetimeSeconds);
+        validateLifetime("dPopTimeSkewSeconds", dPopTimeSkewSeconds);
         validateClients();
         validateList("responseModes", true, responseModes, "query", "form_post", "query.jwt");
         validateScopes();
