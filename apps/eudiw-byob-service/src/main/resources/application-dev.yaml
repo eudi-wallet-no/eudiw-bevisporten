@@ -1,0 +1,14 @@
+---
+server:
+  port: 9296
+
+management:
+  server:
+    port: 9296
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  application:
+    environment: dev
