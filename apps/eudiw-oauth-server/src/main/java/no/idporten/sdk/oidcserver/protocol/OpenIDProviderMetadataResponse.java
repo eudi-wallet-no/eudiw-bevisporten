@@ -128,8 +128,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     private boolean authorizationResponseIssParameterSupported = true;
 
     @JsonProperty(DPOP_SIGNING_ALG_VALUES_SUPPORTED)
-    @Builder.Default
-    private List<String> dpopSigningAlgValuesSupported = List.of("ES256"); // TODO find algs we want to support
+    private List<String> dpopSigningAlgValuesSupported;
 
     @JsonProperty(DPOP_BOUND_ACCESS_TOKENS)
     @Builder.Default
