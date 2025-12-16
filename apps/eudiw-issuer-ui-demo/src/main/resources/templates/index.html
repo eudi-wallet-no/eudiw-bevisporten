@@ -11,25 +11,35 @@
 <main>
     <div>
         <h1 class="ds-heading" data-size="lg">
-            Vel bevis
+            Bevisgenerator testverktøy
         </h1>
         <p class="ds-paragraph">
-            Start utferdig av bevis med Digdir sin generelle utferdar (issuer)
+            Bevisgenerator er eit testverktøy som lar deg, på ein enkel måte, lage nye digitale bevis utan å måtte kode eller konfigurere opp din eigen utstedar-teneste.
         </p>
     </div>
     <div class="flex-container">
-        <th:block th:each="credentialConfiguration: ${credential_configurations}">
-            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}" class="ds-card"
-               data-variant="neutral" style="max-width: 500px">
-                <h2 class="ds-heading" th:text="${credentialConfiguration.description}">PID</h2>
-                <p class="ds-paragraph" data-variant="neutral" th:text="${credentialConfiguration.credentialConfigurationId}">
-                </p>
-            </a>
-        </th:block>
+        <a th:href="@{/credentialTypes}" class="ds-card"
+           data-variant="neutral" style="max-width: 500px">
+            <h2 class="ds-heading">Bevistypar</h2>
+            <p class="ds-paragraph" data-variant="neutral">
+                Her kan du lage eller modifisere bevistypar og tilhøyrande datamodell
+            </p>
+        </a>
+        <a th:href="@{/}" class="ds-card"
+           data-variant="neutral" style="max-width: 500px">
+            <h2 class="ds-heading">Lage bevis</h2>
+            <p class="ds-paragraph" data-variant="neutral">
+                Lag eit bevis ved å skrive inn noko dummy-data og deretter overføre det til ei lommebok
+            </p>
+        </a>
+    </div>
+    <div>
+        <p class="ds-paragraph">
+            Denne tenesta er eit GUI foran "extended APIet" til BYOB-utstedaren (Bring-Your-Own-Bevis)
+        </p>
     </div>
 
 </main>
-
 <footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 </body>
 </html>
