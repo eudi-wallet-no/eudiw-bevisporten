@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.oauth2;
 
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.dpop.JWKThumbprintConfirmation;
@@ -19,7 +18,6 @@ import org.springframework.util.StringUtils;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -46,7 +44,7 @@ public class AccessTokenValidationService {
             }
             JWT validAccessToken = authorizationServer.getAccessTokenValidator().validate(jwtAccessToken);
             if (AccessTokenType.DPOP.equals(accessToken.getType())) {
-                validateDPopAccessToken(context);
+                validateDPopAccessToken(authorizationServer, context);
             }
             return validAccessToken;
 
@@ -60,7 +58,7 @@ public class AccessTokenValidationService {
     /**
      * Additional validation of DPoP when provided in request or required by endpoint.
      */
-    protected void validateDPopAccessToken(AccessTokenValidationContext context) {
+    protected void validateDPopAccessToken(AuthorizationServer authorizationServer, AccessTokenValidationContext context) {
         try {
             if ((context.endpointHttpMethod() == null || context.endpointURI() == null || !StringUtils.hasText(context.dpopHeader())) && !context.dPoPRequired()) {
                 return;
@@ -78,10 +76,10 @@ public class AccessTokenValidationService {
             SignedJWT dPopProof = SignedJWT.parse(context.dpopHeader());
             JWKThumbprintConfirmation cnf = JWKThumbprintConfirmation.parse(jwtAccessToken.getJWTClaimsSet());
             DPoPProtectedResourceRequestVerifier requestVerifier = new DPoPProtectedResourceRequestVerifier(
-                    Set.of(JWSAlgorithm.ES256),
-                    10,
-                    120,
-                    new InMemoryDPoPSingleUseChecker(120, 240));
+                    authorizationServer.getDPoPAlgorithms(),
+                    authorizationServer.getDPoPTimeSkewSeconds(),
+                    authorizationServer.getDPoPMaxAgeSeconds(),
+                    new InMemoryDPoPSingleUseChecker(authorizationServer.getDPoPMaxAgeSeconds() * 2, authorizationServer.getDPoPMaxAgeSeconds() * 4));
             DPoPIssuer dpopIssuer = new DPoPIssuer(clientID);
             requestVerifier.verify(
                     context.endpointHttpMethod().name(),
@@ -90,7 +88,7 @@ public class AccessTokenValidationService {
                     dPopProof,
                     dPoPAccessToken,
                     cnf,
-                    null // TODO nonce
+                    null // https://digdir.atlassian.net/browse/EUW-927 - nonce
             );
         } catch (com.nimbusds.oauth2.sdk.ParseException e) {
             throw new IssuerServerException("invalid_token", "Failed to parse DPoP access token", HttpStatus.UNAUTHORIZED, e);
