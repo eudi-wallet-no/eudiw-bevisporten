@@ -78,6 +78,7 @@ oauth-authorization-server:
     - eudiw:no:advokattilsynet:advokatregisteret
     - eudiw:no:kontaktregisteret:kontaktinformasjon
     - proof_of_age
+    - eudiw:eidas2sandkasse:dynamicvc
     - eudiw:no:kommunalsektor:hcregister
     - eudiw:no:helsesektor:legeerklaring
   api-key: ${INTERNAL_API_KEY}
