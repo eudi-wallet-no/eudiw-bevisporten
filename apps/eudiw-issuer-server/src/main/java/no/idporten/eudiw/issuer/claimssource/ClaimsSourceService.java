@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
@@ -32,7 +33,8 @@ public class ClaimsSourceService implements InitializingBean {
 
     public final ClaimsSourceMetadata getMetadata(ClaimsSource claimsSource) {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
-        builder.displays(claimsSource.getDocumentMetadata().displays()
+        DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata();
+        builder.displays(documentMetadata.displays()
                 .stream()
                 .map(display ->
                         Display.builder()
@@ -43,7 +45,7 @@ public class ClaimsSourceService implements InitializingBean {
                                 .textColor(display.textColor())
                                 .build())
                 .toList());
-        for (ClaimMetadata claimMetadata : claimsSource.getDocumentMetadata().claims()) {
+        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
             builder.claim(ClaimsDescription.builder()
                     .path(claimMetadata.name())
                     .mandatory(claimMetadata.mandatory())

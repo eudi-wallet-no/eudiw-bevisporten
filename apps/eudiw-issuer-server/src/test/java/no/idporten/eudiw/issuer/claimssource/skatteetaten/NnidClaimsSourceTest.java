@@ -5,6 +5,7 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.claimssource.InMemoryClaimsSourceCache;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
@@ -133,19 +134,17 @@ class NnidClaimsSourceTest {
 
             NnidClaimsSource claimsSource = spy(nnidClaimsSource);
             claimsSource.preAuthorize(
-                    transactionId,
-                    accessToken,
+                    new PreAuthorizedIssuanceContext(transactionId, "ccid", accessToken, Duration.ofMinutes(10)),
                     new TreeMap<>(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")),
-                    Duration.ofMinutes(10));
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
             verify(claimsSource).validate(anyMap());
             List<Claim> claims = nnidClaimsSource.issueClaims(accessToken);
             assertAll(
                     () -> assertEquals(2, claims.size()),
-                    () -> assertEquals("12345678901", ((StringValue)claims.getFirst().getValue()).value()),
+                    () -> assertEquals("12345678901", ((StringValue) claims.getFirst().getValue()).value()),
                     () -> assertEquals(List.of("norwegian_national_id_number"), claims.getFirst().getPath()),
-                    () -> assertEquals("D-nummer", ((StringValue)claims.getLast().getValue()).value()),
+                    () -> assertEquals("D-nummer", ((StringValue) claims.getLast().getValue()).value()),
                     () -> assertEquals(List.of("norwegian_national_id_number_type"), claims.getLast().getPath())
             );
         }

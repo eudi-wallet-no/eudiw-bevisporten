@@ -1,13 +1,12 @@
 package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
-import com.nimbusds.jwt.JWT;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
-import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -61,8 +60,8 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
 
     @SneakyThrows
     @Override
-    public Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
-        String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
+    public Map<String, Object> pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
+        String personIdentifier = preAuthorizedIssuanceContext.accessToken().getJWTClaimsSet().getStringClaim("pid");
         PersonPrivate personPrivate = advokatregisteretIntegration.retrieve(personIdentifier);
         Map<String, Object> claims = new HashMap<>();
         claims.put("personidentifikator", personIdentifier);

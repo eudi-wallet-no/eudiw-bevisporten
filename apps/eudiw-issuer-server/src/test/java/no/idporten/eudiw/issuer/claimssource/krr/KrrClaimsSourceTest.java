@@ -5,6 +5,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
@@ -70,7 +71,7 @@ public class KrrClaimsSourceTest {
     @DisplayName("then push is not supported")
     @Test
     void testPushNotSupported() {
-        assertThrows(IssuerServerException.class, () -> claimsSource.push(new IssuanceTransactionId(), null, Collections.emptyMap()));
+        assertThrows(IssuerServerException.class, () -> claimsSource.push(null, Collections.emptyMap()));
     }
 
     @DisplayName("then data can be pulled from authoritative source")
@@ -94,7 +95,7 @@ public class KrrClaimsSourceTest {
 
         PersonKrr personKrr = new ObjectMapper().readValue(response, PersonKrr.class);
         when(krrIntegration.retrieve(eq(personIdentifier))).thenReturn(personKrr);
-        Map<String, Object> claims = claimsSource.pull(new IssuanceTransactionId(), accessToken);
+        Map<String, Object> claims = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), accessToken));
         assertAll(
                 () -> assertEquals(3, claims.size()),
                 () -> assertEquals(personIdentifier, claims.get("personidentifikator")),

@@ -6,6 +6,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
@@ -85,7 +86,7 @@ public class AdvokatregisteretClaimsSourceTest {
     @DisplayName("then push is not supported")
     @Test
     void testPushNotSupported() {
-        assertThrows(IssuerServerException.class, () -> claimsSource.push(new IssuanceTransactionId(), null, Collections.emptyMap()));
+        assertThrows(IssuerServerException.class, () -> claimsSource.push(null, Collections.emptyMap()));
     }
 
     @DisplayName("then data can be pulled from authoritative source")
@@ -109,7 +110,7 @@ public class AdvokatregisteretClaimsSourceTest {
                 }""";
         PersonPrivate personPrivate = new ObjectMapper().readValue(response, PersonPrivate.class);
         when(advokatregisteretIntegration.retrieve(eq(personIdentifier))).thenReturn(personPrivate);
-        Map<String, Object> claims = claimsSource.pull(new IssuanceTransactionId(), accessToken);
+        Map<String, Object> claims = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), accessToken));
         assertAll(
                 () -> assertEquals(5, claims.size()),
                 () -> assertEquals(personIdentifier, claims.get("personidentifikator")),

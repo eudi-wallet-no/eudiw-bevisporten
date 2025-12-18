@@ -63,7 +63,7 @@ public class PreAuthorizedClaimsSourceTest {
 
         static class PullClaimsSource extends AbstractJUnitClaimsSource {
             @Override
-            public Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+            public Map<String, Object> pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
                 return Map.of("c", "v");
             }
         }
@@ -73,7 +73,10 @@ public class PreAuthorizedClaimsSourceTest {
         void pushNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PullClaimsSource();
             claimsSource.init(claimsSourceProperties());
-            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(new IssuanceTransactionId(), maskinportenToken(), Map.of("some", "data"), Duration.ofMinutes(10)));
+            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
+                    new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), "ccid", maskinportenToken(), Duration.ofMinutes(10)),
+                    Map.of("some", "data"))
+            );
             assertTrue(e.getMessage().contains("does not support push"));
         }
 
@@ -83,17 +86,19 @@ public class PreAuthorizedClaimsSourceTest {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PullClaimsSource());
             claimsSource.init(claimsSourceProperties());
-            claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), null, Duration.ofMinutes(9));
+            claimsSource.preAuthorize(
+                    new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(9)),
+                    null);
             List<Claim> claims = claimsSource.issueClaims(authProxyToken(issuanceTransactionId.getValue()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
-            verify(claimsSource).pull(eq(issuanceTransactionId), any());
+            verify(claimsSource).pull(any());
             verify(claimsSource).validate(any());
             verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(9)));
-            verify(claimsSource, never()).push(any(), any(), any());
+            verify(claimsSource, never()).push(any(), any());
         }
 
     }
@@ -104,7 +109,7 @@ public class PreAuthorizedClaimsSourceTest {
         static class PushClaimsSource extends AbstractJUnitClaimsSource {
 
             @Override
-            public Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+            public Map<String, Object> push(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> claims) {
                 return new HashMap<>(claims);
             }
 
@@ -115,7 +120,8 @@ public class PreAuthorizedClaimsSourceTest {
         void pullNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PushClaimsSource();
             claimsSource.init(claimsSourceProperties());
-            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(new IssuanceTransactionId(), maskinportenToken(), null, Duration.ofMinutes(10)));
+            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
+                    new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), "ccid", maskinportenToken(), Duration.ofMinutes(10)), null));
             assertTrue(e.getMessage().contains("does not support pull"));
         }
 
@@ -125,17 +131,19 @@ public class PreAuthorizedClaimsSourceTest {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PushClaimsSource());
             claimsSource.init(claimsSourceProperties());
-            claimsSource.preAuthorize(issuanceTransactionId, maskinportenToken(), Map.of("c", "v"), Duration.ofMinutes(5));
+            claimsSource.preAuthorize(
+                    new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(5)),
+                    Map.of("c", "v"));
             List<Claim> claims = claimsSource.issueClaims(authProxyToken(issuanceTransactionId.getValue()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
-            verify(claimsSource).push(eq(issuanceTransactionId), any(), any());
+            verify(claimsSource).push(any(), any());
             verify(claimsSource).validate(any());
             verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(5)));
-            verify(claimsSource, never()).pull(any(), any());
+            verify(claimsSource, never()).pull(any());
         }
 
     }
