@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
@@ -43,7 +44,7 @@ public class PreAuthorizedIssuanceService {
         ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource);
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
-        claimsSource.preAuthorize(issuanceTransactionId, accessToken, preAuthorizedIssuanceRequest.getClaimsMap(), credentialConfigurationProperties.getPreAuthorizationLifetime());
+        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfigurationProperties.getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getClaimsMap());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())

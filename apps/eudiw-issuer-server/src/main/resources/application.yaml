@@ -128,8 +128,19 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
       key-store-name: eaa-provider
+    - identifier: eidas2sandkasse.wildcard_sd_jwt_vc
+      scope: eudiw:no:skatteetaten:nnid # TODO rette scope, f.eks ... amios trengs - eudiw:eidas2sandkasse:dynamic_vc
+      format: sd_jwt_vc
+      credential-type: eidas2sandkasse.wildcard_sd_jwt_vc
+      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
 
   claims-sources:
+    - credential-types:
+        - eidas2sandkasse.wildcard_sd_jwt_vc
+      class-name: no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
     - credential-types:
         - eu.europa.ec.eudi.pid.1
       class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDMdocClaimsSource

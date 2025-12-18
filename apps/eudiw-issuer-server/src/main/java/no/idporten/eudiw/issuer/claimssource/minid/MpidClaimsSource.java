@@ -1,10 +1,9 @@
 package no.idporten.eudiw.issuer.claimssource.minid;
 
-import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
-import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -58,7 +57,7 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    public Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+    public Map<String, Object> push(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> claims) {
         return new HashMap<>(claims);
     }
 

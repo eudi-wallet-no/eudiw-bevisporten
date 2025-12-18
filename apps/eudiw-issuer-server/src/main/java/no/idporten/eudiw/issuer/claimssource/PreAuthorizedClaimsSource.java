@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.http.HttpStatus;
@@ -20,32 +19,29 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * Pre-authorize credential issuance by validating and storing claims data.  Data can be provided by calling
      * system or fetched by the claims source if the pull() method is implemented.
      *
-     * @param issuanceTransactionId the id of the issuance transaction
-     * @param accessToken Maskinporten user-bound access token presented by the client
-     * @param pushedClaims pushed claims data from client, or null if pull mode is used
-     * @param authorizationLifetime lifetime for stored claims data
+     * @param issuanceContext
      */
-    default void preAuthorize(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> pushedClaims, Duration authorizationLifetime) {
+    default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> pushedClaims) {
         final Map<String, Object> validatedClaims;
         if (!CollectionUtils.isEmpty(pushedClaims)) {
-            validatedClaims = validate(push(issuanceTransactionId, accessToken, pushedClaims));
+            validatedClaims = validate(push(issuanceContext, pushedClaims));
         } else {
-            validatedClaims = validate(pull(issuanceTransactionId, accessToken));
+            validatedClaims = validate(pull(issuanceContext));
         }
-        store(issuanceTransactionId, validatedClaims, authorizationLifetime);
+        store(issuanceContext.issuanceTransactionId(), validatedClaims, issuanceContext.authorizationLifetime());
     }
 
     /**
      * Pull claims data from authoritative source.  Disabled by default.
      */
-    default Map<String, Object> pull(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+    default Map<String, Object> pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
     }
 
     /**
      * Receive pushed data from authoritative source.  Disabled by default.
      */
-    default Map<String, Object> push(IssuanceTransactionId issuanceTransactionId, JWT accessToken, Map<String, String> claims) {
+    default Map<String, Object> push(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext, Map<String, String> claims) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
     }
 

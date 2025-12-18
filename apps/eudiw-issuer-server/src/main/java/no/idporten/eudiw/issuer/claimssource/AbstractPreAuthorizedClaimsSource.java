@@ -5,6 +5,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
@@ -68,7 +69,8 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
 
     public final Map<String, Object> validate(Map<String, Object> claims) {
         // validate all known claims
-        for (ClaimMetadata claimMetadata : getDocumentMetadata().claims()) {
+        DocumentMetadata documentMetadata = getDocumentMetadata();
+        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
             validateClaim(claimMetadata, claims);
         }
         // reject all unknown claims
@@ -109,10 +111,10 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
             throw new IssuerServerException("internal_server_error", "Missing claim in internal access token %s".formatted("tx_id"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         Map<String, Object> storedClaims = cache.retrieveClaims(new IssuanceTransactionId(transactionId));
-
+        DocumentMetadata documentMetadata = getDocumentMetadata();
         try {
             return storedClaims.keySet().stream()
-                    .map(claimName -> getDocumentMetadata().findClaimMetadata(claimName))
+                    .map(documentMetadata::findClaimMetadata)
                     .filter(Objects::nonNull)
                     .map(claimMetadata -> getClaim(claimMetadata, storedClaims)).toList();
         } catch (ClaimsSourceFormatException e) {

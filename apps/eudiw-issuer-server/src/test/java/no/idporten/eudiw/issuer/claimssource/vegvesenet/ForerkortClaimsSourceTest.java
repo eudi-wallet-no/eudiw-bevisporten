@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.vegvesenet;
 
 import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
@@ -38,7 +39,7 @@ class ForerkortClaimsSourceTest {
         JWT jwt = mock(JWT.class);
         IssuanceTransactionId txId = new IssuanceTransactionId("tx-123");
 
-        Map<String, Object> result = source.push(txId, jwt, inputClaims);
+        Map<String, Object> result = source.push(new PreAuthorizedIssuanceContext(txId, jwt), inputClaims);
 
         // Get all claim names from DocumentMetadata
         Set<String> expectedClaims = source.getDocumentMetadata().claims().stream()

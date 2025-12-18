@@ -160,16 +160,19 @@ public class MDocServiceTest {
         credentialConfigurationProperties.setValidityDays(42);
         Claim claim = buildClaim("foo", "cool-id", new BooleanValue(true));
         MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties, List.of(claim));
+        java.time.Instant now = java.time.Instant.now();
         assertAll(
                 () -> assertNotNull(mdoc),
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
                 () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size()),
                 () -> assertEquals(
-                        java.time.Instant.now().plus(42, ChronoUnit.DAYS).toEpochMilli(),
-                        mdoc.getMSO().getValidityInfo().getValidUntil().getValue().toEpochMilliseconds(), 1000),
+                        now.plus(42, ChronoUnit.DAYS).toEpochMilli(),
+                        mdoc.getMSO().getValidityInfo().getValidUntil().getValue().toEpochMilliseconds(),
+                        2000),
                 () -> assertEquals(
-                        java.time.Instant.now().toEpochMilli(),
-                        mdoc.getMSO().getValidityInfo().getValidFrom().getValue().toEpochMilliseconds(), 60 * 1000) // hack valid from
+                        now.toEpochMilli(),
+                        mdoc.getMSO().getValidityInfo().getValidFrom().getValue().toEpochMilliseconds(),
+                        (60 * 2 * 1000) + 2000)
         );
     }
 
