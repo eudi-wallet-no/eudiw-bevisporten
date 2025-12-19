@@ -53,10 +53,16 @@ public class StartIssuanceController {
         return "index";
     }
 
-    @GetMapping("/credentialTypes")
-    public String index(Model model) {
+    @GetMapping("/admin")
+    public String admin(Model model) {
         model.addAttribute("credential_configurations", properties.credentialConfigurations());
-        return "credentialTypes";
+        return "admin";
+    }
+
+    @GetMapping("/issue")
+    public String issue(Model model) {
+        model.addAttribute("credential_configurations", properties.credentialConfigurations());
+        return "issue";
     }
 
     @GetMapping("/start-issuance/{credential_configuration_id}")
@@ -93,6 +99,19 @@ public class StartIssuanceController {
         Issuance issuance = new Issuance(toPrettyJsonString(response), uri, qrCode);
         model.addAttribute("issuance", issuance);
         return "issuer_response";
+    }
+
+    @GetMapping("/add-credential")
+    public String addCredential(Model model) {
+        model.addAttribute("addCredentialForm", new AddCredentialForm());
+        return "add";
+    }
+
+    @PostMapping("/add-credential/{credential_configuration_id}")
+    public String addNewCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId,
+                                @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
+                                Model model) {
+        return "admin";
     }
 
     private IssuanceRequest createRequestTraceing(StartIssuanceForm startIssuanceForm) {
