@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+    <div>
+        <h1 class="ds-heading" data-size="lg">
+            Legg til bevistype
+        </h1>
+    </div>
+
+    <form th:fragment="add_attributes_form_fragment"
+          id="add_attributes_form"
+          th:action="@{/addCredential}"
+          th:object="${addCredentialForm}"
+          method="POST">
+
+        <div class="ds-field">
+            <label class="ds-label" for="name">Navn</label>
+            <input class="ds-input" type="text" id="name" name="name">
+        </div>
+
+        <button class="ds-button ds-button--primary"
+                type="submit"
+                form="add_attributes_form"
+                data-variant="primary">
+            Legg til bevistype
+        </button>
+    </form>
+
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>

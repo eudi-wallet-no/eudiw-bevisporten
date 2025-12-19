@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+    <div>
+        <h1 class="ds-heading" data-size="lg">
+            Administrer bevis
+        </h1>
+        <p class="ds-paragraph">
+            Her kan du definere datamodell for en bevis-type. <br>Den må følge Openid4VCI-spec'en definisjoner for
+            <a style="display: inline-block;" th:href="@{https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata-p}">credential_metadata</a>.
+        </p>
+    </div>
+    <div class="flex-container">
+        <ul>
+            <th:block th:each="cc: ${credential_configurations}">
+                <li style="list-style-type: none; display: flex; justify-content: space-between; max-width: 700px;">
+                    <p th:text="${cc.description()}">Navn</p>
+                    <div style="display: flex; align-items: center; justify-content: center;">
+                        <button class="ds-button" data-size="sm" data-variant="tertiary">Rediger</button>
+                        <button class="ds-button" data-size="sm" data-variant="secondary" data-color="danger">Slett</button>
+                    </div>
+                </li>
+            </th:block>
+        </ul>
+
+    </div>
+   <div>
+       <a th:href="@{/add-credential}" style="text-decoration: none">
+            <button class="ds-button" data-variant="neutral" data-size="lg">+ Legg til</button>
+       </a>
+   </div>
+
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+
+</body>
+</html>
