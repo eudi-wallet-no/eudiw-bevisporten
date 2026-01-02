@@ -1,0 +1,21 @@
+package no.idporten.eudiw.byob.service.model;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.Pattern;
+
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record ByobInput(
+        @JsonProperty("vct")
+        @Pattern(regexp = "^[a-z0-9_:]{3,255}$",
+                message = "vct kan ikke ha spesielle karakterer eller symboler")
+        String vct,
+        @JsonProperty("format")
+        String format,
+        @JsonProperty("example_credential_metadata")
+        ExampleCredentialMetadata exampleCredentialMetadata,
+        @JsonProperty("credential_metadata")
+        CredentialMetadata credentialMetadata
+) {
+}

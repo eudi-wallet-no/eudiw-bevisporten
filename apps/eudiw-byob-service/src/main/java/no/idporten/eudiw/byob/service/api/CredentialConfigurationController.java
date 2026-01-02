@@ -1,32 +1,40 @@
 package no.idporten.eudiw.byob.service.api;
 
+import jakarta.validation.Valid;
+import no.idporten.eudiw.byob.service.model.ByobInput;
+import no.idporten.eudiw.byob.service.model.ResponseTopObject;
+import no.idporten.eudiw.byob.service.serviceClasses.CredentialConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 public class CredentialConfigurationController {
 
-    private Map<String, Object> persistenceLayer = new HashMap<>();
+    CredentialConfigurationService service;
+
+    @Autowired
+    public CredentialConfigurationController(CredentialConfigurationService service) {
+        this.service = service;
+
+    }
+
 
     @PostMapping(path = "/v1/credential-configurations", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> createCredentialConfiguration(@RequestBody Map<String, Object> json) {
-        String credentialConfigurationId = UUID.randomUUID().toString();
-        json.put("credential_configuration_id", credentialConfigurationId);
-        persistenceLayer.put(credentialConfigurationId, json);
-        return ResponseEntity.ok(json);
+    public ResponseEntity<Map<String, ByobInput>> createCredentialConfiguration(@Valid @RequestBody ByobInput proof){
+        return ResponseEntity.ok(service.getResponseModel(proof));
     }
 
     @GetMapping(value = "/v1/credential-configurations", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public  ResponseEntity<CredentialConfigurationResponse> retrieveAllCredentialConfigurations() {
-        return ResponseEntity.ok(new CredentialConfigurationResponse(persistenceLayer.values().stream().toList()));
+    public  ResponseEntity<ResponseTopObject> retrieveAllCredentialConfigurations() {
+        return ResponseEntity.ok(service.getAllEntries());
     }
 
+    @GetMapping(value = "/v1/credential-configurations/{id}", produces =  MediaType.APPLICATION_JSON_VALUE)
+    public  ResponseEntity<ByobInput> retrieveSelectedCredentialConfiguration(@PathVariable String id) {
+        return ResponseEntity.ofNullable(service.searchCredentialConfiguration(id));
+    }
 }
