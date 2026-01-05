@@ -42,12 +42,16 @@ public class CredentialIssuerServerProperties {
     private List<AuthorizationServer> preAuthorizationServers = new ArrayList<>();
     @NotEmpty
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations;
+
+    private CredentialConfigurationProperties dynamicCredentialConfigurationTemplate;
+
     @NotEmpty
     private List<@Valid ClaimsSourceProperties> claimsSources;
     @NotNull
     private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
 
     public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
+        List<CredentialIssuerServerProperties> allCredentialConfigurations = new ArrayList<>();
         return credentialConfigurations.stream()
                 .filter(credentialConfigurationProperties -> Objects.equals(credentialIdentifier, credentialConfigurationProperties.getIdentifier()))
                 .findFirst()

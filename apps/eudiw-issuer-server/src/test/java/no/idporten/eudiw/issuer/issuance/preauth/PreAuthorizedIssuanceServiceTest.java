@@ -4,6 +4,7 @@ import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
@@ -27,6 +28,9 @@ public class PreAuthorizedIssuanceServiceTest {
     private CredentialIssuerServerProperties credentialIssuerServerProperties;
 
     @Mock
+    private CredentialConfigurationService credentialConfigurationService;
+
+    @Mock
     private ClaimsSourceService claimsSourceService;
 
     @Mock
@@ -44,7 +48,7 @@ public class PreAuthorizedIssuanceServiceTest {
     @DisplayName("then credential configuration must support the pre-authorized code flow")
     @Test
     void testConfigurationMustSupportPreAuthorizedCodeFlow() {
-        when(credentialIssuerServerProperties.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
+        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
                 .identifier("foo")
                 .grantType("authorization_code")
                 .build());

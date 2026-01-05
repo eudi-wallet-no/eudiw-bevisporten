@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
+import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,7 @@ public class ClaimsSourceServiceTest {
     @ValueSource(strings = {"junitdoc", "urn:junitdoc-pre"})
     void testGetMetadataExists(String credentialType) {
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialType);
-        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource);
+        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource, new CredentialConfigurationProperties());
 
         assertAll(
                 () -> assertNotNull(metadata),

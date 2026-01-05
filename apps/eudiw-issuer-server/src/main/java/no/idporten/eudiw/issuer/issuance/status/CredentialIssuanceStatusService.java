@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.issuance.status;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
@@ -20,14 +21,16 @@ public class CredentialIssuanceStatusService {
     private final static Logger log = LoggerFactory.getLogger(CredentialIssuanceStatusService.class);
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
+    private final CredentialConfigurationService credentialConfigurationService;
     private final CredentialIssuanceStatusCache credentialIssuanceStatusCache;
     private final AccessTokenValidationService accessTokenValidationService;
     private final AuditService auditService;
 
     public CredentialIssuanceStatusService(
-            CredentialIssuerServerProperties credentialIssuerServerProperties, CredentialIssuanceStatusCache credentialIssuanceStatusCache,
+            CredentialIssuerServerProperties credentialIssuerServerProperties, CredentialConfigurationService credentialConfigurationService, CredentialIssuanceStatusCache credentialIssuanceStatusCache,
             AccessTokenValidationService accessTokenValidationService, AuditService auditService) {
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
+        this.credentialConfigurationService = credentialConfigurationService;
         this.credentialIssuanceStatusCache = credentialIssuanceStatusCache;
         this.accessTokenValidationService = accessTokenValidationService;
         this.auditService = auditService;
@@ -65,7 +68,7 @@ public class CredentialIssuanceStatusService {
             log.info("No issuance status found for issuance_transaction_id {}", issuanceTransactionId);
             return new CredentialIssuanceStatus(issuanceTransactionId, null, "unknown");
         }
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
+        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
          accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         return issuanceStatus;
     }

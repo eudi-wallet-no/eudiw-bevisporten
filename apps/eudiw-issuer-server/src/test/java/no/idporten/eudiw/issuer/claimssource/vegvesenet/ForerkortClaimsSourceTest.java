@@ -21,7 +21,7 @@ class ForerkortClaimsSourceTest {
     @DisplayName("when getDocumentMetadata is called, then DocumentMetadata with 11 claims is returned")
     void getDocumentMetadata() {
         ForerkortClaimsSource source = new ForerkortClaimsSource();
-        DocumentMetadata documentMetadata = source.getDocumentMetadata();
+        DocumentMetadata documentMetadata = source.getDocumentMetadata(null);
         assertNotNull(documentMetadata);
         assertEquals(11, documentMetadata.claims().size());
     }
@@ -42,7 +42,7 @@ class ForerkortClaimsSourceTest {
         Map<String, Object> result = source.push(new PreAuthorizedIssuanceContext(txId, jwt), inputClaims);
 
         // Get all claim names from DocumentMetadata
-        Set<String> expectedClaims = source.getDocumentMetadata().claims().stream()
+        Set<String> expectedClaims = source.getDocumentMetadata(null).claims().stream()
                 .map(ClaimMetadata::name)
                 .collect(java.util.stream.Collectors.toSet());
         assertTrue(result.keySet().containsAll(expectedClaims), "All claims should be present in result");

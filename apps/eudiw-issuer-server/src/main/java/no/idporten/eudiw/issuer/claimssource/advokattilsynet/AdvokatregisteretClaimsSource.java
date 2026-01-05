@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
@@ -54,7 +55,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
     }
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 

@@ -35,7 +35,7 @@ public class PreAuthorizedClaimsSourceTest {
         }
 
         @Override
-        public DocumentMetadata getDocumentMetadata() {
+        public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
             return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata("c", Map.of("no", "C"), true, ".*")));
         }
     }
@@ -89,14 +89,14 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(9)),
                     null);
-            List<Claim> claims = claimsSource.issueClaims(authProxyToken(issuanceTransactionId.getValue()));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), null));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
             verify(claimsSource).pull(any());
-            verify(claimsSource).validate(any());
+            verify(claimsSource).validate(any(), any());
             verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(9)));
             verify(claimsSource, never()).push(any(), any());
         }
@@ -134,14 +134,14 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(5)),
                     Map.of("c", "v"));
-            List<Claim> claims = claimsSource.issueClaims(authProxyToken(issuanceTransactionId.getValue()));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), null));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                     () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
             verify(claimsSource).push(any(), any());
-            verify(claimsSource).validate(any());
+            verify(claimsSource).validate(any(), any());
             verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(5)));
             verify(claimsSource, never()).pull(any());
         }

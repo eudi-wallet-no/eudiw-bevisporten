@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
@@ -23,7 +22,7 @@ public class JUnitClaimsSource implements ClaimsSource {
     }
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 
@@ -38,7 +37,7 @@ public class JUnitClaimsSource implements ClaimsSource {
     }
 
     @Override
-    public List<Claim> issueClaims(JWT accessToken) {
+    public List<Claim> issueClaims(CredentialIssueContext credentialIssueContext) {
         return List.of();
     }
 }

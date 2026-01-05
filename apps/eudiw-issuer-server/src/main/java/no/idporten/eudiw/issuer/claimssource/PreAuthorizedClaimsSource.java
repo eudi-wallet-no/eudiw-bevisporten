@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -19,14 +20,16 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * Pre-authorize credential issuance by validating and storing claims data.  Data can be provided by calling
      * system or fetched by the claims source if the pull() method is implemented.
      *
-     * @param issuanceContext
+     * @param issuanceContext the issuance context
+     * @param pushedClaims pushed credential data
      */
     default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> pushedClaims) {
         final Map<String, Object> validatedClaims;
+        final DocumentMetadata documentMetadata = getDocumentMetadata(new CredentialMetadataContext(issuanceContext.credentialConfigurationId(), null, null));
         if (!CollectionUtils.isEmpty(pushedClaims)) {
-            validatedClaims = validate(push(issuanceContext, pushedClaims));
+            validatedClaims = validate(documentMetadata, push(issuanceContext, pushedClaims));
         } else {
-            validatedClaims = validate(pull(issuanceContext));
+            validatedClaims = validate(documentMetadata, pull(issuanceContext));
         }
         store(issuanceContext.issuanceTransactionId(), validatedClaims, issuanceContext.authorizationLifetime());
     }
@@ -46,9 +49,9 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
     }
 
     /**
-     * Validate claims data.
+     * Validate that claims data is valid according to credential metadata.
      */
-    Map<String, Object> validate(Map<String, Object> claims);
+    Map<String, Object> validate(DocumentMetadata credentialMetadata, Map<String, Object> claims);
 
     /**
      * Store claims data in cache for a given lifetime.

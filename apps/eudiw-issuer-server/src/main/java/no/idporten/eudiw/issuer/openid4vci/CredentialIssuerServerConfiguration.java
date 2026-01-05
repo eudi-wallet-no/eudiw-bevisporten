@@ -5,6 +5,7 @@ import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
+import no.idporten.eudiw.issuer.claimssource.byob.DynamicCredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
@@ -28,20 +29,24 @@ public class CredentialIssuerServerConfiguration {
 
     private final ClaimsSourceService claimsSourceService;
     private final AuthorizationServerService authorizationServerService;
+    private final DynamicCredentialConfigurationService dynamicCredentialConfigurationService;
 
     @Bean
-    public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties properties) {
+    public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties credentialIssuerProperties) {
         CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
-                .credentialIssuer(properties.getCredentialIssuer())
-                .authorizationServers(properties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
-                .credentialEndpoint(Endpoints.endpointURI(properties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
-                .nonceEndpoint(Endpoints.endpointURI(properties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT))
-                .notificationEndpoint(Endpoints.endpointURI(properties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT))
-                .displays(properties.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(properties.getDisplayNames().get(locale)).build()).toList());
+                .credentialIssuer(credentialIssuerProperties.getCredentialIssuer())
+                .authorizationServers(credentialIssuerProperties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
+                .credentialEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT))
+                .nonceEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT))
+                .notificationEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT))
+                .displays(credentialIssuerProperties.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(credentialIssuerProperties.getDisplayNames().get(locale)).build()).toList());
+        List<CredentialConfigurationProperties> allCredentialConfigurationProperties = new ArrayList<>();
+        allCredentialConfigurationProperties.addAll(credentialIssuerProperties.getCredentialConfigurations());
+        allCredentialConfigurationProperties.addAll(dynamicCredentialConfigurationService.generateCredentialConfigurations());
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
-        for (CredentialConfigurationProperties credentialConfigurationProperties : properties.getCredentialConfigurations()) {
+        for (CredentialConfigurationProperties credentialConfigurationProperties : allCredentialConfigurationProperties) {
             ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
-            ClaimsSourceMetadata claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource);
+            ClaimsSourceMetadata claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
             CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
                     // credential-specific config
                     .format(credentialConfigurationProperties.getFormat().formatIdentifier())
@@ -52,9 +57,9 @@ public class CredentialIssuerServerConfiguration {
                             .claims(adjustClaimsDescriptionsToCredentialFormat(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getCredentialType(), claimsSourceMetadata.getClaims()))
                             .build())
                     // config from issuer server
-                    .cryptographicBindingMethods(properties.getCryptographicBindings())
-                    .credentialSigningAlgValuesSupported(properties.getCredentialSigningAlgorithms())
-                    .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(properties.getProofSigningAlgorithms()).build()).build());
+                    .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
+                    .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())
+                    .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
             // config for formats
             if (CredentialFormat.MSO_MDOC.equals(credentialConfigurationProperties.getFormat())) {
                 credentialConfigurationBuilder.doctype(credentialConfigurationProperties.getCredentialType());
@@ -63,6 +68,7 @@ public class CredentialIssuerServerConfiguration {
             }
             credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfigurationBuilder.build());
         }
+       
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
     }

@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.vegvesenet;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
@@ -103,7 +104,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
     );
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 

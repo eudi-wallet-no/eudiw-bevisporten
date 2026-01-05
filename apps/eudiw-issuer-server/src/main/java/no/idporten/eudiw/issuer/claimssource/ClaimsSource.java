@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
-import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.util.StringUtils;
@@ -13,7 +12,7 @@ public interface ClaimsSource {
     /**
      * Gets Document metadata about claims provided by claims source.
      */
-    DocumentMetadata getDocumentMetadata();
+    DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext);
 
     /**
      * Initializes claims source with properties.
@@ -29,13 +28,13 @@ public interface ClaimsSource {
      * Check if this claims source supports credential type
      */
     default boolean supports(String credentialType) {
-        return getProperties().getCredentialTypes().contains(credentialType);
+        return getProperties() != null && getProperties().getCredentialTypes().contains(credentialType);
     }
 
     /**
      * Issue claims (credentials).
      */
-    List<Claim> issueClaims(JWT accessToken);
+    List<Claim> issueClaims(CredentialIssueContext credentialIssueContext);
 
     /**
      * Indicates if this claims source has an authorative source of data.

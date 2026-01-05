@@ -70,7 +70,7 @@ class PIDClaimsSourceTest {
     @Test
     @DisplayName("validate that metadata can be retrieved from PIDClaimsSource")
     void verifyMetadata() {
-        DocumentMetadata metadata = pidClaimsSource.getDocumentMetadata();
+        DocumentMetadata metadata = pidClaimsSource.getDocumentMetadata(null);
         assertNotNull(metadata);
         assertNotNull(metadata.claims());
         assertEquals(NUMBER_OF_CLAIMS, metadata.claims().size());

@@ -8,6 +8,7 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
@@ -28,6 +29,7 @@ public class PreAuthorizedIssuanceService {
 
     public static final String GRANT_TYPE_PRE_AUTHORIZED_CODE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
+    private final CredentialConfigurationService credentialConfigurationService;
     private final ClaimsSourceService claimsSourceService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final PreAuthorizationService preAuthorizationService;
@@ -35,13 +37,13 @@ public class PreAuthorizedIssuanceService {
     private final AuditService auditService;
 
     public PreAuthorizedIssuanceResponse startIssuerTransaction(PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest, JWT accessToken) {
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
+        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
             throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
-        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource);
+        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
         claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfigurationProperties.getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getClaimsMap());
