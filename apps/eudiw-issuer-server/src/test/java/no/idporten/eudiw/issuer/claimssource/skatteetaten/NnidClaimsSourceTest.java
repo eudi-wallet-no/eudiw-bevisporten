@@ -4,6 +4,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.claimssource.InMemoryClaimsSourceCache;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
@@ -22,6 +23,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -51,7 +53,7 @@ class NnidClaimsSourceTest {
         @DisplayName("for claim norwegian_national_id_number is valid")
         @Test
         void validateClaimFnrIs11Digits() {
-            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER);
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata(null).findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER);
 
             nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901"));
         }
@@ -59,7 +61,7 @@ class NnidClaimsSourceTest {
         @DisplayName("for claim norwegian_national_id_number is invalid when not 11 digits")
         @Test
         void validateClaimTextFnrIsNot11Digits() {
-            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER);
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata(null).findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER);
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "abcdefghijk")));
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "4d")));
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER, "")));
@@ -68,7 +70,7 @@ class NnidClaimsSourceTest {
         @DisplayName("for claim norwegian_national_id_number_type is valid when D-nummer or F-nummer")
         @Test
         void validateClaimTypeIsValidTerm() {
-            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE);
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata(null).findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE);
             nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer"));
             nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "F-nummer"));
         }
@@ -76,7 +78,7 @@ class NnidClaimsSourceTest {
         @DisplayName("for claim norwegian_national_id_number_type is invalid when random text or empty string")
         @Test
         void validateClaimTypeIsNotValidTerm() {
-            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata().findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE);
+            ClaimMetadata claimMetadata = nnidClaimsSource.getDocumentMetadata(null).findClaimMetadata(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE);
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validateClaim(claimMetadata, Map.of(NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "")));
         }
 
@@ -84,6 +86,7 @@ class NnidClaimsSourceTest {
         @Test
         void validateAllClaimsOK() {
             nnidClaimsSource.validate(
+                    nnidClaimsSource.getDocumentMetadata(null),
                     Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "11127911122",
                             NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "Fødselsnummer"));
@@ -93,7 +96,9 @@ class NnidClaimsSourceTest {
         @Test
         void validateOneClaimNotOK() {
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate
-                    (Map.of(
+                    (
+                            nnidClaimsSource.getDocumentMetadata(null),
+                            Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "4444",
                             NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
         }
@@ -102,6 +107,7 @@ class NnidClaimsSourceTest {
         @Test
         void validateMissingClaimNotOK() {
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(
+                    nnidClaimsSource.getDocumentMetadata(null),
                     Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
         }
@@ -110,6 +116,7 @@ class NnidClaimsSourceTest {
         @Test
         void validateExtraClaimNotOK() {
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(
+                    nnidClaimsSource.getDocumentMetadata(null),
                     Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
                             "extra-claim", "try-to-stop-me",
@@ -138,8 +145,8 @@ class NnidClaimsSourceTest {
                     new TreeMap<>(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
                             NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
-            verify(claimsSource).validate(anyMap());
-            List<Claim> claims = nnidClaimsSource.issueClaims(accessToken);
+            verify(claimsSource).validate(any(), anyMap());
+            List<Claim> claims = nnidClaimsSource.issueClaims(new CredentialIssueContext(accessToken, null));
             assertAll(
                     () -> assertEquals(2, claims.size()),
                     () -> assertEquals("12345678901", ((StringValue) claims.getFirst().getValue()).value()),

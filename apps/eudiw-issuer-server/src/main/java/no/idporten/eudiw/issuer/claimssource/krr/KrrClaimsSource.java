@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.krr;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
@@ -42,7 +43,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 

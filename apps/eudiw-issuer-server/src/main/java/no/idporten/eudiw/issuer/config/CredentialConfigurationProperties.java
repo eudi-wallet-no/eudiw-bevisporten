@@ -84,4 +84,10 @@ public class CredentialConfigurationProperties {
      */
     @NotNull
     private String keyStoreName;
+
+    /**
+     * Hook for dynamic credential configurations?
+     */
+    private boolean dynamic = false;
+
 }

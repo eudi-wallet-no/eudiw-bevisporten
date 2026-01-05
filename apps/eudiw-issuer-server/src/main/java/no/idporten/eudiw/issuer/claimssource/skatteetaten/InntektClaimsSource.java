@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Inntekt;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.InntektsOpplysninger;
@@ -40,7 +41,7 @@ public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
     }
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 

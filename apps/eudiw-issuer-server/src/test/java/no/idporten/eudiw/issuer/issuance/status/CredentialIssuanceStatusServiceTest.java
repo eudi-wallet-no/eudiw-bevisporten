@@ -5,6 +5,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
@@ -35,6 +36,9 @@ public class CredentialIssuanceStatusServiceTest {
     private CredentialIssuerServerProperties credentialIssuerServerProperties;
 
     @Mock
+    private CredentialConfigurationService  credentialConfigurationService;
+
+    @Mock
     private AccessTokenValidationService accessTokenValidationService;
 
     @Mock
@@ -48,7 +52,7 @@ public class CredentialIssuanceStatusServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(credentialIssuerServerProperties.findCredentialConfiguration(eq("cid"))).thenReturn(
+        when(credentialConfigurationService.findCredentialConfiguration(eq("cid"))).thenReturn(
                 CredentialConfigurationProperties.builder()
                         .identifier("cid")
                         .scope("test").build());

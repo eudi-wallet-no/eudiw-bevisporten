@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
@@ -27,6 +28,9 @@ public class CredentialOfferServiceTest {
     private CredentialIssuerServerProperties credentialIssuerServerProperties;
 
     @Mock
+    private CredentialConfigurationService credentialConfigurationService;
+
+    @Mock
     private AuditService auditService;
 
     @InjectMocks
@@ -36,7 +40,7 @@ public class CredentialOfferServiceTest {
     @Test
     void testCreateCredentialOfferForAuthorizationCodeFlow() {
         when(credentialIssuerServerProperties.getCredentialIssuer()).thenReturn(URI.create("https://junit.issuer.idporten.no"));
-        when(credentialIssuerServerProperties.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
+        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
                 .identifier("foo")
                 .grantType("authorization_code")
                 .build());
@@ -54,7 +58,7 @@ public class CredentialOfferServiceTest {
     @DisplayName("then an error is returned for credential configurations supporting only the pre-authorized code flow")
     @Test
     void testDenyCredentialOfferForPreAuthorizedCodeFlow() {
-        when(credentialIssuerServerProperties.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
+        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
                 .identifier("foo")
                 .grantType("urn:ietf:params:oauth:grant-type:pre-authorized_code")
                 .build());

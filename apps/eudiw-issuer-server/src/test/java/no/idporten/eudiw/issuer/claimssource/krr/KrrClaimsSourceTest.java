@@ -47,7 +47,7 @@ public class KrrClaimsSourceTest {
     @DisplayName("then claims source metadata is provided to the issuer")
     @Test
     void testMetadata() {
-        DocumentMetadata claimsSourceMetadata = claimsSource.getDocumentMetadata();
+        DocumentMetadata claimsSourceMetadata = claimsSource.getDocumentMetadata(null);
         assertAll(
                 () -> assertEquals(3, claimsSourceMetadata.claims().size()),
                 () -> assertEquals(

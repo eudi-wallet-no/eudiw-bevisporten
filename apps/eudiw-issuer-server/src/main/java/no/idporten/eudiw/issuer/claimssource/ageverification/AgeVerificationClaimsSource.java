@@ -5,6 +5,7 @@ import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimValueConverter;
+import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
@@ -51,7 +52,7 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
 
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 

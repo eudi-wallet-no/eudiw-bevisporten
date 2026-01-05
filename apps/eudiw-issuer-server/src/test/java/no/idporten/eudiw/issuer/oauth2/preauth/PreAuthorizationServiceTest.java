@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.oauth2.preauth;
 
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
@@ -32,6 +33,9 @@ public class PreAuthorizationServiceTest {
     @Autowired
     private CredentialIssuerServerProperties credentialIssuerServerProperties;
 
+    @Autowired
+    private CredentialConfigurationService credentialConfigurationService;
+
     private MockServerRestClientCustomizer customizer;
 
     @BeforeEach
@@ -39,7 +43,7 @@ public class PreAuthorizationServiceTest {
         customizer = new MockServerRestClientCustomizer();
         RestClient.Builder builder = RestClient.builder();
         customizer.customize(builder);
-        preAuthorizationService = new PreAuthorizationService(credentialIssuerServerProperties, builder.build());
+        preAuthorizationService = new PreAuthorizationService(credentialIssuerServerProperties, credentialConfigurationService, builder.build());
     }
 
     @DisplayName("then a pre-authorization request containing user and transaction information is sent")

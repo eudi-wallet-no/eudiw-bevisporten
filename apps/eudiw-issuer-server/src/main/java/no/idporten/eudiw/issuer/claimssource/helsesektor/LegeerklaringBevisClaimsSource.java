@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.helsesektor;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
@@ -72,7 +73,7 @@ public class LegeerklaringBevisClaimsSource extends AbstractPreAuthorizedClaimsS
     }
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
     }
 

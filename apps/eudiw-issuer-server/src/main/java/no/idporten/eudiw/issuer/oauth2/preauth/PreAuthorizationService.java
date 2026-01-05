@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.oauth2.preauth;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
@@ -18,10 +19,11 @@ public class PreAuthorizationService {
     public static final String PRE_AUTHORIZATIONS_ENDPOINT = "/api/v1/pre-authorizations";
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
+    private final CredentialConfigurationService credentialConfigurationService;
     private final RestClient preAuthorizationRestClient;
 
     public String preAuthorize(IssuanceTransactionId issuanceTransactionId, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest) {
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
+        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         PreAuthorizationRequest preAuthorizationRequest = PreAuthorizationRequest.builder()
                 .aud(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .sub(preAuthorizedIssuanceRequest.getSubject().getIdentifier())

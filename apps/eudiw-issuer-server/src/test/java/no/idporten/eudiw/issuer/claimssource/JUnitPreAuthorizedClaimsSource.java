@@ -11,7 +11,7 @@ import java.util.Map;
 public class JUnitPreAuthorizedClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @Override
-    public DocumentMetadata getDocumentMetadata() {
+    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit doc")), List.of(new ClaimMetadata("attr1", Map.of("no", "Attributt 1"), true, ".*")));
     }
 

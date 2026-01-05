@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import org.springframework.http.HttpStatus;
@@ -16,10 +15,10 @@ public sealed interface AuthorizedClaimsSource extends ClaimsSource permits Abst
 
 
     @Override
-    default List<Claim> issueClaims(JWT accessToken){
+    default List<Claim> issueClaims(CredentialIssueContext credentialIssueContext){
         String personIdentifier;
         try {
-            personIdentifier = accessToken.getJWTClaimsSet().getSubject();
+            personIdentifier = credentialIssueContext.accessToken().getJWTClaimsSet().getSubject();
         } catch (ParseException e) {
             throw new IssuerServerException("invalid_token", "Failed to extract fnr/dnr from access token", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }

@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
@@ -67,15 +66,15 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         }
     }
 
-    public final Map<String, Object> validate(Map<String, Object> claims) {
-        // validate all known claims
-        DocumentMetadata documentMetadata = getDocumentMetadata();
-        for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
+
+    @Override
+    public final Map<String, Object> validate(DocumentMetadata credentialMetadata, Map<String, Object> claims) {
+        for (ClaimMetadata claimMetadata : credentialMetadata.claims()) {
             validateClaim(claimMetadata, claims);
         }
         // reject all unknown claims
         for (String claimName : claims.keySet()) {
-            if (getDocumentMetadata().findClaimMetadata(claimName) == null) {
+            if (getDocumentMetadata(null).findClaimMetadata(claimName) == null) {
                 throw new IssuerServerException("invalid_request", "Unsupported claims in request.", HttpStatus.BAD_REQUEST);
             }
         }
@@ -103,15 +102,15 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
 
 
     @Override
-    public final List<Claim> issueClaims(JWT accessToken) {
+    public final List<Claim> issueClaims(CredentialIssueContext credentialIssueContext) {
         final String transactionId;
         try {
-            transactionId = accessToken.getJWTClaimsSet().getStringClaim("tx_id");
+            transactionId = credentialIssueContext.accessToken().getJWTClaimsSet().getStringClaim("tx_id");
         } catch (ParseException e) {
             throw new IssuerServerException("internal_server_error", "Missing claim in internal access token %s".formatted("tx_id"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         Map<String, Object> storedClaims = cache.retrieveClaims(new IssuanceTransactionId(transactionId));
-        DocumentMetadata documentMetadata = getDocumentMetadata();
+        DocumentMetadata documentMetadata = getDocumentMetadata(new CredentialMetadataContext(credentialIssueContext.credentialConfigurationId(), null, null));
         try {
             return storedClaims.keySet().stream()
                     .map(documentMetadata::findClaimMetadata)

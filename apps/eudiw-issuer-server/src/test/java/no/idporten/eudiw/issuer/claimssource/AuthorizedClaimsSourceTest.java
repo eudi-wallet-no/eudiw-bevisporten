@@ -41,7 +41,7 @@ public class AuthorizedClaimsSourceTest {
         }
 
         @Override
-        public DocumentMetadata getDocumentMetadata() {
+        public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
             return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata("b", Map.of("no", "B"), true, ".*")));
         }
     }
@@ -53,7 +53,7 @@ public class AuthorizedClaimsSourceTest {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
         claimsSource.init(claimsSourceProperties());
         String fnr = "12345678910";
-        List<Claim> claims = claimsSource.issueClaims(createAccessToken(fnr));
+        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(fnr), null));
         assertAll(
                 () -> assertEquals(1, claims.size()),
                 () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -67,8 +67,8 @@ public class AuthorizedClaimsSourceTest {
     public void testIssueClaimsSourceWithInvalidToken() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
         claimsSource.init(claimsSourceProperties());
-        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(createAccessToken(null)));
-        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(createAccessToken(" ")));
+        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(null), null)));
+        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(" "), null)));
     }
 
     @NotNull

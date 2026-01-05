@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
@@ -25,15 +26,16 @@ public class ClaimsSourceService implements InitializingBean {
     private final List<ClaimsSource> claimsSources;
 
     public ClaimsSource findClaimsSource(String credentialType) {
+        log.info("Finding claims source for credential type {}", credentialType);
         return claimsSources.stream()
                 .filter(claimsSource -> claimsSource.supports(credentialType))
                 .findFirst()
                 .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for credential type [%s]".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-    public final ClaimsSourceMetadata getMetadata(ClaimsSource claimsSource) {
+    public final ClaimsSourceMetadata getMetadata(ClaimsSource claimsSource, CredentialConfigurationProperties credentialConfigurationProperties) {
         ClaimsSourceMetadata.ClaimsSourceMetadataBuilder builder = ClaimsSourceMetadata.builder();
-        DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata();
+        DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationProperties.getIdentifier(), credentialConfigurationProperties.getCredentialType(), credentialConfigurationProperties.getFormat()));
         builder.displays(documentMetadata.displays()
                 .stream()
                 .map(display ->

@@ -69,7 +69,7 @@ class AgeVerificationClaimsSourceTest {
     @Test
     @DisplayName("verify that call metadata returns correct number of claims")
     void getMetadata() {
-        DocumentMetadata metadata = aVClaimsSource.getDocumentMetadata();
+        DocumentMetadata metadata = aVClaimsSource.getDocumentMetadata(null);
         assertNotNull(metadata);
         assertNotNull(metadata.claims());
         assertEquals(NUMBER_OF_CLAIMS, metadata.claims().size());
