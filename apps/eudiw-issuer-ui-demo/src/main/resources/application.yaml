@@ -29,7 +29,9 @@ management:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
 
-issuer-ui-demo:
+bevisgenerator:
+  features:
+    allow-create-bevistyper: true
   issuer-server:
     issuance-endpoint: /api/v1/credential/issuance-transaction
     credential-configurations:
@@ -279,7 +281,7 @@ maskinporten:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
         scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:no:kommunalsektor:hcregister eudiw:no:helsesektor:legeerklaring eudiw:eidas2sandkasse:dynamicvc
-        resource: ${issuer-ui-demo.issuer-server.base-url}
+        resource: ${bevisgenerator.issuer-server.base-url}
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: default
