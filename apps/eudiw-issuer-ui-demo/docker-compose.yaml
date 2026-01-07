@@ -5,7 +5,7 @@ networks:
 
 services:
 
-  issuer-ui-demo:
+  bevisgenerator:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile

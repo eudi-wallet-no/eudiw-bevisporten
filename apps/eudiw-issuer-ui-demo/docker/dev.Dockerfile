@@ -20,7 +20,7 @@ RUN curl -L -O https://github.com/open-telemetry/opentelemetry-java-instrumentat
 
 FROM  eclipse-temurin:25-jre-noble
 
-ARG APPLICATION=eudiw-issuer-ui-demo
+ARG APPLICATION=eudiw-bevisgenerator
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
 WORKDIR /usr/local/webapps
