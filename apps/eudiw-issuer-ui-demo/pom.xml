@@ -8,10 +8,10 @@
         <version>3.5.7</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
-    <artifactId>eudiw-issuer-ui-demo</artifactId>
+    <artifactId>eudiw-bevisgenerator</artifactId>
     <version>DEV-SNAPSHOT</version>
-    <name>eudiw-issuer-ui-demo</name>
-    <description>EUDIW issuer-ui for demo/testing purposes</description>
+    <name>eudiw-bevisgenerator</name>
+    <description>EUDIW bevisgenerator for demo/testing purposes</description>
     <properties>
         <java.version>25</java.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
