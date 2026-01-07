@@ -1,5 +1,5 @@
 # eudiw-issuer-ui-demo
-EUDI wallet: Issuer-ui demo for pre-authorized flow.
+EUDI wallet: Bevisgenerator for pre-authorized flow.
 
 ## Requirements
 - Java 25
@@ -24,7 +24,7 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 issuer-ui-demo
+127.0.0.1 bevisgenerator
 ```
 
 The application can be started with Maven:
@@ -37,4 +37,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://issuer-ui-demo:9290.
+The application will run on http://bevisgenerator:9290.

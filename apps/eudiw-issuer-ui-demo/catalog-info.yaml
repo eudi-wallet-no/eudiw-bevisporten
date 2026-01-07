@@ -1,15 +1,15 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: digital-lommebok-issuer-ui-demo
-  description: EUDIWs issuer-ui-demo
+  name: digital-lommebok-bevisgenerator
+  description: Bevisgenerator for eIDAS2Sandkasse
   annotations:
     github.com/project-slug: felleslosninger/eudiw-issuer-ui-demo
 spec:
   type: application
   lifecycle: test
   owner: team-digital-lommebok
-  system: digital-lommebok-issuer-ui-demo
+  system: digital-lommebok-bevisgenerator
   dependsOn:
     - component:digital-lommebok-issuer-server
     - component:digital-lommebok-oauth-server
