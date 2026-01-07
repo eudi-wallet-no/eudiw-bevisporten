@@ -7,6 +7,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import no.idporten.eudiw.issuer.ui.demo.config.BevisgeneratorProperties;
 import no.idporten.eudiw.issuer.ui.demo.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.demo.issuer.IssuerServerService;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.CredentialConfiguration;
@@ -37,15 +38,23 @@ public class StartIssuanceController {
 
     private final IssuerServerProperties properties;
 
+    private final BevisgeneratorProperties bevisgeneratorProperties;
+
     @Autowired
-    public StartIssuanceController(IssuerServerService issuerServerService, IssuerServerProperties properties) {
+    public StartIssuanceController(IssuerServerService issuerServerService, IssuerServerProperties properties, BevisgeneratorProperties bevisgeneratorProperties) {
         this.issuerServerService = issuerServerService;
         this.properties = properties;
+        this.bevisgeneratorProperties = bevisgeneratorProperties;
     }
 
     @ModelAttribute("issuerUrl")
     public String issuerUrl() {
         return properties.credentialIssuer();
+    }
+
+    @ModelAttribute("allowBevisTyper")
+    public boolean bevisTyperEnabled() {
+        return bevisgeneratorProperties.getFeatureSwitches().isAllowCreateBevistyper();
     }
 
     @GetMapping("/")
