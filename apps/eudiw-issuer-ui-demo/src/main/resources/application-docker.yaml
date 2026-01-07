@@ -10,7 +10,7 @@ spring:
   application:
     environment: docker
 
-issuer-ui-demo:
+bevisgenerator:
   issuer-server:
     base-url: http://issuer-server:9240
 #    base-url: https://utsteder.eidas2sandkasse.dev

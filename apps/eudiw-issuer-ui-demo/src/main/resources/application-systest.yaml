@@ -3,7 +3,7 @@ spring:
   application:
     environment: systest
 
-issuer-ui-demo:
+bevisgenerator:
   issuer-server:
     base-url: https://utsteder.eidas2sandkasse.dev
 

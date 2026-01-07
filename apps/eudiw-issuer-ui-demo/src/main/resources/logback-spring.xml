@@ -24,7 +24,7 @@
         </encoder>
     </appender>
     <springProfile name="!dev &amp; !docker">
-        <logger name="no.idporten" level="INFO" additivity="false">
+        <logger name="no.idporten.eudiw" level="INFO" additivity="false">
             <appender-ref ref="APPLICATION"/>
         </logger>
 
