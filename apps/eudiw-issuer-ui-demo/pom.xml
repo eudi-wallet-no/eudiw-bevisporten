@@ -20,7 +20,7 @@
         <opentelemetry-api.version>1.55.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <idporten.maskinporten.client.version>5.0.1</idporten.maskinporten.client.version>
-        <zxing.javase.version>3.5.3</zxing.javase.version>
+        <zxing.javase.version>3.5.4</zxing.javase.version>
     </properties>
     <dependencies>
         <dependency>
