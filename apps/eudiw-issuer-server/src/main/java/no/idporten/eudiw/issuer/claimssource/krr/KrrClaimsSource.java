@@ -1,10 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.krr;
 
 import lombok.SneakyThrows;
-import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.krr.model.PersonKrr;
@@ -49,7 +46,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @SneakyThrows
     @Override
-    public Map<String, Object> pull(PreAuthorizedIssuanceContext issuanceContext) {
+    public CredentialData pull(PreAuthorizedIssuanceContext issuanceContext) {
         String personIdentifier = issuanceContext.accessToken().getJWTClaimsSet().getStringClaim("pid");
         PersonKrr personPrivate = krrIntegration.retrieve(personIdentifier);
         Map<String, Object> claims = new HashMap<>();
@@ -57,7 +54,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
         claims.put("epostadresse", personPrivate.kontaktinformasjon().epostadresse());
         claims.put("mobiltelefonnummer", personPrivate.kontaktinformasjon().mobiltelefonnummer());
         claims.values().removeIf(Objects::isNull);
-        return claims;
+        return new CredentialData(claims, null);
     }
 
     @Override

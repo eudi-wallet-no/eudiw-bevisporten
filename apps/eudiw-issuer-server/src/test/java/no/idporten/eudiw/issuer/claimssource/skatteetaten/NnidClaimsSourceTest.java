@@ -3,10 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
-import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
-import no.idporten.eudiw.issuer.claimssource.InMemoryClaimsSourceCache;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
@@ -87,9 +84,9 @@ class NnidClaimsSourceTest {
         void validateAllClaimsOK() {
             nnidClaimsSource.validate(
                     nnidClaimsSource.getDocumentMetadata(null),
-                    Map.of(
+                    new CredentialData(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "11127911122",
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "Fødselsnummer"));
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "Fødselsnummer"), null));
         }
 
         @DisplayName("when all required claims are present, but 1 invalid then all is invalid")
@@ -98,9 +95,9 @@ class NnidClaimsSourceTest {
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate
                     (
                             nnidClaimsSource.getDocumentMetadata(null),
-                            Map.of(
+                            new CredentialData(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "4444",
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer"), null)));
         }
 
         @DisplayName("when not all required claims are present, then all is invalid")
@@ -108,8 +105,8 @@ class NnidClaimsSourceTest {
         void validateMissingClaimNotOK() {
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(
                     nnidClaimsSource.getDocumentMetadata(null),
-                    Map.of(
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+                    new CredentialData(Map.of(
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer"), null)));
         }
 
         @DisplayName("when all required claims are present and valid but also extra claim present, then all is invalid")
@@ -117,10 +114,10 @@ class NnidClaimsSourceTest {
         void validateExtraClaimNotOK() {
             assertThrows(IssuerServerException.class, () -> nnidClaimsSource.validate(
                     nnidClaimsSource.getDocumentMetadata(null),
-                    Map.of(
+                    new CredentialData(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
                             "extra-claim", "try-to-stop-me",
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer"), null)));
         }
     }
 
@@ -145,7 +142,7 @@ class NnidClaimsSourceTest {
                     new TreeMap<>(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
                             NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
-            verify(claimsSource).validate(any(), anyMap());
+            verify(claimsSource).validate(any(), any(CredentialData.class));
             List<Claim> claims = nnidClaimsSource.issueClaims(new CredentialIssueContext(accessToken, null));
             assertAll(
                     () -> assertEquals(2, claims.size()),

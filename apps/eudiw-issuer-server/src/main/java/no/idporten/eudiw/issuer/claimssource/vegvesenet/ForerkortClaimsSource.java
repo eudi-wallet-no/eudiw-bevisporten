@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.vegvesenet;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
@@ -117,11 +118,11 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
 
     @Override
-    public Map<String, Object> push(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> claims) {
-        Map<String, Object> completeClaims = new HashMap<>(claims);
+    public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
+        Map<String, Object> completeClaims = new HashMap<>(credentialData.claims());
         // convert input birth_date to LocalDate
-        if (claims.containsKey("birth_date")) {
-            String birthDateStr = claims.get("birth_date");
+        if (completeClaims.containsKey("birth_date")) {
+            String birthDateStr = (String)completeClaims.get("birth_date");
             LocalDate birthDate = LocalDate.parse(birthDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
             completeClaims.put("birth_date", birthDate);
         }
@@ -142,7 +143,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
         completeClaims.put("driving_privileges", drivingPrivilege);
         completeClaims.put("un_distinguishing_sign", "N");
 
-        return completeClaims;
+        return new CredentialData(completeClaims, issuanceContext.credentialConfigurationId());
     }
 
     @Override

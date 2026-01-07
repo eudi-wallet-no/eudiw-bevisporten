@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -24,34 +25,34 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * @param pushedClaims pushed credential data
      */
     default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> pushedClaims) {
-        final Map<String, Object> validatedClaims;
+        final CredentialData credentialData;
         final DocumentMetadata documentMetadata = getDocumentMetadata(new CredentialMetadataContext(issuanceContext.credentialConfigurationId(), null, null));
         if (!CollectionUtils.isEmpty(pushedClaims)) {
-            validatedClaims = validate(documentMetadata, push(issuanceContext, pushedClaims));
+            credentialData = validate(documentMetadata, push(issuanceContext, new CredentialData(Collections.unmodifiableMap(pushedClaims), issuanceContext.credentialConfigurationId())));
         } else {
-            validatedClaims = validate(documentMetadata, pull(issuanceContext));
+            credentialData = validate(documentMetadata, pull(issuanceContext));
         }
-        store(issuanceContext.issuanceTransactionId(), validatedClaims, issuanceContext.authorizationLifetime());
+        store(issuanceContext.issuanceTransactionId(), credentialData.claims(), issuanceContext.authorizationLifetime());
     }
 
     /**
      * Pull claims data from authoritative source.  Disabled by default.
      */
-    default Map<String, Object> pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
+    default CredentialData pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
     }
 
     /**
-     * Receive pushed data from authoritative source.  Disabled by default.
+     * Receive pushed data from the authoritative source.  Disabled by default.
      */
-    default Map<String, Object> push(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext, Map<String, String> claims) {
+    default CredentialData push(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext, CredentialData credentialData) {
         throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
     }
 
     /**
      * Validate that claims data is valid according to credential metadata.
      */
-    Map<String, Object> validate(DocumentMetadata credentialMetadata, Map<String, Object> claims);
+    CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData);
 
     /**
      * Store claims data in cache for a given lifetime.
