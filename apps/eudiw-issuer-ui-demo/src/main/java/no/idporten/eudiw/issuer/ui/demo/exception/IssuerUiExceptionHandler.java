@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.ui.demo.exception;
 
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
+import no.idporten.lib.maskinporten.exception.MaskinportenClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,4 +44,9 @@ public class IssuerUiExceptionHandler {
         return getModelAndView("error/error").addObject("errorMessage", e.getMessage());
     }
 
+    @ExceptionHandler(MaskinportenClientException.class)
+    public ModelAndView handleMaskinportenClientException(MaskinportenClientException e) {
+        log.error("Unexpected exception from Maskinporten", e);
+        return getModelAndView("error/error").addObject("errorMessage", "Integration with Maskinporten failed").addObject("statusCode", "500").addObject("details", e.getMessage());
+    }
 }
