@@ -3,7 +3,9 @@ spring:
   application:
     environment: test
 
-issuer-ui-demo:
+bevisgenerator:
+  features:
+    allow-create-bevistyper: false
   issuer-server:
     base-url: https://utsteder.test.eidas2sandkasse.net
 

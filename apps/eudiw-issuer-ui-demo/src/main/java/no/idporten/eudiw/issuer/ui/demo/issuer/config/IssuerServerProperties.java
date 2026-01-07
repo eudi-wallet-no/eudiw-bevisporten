@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 @EnableConfigurationProperties(IssuerServerProperties.class)
-@ConfigurationProperties(prefix = "issuer-ui-demo.issuer-server")
+@ConfigurationProperties(prefix = "bevisgenerator.issuer-server")
 public record IssuerServerProperties (String baseUrl, String issuanceEndpoint, List<CredentialConfiguration> credentialConfigurations) {
 
     public String credentialIssuer() {
