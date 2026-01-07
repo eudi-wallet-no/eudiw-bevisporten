@@ -15,7 +15,7 @@ public class ApplicationExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<String> handleBadRequestException(BadRequestException e) {
-        log.info("User error : " + e.getMessage(), e);
+        log.warn("Client error : {}", e.getMessage(), e);
         return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 

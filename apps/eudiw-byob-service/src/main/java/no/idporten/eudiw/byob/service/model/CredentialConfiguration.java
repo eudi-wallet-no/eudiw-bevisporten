@@ -6,15 +6,15 @@ import jakarta.validation.constraints.Pattern;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record ByobInput(
+public record CredentialConfiguration(
         @JsonProperty("vct")
         @Pattern(regexp = "^[a-z0-9_:]{3,255}$",
                 message = "vct kan ikke ha spesielle karakterer eller symboler")
         String vct,
         @JsonProperty("format")
         String format,
-        @JsonProperty("example_credential_metadata")
-        ExampleCredentialMetadata exampleCredentialMetadata,
+        @JsonProperty("example_credential_data")
+        ExampleCredentialData exampleCredentialData,
         @JsonProperty("credential_metadata")
         CredentialMetadata credentialMetadata
 ) {
