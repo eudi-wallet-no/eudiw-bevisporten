@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.vegvesenet;
 
 import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
@@ -8,6 +9,7 @@ import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +41,8 @@ class ForerkortClaimsSourceTest {
         JWT jwt = mock(JWT.class);
         IssuanceTransactionId txId = new IssuanceTransactionId("tx-123");
 
-        Map<String, Object> result = source.push(new PreAuthorizedIssuanceContext(txId, jwt), inputClaims);
-
+        CredentialData credentialData = source.push(new PreAuthorizedIssuanceContext(txId, jwt), new CredentialData(Collections.unmodifiableMap(inputClaims), null));
+        Map<String, Object> result = credentialData.claims();
         // Get all claim names from DocumentMetadata
         Set<String> expectedClaims = source.getDocumentMetadata(null).claims().stream()
                 .map(ClaimMetadata::name)

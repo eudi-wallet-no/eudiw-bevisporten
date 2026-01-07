@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,8 +62,8 @@ public class PreAuthorizedClaimsSourceTest {
 
         static class PullClaimsSource extends AbstractJUnitClaimsSource {
             @Override
-            public Map<String, Object> pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
-                return Map.of("c", "v");
+            public CredentialData pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
+                return new CredentialData(Map.of("c", "v"), null);
             }
         }
 
@@ -96,7 +95,7 @@ public class PreAuthorizedClaimsSourceTest {
                     () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
             verify(claimsSource).pull(any());
-            verify(claimsSource).validate(any(), any());
+            verify(claimsSource).validate(any(), any(CredentialData.class));
             verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(9)));
             verify(claimsSource, never()).push(any(), any());
         }
@@ -109,8 +108,8 @@ public class PreAuthorizedClaimsSourceTest {
         static class PushClaimsSource extends AbstractJUnitClaimsSource {
 
             @Override
-            public Map<String, Object> push(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> claims) {
-                return new HashMap<>(claims);
+            public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
+                return credentialData;
             }
 
         }
@@ -141,7 +140,7 @@ public class PreAuthorizedClaimsSourceTest {
                     () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
             );
             verify(claimsSource).push(any(), any());
-            verify(claimsSource).validate(any(), any());
+            verify(claimsSource).validate(any(), any(CredentialData.class));
             verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(5)));
             verify(claimsSource, never()).pull(any());
         }

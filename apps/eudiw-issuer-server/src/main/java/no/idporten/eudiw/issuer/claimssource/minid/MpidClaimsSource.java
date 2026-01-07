@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.minid;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
@@ -58,8 +59,8 @@ public class MpidClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    public Map<String, Object> push(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> claims) {
-        return new HashMap<>(claims);
+    public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
+        return credentialData;
     }
 
 }

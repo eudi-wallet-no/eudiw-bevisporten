@@ -1,13 +1,14 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.BYOB;
 
 @Service
 public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
@@ -25,9 +26,8 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @Override
     public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-        // TODO finn på ulike måter eller skjerp context litt?
         if (credentialMetadataContext == null) {
-            return credentialConfigurationService.getDocumentMetadataByCredentialType("dynamic:1");
+           throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialMetadataContext cannot be null for byob claims source");
         }
         if (credentialMetadataContext.credentialConfigurationId() != null) {
             return credentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
@@ -36,8 +36,13 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
     }
 
     @Override
-    public Map<String, Object> push(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> claims) {
-        return new HashMap<>(claims);
+    public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
+        return credentialData;
+    }
+
+    @Override
+    public String getAuthorativeSourceName(){
+        return BYOB.name();
     }
 
 }

@@ -1,11 +1,8 @@
 package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 
 import lombok.SneakyThrows;
-import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
-import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.stereotype.Service;
@@ -61,7 +58,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
 
     @SneakyThrows
     @Override
-    public Map<String, Object> pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
+    public CredentialData pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
         String personIdentifier = preAuthorizedIssuanceContext.accessToken().getJWTClaimsSet().getStringClaim("pid");
         PersonPrivate personPrivate = advokatregisteretIntegration.retrieve(personIdentifier);
         Map<String, Object> claims = new HashMap<>();
@@ -72,7 +69,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
         claims.put("mellomnavn", personPrivate.mellomnavn());
         claims.put("regnr", personPrivate.regnr());
         claims.values().removeIf(Objects::isNull);
-        return claims;
+        return new CredentialData(claims, null);
     }
 
     @Override

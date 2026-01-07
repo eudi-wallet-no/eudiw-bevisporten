@@ -5,5 +5,6 @@ public enum AuthoritativeSource {
     ADVOKATREGISTERET,
     KRR,
     INNTEKTSAPI,
+    BYOB,
     UNKNOWN
 }

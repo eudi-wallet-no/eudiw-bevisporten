@@ -8,6 +8,7 @@ import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
@@ -66,19 +67,27 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         }
     }
 
-
     @Override
-    public final Map<String, Object> validate(DocumentMetadata credentialMetadata, Map<String, Object> claims) {
+    public final CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData) {
+        CredentialMetadataContext credentialMetadataContext = new CredentialMetadataContext(credentialData.credentialConfigurationId(), null, null);
+        return validate(credentialMetadata, credentialData, credentialMetadataContext);
+    }
+
+    @NotNull
+    private CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData, CredentialMetadataContext credentialMetadataContext) {
+
+        Map<String, Object> claims = credentialData.claims();
         for (ClaimMetadata claimMetadata : credentialMetadata.claims()) {
             validateClaim(claimMetadata, claims);
         }
+
         // reject all unknown claims
         for (String claimName : claims.keySet()) {
-            if (getDocumentMetadata(null).findClaimMetadata(claimName) == null) {
+            if (getDocumentMetadata(credentialMetadataContext).findClaimMetadata(claimName) == null) {
                 throw new IssuerServerException("invalid_request", "Unsupported claims in request.", HttpStatus.BAD_REQUEST);
             }
         }
-        return Collections.unmodifiableMap(claims);
+        return new CredentialData(Collections.unmodifiableMap(claims), credentialData.credentialConfigurationId());
     }
 
     @Override
