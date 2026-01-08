@@ -85,6 +85,7 @@ class AuthorizationCodeFlowTest {
         PushedAuthorizationResponse pushedAuthorizationResponse = openIDConnectSdk.process(pushedAuthorizationRequest);
         assertNotNull(pushedAuthorizationResponse);
         assertNotNull(pushedAuthorizationResponse.getRequestUri());
+        assertEquals(201, pushedAuthorizationResponse.getHttpStatusCode());
         // TODO
 //        assertEquals("Level4", pushedAuthorizationRequest.getResolvedAcrValue());
 //        assertEquals("nn", pushedAuthorizationRequest.getResolvedUiLocale());

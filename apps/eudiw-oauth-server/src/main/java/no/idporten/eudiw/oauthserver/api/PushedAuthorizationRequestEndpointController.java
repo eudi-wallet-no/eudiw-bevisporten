@@ -29,8 +29,8 @@ public class PushedAuthorizationRequestEndpointController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<PushedAuthorizationResponse> par(@RequestHeader HttpHeaders headers, @RequestParam MultiValueMap<String, String> parameters) {
-        return ResponseEntity.ok(openIDConnectSdk.process(new PushedAuthorizationRequest(headers, parameters)));
+        PushedAuthorizationResponse pushedAuthorizationResponse = openIDConnectSdk.process(new PushedAuthorizationRequest(headers, parameters));
+        return ResponseEntity.status(pushedAuthorizationResponse.getHttpStatusCode()).body(pushedAuthorizationResponse);
     }
-
 
 }
