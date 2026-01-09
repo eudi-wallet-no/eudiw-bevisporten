@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
-import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
+import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
+import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
@@ -9,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,75 +19,52 @@ import java.util.Map;
 public class DynamicCredentialConfigurationService {
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
+    private final ByobServiceIntegration byobServiceIntegration;
 
-    private static Logger log = LoggerFactory.getLogger(DynamicCredentialConfigurationService.class);
+    private static final Logger log = LoggerFactory.getLogger(DynamicCredentialConfigurationService.class);
 
+    //public static final String DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX = "net.eidas2sandkasse:";
 
-    public static final String DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX = "net.eidas2sandkasse:";
-
-    private static final DynamicCredentialConfiguration DYNAMIC_CREDENTIAL_CONFIGURATION_1 = DynamicCredentialConfiguration.builder()
-            .credentialConfigurationId("net.eidas2sandkasse:dynamic:1_sd_jwt_vc")
-            .vct("dynamic:1")
-            .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
-            .credentialMetadata(new DocumentMetadata(
-                            List.of(
-                                    new DocumentMetadata.Display("no", "Bring ditt eget bevis"),
-                                    new DocumentMetadata.Display("en", "Bring your own bevis")
-                            ),
-                            List.of(
-                                    new ClaimMetadata("name",
-                                            Map.of(
-                                                    "no", "Navn",
-                                                    "en", "Name"),
-                                            true,
-                                            "^[\\x20-\\x7EæøåÆØÅ]{1,255}$")
-                            )
-                    )
-            )
-            .build();
-
-    private static final DynamicCredentialConfiguration DYNAMIC_CREDENTIAL_CONFIGURATION_2 = DynamicCredentialConfiguration.builder()
-            .credentialConfigurationId("net.eidas2sandkasse:dynamic:2_sd_jwt_vc")
-            .vct("dynamic:2")
-            .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
-            .credentialMetadata(new DocumentMetadata(
-                            List.of(
-                                    new DocumentMetadata.Display("no", "bevis 2")
-                            ),
-                            List.of(
-                                    new ClaimMetadata("age",
-                                            Map.of(
-                                                    "no", "Alder"),
-                                            true,
-                                            "^[\\x20-\\x7EæøåÆØÅ]{1,255}$")
-                            )
-                    )
-            )
-            .build();
-
-
-
-    private Map<String, DynamicCredentialConfiguration> dynamicCredentialConfigurations =
-            Map.of(
-                    DYNAMIC_CREDENTIAL_CONFIGURATION_1.getCredentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_1,
-                    DYNAMIC_CREDENTIAL_CONFIGURATION_2.getCredentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
-
-    public DynamicCredentialConfigurationService(CredentialIssuerServerProperties credentialIssuerServerProperties) {
+    public DynamicCredentialConfigurationService(CredentialIssuerServerProperties credentialIssuerServerProperties, ByobServiceIntegration byobServiceIntegration) {
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
+        this.byobServiceIntegration = byobServiceIntegration;
     }
 
+    // TODO: Add caching of the dynamic credential configurations to avoid multiple calls to byob-service on same request/create metadata
+    // on start up does 32 calls to byob-service now. Worst-case 11 static claimsources x 2 + 2 dynamic claimssources * 4 + 6 unknown calles =22 + 8 + 6 = 36 . But 2 static claimsoures (advokat+førerkort) does not trigger calles, so 36-(2*2)=32
+    private Map<String, DynamicCredentialConfiguration> getDynamicCredentialConfigurations() {
+        DynamicCredentialConfigurations credentialConfigurations = byobServiceIntegration.retrieveAll();
+
+        if(credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, DynamicCredentialConfiguration> ccMap = new HashMap<>();
+        for (DynamicCredentialConfiguration cc : credentialConfigurations.getCredentialConfigurations()) {
+            ccMap.put(cc.credentialConfigurationId(), cc);
+            log.info("Retrieved credential-configuration from byob-service: %s".formatted(cc.credentialConfigurationId()));
+        }
+
+        return ccMap;
+    }
 
     public List<CredentialConfigurationProperties> generateCredentialConfigurations() {
-        return dynamicCredentialConfigurations.keySet().stream().map(this::generateCredentialConfiguration).toList();
+        Map<String, DynamicCredentialConfiguration> configs = Collections.emptyMap();
+        try {
+            configs = getDynamicCredentialConfigurations();
+        } catch (RuntimeException e) {
+            log.error("Failed to fetch dynamic credential configurations from BYOB service. Continuing without BYOB credentials in metadata", e);
+        }
+        return configs.keySet().stream().map(this::generateCredentialConfiguration).toList();
     }
 
-    public CredentialConfigurationProperties generateCredentialConfiguration(String credentialConfigurationId) {
+    protected CredentialConfigurationProperties generateCredentialConfiguration(String credentialConfigurationId) {
         CredentialConfigurationProperties dynamicCredentialConfigurationTemplate = credentialIssuerServerProperties.getDynamicCredentialConfigurationTemplate();
-        DynamicCredentialConfiguration dynamicCredentialConfiguration = dynamicCredentialConfigurations.get(credentialConfigurationId);
+        DynamicCredentialConfiguration dynamicCredentialConfiguration = getDynamicCredentialConfigurations().get(credentialConfigurationId);
         CredentialConfigurationProperties credentialConfiguration = new CredentialConfigurationProperties();
-        credentialConfiguration.setIdentifier(dynamicCredentialConfiguration.getCredentialConfigurationId());
-        credentialConfiguration.setCredentialType(dynamicCredentialConfiguration.getVct());
-        credentialConfiguration.setFormat(CredentialFormat.SD_JWT_VC);
+        credentialConfiguration.setIdentifier(dynamicCredentialConfiguration.credentialConfigurationId());
+        credentialConfiguration.setCredentialType(dynamicCredentialConfiguration.vct());
+        credentialConfiguration.setFormat(CredentialFormat.fromString(dynamicCredentialConfiguration.format()));
         credentialConfiguration.setValidityDays(30);
         credentialConfiguration.setScope(dynamicCredentialConfigurationTemplate.getScope());
         credentialConfiguration.setGrantType(dynamicCredentialConfigurationTemplate.getGrantType());
@@ -95,18 +75,13 @@ public class DynamicCredentialConfigurationService {
     }
 
     public DocumentMetadata getDocumentMetadataByCredentialType(String credentialType) {
-        return dynamicCredentialConfigurations.values().stream().filter(dcc -> credentialType.equals(dcc.getVct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialType.equals(dcc.vct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
     }
 
     public DocumentMetadata getDocumentMetadata(String credentialConfigurationId) {
-        return dynamicCredentialConfigurations.values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.getCredentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        DocumentMetadata documentMetadata = getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        log.debug("Document metadata for credentialConfigurationId=%s /n %s".formatted(credentialConfigurationId, documentMetadata));
+        return documentMetadata;
     }
-
-
-//    public DynamicCredentialConfiguration getDocumentMetadata(String credentialType) {
-//        log.info("Getting dynamic credentials for credential type {}", credentialType);
-//        return dynamicCredentialConfigurations.values().stream().filter(dcc -> credentialType.equals(dcc.getVct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
-//    }
-
 
 }

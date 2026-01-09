@@ -227,6 +227,13 @@ inntektsapi:
   connect-timeout: 2s
   read-timeout: 2s
 
+## byob-service: Bring your own bevis service properties
+byob-service:
+  uri: http://digital-lommebok-byob-service-service:8080/
+  api-key: ${API_KEY}
+  connect-timeout: 2s
+  read-timeout: 2s
+
 # Maskinporten
 maskinporten:
   lib:

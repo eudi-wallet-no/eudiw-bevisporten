@@ -43,6 +43,16 @@ credential-issuer-server:
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
 
+  dynamic-credential-configuration-template:
+    identifier: "net.eidas2sandkasse:"
+    scope: eudiw:eidas2sandkasse:dynamicvc
+    format: sd_jwt_vc
+    credential-type: "net.eidas2sandkasse:"
+    grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
+    authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+    key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
+
   claims-sources:
     - credential-types:
         - eu.europa.ec.eudi.pid.1
@@ -63,6 +73,9 @@ credential-issuer-server:
     - credential-types:
         - no.kontaktregisteret.kontaktinformasjon.1
       class-name: no.idporten.eudiw.issuer.claimssource.krr.KrrClaimsSource
+    - credential-types:
+        - eidas2sandkasse.wildcard_sd_jwt_vc
+      class-name: no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
 
 maskinporten:
   lib:
