@@ -30,36 +30,36 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 class CredentialConfigurationControllerTest {
 
-    private final String example = """
-            {
+    private final String EXAMPLE = """
+        {
             "vct": "foomittbevisheisenleisensen",
             "format": "dc+sd-jwt",
             "example_credential_metadata": {
-        "foo": "bar"
-    },
+                "foo": "bar"
+            },
             "credential_metadata": {
-        "display": [
-        {
-            "name": "MinID PID",
-                "locale": "no",
-                "background_color": "#afcee9",
-                "text_color": "#002c54"
-        }
-    ],
-        "claims": [
-        {
-            "path": "foo",
-                "mandatory": true,
-                "display": {
-            "name": "MinID PID",
-                "locale": "no",
-                "background_color": "#afcee9",
-                "text_color": "#002c54"
-        }
-        }
-    ]
-    }
-}""";
+                "display": [
+                    {
+                        "name": "MinID PID",
+                        "locale": "no",
+                        "background_color": "#afcee9",
+                        "text_color": "#002c54"
+                    }
+                ],
+                "claims": [
+                    {
+                        "path": "foo",
+                        "mandatory": true,
+                        "display": [{
+                            "name": "MinID PID",
+                            "locale": "no",
+                            "background_color": "#afcee9",
+                            "text_color": "#002c54"
+                        }]
+                    }
+                ]
+            }
+        }""";
 
     private MockMvc mockMvc;
 
@@ -87,7 +87,7 @@ class CredentialConfigurationControllerTest {
     void postRequestTest() throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
-        CredentialConfiguration input = mapper.readValue(example, CredentialConfiguration.class);
+        CredentialConfiguration input = mapper.readValue(EXAMPLE, CredentialConfiguration.class);
         Map<String, CredentialConfiguration> testMap = new HashMap<>();
         List<String> vcts = new ArrayList<>();
         vcts.add("mockvctthisisempty");

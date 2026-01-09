@@ -13,7 +13,7 @@ public record Claims(
         String path,
         @JsonProperty("mandatory")
         boolean mandatory,
-        @JsonProperty("displays")
-        List<Display> displays
+        @JsonProperty("display")
+        List<Display> display
 ) {
 }

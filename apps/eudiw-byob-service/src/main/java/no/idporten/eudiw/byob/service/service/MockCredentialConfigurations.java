@@ -15,14 +15,14 @@ public class MockCredentialConfigurations {
             new ExampleCredentialData("test1"),
             new CredentialMetadata(
                     List.of(
-                            new Display("no", "Bring ditt eget bevis 1", "", ""),
-                            new Display("en", "Bring your own bevis 1", "", "")
+                            new Display("Bring ditt eget bevis 1", "no", "", ""),
+                            new Display("Bring your own bevis 1", "en", "", "")
                     ),
                     List.of(
                             new Claims("age",
                                     true,
-                                    List.of(new Display("no", "Navn", "", "")
-                                    ,new Display("en", "Name", "", ""))
+                                    List.of(new Display("Navn", "no", "", "")
+                                            , new Display("Name", "en", "", ""))
                             )
                     )
             )
@@ -34,24 +34,22 @@ public class MockCredentialConfigurations {
             "dc+sd-jwt",
             new ExampleCredentialData("test"),
             new CredentialMetadata(
-                            List.of(
-                                    new Display("no", "Bring ditt eget bevis 2", "", "")
-                            ),
-                            List.of(
-                                    new Claims("age",
-                                            true,
-                                            List.of(new Display("no", "Alder", "", ""),
-                                                    new Display("en", "Age", "", ""))
-                                            )
+                    List.of(
+                            new Display("Bring ditt eget bevis 2", "no", "", "")
+                    ),
+                    List.of(
+                            new Claims("age",
+                                    true,
+                                    List.of(new Display("Alder", "no", "", ""),
+                                            new Display("Age", "en", "", ""))
                             )
                     )
-            );
-
-
+            )
+    );
 
 
     public static Map<String, CredentialConfiguration> getCredentialConfigurationsMocked() {
-        return Map.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1.credentialConfigurationId(),DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
+        return Map.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
 
     }
 }
