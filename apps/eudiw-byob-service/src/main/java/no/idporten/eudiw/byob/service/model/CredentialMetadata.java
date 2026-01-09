@@ -7,8 +7,8 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialMetadata (
-        @JsonProperty("display")
-        List<Display> display,
+        @JsonProperty("displays")
+        List<Display> displays,
         @JsonProperty("claims")
         List<Claims> claims
 ) {

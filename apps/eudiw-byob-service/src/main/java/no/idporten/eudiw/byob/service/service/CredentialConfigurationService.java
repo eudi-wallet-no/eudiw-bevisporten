@@ -13,14 +13,14 @@ import java.util.Map;
 @Service
 public class CredentialConfigurationService {
 
-    private Map<String, CredentialConfiguration> persistenceLayer = new HashMap<>();
+    private final Map<String, CredentialConfiguration> persistenceLayer = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(CredentialConfigurationService.class);
     private int counter= 0;
     private static final String PREFIX = "net.eidas2sandkasse:";
     private static final String SD_JWT_VC = "_sd_jwt_vc";
 
     public CredentialConfigurationService() {
-
+        persistenceLayer.putAll(MockCredentialConfigurations.getCredentialConfigurationsMocked());
     }
 
     /**

@@ -104,9 +104,9 @@ class CredentialConfigurationControllerTest {
     @Test
     void getAllRequestTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        CredentialConfiguration input1 = new CredentialConfiguration("example1", "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<Display>(), new ArrayList<Claims>()));
-        CredentialConfiguration input2 = new CredentialConfiguration("example2", "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<Display>(), new ArrayList<Claims>()));
-        CredentialConfiguration input3 = new CredentialConfiguration("example3", "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<Display>(), new ArrayList<Claims>()));
+        CredentialConfiguration input1 = new CredentialConfiguration("example1_sd-jwt","example1", "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
+        CredentialConfiguration input2 = new CredentialConfiguration("example2_sd-jwt","example2", "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
+        CredentialConfiguration input3 = new CredentialConfiguration("example3_sd-jwt","example3", "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
         persistenceLayer.put("example1", input1);
         persistenceLayer.put("example2", input2);
         persistenceLayer.put("example3", input3);
