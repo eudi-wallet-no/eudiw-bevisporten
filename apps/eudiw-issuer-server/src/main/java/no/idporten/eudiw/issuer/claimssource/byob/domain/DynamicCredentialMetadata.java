@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_STRING;
 
 @Builder
-public record DynamicCredentialMetadata(List<DocumentMetadata.Display> displays,
+public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
                                         List<DynamicClaimMetadata> claims) {
 
 
@@ -19,17 +19,24 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> displays,
     }
 
     public DocumentMetadata convertToDocumentMetadata() {
+
+        if (claims == null) {
+            return new DocumentMetadata(display, null);
+        }
+
+        List<ClaimMetadata> claimsConverted = claims.stream()
+                .map(claim -> new ClaimMetadata(
+                        claim.path(),
+                        TYPE_STRING,
+                        claim.display().stream().collect(Collectors.toMap(DocumentMetadata.Display::locale, DocumentMetadata.Display::name)),
+                        claim.mandatory(),
+                        claim.validationRegex() == null ? defaultValidationRegexString() : claim.validationRegex()
+                ))
+                .toList();
+
         return new DocumentMetadata(
-                displays,
-                claims.stream()
-                        .map(claim -> new ClaimMetadata(
-                                claim.path(),
-                                TYPE_STRING,
-                                claim.displays().stream().collect(Collectors.toMap(DocumentMetadata.Display::name, DocumentMetadata.Display::locale)),
-                                claim.mandatory(),
-                                claim.validationRegex() == null ? defaultValidationRegexString() : claim.validationRegex()
-                        ))
-                        .toList()
+                display,
+                claimsConverted
         );
     }
 }
