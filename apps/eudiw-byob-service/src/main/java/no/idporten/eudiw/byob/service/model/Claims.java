@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record Claims(
         @NotNull
@@ -11,7 +13,7 @@ public record Claims(
         String path,
         @JsonProperty("mandatory")
         boolean mandatory,
-        @JsonProperty("display")
-        Display display
+        @JsonProperty("displays")
+        List<Display> displays
 ) {
 }
