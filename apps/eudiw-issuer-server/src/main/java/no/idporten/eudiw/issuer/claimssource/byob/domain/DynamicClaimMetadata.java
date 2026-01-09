@@ -8,7 +8,7 @@ import java.util.List;
 @Builder
 public record DynamicClaimMetadata(
         String path,
-        List<DocumentMetadata.Display> displays,
+        List<DocumentMetadata.Display> display,
         boolean mandatory,
         String validationRegex
 )
