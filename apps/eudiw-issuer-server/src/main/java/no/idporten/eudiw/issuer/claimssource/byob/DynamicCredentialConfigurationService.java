@@ -23,15 +23,12 @@ public class DynamicCredentialConfigurationService {
 
     private static final Logger log = LoggerFactory.getLogger(DynamicCredentialConfigurationService.class);
 
-    //public static final String DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX = "net.eidas2sandkasse:";
-
     public DynamicCredentialConfigurationService(CredentialIssuerServerProperties credentialIssuerServerProperties, ByobServiceIntegration byobServiceIntegration) {
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
         this.byobServiceIntegration = byobServiceIntegration;
     }
 
     // TODO: Add caching of the dynamic credential configurations to avoid multiple calls to byob-service on same request/create metadata
-    // on start up does 32 calls to byob-service now. Worst-case 11 static claimsources x 2 + 2 dynamic claimssources * 4 + 6 unknown calles =22 + 8 + 6 = 36 . But 2 static claimsoures (advokat+førerkort) does not trigger calles, so 36-(2*2)=32
     private Map<String, DynamicCredentialConfiguration> getDynamicCredentialConfigurations() {
         DynamicCredentialConfigurations credentialConfigurations = byobServiceIntegration.retrieveAll();
 
@@ -49,11 +46,12 @@ public class DynamicCredentialConfigurationService {
     }
 
     public List<CredentialConfigurationProperties> generateCredentialConfigurations() {
-        Map<String, DynamicCredentialConfiguration> configs = Collections.emptyMap();
+        Map<String, DynamicCredentialConfiguration> configs;
         try {
             configs = getDynamicCredentialConfigurations();
         } catch (RuntimeException e) {
-            log.error("Failed to fetch dynamic credential configurations from BYOB service. Continuing without BYOB credentials in metadata", e);
+            log.error("Failed to fetch dynamic credential configurations from BYOB service. Continue without BYO-bevis", e);
+            return Collections.emptyList();
         }
         return configs.keySet().stream().map(this::generateCredentialConfiguration).toList();
     }
@@ -79,9 +77,13 @@ public class DynamicCredentialConfigurationService {
     }
 
     public DocumentMetadata getDocumentMetadata(String credentialConfigurationId) {
-        DocumentMetadata documentMetadata = getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
-        log.debug("Document metadata for credentialConfigurationId=%s /n %s".formatted(credentialConfigurationId, documentMetadata));
-        return documentMetadata;
+        //DocumentMetadata documentMetadata = getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        DynamicCredentialConfiguration cre = byobServiceIntegration.retrieve(credentialConfigurationId);
+        if (cre != null) {
+            log.info("Retrieved credential-configuration from byob-service by credentialConfigurationId: %s".formatted(credentialConfigurationId));
+            return cre.getCredentialMetadata();
+        }
+        return null;
     }
 
 }

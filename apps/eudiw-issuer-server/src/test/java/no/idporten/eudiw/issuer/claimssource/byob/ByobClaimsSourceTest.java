@@ -9,6 +9,7 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfig
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata.Display;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @DisplayName("When using BYOB as claims source")
@@ -50,9 +52,9 @@ class ByobClaimsSourceTest {
     @DisplayName("then supports returns true for credential_configuration_id with existing credential configuration")
     @Test
     void whenCallSupportsWithExisitingCredentialConfigurationIdThenReturnTrue() {
-        String credentialConfigurationId = "cred-config-id";
+        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
-        String vct = "credential-type";
+        String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
         DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, vct);
         when(integration.retrieveAll()).thenReturn(cc);
         boolean supports = claimsSource.supports(vct);
@@ -63,9 +65,9 @@ class ByobClaimsSourceTest {
     @DisplayName("then supports returns false when credential_configuration_id does not exist")
     @Test
     void whenCallSupportsWithNonExisitingCredentialConfigurationIdThenReturnFalse() {
-        String credentialConfigurationId = "cred-config-id";
+        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
-        String vct = "credential-type";
+        String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
         DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, vct);
         when(integration.retrieveAll()).thenReturn(cc);
         boolean supports = claimsSource.supports("non-existing-credential-type");
@@ -82,11 +84,12 @@ class ByobClaimsSourceTest {
     @DisplayName("then getDocumentMetadata returns valid DocumentMetadata for valid credential_configuration_id")
     @Test
     void getDocumentMetadataForValidCredentialConfigurationIdReturnsValidDocumentMetadata() {
-        String credentialConfigurationId = "cred-config-id";
+        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
-        DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, "credential-type");
-        when(integration.retrieveAll()).thenReturn(cc);
-        DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, null, null));
+        String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
+        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
+        when(integration.retrieve(anyString())).thenReturn(cc);
+        DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, vct, null));
         assertNotNull(documentMetadata);
         assertNotNull(documentMetadata.displays());
         assertNotNull(documentMetadata.claims());
@@ -96,25 +99,29 @@ class ByobClaimsSourceTest {
 
     @NotNull
     private static DynamicCredentialConfigurations createDynamicCredentialConfigurations(String credentialConfigurationId, String claimName, String vct) {
+        DynamicCredentialConfiguration cc1 = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
+        return new DynamicCredentialConfigurations(List.of(cc1));
+    }
+
+    @NotNull
+    private static DynamicCredentialConfiguration createDynamicCredentialConfiguration(String credentialConfigurationId, String claimName, String vct) {
         DynamicCredentialMetadata credentialMetadata = new DynamicCredentialMetadata(List.of(new Display("no", "bevis1")), List.of(new DynamicClaimMetadata(claimName, List.of(new Display("no", "navn")), true, ".*")));
-        DynamicCredentialConfigurations cc = new DynamicCredentialConfigurations(List.of(new DynamicCredentialConfiguration(credentialConfigurationId, vct, credentialMetadata, "sd-jwt")));
-        return cc;
+        return new DynamicCredentialConfiguration(credentialConfigurationId, vct, credentialMetadata, "sd-jwt");
     }
 
     @DisplayName("then getDocumentMetadata returns null for non-existing credential_configuration_id")
     @Test
     void getDocumentMetadataForNonExistingCredentialConfigurationIdReturnEmptyDocumentMetadata() {
-        String credentialConfigurationId = "cred-config-id";
+        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         when(integration.retrieveAll()).thenReturn(null);
-        DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, null, null));
-        assertNull(documentMetadata);
+        assertThrows(ClaimsSourceInvalidDataException.class, () -> claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, null, null)));
     }
 
 
     @DisplayName("when pushing credential data then the same data is returned")
     @Test
     void testPush() {
-        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"), "credential-payload");
+        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"), ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-payload");
         CredentialData result = claimsSource.push(null, credentialData);
         assertEquals(credentialData, result);
     }
