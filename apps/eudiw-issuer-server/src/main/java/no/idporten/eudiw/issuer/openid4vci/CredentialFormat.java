@@ -30,4 +30,12 @@ public enum CredentialFormat {
         return formatIdentifier;
     }
 
+    public static CredentialFormat fromString(String value) {
+        for (CredentialFormat format : values()) {
+            if (format.formatIdentifier.equals(value)) {
+                return format;
+            }
+        }
+        throw new IllegalArgumentException("Unknown CredentialFormat: " + value);
+    }
 }

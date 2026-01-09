@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
+        <version>3.5.9</version>
         <relativePath/>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
@@ -231,9 +231,10 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9245</jvmArguments>
-                </configuration>
+                <!-- Enable for local debuggin with Maven when not using docker -->
+<!--                <configuration>-->
+<!--                    <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9245</jvmArguments>-->
+<!--                </configuration>-->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

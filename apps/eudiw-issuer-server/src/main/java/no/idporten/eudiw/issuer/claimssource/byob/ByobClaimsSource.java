@@ -27,7 +27,7 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
     @Override
     public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         if (credentialMetadataContext == null) {
-           throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialMetadataContext cannot be null for byob claims source");
+           throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialMetadataContext cannot be null for BYOB claimssource");
         }
         if (credentialMetadataContext.credentialConfigurationId() != null) {
             return credentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
