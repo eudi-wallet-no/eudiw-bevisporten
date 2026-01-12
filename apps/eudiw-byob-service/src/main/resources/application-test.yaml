@@ -3,3 +3,7 @@ spring:
   application:
     environment: test
 
+digdir:
+  access:
+    logging:
+     debug-level: request
