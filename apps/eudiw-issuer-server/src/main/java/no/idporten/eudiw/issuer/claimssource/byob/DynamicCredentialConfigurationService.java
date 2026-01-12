@@ -39,9 +39,9 @@ public class DynamicCredentialConfigurationService {
         Map<String, DynamicCredentialConfiguration> ccMap = new HashMap<>();
         for (DynamicCredentialConfiguration cc : credentialConfigurations.getCredentialConfigurations()) {
             ccMap.put(cc.credentialConfigurationId(), cc);
-            log.info("Retrieved credential-configuration from byob-service: %s".formatted(cc.credentialConfigurationId()));
-        }
 
+        }
+        log.info("Retrieved all credential-configuration from byob-service credential_configuration_ids: %s".formatted(ccMap.keySet()));
         return ccMap;
     }
 
@@ -73,11 +73,19 @@ public class DynamicCredentialConfigurationService {
     }
 
     public DocumentMetadata getDocumentMetadataByCredentialType(String credentialType) {
+        if (credentialType == null) {
+            log.info("credentialType is null, cannot retrieve credential-configuration from byob-service");
+            return null;
+        }
         return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialType.equals(dcc.vct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
     }
 
     public DocumentMetadata getDocumentMetadata(String credentialConfigurationId) {
         //DocumentMetadata documentMetadata = getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        if (credentialConfigurationId == null) {
+            log.warn("Failed to retrieved credential-configuration from byob-service by credentialConfigurationId: null");
+            return null;
+        }
         DynamicCredentialConfiguration cre = byobServiceIntegration.retrieve(credentialConfigurationId);
         if (cre != null) {
             log.info("Retrieved credential-configuration from byob-service by credentialConfigurationId: %s".formatted(credentialConfigurationId));

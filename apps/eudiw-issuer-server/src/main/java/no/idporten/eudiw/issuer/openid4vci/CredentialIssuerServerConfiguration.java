@@ -11,6 +11,8 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +23,7 @@ import org.springframework.web.client.RestClient;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -30,6 +33,8 @@ public class CredentialIssuerServerConfiguration {
     private final ClaimsSourceService claimsSourceService;
     private final AuthorizationServerService authorizationServerService;
     private final DynamicCredentialConfigurationService dynamicCredentialConfigurationService;
+
+    private static final Logger log = LoggerFactory.getLogger(CredentialIssuerServerConfiguration.class);
 
     @Bean
     public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties credentialIssuerProperties) {
@@ -42,11 +47,18 @@ public class CredentialIssuerServerConfiguration {
                 .displays(credentialIssuerProperties.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(credentialIssuerProperties.getDisplayNames().get(locale)).build()).toList());
         List<CredentialConfigurationProperties> allCredentialConfigurationProperties = new ArrayList<>();
         allCredentialConfigurationProperties.addAll(credentialIssuerProperties.getCredentialConfigurations());
-        allCredentialConfigurationProperties.addAll(dynamicCredentialConfigurationService.generateCredentialConfigurations());
+        allCredentialConfigurationProperties.addAll(getDynamicCredentialConfigurations());
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : allCredentialConfigurationProperties) {
-            ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
-            ClaimsSourceMetadata claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
+            ClaimsSource claimsSource;
+            ClaimsSourceMetadata claimsSourceMetadata;
+            try {
+                claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
+                claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
+            }catch (Exception e) {
+                log.error("Error generating metadata for credential configuration id={} and credential type={}. Skipping this credential configuration in metadata response.", credentialConfigurationProperties.getIdentifier(), credentialConfigurationProperties.getCredentialType(), e);
+                continue;
+            }
             CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
                     // credential-specific config
                     .format(credentialConfigurationProperties.getFormat().formatIdentifier())
@@ -68,9 +80,18 @@ public class CredentialIssuerServerConfiguration {
             }
             credentialConfigurations.put(credentialConfigurationProperties.getIdentifier(), credentialConfigurationBuilder.build());
         }
-       
+
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
+    }
+
+    private List<CredentialConfigurationProperties> getDynamicCredentialConfigurations() {
+        try {
+            return dynamicCredentialConfigurationService.generateCredentialConfigurations();
+        } catch (RuntimeException e) {
+            log.error("Failed to fetch dynamic credential configurations from BYOB service when generate metadata. Continuing without BYO-bevis. ", e);
+            return Collections.emptyList();
+        }
     }
 
     /**

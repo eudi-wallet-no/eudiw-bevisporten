@@ -45,13 +45,15 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
         if (credentialMetadataContext == null) {
             throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialMetadataContext cannot be null for BYOB claimssource");
         }
-
-        if (credentialMetadataContext.credentialType() == null || !credentialMetadataContext.credentialType().startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
-            throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialType must start with %s for BYOB claimssource".formatted(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX));
+        if (credentialMetadataContext.credentialType() != null && credentialMetadataContext.credentialType().startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
+            return credentialConfigurationService.getDocumentMetadataByCredentialType(credentialMetadataContext.credentialType());
         }
-
-//        return credentialConfigurationService.getDocumentMetadataByCredentialType(credentialMetadataContext.credentialType());
-        return credentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
+        if (credentialMetadataContext.credentialConfigurationId() != null && credentialMetadataContext.credentialConfigurationId().startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
+            return credentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
+        }
+        log.warn("credentialType ({}) or credentialConfigurationId ({}) does not start with {} for BYOB claimssource, returning null metadata", credentialMetadataContext.credentialType(), credentialMetadataContext.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX);
+        return null;
+        //throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialType (%s) or credentialConfigurationId (%s) must start with %s for BYOB claimssource".formatted(credentialMetadataContext.credentialType(), credentialMetadataContext.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX));
     }
 
     @Override
