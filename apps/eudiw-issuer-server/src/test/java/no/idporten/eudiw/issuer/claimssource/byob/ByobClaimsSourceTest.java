@@ -9,7 +9,6 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfig
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata.Display;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @DisplayName("When using BYOB as claims source")
@@ -87,8 +85,8 @@ class ByobClaimsSourceTest {
         String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
         String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
-        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
-        when(integration.retrieve(anyString())).thenReturn(cc);
+        DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, vct);
+        when(integration.retrieveAll()).thenReturn(cc);
         DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, vct, null));
         assertNotNull(documentMetadata);
         assertNotNull(documentMetadata.displays());
@@ -114,7 +112,7 @@ class ByobClaimsSourceTest {
     void getDocumentMetadataForNonExistingCredentialConfigurationIdReturnEmptyDocumentMetadata() {
         String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         when(integration.retrieveAll()).thenReturn(null);
-        assertThrows(ClaimsSourceInvalidDataException.class, () -> claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, null, null)));
+        assertNull(claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, null, null)));
     }
 
 
