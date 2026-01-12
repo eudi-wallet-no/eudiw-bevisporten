@@ -77,21 +77,28 @@ public class DynamicCredentialConfigurationService {
             log.info("credentialType is null, cannot retrieve credential-configuration from byob-service");
             return null;
         }
-        return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialType.equals(dcc.vct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        DynamicCredentialConfiguration cc = byobServiceIntegration.retrieve(credentialType);
+        if (cc != null) {
+            log.info("Retrieved credential-configuration from byob-service by credentialType: %s".formatted(credentialType));
+            return cc.getCredentialMetadata();
+        }
+//        return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialType.equals(dcc.vct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
+        return null;
     }
 
     public DocumentMetadata getDocumentMetadata(String credentialConfigurationId) {
-        //DocumentMetadata documentMetadata = getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
         if (credentialConfigurationId == null) {
             log.warn("Failed to retrieved credential-configuration from byob-service by credentialConfigurationId: null");
             return null;
         }
-        DynamicCredentialConfiguration cre = byobServiceIntegration.retrieve(credentialConfigurationId);
-        if (cre != null) {
+
+        DynamicCredentialConfiguration cc = byobServiceIntegration.searchByCredentialConfigurationId(credentialConfigurationId);
+        if (cc != null) {
             log.info("Retrieved credential-configuration from byob-service by credentialConfigurationId: %s".formatted(credentialConfigurationId));
-            return cre.getCredentialMetadata();
+            return cc.getCredentialMetadata();
         }
         return null;
+        //return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
     }
 
 }

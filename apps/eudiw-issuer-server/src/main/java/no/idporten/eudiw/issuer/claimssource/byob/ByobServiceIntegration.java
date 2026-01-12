@@ -69,15 +69,35 @@ public class ByobServiceIntegration {
         }
     }
 
-    public DynamicCredentialConfiguration retrieve(String credentialConfigurationId) {
-        if (credentialConfigurationId == null) {
-            log.warn("CredentialConfigurationId is null");
+    public DynamicCredentialConfiguration retrieve(String vct) {
+        if (vct == null) {
+            log.warn("vct/credentialType is null");
             return null;
         }
         try {
             return byobServiceRestClient
                     .get()
-                    .uri("v1/credential-configurations/{credentialConfigurationId}", credentialConfigurationId)
+                    .uri("v1/credential-configuration/{vct}", vct)
+                    .header(API_KEY, byobServiceProperties.apiKey())
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
+                    .body(DynamicCredentialConfiguration.class);
+        } catch (ResourceAccessException e) {
+            throw new ClaimsSourceIOException(BYOB.name(), "IO error when calling Byob-service for vct=%s".formatted(vct), e);
+        } catch (RestClientException e) {
+            throw new ClaimsSourceException(BYOB.name(), "server_error", "Failed to get information from Byob-service for vct=%s".formatted(vct), HttpStatus.INTERNAL_SERVER_ERROR, e);
+        }
+    }
+    public DynamicCredentialConfiguration searchByCredentialConfigurationId(String credentialConfigurationId) {
+        if (credentialConfigurationId == null) {
+            log.warn("credentialConfigurationId is null");
+            return null;
+        }
+        try {
+            return byobServiceRestClient
+                    .get()
+                    .uri("v1/credential-configuration/search?credentialConfigurationId={credentialConfigurationId}", credentialConfigurationId)
                     .header(API_KEY, byobServiceProperties.apiKey())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))

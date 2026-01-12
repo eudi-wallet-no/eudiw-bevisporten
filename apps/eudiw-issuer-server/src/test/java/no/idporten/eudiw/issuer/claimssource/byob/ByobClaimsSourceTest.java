@@ -5,7 +5,6 @@ import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
-import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata.Display;
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @DisplayName("When using BYOB as claims source")
@@ -53,8 +53,8 @@ class ByobClaimsSourceTest {
         String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
         String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
-        DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, vct);
-        when(integration.retrieveAll()).thenReturn(cc);
+        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
+        when(integration.retrieve(eq(vct))).thenReturn(cc);
         boolean supports = claimsSource.supports(vct);
         assertTrue(supports);
 
@@ -66,8 +66,8 @@ class ByobClaimsSourceTest {
         String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
         String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
-        DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, vct);
-        when(integration.retrieveAll()).thenReturn(cc);
+        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
+        when(integration.retrieve(eq(vct))).thenReturn(cc);
         boolean supports = claimsSource.supports("non-existing-credential-type");
         assertFalse(supports);
     }
@@ -85,20 +85,14 @@ class ByobClaimsSourceTest {
         String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
         String claimName = "name-claim";
         String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
-        DynamicCredentialConfigurations cc = createDynamicCredentialConfigurations(credentialConfigurationId, claimName, vct);
-        when(integration.retrieveAll()).thenReturn(cc);
+        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
+        when(integration.retrieve(eq(vct))).thenReturn(cc);
         DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, vct, null));
         assertNotNull(documentMetadata);
         assertNotNull(documentMetadata.displays());
         assertNotNull(documentMetadata.claims());
         assertNotNull(documentMetadata.findClaimMetadata(claimName));
         assertEquals(claimName, documentMetadata.findClaimMetadata(claimName).name());
-    }
-
-    @NotNull
-    private static DynamicCredentialConfigurations createDynamicCredentialConfigurations(String credentialConfigurationId, String claimName, String vct) {
-        DynamicCredentialConfiguration cc1 = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
-        return new DynamicCredentialConfigurations(List.of(cc1));
     }
 
     @NotNull
