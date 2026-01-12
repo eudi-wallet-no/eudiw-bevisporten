@@ -27,11 +27,6 @@ management:
 
 # Digdir standard logging
 digdir:
-  access:
-    logging:
-      debug-level: request
-      filtering:
-        static-resources: true
   audit:
     log-dir:
     log-file:

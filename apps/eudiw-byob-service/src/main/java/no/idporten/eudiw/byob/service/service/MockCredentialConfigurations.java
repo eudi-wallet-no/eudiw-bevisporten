@@ -49,7 +49,7 @@ public class MockCredentialConfigurations {
 
 
     public static Map<String, CredentialConfiguration> getCredentialConfigurationsMocked() {
-        return Map.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
+        return Map.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1.vct(), DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2.vct(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
 
     }
 }
