@@ -17,8 +17,8 @@ spring:
 credential-issuer-server:
   credential-issuer: http://issuer-server:9240
   authorization-servers:
-    - issuer: http://digital-lommebok-oauth-server:9260
-      jwks-uri: http://digital-lommebok-oauth-server:9260/jwks
+    - issuer: http://oauth-server:9260
+      jwks-uri: http://oauth-server:9260/jwks
 #    - issuer: https://auth.eidas2sandkasse.dev
 #      jwks-uri: https://auth.eidas2sandkasse.dev/jwks
       api-key: eudiw
