@@ -14,8 +14,6 @@ spring:
           - digital-lommebok-redis-sentinel-node-2.digital-lommebok-redis-sentinel-headless:26379
 
 credential-issuer-server:
-  features:
-    pid-signing-keystore: eaa-provider
   credential-issuer: https://utsteder.test.eidas2sandkasse.net
   authorization-servers:
     - issuer: https://auth.test.eidas2sandkasse.net
