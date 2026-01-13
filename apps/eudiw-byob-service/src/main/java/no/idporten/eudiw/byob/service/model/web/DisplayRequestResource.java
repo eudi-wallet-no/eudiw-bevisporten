@@ -1,11 +1,12 @@
-package no.idporten.eudiw.byob.service.model;
+package no.idporten.eudiw.byob.service.model.web;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
+import no.idporten.eudiw.byob.service.model.Display;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record Display(
+public record DisplayRequestResource(
         @NotBlank(message = "Display name is blank")
         @JsonProperty("name")
         String name,
@@ -17,4 +18,12 @@ public record Display(
         @JsonProperty("text_color")
         String textColor
 ) {
+    public Display toDisplay() {
+        return new Display(
+                this.name,
+                this.locale,
+                this.backgroundColor,
+                this.textColor
+        );
+    }
 }

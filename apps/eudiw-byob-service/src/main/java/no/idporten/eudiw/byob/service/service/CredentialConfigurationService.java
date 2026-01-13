@@ -2,6 +2,9 @@ package no.idporten.eudiw.byob.service.service;
 
 import no.idporten.eudiw.byob.service.exception.BadRequestException;
 import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
+import no.idporten.eudiw.byob.service.model.CredentialMetadata;
+import no.idporten.eudiw.byob.service.model.ExampleCredentialData;
+import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
 import no.idporten.eudiw.byob.service.model.CredentialConfigurations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,26 +34,31 @@ public class CredentialConfigurationService {
      * @param credentialConfiguration user input that user POSTS in to BYOB in order to "build your own bevis"
      * @return a new CredentialConfiguration with an id that consists of a set prefix, the VCT given in input plus format.
      */
-    public CredentialConfiguration getResponseModel(CredentialConfiguration credentialConfiguration) {
-        return saveCredentialConfiguration(credentialConfiguration);
-    }
-
-    protected CredentialConfiguration saveCredentialConfiguration(CredentialConfiguration credentialConfiguration) {
-        String vct = VCT_PREFIX + credentialConfiguration.vct();
+    public CredentialConfiguration create(CredentialConfigurationRequestResource credentialConfiguration) {
+        String vct = credentialConfiguration.vct();
+        if (!credentialConfiguration.vct().startsWith(VCT_PREFIX)) {
+            vct = VCT_PREFIX + vct;
+        }
         if (persistenceLayer.containsKey(vct)) {
             throw new BadRequestException("Credential configuration already exists for vct=%s".formatted(credentialConfiguration.vct()));
         }
         String credentialConfigurationId = VCT_PREFIX + credentialConfiguration.vct() + SD_JWT_VC;
-        CredentialConfiguration cc = new CredentialConfiguration(
+        CredentialConfiguration cc = convert(credentialConfiguration, credentialConfigurationId, vct);
+        updatePersistenceLayer(cc);
+        log.info("Generated new credential configuration for vct: {}", cc.vct());
+        return cc;
+    }
+
+    private static CredentialConfiguration convert(CredentialConfigurationRequestResource credentialConfiguration, String credentialConfigurationId, String vct) {
+        ExampleCredentialData exampleCredentialData = credentialConfiguration.exampleCredentialData().toExampleCredentialData();
+        CredentialMetadata credentialMetadata = credentialConfiguration.credentialMetadata().toCredentialMetadata();
+        return new CredentialConfiguration(
                 credentialConfigurationId,
                 vct,
                 credentialConfiguration.format(),
-                credentialConfiguration.exampleCredentialData(),
-                credentialConfiguration.credentialMetadata()
+                exampleCredentialData,
+                credentialMetadata
         );
-        updatePersistenceLayer(cc);
-        log.info("Generated new credential configuration with id: {}", credentialConfiguration);
-        return cc;
     }
 
     public void updatePersistenceLayer(CredentialConfiguration credentialConfiguration) {

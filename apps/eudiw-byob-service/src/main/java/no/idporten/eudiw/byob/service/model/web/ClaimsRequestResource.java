@@ -1,14 +1,16 @@
-package no.idporten.eudiw.byob.service.model;
+package no.idporten.eudiw.byob.service.model.web;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import no.idporten.eudiw.byob.service.model.Claims;
+import no.idporten.eudiw.byob.service.model.Display;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record Claims(
+public record ClaimsRequestResource(
         @NotEmpty(message = "Claims path is null or empty")
         @JsonProperty("path")
         String path,
@@ -19,4 +21,12 @@ public record Claims(
         @JsonProperty("display")
         List<Display> display
 ) {
+
+    public Claims toClaims() {
+        return new Claims(
+                this.path,
+                this.mandatory,
+                this.display
+        );
+    }
 }
