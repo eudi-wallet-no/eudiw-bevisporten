@@ -1,10 +1,13 @@
 package no.idporten.eudiw.byob.service.exception;
 
 
+import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -23,5 +26,21 @@ public class ApplicationExceptionHandler {
     public ResponseEntity<String> handleByobServiceException(ByobServiceException e) {
         log.error("Internal error : " + e.getMessage(), e);
         return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        StringBuilder details = new StringBuilder();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            details.append("Attribute %s has error= %s\n".formatted(fieldError.getField(), fieldError.getDefaultMessage()));
+        }
+
+        String vct = "";
+        if (ex.getBindingResult().getTarget() instanceof CredentialConfigurationRequestResource) {
+            vct = ((CredentialConfigurationRequestResource) ex.getBindingResult().getTarget()).vct();
+        }
+        ErrorResponse errorResponse = new ErrorResponse("validation_error", details.toString());
+        log.warn("Validation of input failed for vct=%s: %s, %s".formatted(vct, errorResponse.error(), errorResponse.errorDescription())); // TODO: remove when in production with more traffic
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 }
