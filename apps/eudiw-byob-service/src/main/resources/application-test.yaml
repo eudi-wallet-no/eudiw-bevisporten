@@ -7,3 +7,14 @@ digdir:
   access:
     logging:
      debug-level: request
+
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-redis-ha-server-0.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-1.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379

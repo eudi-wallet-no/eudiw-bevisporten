@@ -1,29 +1,33 @@
 package no.idporten.eudiw.byob.service.service;
 
+import no.idporten.eudiw.byob.service.data.RedisService;
 import no.idporten.eudiw.byob.service.exception.BadRequestException;
 import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
+import no.idporten.eudiw.byob.service.model.CredentialConfigurations;
 import no.idporten.eudiw.byob.service.model.CredentialMetadata;
 import no.idporten.eudiw.byob.service.model.ExampleCredentialData;
+import no.idporten.eudiw.byob.service.model.data.CredentialConfigurationData;
 import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
-import no.idporten.eudiw.byob.service.model.CredentialConfigurations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Service
 public class CredentialConfigurationService {
 
-    private final Map<String, CredentialConfiguration> persistenceLayer = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(CredentialConfigurationService.class);
-    private int counter = 0;
+
     public static final String VCT_PREFIX = "net.eidas2sandkasse:";
     private static final String SD_JWT_VC = "_sd_jwt_vc";
 
-    public CredentialConfigurationService() {
-        persistenceLayer.putAll(MockCredentialConfigurations.getCredentialConfigurationsMocked());
+    private final RedisService redisService;
+
+    @Autowired
+    public CredentialConfigurationService(RedisService redisService) {
+        this.redisService = redisService;
     }
 
     /**
@@ -39,7 +43,7 @@ public class CredentialConfigurationService {
         if (!credentialConfiguration.vct().startsWith(VCT_PREFIX)) {
             vct = VCT_PREFIX + vct;
         }
-        if (persistenceLayer.containsKey(vct)) {
+        if (redisService.getBevisType(vct) != null) {
             throw new BadRequestException("Credential configuration already exists for vct=%s".formatted(credentialConfiguration.vct()));
         }
         String credentialConfigurationId = VCT_PREFIX + credentialConfiguration.vct() + SD_JWT_VC;
@@ -62,19 +66,24 @@ public class CredentialConfigurationService {
     }
 
     public void updatePersistenceLayer(CredentialConfiguration credentialConfiguration) {
-        this.persistenceLayer.put(credentialConfiguration.vct(), credentialConfiguration);
+        redisService.addBevisType(new CredentialConfigurationData(credentialConfiguration));
     }
 
     public CredentialConfigurations getAllEntries() {
-        return new CredentialConfigurations(persistenceLayer.values().stream().toList());
-
+        List<CredentialConfigurationData> all = redisService.getAll();
+        List<CredentialConfiguration> list = all.stream().map(CredentialConfigurationData::toCredentialConfiguration).toList();
+        return new CredentialConfigurations(list);
     }
 
     public CredentialConfiguration getCredentialConfiguration(String vct) {
-        return persistenceLayer.get(vct);
+        CredentialConfigurationData data = redisService.getBevisType(vct);
+        if (data == null) { return null;}
+        return data.toCredentialConfiguration();
     }
 
     public CredentialConfiguration searchCredentialConfiguration(String credentialConfigurationId) {
-        return persistenceLayer.values().stream().filter(c -> c.credentialConfigurationId().equals(credentialConfigurationId)).findFirst().orElse(null);
+        CredentialConfigurationData data = redisService.getBevisTypeByCredentialConfiguration(credentialConfigurationId);
+        if (data == null) { return null;}
+        return data.toCredentialConfiguration();
     }
 }

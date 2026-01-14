@@ -13,4 +13,7 @@ spring:
   application:
     environment: docker
 
-
+  data:
+    redis:
+      host: localhost
+      port: 9262

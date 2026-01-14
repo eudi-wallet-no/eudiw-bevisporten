@@ -17,15 +17,17 @@ public class ApplicationExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<String> handleBadRequestException(BadRequestException e) {
-        log.warn("Client error : {}", e.getMessage(), e);
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException e) {
+        log.warn("Client error : {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse("invalid_request", e.getMessage());
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     @ExceptionHandler(ByobServiceException.class)
-    public ResponseEntity<String> handleByobServiceException(ByobServiceException e) {
+    public ResponseEntity<ErrorResponse> handleByobServiceException(ByobServiceException e) {
         log.error("Internal error : " + e.getMessage(), e);
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        ErrorResponse errorResponse = new ErrorResponse("internal_error", e.getMessage());
+        return ResponseEntity.internalServerError().body(errorResponse);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

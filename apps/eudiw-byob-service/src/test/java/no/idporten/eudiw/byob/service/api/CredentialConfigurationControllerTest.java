@@ -1,12 +1,13 @@
 package no.idporten.eudiw.byob.service.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.idporten.eudiw.byob.service.data.RedisService;
 import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
 import no.idporten.eudiw.byob.service.model.CredentialConfigurations;
 import no.idporten.eudiw.byob.service.model.CredentialMetadata;
 import no.idporten.eudiw.byob.service.model.ExampleCredentialData;
+import no.idporten.eudiw.byob.service.model.data.CredentialConfigurationData;
 import no.idporten.eudiw.byob.service.service.CredentialConfigurationService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,12 +16,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.VCT_PREFIX;
 import static org.mockito.ArgumentMatchers.eq;
@@ -37,20 +38,17 @@ class CredentialConfigurationControllerTest {
 
     private final MockMvc mockMvc;
 
+    @MockitoBean
+    private final RedisService redisService;
+
     @MockitoSpyBean
     private final CredentialConfigurationService service;
 
-    private Map<String, CredentialConfiguration> persistenceLayer;
-
     @Autowired
-    public CredentialConfigurationControllerTest(MockMvc mockMvc, CredentialConfigurationService service) {
+    public CredentialConfigurationControllerTest(MockMvc mockMvc, CredentialConfigurationService service, RedisService redisService) {
         this.mockMvc = mockMvc;
         this.service = service;
-    }
-
-    @BeforeEach
-    void setUp() {
-        this.persistenceLayer = new HashMap<>();
+        this.redisService = redisService;
     }
 
     @Nested
@@ -157,13 +155,10 @@ class CredentialConfigurationControllerTest {
         @Test
         void getAllRequestTest() throws Exception {
             ObjectMapper mapper = new ObjectMapper();
-            CredentialConfiguration input1 = createCredentialConfiguration("example1_sd-jwt", "example1");
-            CredentialConfiguration input2 = createCredentialConfiguration("example2_sd-jwt", "example2");
-            CredentialConfiguration input3 = createCredentialConfiguration("example3_sd-jwt", "example3");
-            persistenceLayer.put("example1", input1);
-            persistenceLayer.put("example2", input2);
-            persistenceLayer.put("example3", input3);
-            when(service.getAllEntries()).thenReturn(new CredentialConfigurations(persistenceLayer.values().stream().toList()));
+            CredentialConfigurationData input1 = new CredentialConfigurationData(createCredentialConfiguration("example1_sd-jwt", "example1"));
+            CredentialConfigurationData input2 = new CredentialConfigurationData(createCredentialConfiguration("example2_sd-jwt", "example2"));
+            CredentialConfigurationData input3 = new CredentialConfigurationData(createCredentialConfiguration("example3_sd-jwt", "example3"));
+            when(redisService.getAll()).thenReturn(List.of(input1, input2, input3));
             mockMvc.perform(get("/v1/credential-configurations"))
                     .andExpect(status().isOk())
                     .andExpect(content().json(mapper.writeValueAsString(new CredentialConfigurations(service.getAllEntries().credentialConfigurations()))));
