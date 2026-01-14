@@ -31,4 +31,9 @@ public class PIDSDJwtClaimsSource extends PIDClaimsSource {
         return super.getAttributeIdentifier(dataIdentifier);
     }
 
+    @Override
+    protected String getCredentialName() {
+        return super.getCredentialName() + " (SD-JWT VC)";
+    }
+
 }
