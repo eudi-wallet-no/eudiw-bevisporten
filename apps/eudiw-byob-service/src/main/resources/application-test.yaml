@@ -3,11 +3,6 @@ spring:
   application:
     environment: test
 
-digdir:
-  access:
-    logging:
-     debug-level: request
-
   data:
     redis:
       password: ${REDIS_PASSWORD}
@@ -18,3 +13,8 @@ digdir:
           - digital-lommebok-redis-ha-server-0.digital-lommebok-redis-ha:26379
           - digital-lommebok-redis-ha-server-1.digital-lommebok-redis-ha:26379
           - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
+
+digdir:
+  access:
+    logging:
+      debug-level: request
