@@ -25,4 +25,9 @@ public class PIDMdocClaimsSource extends PIDClaimsSource {
         return super.getAttributeIdentifier(dataIdentifier);
     }
 
+    @Override
+    protected String getCredentialName() {
+        return super.getCredentialName() + " (mdoc)";
+    }
+
 }

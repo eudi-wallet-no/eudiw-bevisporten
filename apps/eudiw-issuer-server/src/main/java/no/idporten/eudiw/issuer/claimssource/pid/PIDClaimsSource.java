@@ -39,7 +39,7 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
         this.fregService = fregService;
         this.personConverterService = personConverterService;
         this.documentMetadata = new DocumentMetadata(
-                List.of(new DocumentMetadata.Display("no", "Norsk ID-bevis")),
+                List.of(new DocumentMetadata.Display("no", getCredentialName())),
                 List.of(
                         new ClaimMetadata(getAttributeIdentifier("personal_administrative_number"),
                                 Map.of("no", "Fødselsnummer"),
@@ -79,6 +79,10 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
                                 null)
                 )
         );
+    }
+
+    protected String getCredentialName() {
+        return "Norsk ID-bevis";
     }
 
     @Override
