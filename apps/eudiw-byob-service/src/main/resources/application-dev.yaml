@@ -12,3 +12,7 @@ management:
 spring:
   application:
     environment: dev
+  data:
+    redis:
+      host: localhost
+      port: 9262

@@ -6,6 +6,10 @@ spring:
   application:
     name: digital-lommebok-byob-service
     environment: default
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
 
 # Spring Boot Actuator
 management:

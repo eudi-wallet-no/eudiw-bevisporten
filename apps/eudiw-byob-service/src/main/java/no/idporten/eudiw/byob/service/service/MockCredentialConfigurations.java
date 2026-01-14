@@ -50,6 +50,9 @@ public class MockCredentialConfigurations {
 
     public static Map<String, CredentialConfiguration> getCredentialConfigurationsMocked() {
         return Map.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1.vct(), DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2.vct(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
+    }
 
+    public static List<CredentialConfiguration> getCredentialConfigurationsListMocked() {
+        return List.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2);
     }
 }
