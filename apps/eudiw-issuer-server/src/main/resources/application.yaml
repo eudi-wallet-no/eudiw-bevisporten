@@ -30,6 +30,7 @@ management:
       environment: ${spring.application.environment}
 
 credential-issuer-server:
+  metadata-refresh-rate-in-millis: 60000 # 1 minute
   features:
     pid-signing-keystore: pid-provider
   cryptographic-bindings:
@@ -138,6 +139,7 @@ credential-issuer-server:
     authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
     pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
     key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
+
 
   claims-sources:
     - credential-types:

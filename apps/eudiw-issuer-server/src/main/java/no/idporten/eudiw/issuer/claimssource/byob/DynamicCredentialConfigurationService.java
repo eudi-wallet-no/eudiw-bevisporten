@@ -1,19 +1,18 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
+import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
+import no.idporten.eudiw.issuer.openid4vci.metadata.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class DynamicCredentialConfigurationService {
@@ -29,10 +28,10 @@ public class DynamicCredentialConfigurationService {
     }
 
     // TODO: Add caching of the dynamic credential configurations to avoid multiple calls to byob-service on same request/create metadata
-    private Map<String, DynamicCredentialConfiguration> getDynamicCredentialConfigurations() {
+    public Map<String, DynamicCredentialConfiguration> getDynamicCredentialConfigurations() {
         DynamicCredentialConfigurations credentialConfigurations = byobServiceIntegration.retrieveAll();
 
-        if(credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
+        if (credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
             return Collections.emptyMap();
         }
 
