@@ -83,7 +83,43 @@ class CredentialConfigurationControllerTest {
                     .andExpect(jsonPath("$.error").value("validation_error"));
         }
 
+        @DisplayName("and create credential-configuration without exampleData then the response is 200 with CredentialConfiguration as body")
+        @Test
+        void postRequestTestWithEmptyExampleData() throws Exception {
+
+            ObjectMapper mapper = new ObjectMapper();
+            CredentialConfiguration input = mapper.readValue(getPostRequest("bevis"), CredentialConfiguration.class);
+            input.exampleCredentialData().clear(); // remove all display entries to make it invalid
+            mockMvc.perform(post("/v1/credential-configuration")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(input)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.vct").value(VCT_PREFIX + input.vct()))
+                    .andExpect(jsonPath("$.example_credential_data").isEmpty());
+        }
+
+        @DisplayName("and create credential-configuration with exampleData with invalid data then the response is 400 with errormessage as body")
+        @Test
+        void postRequestTestWithInvalidExampleData() throws Exception {
+
+            ObjectMapper mapper = new ObjectMapper();
+            String invalidExampleCredentialMetadata = """
+                    "example_credential_data": [{
+                        "value": "value1"
+                    }]""";
+            CredentialConfiguration input = mapper.readValue(getPostRequestWithExampleData("bevis", invalidExampleCredentialMetadata), CredentialConfiguration.class);
+            mockMvc.perform(post("/v1/credential-configuration")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(input)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("validation_error"));
+        }
+
         private String getPostRequest(String vct) {
+            return getPostRequestWithExampleData(vct, getExampleCredentialMetadata());
+        }
+
+        private String getPostRequestWithExampleData(String vct, String exampleCredentialMetadata) {
 
             return
                     """ 
@@ -93,7 +129,7 @@ class CredentialConfigurationControllerTest {
                                 %s,
                                 %s
                             }
-                            """.formatted(vct, getExampleCredentialMetadata(), getCredentialMetadata());
+                            """.formatted(vct, exampleCredentialMetadata, getCredentialMetadata());
         }
 
         private String getPostResponse(String vctName) {
@@ -113,9 +149,10 @@ class CredentialConfigurationControllerTest {
 
         private String getExampleCredentialMetadata() {
             return """
-                    "example_credential_data": {
-                        "json": "todo: implement me"
-                    }""";
+                    "example_credential_data": [{
+                        "name": "claim1",
+                        "value": "value1"
+                    }]""";
         }
 
         private String getCredentialMetadata() {
@@ -177,8 +214,8 @@ class CredentialConfigurationControllerTest {
             when(service.getCredentialConfiguration(eq(vct))).thenReturn(createCredentialConfiguration(credentialConfigurationId, vct));
             mockMvc.perform(get("/v1/credential-configuration/{id}", vct))
                     .andExpect(status().isOk())
-            .andExpect(jsonPath("$.credential_configuration_id").value(credentialConfigurationId))
-            .andExpect(jsonPath("$.vct").value(vct));
+                    .andExpect(jsonPath("$.credential_configuration_id").value(credentialConfigurationId))
+                    .andExpect(jsonPath("$.vct").value(vct));
         }
 
         @DisplayName("with vct as path is should return response 404 when the id is not found")
@@ -209,7 +246,7 @@ class CredentialConfigurationControllerTest {
     }
 
     private static CredentialConfiguration createCredentialConfiguration(String credentialConfigurationId, String vct) {
-        return new CredentialConfiguration(credentialConfigurationId, vct, "dc+sd-jwt", new ExampleCredentialData("bar"), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
+        return new CredentialConfiguration(credentialConfigurationId, vct, "dc+sd-jwt", List.of(new ExampleCredentialData("bar", "val")), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
     }
 
 }

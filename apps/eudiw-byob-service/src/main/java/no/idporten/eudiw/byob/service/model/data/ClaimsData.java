@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.byob.service.model.Claims;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -25,7 +26,7 @@ public record ClaimsData(
         return new Claims(
                 this.path,
                 this.mandatory,
-                this.display.stream().map(DisplayData::toDisplay).toList()
+                this.display == null ? Collections.emptyList() : this.display.stream().map(DisplayData::toDisplay).toList()
         );
     }
 }

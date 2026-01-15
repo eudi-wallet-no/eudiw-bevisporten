@@ -26,7 +26,6 @@ public class TestRedisConfiguration {
 
     @PostConstruct
     public void postConstruct() throws IOException {
-        System.out.println("postConstruct ports="+ redisServer.ports());
         redisServer.start();
         redisConnectionFactory.getConnection().flushAll();
     }
