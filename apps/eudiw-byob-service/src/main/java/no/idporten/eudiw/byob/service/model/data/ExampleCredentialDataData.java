@@ -6,15 +6,17 @@ import no.idporten.eudiw.byob.service.model.ExampleCredentialData;
 import java.io.Serializable;
 
 public record ExampleCredentialDataData(
-        @JsonProperty("json")
-        String json
+        @JsonProperty("name")
+        String name,
+        @JsonProperty("value")
+        String value
 ) implements Serializable {
 
     public ExampleCredentialDataData(ExampleCredentialData exampleCredentialData) {
-        this(exampleCredentialData.json());
+        this(exampleCredentialData.name(), exampleCredentialData.value());
     }
 
     public ExampleCredentialData toExampleCredentialData() {
-        return new ExampleCredentialData(this.json);
+        return new ExampleCredentialData(this.name, this.value);
     }
 }

@@ -12,14 +12,14 @@ public class MockCredentialConfigurations {
             "net.eidas2sandkasse:dynamic:1_sd_jwt_vc",
             "net.eidas2sandkasse:dynamic:1",
             "dc+sd-jwt",
-            new ExampleCredentialData("test1"),
+            List.of(new ExampleCredentialData("name", "petra")),
             new CredentialMetadata(
                     List.of(
                             new Display("Bring ditt eget bevis 1", "no", "", ""),
                             new Display("Bring your own bevis 1", "en", "", "")
                     ),
                     List.of(
-                            new Claims("age",
+                            new Claims("name",
                                     true,
                                     List.of(new Display("Navn", "no", "", "")
                                             , new Display("Name", "en", "", ""))
@@ -32,7 +32,7 @@ public class MockCredentialConfigurations {
             "net.eidas2sandkasse:dynamic:2_sd_jwt_vc",
             "net.eidas2sandkasse:dynamic:2",
             "dc+sd-jwt",
-            new ExampleCredentialData("test"),
+            List.of(new ExampleCredentialData("age", "10")),
             new CredentialMetadata(
                     List.of(
                             new Display("Bring ditt eget bevis 2", "no", "", "")

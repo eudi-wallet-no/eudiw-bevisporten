@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.List;
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialConfiguration(
@@ -20,7 +22,7 @@ public record CredentialConfiguration(
         String format,
 
         @JsonProperty("example_credential_data")
-        ExampleCredentialData exampleCredentialData,
+        List<ExampleCredentialData> exampleCredentialData,
 
         @JsonProperty("credential_metadata")
         CredentialMetadata credentialMetadata
