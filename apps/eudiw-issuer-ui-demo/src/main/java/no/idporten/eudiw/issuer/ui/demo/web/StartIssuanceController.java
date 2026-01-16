@@ -19,7 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -39,6 +43,7 @@ public class StartIssuanceController {
     private final IssuerServerProperties properties;
 
     private final BevisgeneratorProperties bevisgeneratorProperties;
+
 
     @Autowired
     public StartIssuanceController(IssuerServerService issuerServerService, IssuerServerProperties properties, BevisgeneratorProperties bevisgeneratorProperties) {
@@ -62,16 +67,9 @@ public class StartIssuanceController {
         return "index";
     }
 
-    @GetMapping("/admin")
-    public String admin(Model model) {
-        model.addAttribute("credential_configurations", properties.credentialConfigurations());
-        return "admin";
-    }
-
     @GetMapping("/issue")
-    public String issue(Model model) {
-        model.addAttribute("credential_configurations", properties.credentialConfigurations());
-        return "issue";
+    public ModelAndView issue() {
+        return new ModelAndView("issue", "credential_configurations", properties.credentialConfigurations());
     }
 
     @GetMapping("/start-issuance/{credential_configuration_id}")
@@ -110,18 +108,6 @@ public class StartIssuanceController {
         return "issuer_response";
     }
 
-    @GetMapping("/add-credential")
-    public String addCredential(Model model) {
-        model.addAttribute("addCredentialForm", new AddCredentialForm());
-        return "add";
-    }
-
-    @PostMapping("/add-credential/{credential_configuration_id}")
-    public String addNewCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId,
-                                @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
-                                Model model) {
-        return "admin";
-    }
 
     private IssuanceRequest createRequestTraceing(StartIssuanceForm startIssuanceForm) {
         String contentType = "Content-Type: " + MediaType.APPLICATION_JSON;

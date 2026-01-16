@@ -4,6 +4,8 @@ spring:
     environment: systest
 
 bevisgenerator:
+  byob-service:
+    base-url: https://byob-service.eidas2sandkasse.dev
   issuer-server:
     base-url: https://utsteder.eidas2sandkasse.dev
 

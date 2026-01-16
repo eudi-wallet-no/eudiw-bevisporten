@@ -11,6 +11,8 @@ spring:
     environment: docker
 
 bevisgenerator:
+  byob-service:
+    base-url: http://byob-service:9296
   issuer-server:
     base-url: http://issuer-server:9240
 #    base-url: https://utsteder.eidas2sandkasse.dev
