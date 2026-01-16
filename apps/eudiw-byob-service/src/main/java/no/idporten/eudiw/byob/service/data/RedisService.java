@@ -1,6 +1,7 @@
 package no.idporten.eudiw.byob.service.data;
 
 import jakarta.annotation.PostConstruct;
+import no.idporten.eudiw.byob.service.exception.BadRequestException;
 import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
 import no.idporten.eudiw.byob.service.model.data.CredentialConfigurationData;
 import no.idporten.eudiw.byob.service.service.MockCredentialConfigurations;
@@ -80,24 +81,32 @@ public class RedisService {
 
     public void delete(String vct) {
         CredentialConfigurationData bevisType = getBevisType(vct);
+        if (bevisType == null) {
+            String errorMsg = getErrorMessage(vct);
+            log.warn(errorMsg);
+            throw new BadRequestException(errorMsg);
+        }
         String deletedCredentialConfigurationId = (String) valueOperations.getAndDelete(KEY_PREFIX_BYOB_ID + bevisType.credentialConfigurationId());
         CredentialConfigurationData data = (CredentialConfigurationData) valueOperations.getAndDelete(DATA_PREFIX_BYOB_TYPES + vct);
         if (deletedCredentialConfigurationId == null || data == null) {
-            log.warn("Attempted to delete BevisType from Redis, but it was not found: vct={}", vct);
-            // TODO: throw exception?
+            log.warn(getErrorMessage(vct) + " (credentialConfigurationId={}, data={})", deletedCredentialConfigurationId, data);
+            throw new BadRequestException(getErrorMessage(vct));
         } else {
             log.info("Deleted BevisType from Redis: vct={}, credentialConfigurationId={}", data.vct(), deletedCredentialConfigurationId);
         }
     }
 
+    private static String getErrorMessage(String vct) {
+        String errorMsg = "Failed to delete BevisType from Redis for vct=%s since does not exist".formatted(vct);
+        return errorMsg;
+    }
+
 
     public void deleteAll() {
-//        redisTemplate.delete(KEY_PREFIX_BYOB_ID + "*");
-//        redisTemplate.delete(DATA_PREFIX_BYOB_TYPES + "*");
         Set<String> keys = getAllDataKeys();
         for (String key : keys) {
             CredentialConfigurationData data = (CredentialConfigurationData) valueOperations.getAndDelete(key);
-            if(data == null) {
+            if (data == null) {
                 log.error("Failed to delete BevisType from Redis for key={}", key);
                 return;
             }

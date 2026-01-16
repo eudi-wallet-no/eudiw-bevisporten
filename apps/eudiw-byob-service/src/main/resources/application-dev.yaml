@@ -16,3 +16,6 @@ spring:
     redis:
       host: localhost
       port: 9262
+
+byob-service:
+  api_key: my-not-so-secret-token
