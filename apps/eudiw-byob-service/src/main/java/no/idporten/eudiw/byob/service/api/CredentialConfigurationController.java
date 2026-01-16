@@ -47,6 +47,22 @@ public class CredentialConfigurationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(body);
     }
 
+    @Operation(summary = "Oppdater bevistype",
+            description = "Oppdater en eksisterende bevistype ved å sende inn den oppdaterte konfigurasjonen. VCT og credentialConfigurationId kan ikke endres.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Returner bevistypen som ble oppdatert",
+                    content = @Content(mediaType = "application/json"
+                    )),
+            @ApiResponse(responseCode = "500", description = "Internal error",
+                    content = @Content(examples= @ExampleObject(description = "Intern feil", value = ByobServiceAPISwaggerExamples.SERVER_ERROR_EXAMPLE)))
+    })
+    @PutMapping(path = "/v1/credential-configuration")
+    public ResponseEntity<CredentialConfiguration> updateCredentialConfiguration(@Valid @RequestBody CredentialConfigurationRequestResource credentialConfig){
+
+        CredentialConfiguration body = service.update(credentialConfig);
+        return ResponseEntity.ok().body(body);
+    }
+
     @Operation(summary = "Slett bevistype fra vct",
             description = "Slett en bevistype ved å bruke vct (verifiable credential type) som identifikator.")
     @ApiResponses({

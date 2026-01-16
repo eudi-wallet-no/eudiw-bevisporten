@@ -14,7 +14,7 @@ public record CredentialConfiguration(
         String credentialConfigurationId,
 
         @JsonProperty("vct")
-        @Pattern(regexp = "^[a-z0-9_:]{3,255}$",
+        @Pattern(regexp = "^[a-z0-9_:.]{3,255}$",
                 message = "vct kan ikke ha spesielle karakterer eller symboler")
         String vct,
 
