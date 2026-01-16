@@ -91,4 +91,12 @@ public class CredentialConfigurationService {
         if (data == null) { return null;}
         return data.toCredentialConfiguration();
     }
+
+    public void delete(String vct) {
+         redisService.delete(vct);
+    }
+
+    public void deleteAll() {
+        redisService.deleteAll();
+    }
 }
