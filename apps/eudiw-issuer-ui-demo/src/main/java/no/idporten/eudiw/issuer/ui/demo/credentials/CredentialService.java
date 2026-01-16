@@ -18,7 +18,7 @@ public class CredentialService {
     }
 
     public List<CredentialDto> getCredentials() {
-        List<CredentialDefinition> credentialDefinitions = byobService.getCustomCredentialDefinitions();
+        List<CredentialDefinition> credentialDefinitions = byobService.getCredentialConfigurations();
 
         return credentialDefinitions.stream().map(cd -> {
             try {
@@ -43,5 +43,12 @@ public class CredentialService {
 
     public void deleteCredential(String cvt) {
         byobService.removeCustomCredentialDefinition(cvt);
+    }
+
+    public void editCredential(CredentialDto dto) throws JsonProcessingException {
+        CredentialDefinition cd =  mapper.fromDto(dto);
+
+        cd.setVct(dto.vct());
+        byobService.editCredentialDefinition(cd);
     }
 }
