@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class ByobService {
         this.restClient = restClient;
    }
 
-    public List<CredentialDefinition> getCustomCredentialDefinitions() {
+    public List<CredentialDefinition> getCredentialConfigurations() {
         List<CredentialDefinition> result = getCertificationDefinitionCollection().credentialConfigurations;
         if (result == null) {
             result = new ArrayList<>();
@@ -49,21 +50,20 @@ public class ByobService {
         deleteCredentialDefinition(vct);
     }
 
-    public List<CredentialDefinition> getCredentialConfigurations() {
-        return  getCustomCredentialDefinitions();
-    }
-
     public boolean existsByVct(String vct) {
-        return getCustomCredentialDefinitions().stream().anyMatch(c -> c.getVct().equals(vct));
+        return getCredentialConfigurations().stream().anyMatch(c -> c.getVct().equals(vct));
     }
 
-    private CredentialDefinition getDefinitionByCvt(String vct) {
-        String endpoint = byobServiceProperties.getEndpoint();
-        URI uri = URI.create(endpoint + "/" + vct);
+    public CredentialDefinition editCredentialDefinition(CredentialDefinition cd) {
+       return putCredentialDefinition(cd);
+    }
 
-        CredentialDefinition result;
+     private CredentialDefinition getDefinitionByCvt(String vct) {
+        String endpoint = byobServiceProperties.getEndpoint();
+        URI uri = UriComponentsBuilder.fromUriString(endpoint).path("/%s".formatted(vct)).build().toUri();
+
         try {
-            result = restClient
+            return restClient
                     .get()
                     .uri(uri)
                     .accept(MediaType.APPLICATION_JSON)
@@ -72,17 +72,13 @@ public class ByobService {
         } catch (RestClientResponseException e) {
             throw new ByobServiceException("Configuration error against byob-service? path=" + endpoint, e);
         }
-
-        return result;
     }
 
     private CredentialDefinitionCollection getCertificationDefinitionCollection() {
        String getEndpoint = byobServiceProperties.getManyEndpoint();
 
-       CredentialDefinitionCollection result;
-
        try {
-          result = restClient
+          return restClient
                   .get()
                   .uri(getEndpoint)
                   .accept(MediaType.APPLICATION_JSON)
@@ -91,8 +87,6 @@ public class ByobService {
         } catch (RestClientResponseException e) {
             throw new ByobServiceException("Configuration error against byob-service? path=" + getEndpoint, e);
         }
-
-       return result;
     }
 
     private CredentialDefinition storeCredential(CredentialDefinition cd) {
@@ -112,9 +106,28 @@ public class ByobService {
         }
     }
 
+    private CredentialDefinition putCredentialDefinition(CredentialDefinition cd) {
+        String endpoint = byobServiceProperties.getEndpoint();
+        URI uri = UriComponentsBuilder.fromUriString(endpoint).build().toUri();
+
+        try {
+            return restClient
+                    .put()
+                    .uri(uri)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(cd)
+                    .retrieve()
+                    .body(CredentialDefinition.class);
+        }
+        catch (RestClientResponseException e) {
+            throw new ByobServiceException(e.getMessage(), e);
+        }
+    }
+
     private void deleteCredentialDefinition(String vct) {
         String endpoint = byobServiceProperties.getEndpoint();
-        URI uri = URI.create(endpoint + "?vct=" + vct);
+        URI uri = UriComponentsBuilder.fromUriString(endpoint).queryParam("vct", vct).build().toUri();
 
         try {
             restClient

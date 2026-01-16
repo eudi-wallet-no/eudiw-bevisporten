@@ -11,8 +11,8 @@ public class CredentialDefinitionFactory {
         return new CredentialDefinition(
             "your-credential-configuration-name (automatically generated)",
             List.of(
-                new ExampleCredentialData("family-name", "Normann"),
-                new ExampleCredentialData("given-name", "Kari")
+                new ExampleCredentialData("family_name", "Normann"),
+                new ExampleCredentialData("given_name", "Kari")
             ),
             new CredentialMetadata(
                 List.of(
