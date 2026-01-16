@@ -6,6 +6,8 @@ spring:
 bevisgenerator:
   features:
     allow-create-bevistyper: false
+  byob-service:
+    base-url: https://byob-service.test.eidas2sandkasse.net
   issuer-server:
     base-url: https://utsteder.test.eidas2sandkasse.net
 
