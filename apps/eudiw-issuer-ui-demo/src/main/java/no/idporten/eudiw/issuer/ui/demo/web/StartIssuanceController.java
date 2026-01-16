@@ -13,6 +13,7 @@ import no.idporten.eudiw.issuer.ui.demo.issuer.IssuerServerService;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.CredentialConfiguration;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
 import no.idporten.eudiw.issuer.ui.demo.issuer.domain.IssuanceResponse;
+import no.idporten.eudiw.issuer.ui.demo.web.models.StartIssuanceForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

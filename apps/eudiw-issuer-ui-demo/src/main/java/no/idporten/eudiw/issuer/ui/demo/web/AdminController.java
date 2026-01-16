@@ -7,6 +7,8 @@ import no.idporten.eudiw.issuer.ui.demo.byob.CredentialDefinitionFactory;
 import no.idporten.eudiw.issuer.ui.demo.byob.model.CredentialDefinition;
 import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialDto;
 import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialService;
+import no.idporten.eudiw.issuer.ui.demo.web.models.AddCredentialForm;
+import no.idporten.eudiw.issuer.ui.demo.web.models.EditCredentialForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -47,6 +49,7 @@ public class AdminController {
     @PostMapping("/add-credential")
     public ModelAndView addNewCredential(@Valid AddCredentialForm addCredentialForm, BindingResult bindingResult) throws JsonProcessingException {
         if (bindingResult.hasErrors()) {
+            // TODO: Add json validation
             logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
             return new ModelAndView("add", "addCredentialForm", addCredentialForm);
         }
@@ -58,10 +61,28 @@ public class AdminController {
 
     @GetMapping("/edit-credential/{credential_configuration_id}")
     public ModelAndView editCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId) throws JsonProcessingException {
-        logger.info("Editing credential with id {}", credentialConfigurationId);
         CredentialDto cd = credentialService.findCredential(credentialConfigurationId);
-        return new ModelAndView("add", "addCredentialForm", new AddCredentialForm(credentialConfigurationId, cd.name(), cd.json()));
+        return new ModelAndView("edit", "editCredentialForm", new EditCredentialForm(credentialConfigurationId, cd.json()));
     }
+
+    @PostMapping("/edit-credential/{credential_configuration_id}")
+    public ModelAndView editCredentialPost(
+            @PathVariable("credential_configuration_id") String credentialConfigurationId,
+            @Valid EditCredentialForm editCredentialForm,
+            BindingResult bindingResult
+    ) throws JsonProcessingException {
+        if (bindingResult.hasErrors()) {
+            // TODO: Add json validation
+            logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
+            return new ModelAndView("add", "editCredentialForm", editCredentialForm);
+        }
+
+        logger.info("Editing credential with id {}", credentialConfigurationId);
+
+        credentialService.editCredential(new CredentialDto(credentialConfigurationId, editCredentialForm.json()));
+        return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
+    }
+
 
     @GetMapping("/delete-credential/{credential_configuration_id}")
     public ModelAndView deleteCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId) {
