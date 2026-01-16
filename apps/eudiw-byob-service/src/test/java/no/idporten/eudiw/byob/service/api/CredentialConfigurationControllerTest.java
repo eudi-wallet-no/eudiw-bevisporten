@@ -9,6 +9,7 @@ import no.idporten.eudiw.byob.service.model.ExampleCredentialData;
 import no.idporten.eudiw.byob.service.model.data.CredentialConfigurationData;
 import no.idporten.eudiw.byob.service.model.data.CredentialMetadataData;
 import no.idporten.eudiw.byob.service.model.data.ExampleCredentialDataData;
+import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
 import no.idporten.eudiw.byob.service.service.CredentialConfigurationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,9 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.VCT_PREFIX;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -62,13 +63,15 @@ class CredentialConfigurationControllerTest {
         void postRequestTest() throws Exception {
 
             ObjectMapper mapper = new ObjectMapper();
-            CredentialConfiguration input = mapper.readValue(getPostRequest("bevisetmitt"), CredentialConfiguration.class);
+            CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest("bevisetmitt"), CredentialConfigurationRequestResource.class);
             CredentialConfiguration output = mapper.readValue(getPostResponse("bevisetmitt"), CredentialConfiguration.class);
             mockMvc.perform(post("/v1/credential-configuration")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(mapper.writeValueAsString(input)))
                     .andExpect(status().isCreated())
                     .andExpect(content().json(mapper.writeValueAsString(output)));
+
+            verify(redisService).addBevisType(any(CredentialConfigurationData.class));
         }
 
         @DisplayName("and create credential-configuration with invalid input for display then the response is 400 with error message as body")
@@ -76,7 +79,7 @@ class CredentialConfigurationControllerTest {
         void postRequestTestWithInvalidDisplayData() throws Exception {
 
             ObjectMapper mapper = new ObjectMapper();
-            CredentialConfiguration input = mapper.readValue(getPostRequest("bevis"), CredentialConfiguration.class);
+            CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest("bevis"), CredentialConfigurationRequestResource.class);
             input.credentialMetadata().claims().getFirst().display().clear(); // remove all display entries to make it invalid
             mockMvc.perform(post("/v1/credential-configuration")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -90,7 +93,7 @@ class CredentialConfigurationControllerTest {
         void postRequestTestWithEmptyExampleData() throws Exception {
 
             ObjectMapper mapper = new ObjectMapper();
-            CredentialConfiguration input = mapper.readValue(getPostRequest("bevis"), CredentialConfiguration.class);
+            CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest("bevis"), CredentialConfigurationRequestResource.class);
             input.exampleCredentialData().clear(); // remove all display entries to make it invalid
             mockMvc.perform(post("/v1/credential-configuration")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -117,6 +120,73 @@ class CredentialConfigurationControllerTest {
                     .andExpect(jsonPath("$.error").value("validation_error"));
         }
 
+        @Nested
+        @DisplayName("when calling PUT to credential-configuration endpoint")
+        class TestUpdate {
+            @DisplayName("and update credential-configuration with valid input then the response is 200 with updated CredentialConfiguration as body")
+            @Test
+            void putUpdateBevisTypeOk() throws Exception {
+
+                ObjectMapper mapper = new ObjectMapper();
+                String vct = "net.eidas2sandkasse:bevisetmitt";
+                String credentialConfigurationId = "cc-id";
+                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(vct), CredentialConfigurationRequestResource.class);
+                CredentialConfiguration output = mapper.readValue(getPostResponse(vct, credentialConfigurationId), CredentialConfiguration.class);
+
+
+                when(redisService.getBevisType(eq(vct))).thenReturn(createCredentialConfigurationData(credentialConfigurationId, vct));
+
+                mockMvc.perform(put("/v1/credential-configuration")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(input)))
+                        .andExpect(status().isOk())
+                        .andExpect(content().json(mapper.writeValueAsString(output)));
+
+                verify(redisService).updateBevisType(any(CredentialConfigurationData.class));
+            }
+
+            @DisplayName("and update credential-configuration with invalid input then the response is 400 with error message body")
+            @Test
+            void putUpdateBevisTypeInvalidInput() throws Exception {
+
+                ObjectMapper mapper = new ObjectMapper();
+                String vct = "net.eidas2sandkasse:bevisetmitt";
+                String credentialConfigurationId = "cc-id";
+                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(vct), CredentialConfigurationRequestResource.class);
+                input.credentialMetadata().display().clear(); // remove all display entries to make it invalid (bevis name).
+
+                when(redisService.getBevisType(eq(vct))).thenReturn(createCredentialConfigurationData(credentialConfigurationId, vct));
+
+                mockMvc.perform(put("/v1/credential-configuration")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(input)))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.error").value("validation_error"));
+
+                verify(redisService, never()).updateBevisType(any(CredentialConfigurationData.class));
+            }
+
+            @DisplayName("and update credential-configuration that does not exist then the response is 400 with invalid_request error body")
+            @Test
+            void putUpdateBevisTypeWhenNotExists() throws Exception {
+
+                ObjectMapper mapper = new ObjectMapper();
+                String vct = "net.eidas2sandkasse:bevisetmitt";
+                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(vct), CredentialConfigurationRequestResource.class);
+
+
+                when(redisService.getBevisType(eq(vct))).thenReturn(null);
+
+                mockMvc.perform(put("/v1/credential-configuration")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(mapper.writeValueAsString(input)))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.error").value("invalid_request"));
+
+                verify(redisService, never()).updateBevisType(any(CredentialConfigurationData.class));
+            }
+        }
+
         private String getPostRequest(String vct) {
             return getPostRequestWithExampleData(vct, getExampleCredentialMetadata());
         }
@@ -134,9 +204,7 @@ class CredentialConfigurationControllerTest {
                             """.formatted(vct, exampleCredentialMetadata, getCredentialMetadata());
         }
 
-        private String getPostResponse(String vctName) {
-            String credentialConfigurationId = "net.eidas2sandkasse:" + vctName + "_sd_jwt_vc";
-            String vct = "net.eidas2sandkasse:" + vctName;
+        private String getPostResponse(String vct, String credentialConfigurationId) {
             return
                     """ 
                             {
@@ -147,6 +215,12 @@ class CredentialConfigurationControllerTest {
                                 %s
                             }
                             """.formatted(credentialConfigurationId, vct, getExampleCredentialMetadata(), getCredentialMetadata());
+        }
+
+        private String getPostResponse(String vctName) {
+            String credentialConfigurationId = "net.eidas2sandkasse:" + vctName + "_sd_jwt_vc";
+            String vct = "net.eidas2sandkasse:" + vctName;
+            return getPostResponse(vct, credentialConfigurationId);
         }
 
         private String getExampleCredentialMetadata() {
@@ -274,8 +348,10 @@ class CredentialConfigurationControllerTest {
             verify(redisService).deleteAll();
         }
 
-        private static CredentialConfigurationData createCredentialConfigurationData(String credentialConfigurationId, String vct) {
-            return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", List.of(new ExampleCredentialDataData("bar", "val")), new CredentialMetadataData(new ArrayList<>(), new ArrayList<>()));
-        }
+
+    }
+
+    private static CredentialConfigurationData createCredentialConfigurationData(String credentialConfigurationId, String vct) {
+        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", List.of(new ExampleCredentialDataData("bar", "val")), new CredentialMetadataData(new ArrayList<>(), new ArrayList<>()));
     }
 }
