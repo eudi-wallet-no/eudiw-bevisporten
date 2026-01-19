@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class ByobService {
@@ -30,7 +31,7 @@ public class ByobService {
         this.restClient = restClient;
    }
 
-    public List<CredentialDefinition> getCredentialConfigurations() {
+    public List<CredentialDefinition> getCredentialDefinitions() {
         List<CredentialDefinition> result = getCertificationDefinitionCollection().credentialConfigurations;
         if (result == null) {
             result = new ArrayList<>();
@@ -42,8 +43,12 @@ public class ByobService {
         return storeCredential(credentialDefinition);
     }
 
-    public CredentialDefinition getCredentialDefinitionByVct(String vct) {
+    public CredentialDefinition getByVct(String vct) {
         return getDefinitionByCvt(vct);
+    }
+
+    public CredentialDefinition getByCredentialConfigurationId(String credentialConfigurationId) {
+        return getDefinitionById(credentialConfigurationId);
     }
 
     public void removeCustomCredentialDefinition(String vct) {
@@ -51,14 +56,22 @@ public class ByobService {
     }
 
     public boolean existsByVct(String vct) {
-        return getCredentialConfigurations().stream().anyMatch(c -> c.getVct().equals(vct));
+        return getCredentialDefinitions().stream().anyMatch(c -> c.getVct().equals(vct));
     }
 
     public CredentialDefinition editCredentialDefinition(CredentialDefinition cd) {
        return putCredentialDefinition(cd);
     }
 
-     private CredentialDefinition getDefinitionByCvt(String vct) {
+    private CredentialDefinition getDefinitionById(String id) {
+       return getCredentialDefinitions()
+               .stream()
+               .filter(cd -> Objects.equals(cd.getCredentialConfigurationId(), id))
+               .findFirst()
+               .orElse(null);
+    }
+
+    private CredentialDefinition getDefinitionByCvt(String vct) {
         String endpoint = byobServiceProperties.getEndpoint();
         URI uri = UriComponentsBuilder.fromUriString(endpoint).path("/%s".formatted(vct)).build().toUri();
 
