@@ -255,23 +255,6 @@ bevisgenerator:
               }
             ]
           }
-      - credential-configuration-id: net.eidas2sandkasse:dynamic:2_sd_jwt_vc
-        description: BYOB midlertidig eksempel SD-JWT
-        scope: eudiw:eidas2sandkasse:dynamicvc
-        person-identifier: 16903349844
-        json-request: |
-          {
-            "credential_configuration_id": "net.eidas2sandkasse:dynamic:2_sd_jwt_vc",
-            "subject": {
-              "identifier": "16903349844"
-            },
-            "claims": [
-                {
-                  "name": "age",
-                  "value": "21"
-                }
-              ]
-          }
 # Maskinporten
 maskinporten:
   lib:
