@@ -19,7 +19,9 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Optional;
 
 import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.BYOB;
 
@@ -35,6 +37,10 @@ public class ByobServiceIntegration {
     private final ByobServiceProperties byobServiceProperties;
     private final RestClient byobServiceRestClient;
 
+    private volatile DynamicCredentialConfigurations cachedCCs = null;
+    private volatile LocalDateTime lastUpdated;
+    static final Object lock = new Object();
+
     @Autowired
     public ByobServiceIntegration(ByobServiceProperties byobServiceProperties,
                                   @Qualifier("byobServiceRestClient") RestClient byobServiceRestClient) {
@@ -44,6 +50,25 @@ public class ByobServiceIntegration {
 
 
     public DynamicCredentialConfigurations retrieveAll() {
+
+        if(cachedCCs == null || isCacheExpired()){
+            synchronized (lock) {
+                cachedCCs = retrieveAllFresh();
+                lastUpdated = LocalDateTime.now();
+            }
+        }
+        return cachedCCs;
+    }
+
+    private boolean isCacheExpired() {
+        if (lastUpdated == null) {
+            // Cache has never been updated; treat as expired
+            return true;
+        }
+        return lastUpdated.plusSeconds(50).isBefore(LocalDateTime.now());
+    }
+
+    private DynamicCredentialConfigurations retrieveAllFresh() {
         try {
             DynamicCredentialConfigurations credentialConfigurations = byobServiceRestClient
                     .get()
@@ -54,13 +79,12 @@ public class ByobServiceIntegration {
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
                     .body(DynamicCredentialConfigurations.class);
 
-            // TODO handle byob-service unavailability more gracefully, must be allowed null on startup
             // valider response er gyldig (rett prefix på cred-config-id, osb)
             if (credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
                 log.warn("No dynamic credential configurations retrieved from BYOB service, using hardcoded configurations");
-//                return getMockedByobResponse();
                 return new DynamicCredentialConfigurations(Collections.emptyList());
             }
+            log.info("Retrieved all credential-configurations from byob-service, count={}", credentialConfigurations.getCredentialConfigurations().size());
             return credentialConfigurations;
         } catch (ResourceAccessException e) {
             throw new ClaimsSourceIOException(BYOB.name(), "IO error when calling Byob-service", e);
@@ -74,6 +98,14 @@ public class ByobServiceIntegration {
             log.warn("vct/credentialType is null");
             return null;
         }
+        if (cachedCCs != null && cachedCCs.getCredentialConfigurations() != null && !isCacheExpired()) {
+            Optional<DynamicCredentialConfiguration> first = cachedCCs.getCredentialConfigurations().stream().filter(c -> vct.equals(c.vct())).findFirst();
+            if (first.isPresent()) {
+                log.info("Retrieved credential-configuration from cache by vct: {}", vct);
+                return first.get();
+            }
+        }
+
         try {
             return byobServiceRestClient
                     .get()
@@ -89,10 +121,18 @@ public class ByobServiceIntegration {
             throw new ClaimsSourceException(BYOB.name(), "server_error", "Failed to get information from Byob-service for vct=%s".formatted(vct), HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
+
     public DynamicCredentialConfiguration searchByCredentialConfigurationId(String credentialConfigurationId) {
         if (credentialConfigurationId == null) {
             log.warn("credentialConfigurationId is null");
             return null;
+        }
+        if (cachedCCs != null && cachedCCs.getCredentialConfigurations() != null && !isCacheExpired()) {
+            Optional<DynamicCredentialConfiguration> first = cachedCCs.getCredentialConfigurations().stream().filter(c -> credentialConfigurationId.equals(c.credentialConfigurationId())).findFirst();
+            if (first.isPresent()) {
+                log.info("Retrieved credential-configuration from cache by credentialConfigurationId: {}", credentialConfigurationId);
+                return first.get();
+            }
         }
         try {
             return byobServiceRestClient
