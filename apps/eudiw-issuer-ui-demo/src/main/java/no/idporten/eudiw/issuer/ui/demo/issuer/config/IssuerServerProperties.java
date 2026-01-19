@@ -27,7 +27,6 @@ public record IssuerServerProperties (String baseUrl, String issuanceEndpoint, L
                 .stream()
                 .filter(credentialConfiguration -> Objects.equals(credentialConfigurationId, credentialConfiguration.credentialConfigurationId()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown credential configuration id"));
+                .orElse(null);
     }
-
 }

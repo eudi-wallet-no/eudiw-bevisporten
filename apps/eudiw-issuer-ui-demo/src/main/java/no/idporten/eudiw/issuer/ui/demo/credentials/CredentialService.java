@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.ui.demo.credentials;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import no.idporten.eudiw.issuer.ui.demo.byob.ByobService;
+import no.idporten.eudiw.issuer.ui.demo.byob.CredentialDefinitionFactory;
 import no.idporten.eudiw.issuer.ui.demo.byob.model.CredentialDefinition;
 import org.springframework.stereotype.Service;
 
@@ -17,24 +17,25 @@ public class CredentialService {
         this.mapper = mapper;
     }
 
-    public List<CredentialDto> getCredentials() {
-        List<CredentialDefinition> credentialDefinitions = byobService.getCredentialConfigurations();
-
-        return credentialDefinitions.stream().map(cd -> {
-            try {
-                return mapper.toDto(cd);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        }).toList();
+    public CredentialDto getEmptyCredentialDefinition() {
+        return mapper.toDto(CredentialDefinitionFactory.empty());
     }
 
-    public CredentialDto findCredential(String cvt) throws JsonProcessingException {
-        CredentialDefinition cd = byobService.getCredentialDefinitionByVct(cvt);
+    public List<CredentialDto> getCredentials() {
+        List<CredentialDefinition> credentialDefinitions = byobService.getCredentialDefinitions();
+
+        return credentialDefinitions
+                .stream()
+                .map(mapper::toDto)
+                .toList();
+    }
+
+    public CredentialDto findCredential(String cvt) {
+        CredentialDefinition cd = byobService.getByVct(cvt);
         return mapper.toDto(cd);
     }
 
-    public void storeCredential(CredentialDto dto) throws JsonProcessingException {
+    public void storeCredential(CredentialDto dto) {
         CredentialDefinition cd =  mapper.fromDto(dto);
 
         cd.setVct(dto.vct());
@@ -45,7 +46,7 @@ public class CredentialService {
         byobService.removeCustomCredentialDefinition(cvt);
     }
 
-    public void editCredential(CredentialDto dto) throws JsonProcessingException {
+    public void editCredential(CredentialDto dto) {
         CredentialDefinition cd =  mapper.fromDto(dto);
 
         cd.setVct(dto.vct());
