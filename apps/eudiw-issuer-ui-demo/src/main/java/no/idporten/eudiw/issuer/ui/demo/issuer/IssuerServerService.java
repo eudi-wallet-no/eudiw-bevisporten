@@ -1,5 +1,7 @@
 package no.idporten.eudiw.issuer.ui.demo.issuer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialIssuerService;
 import no.idporten.eudiw.issuer.ui.demo.exception.IssuerServerException;
 import no.idporten.eudiw.issuer.ui.demo.exception.IssuerUiException;
 import no.idporten.eudiw.issuer.ui.demo.issuer.config.CredentialConfiguration;
@@ -19,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,15 +32,34 @@ public class IssuerServerService {
     private final IssuerServerProperties issuerServerProperties;
     private final RestClient restClient;
     private final MaskinportenClient maskinportenClient;
+    private final CredentialIssuerService credentialIssuerService;
 
     @Autowired
     public IssuerServerService(@Qualifier("issuerServerRestClient") RestClient restClient,
                                IssuerServerProperties issuerServerProperties,
-                               MaskinportenClient maskinportenClient) {
+                               MaskinportenClient maskinportenClient, CredentialIssuerService credentialIssuerService) {
         this.issuerServerProperties = issuerServerProperties;
         this.restClient = restClient;
         this.maskinportenClient = maskinportenClient;
+        this.credentialIssuerService = credentialIssuerService;
     }
+
+    public List<CredentialConfiguration> getAll() {
+        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>(issuerServerProperties.credentialConfigurations());
+        credentialConfigurations.addAll(credentialIssuerService.getCredentialConfigurations());
+        return credentialConfigurations;
+    }
+
+    public CredentialConfiguration getById(String id) {
+        CredentialConfiguration c = issuerServerProperties.findCredentialConfiguration(id);
+
+        if (c != null) {
+            return c;
+        }
+
+        return credentialIssuerService.getCredentialConfigurationById(id);
+    }
+
 
     private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
         return maskinportenClient.getAccessToken(

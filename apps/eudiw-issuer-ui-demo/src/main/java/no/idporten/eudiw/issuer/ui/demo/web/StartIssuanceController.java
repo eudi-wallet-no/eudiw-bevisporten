@@ -70,14 +70,14 @@ public class StartIssuanceController {
 
     @GetMapping("/issue")
     public ModelAndView issue() {
-        return new ModelAndView("issue", "credential_configurations", properties.credentialConfigurations());
+        return new ModelAndView("issue", "credential_configurations", issuerServerService.getAll());
     }
 
     @GetMapping("/start-issuance/{credential_configuration_id}")
     public String start(
             @PathVariable("credential_configuration_id") String credentialConfigurationId,
             Model model) {
-        CredentialConfiguration credentialConfiguration = properties.findCredentialConfiguration(credentialConfigurationId);
+        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
         model.addAttribute("credentialConfiguration", credentialConfiguration);
         model.addAttribute("startIssuanceForm", new StartIssuanceForm(credentialConfiguration.jsonRequest(), credentialConfiguration.personIdentifier()));
         return "start";
@@ -87,7 +87,7 @@ public class StartIssuanceController {
     public String startIssuance(@PathVariable("credential_configuration_id") String credentialConfigurationId,
                                 @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
                                 Model model) {
-        CredentialConfiguration credentialConfiguration = properties.findCredentialConfiguration(credentialConfigurationId);
+        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
         String normalizedJson = startIssuanceForm.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
 
