@@ -9,37 +9,19 @@
 <header th:replace="~{fragments/general :: page_header_fragment}"></header>
 
 <main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
-            Send bevis til mobilen
-        </h1>
-        <p class="ds-paragraph">
-            Vel lenke om du er på mobilen no eller scan QR-koden med mobilen.
-        </p>
-    </div>
 
     <p th:text="${error}" class="ds-validation-message" th:if="${error}">
     </p>
 
-
     <div class="ds-card" style="max-width: 600px">
-        <h1>HAIP</h1>
-        <div id="haip-cross-device-request">
-            <img th:src="${'data:image/png;base64,' + issuance.haipQrCode}" alt="QR kode for bevis" id="haip-qrcode-cross-device"
-                 width="100%"/>
+        <div>
+            <h1 class="ds-heading" data-size="lg">
+                Send bevis til mobilen
+            </h1>
+            <p class="ds-paragraph">
+                Vel lenke om du er på mobilen no eller scan QR-koden med mobilen.
+            </p>
         </div>
-        <div class="flex-container" style="min-width: unset">
-            <a th:href="${issuance.haipEncodedUri}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
-                Opne på mobilen (HAIP)
-            </a>
-            <a th:href="@{/}" class="ds-button" type="button" data-variant="secondary">
-                Tilbake
-            </a>
-        </div>
-    </div>
-
-    <div class="ds-card" style="max-width: 600px">
-        <h1>NOT HAIP</h1>
         <div id="cross-device-request">
             <img th:src="${'data:image/png;base64,' + issuance.qrCode}" alt="QR kode for bevis" id="qrcode-cross-device"
                  width="100%"/>
