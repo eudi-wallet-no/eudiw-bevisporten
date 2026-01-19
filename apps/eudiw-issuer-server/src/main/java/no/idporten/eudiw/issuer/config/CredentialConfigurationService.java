@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX;
+
 /**
  * Credential configurations supported by issuer.  May contain static or dynamic credential configurations.
  */
@@ -37,9 +39,20 @@ public class CredentialConfigurationService implements InitializingBean {
 
     private void updateCredentialConfigurations() {
         List<CredentialConfigurationProperties> ccByob = dynamicCredentialConfigurationService.generateCredentialConfigurations();
-        // todo remove later
+        List<CredentialConfigurationProperties> toRemove = new ArrayList<>();
+        for (CredentialConfigurationProperties cc : credentialConfigurations) {
+            String existingCCId = cc.getIdentifier();
+            if (!existingCCId.startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
+                continue;
+            }
+            if (ccByob.stream().filter(c -> c.getIdentifier().equals(existingCCId)).findFirst().isEmpty()) {
+                toRemove.add(cc);
+            }
+        }
+        credentialConfigurations.removeAll(toRemove);
         this.credentialConfigurations.addAll(ccByob);
     }
+
 
     @Override
     public void afterPropertiesSet() {
