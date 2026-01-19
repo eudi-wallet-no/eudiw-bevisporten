@@ -1,18 +1,19 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
-import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
-import no.idporten.eudiw.issuer.openid4vci.metadata.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class DynamicCredentialConfigurationService {
@@ -81,7 +82,6 @@ public class DynamicCredentialConfigurationService {
             log.info("Retrieved credential-configuration from byob-service by credentialType: %s".formatted(credentialType));
             return cc.getCredentialMetadata();
         }
-//        return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialType.equals(dcc.vct())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
         return null;
     }
 
@@ -97,7 +97,6 @@ public class DynamicCredentialConfigurationService {
             return cc.getCredentialMetadata();
         }
         return null;
-        //return getDynamicCredentialConfigurations().values().stream().filter(dcc -> credentialConfigurationId.equals(dcc.credentialConfigurationId())).findFirst().map(DynamicCredentialConfiguration::getCredentialMetadata).orElse(null);
     }
 
 }

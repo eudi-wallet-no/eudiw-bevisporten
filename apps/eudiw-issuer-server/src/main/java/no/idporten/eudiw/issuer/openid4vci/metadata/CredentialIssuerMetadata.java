@@ -55,4 +55,8 @@ public class CredentialIssuerMetadata {
         }
     }
 
+    public CredentialConfigurations getCredentialConfigurations() {
+        return credentialConfigurations;
+    }
+
 }
