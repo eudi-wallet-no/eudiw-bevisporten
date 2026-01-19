@@ -28,14 +28,21 @@ public class CredentialConfigurationService implements InitializingBean {
     }
 
     public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
+        updateCredentialConfigurations();
         return credentialConfigurations.stream()
                 .filter(credentialConfigurationProperties -> Objects.equals(credentialIdentifier, credentialConfigurationProperties.getIdentifier()))
                 .findFirst()
                 .orElseThrow(() -> new IssuerServerException("unknown_credential_identifier", "Unknown credential identifier.", HttpStatus.BAD_REQUEST));
     }
 
+    private void updateCredentialConfigurations() {
+        List<CredentialConfigurationProperties> ccByob = dynamicCredentialConfigurationService.generateCredentialConfigurations();
+        // todo remove later
+        this.credentialConfigurations.addAll(ccByob);
+    }
+
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         List<CredentialConfigurationProperties> allCredentialConfigurations = new ArrayList<>();
         allCredentialConfigurations.addAll(credentialIssuerServerProperties.getCredentialConfigurations());
         allCredentialConfigurations.addAll(dynamicCredentialConfigurationService.generateCredentialConfigurations());
