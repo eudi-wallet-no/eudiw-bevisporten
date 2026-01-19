@@ -1,10 +1,7 @@
 package no.idporten.eudiw.issuer.ui.demo.web;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
-import no.idporten.eudiw.issuer.ui.demo.byob.CredentialDefinitionFactory;
-import no.idporten.eudiw.issuer.ui.demo.byob.model.CredentialDefinition;
 import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialDto;
 import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialService;
 import no.idporten.eudiw.issuer.ui.demo.web.models.AddCredentialForm;
@@ -35,15 +32,9 @@ public class AdminController {
     }
 
     @GetMapping("/add-credential")
-    public ModelAndView addCredential() throws JsonProcessingException {
-        CredentialDefinition empty = CredentialDefinitionFactory.empty();
-
-        ObjectMapper mapper = new ObjectMapper();
-        String json = mapper
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(empty);
-
-        return new ModelAndView("add", "addCredentialForm", new AddCredentialForm(json));
+    public ModelAndView addCredential() {
+        CredentialDto emptyDto = credentialService.getEmptyCredentialDefinition();
+        return new ModelAndView("add", "addCredentialForm", new AddCredentialForm(emptyDto.json()));
     }
 
     @PostMapping("/add-credential")
@@ -60,7 +51,7 @@ public class AdminController {
     }
 
     @GetMapping("/edit-credential/{credential_configuration_id}")
-    public ModelAndView editCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId) throws JsonProcessingException {
+    public ModelAndView editCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId) {
         CredentialDto cd = credentialService.findCredential(credentialConfigurationId);
         return new ModelAndView("edit", "editCredentialForm", new EditCredentialForm(credentialConfigurationId, cd.json()));
     }
@@ -70,7 +61,7 @@ public class AdminController {
             @PathVariable("credential_configuration_id") String credentialConfigurationId,
             @Valid EditCredentialForm editCredentialForm,
             BindingResult bindingResult
-    ) throws JsonProcessingException {
+    ) {
         if (bindingResult.hasErrors()) {
             // TODO: Add json validation
             logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
