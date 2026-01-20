@@ -19,6 +19,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
@@ -65,7 +66,8 @@ public class ByobServiceIntegration {
             // Cache has never been updated; treat as expired
             return true;
         }
-        return lastUpdated.plusSeconds(50).isBefore(LocalDateTime.now());
+        Duration cacheDuration = byobServiceProperties.cacheTtl();
+        return lastUpdated.plusSeconds(cacheDuration.getSeconds()).isBefore(LocalDateTime.now());
     }
 
     private DynamicCredentialConfigurations retrieveAllFresh() {

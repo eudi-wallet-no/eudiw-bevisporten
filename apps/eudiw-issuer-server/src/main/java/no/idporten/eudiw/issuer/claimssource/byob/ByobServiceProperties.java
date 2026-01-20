@@ -15,7 +15,8 @@ public record ByobServiceProperties(
         @NotNull URI uri,
         @NotEmpty String apiKey,
         @DefaultValue("3s") Duration connectTimeout,
-        @DefaultValue("3s") Duration readTimeout
+        @DefaultValue("3s") Duration readTimeout,
+        @DefaultValue("30s") Duration cacheTtl
 ) {
 
 }
