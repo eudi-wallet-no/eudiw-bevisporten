@@ -74,12 +74,12 @@ public class AdminController {
         return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
     }
 
-
+    /*
     @GetMapping("/delete-credential/{credential_configuration_id}")
     public ModelAndView deleteCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId) {
         logger.info("Deleting credential with id {}", credentialConfigurationId);
 
         credentialService.deleteCredential(credentialConfigurationId);
         return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
-    }
+    }*/
 }
