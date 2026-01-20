@@ -30,7 +30,7 @@ management:
       environment: ${spring.application.environment}
 
 credential-issuer-server:
-  metadata-refresh-rate-in-millis: 60000 # 1 minute
+  metadata-refresh-rate-in-millis: 30000 # 30 seconds (must be > cache TTL)
   features:
     pid-signing-keystore: pid-provider
   cryptographic-bindings:
@@ -235,6 +235,7 @@ byob-service:
   api-key: ${API_KEY}
   connect-timeout: 2s
   read-timeout: 2s
+  cache-ttl: 28s
 
 # Maskinporten
 maskinporten:

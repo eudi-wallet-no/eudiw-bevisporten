@@ -31,7 +31,7 @@ public class ByobMetadataScheduler {
         this.credentialIssuerServerGeneratorService = credentialIssuerServerGeneratorService;
     }
 
-    @Scheduled(fixedDelayString = "${credential-issuer-server.metadata-refresh-rate-in-millis}", initialDelay = 60000)
+    @Scheduled(fixedDelayString = "${credential-issuer-server.metadata-refresh-rate-in-millis}", initialDelayString = "${credential-issuer-server.metadata-refresh-rate-in-millis}")
     public void updateIssuerMetadata() {
         Map<String, CredentialConfiguration> ccs = credentialIssuerServerGeneratorService.getByobCredentialConfigurations();
         removeByobCredentialConfigurations(ccs);
