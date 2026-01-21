@@ -29,6 +29,14 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
         };
     }
 
+    private String convertType(String type) {
+        return switch (type) {
+            case ClaimMetadata.TYPE_CUSTOM_BILDE -> ClaimMetadata.TYPE_BINARY;
+            case null, default -> type;
+        };
+    }
+
+
     public DocumentMetadata convertToDocumentMetadata() {
 
         if (claims == null) {
@@ -38,7 +46,7 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
         List<ClaimMetadata> claimsConverted = claims.stream()
                 .map(claim -> new ClaimMetadata(
                         claim.path(),
-                        claim.type(),
+                        convertType(claim.type()),
                         claim.display().stream().collect(Collectors.toMap(DocumentMetadata.Display::locale, DocumentMetadata.Display::name)),
                         claim.mandatory(),
                         claim.validationRegex() == null ? getDefaultValidationRegex(claim.type()) : claim.validationRegex()
