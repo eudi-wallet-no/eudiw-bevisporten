@@ -15,6 +15,7 @@ public record ClaimMetadata (
     public static final String TYPE_NUMBER = "number";
     public static final String TYPE_BOOLEAN = "boolean";
     public static final String TYPE_BINARY = "binary";
+    public static final String TYPE_CUSTOM_BILDE = "bilde";
     public static final String TYPE_FULLDATE = "fulldate"; // YYYY-MM-DD
     public static final String TYPE_DATETIME = "datetime"; // ISO 8601
     public static final String TYPE_LIST = "list";
