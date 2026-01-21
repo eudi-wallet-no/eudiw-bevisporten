@@ -29,10 +29,18 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
         };
     }
 
+    // Eksplisitt konvertering for å unngå feil ved utvidelser i fremtiden og beholde String som default.
     private String convertType(String type) {
         return switch (type) {
-            case ClaimMetadata.TYPE_CUSTOM_BILDE -> ClaimMetadata.TYPE_BINARY;
-            case null, default -> type;
+            case ClaimMetadata.TYPE_CUSTOM_BILDE, ClaimMetadata.TYPE_BINARY -> ClaimMetadata.TYPE_BINARY;
+            case ClaimMetadata.TYPE_STRING -> ClaimMetadata.TYPE_STRING;
+            case ClaimMetadata.TYPE_BOOLEAN -> ClaimMetadata.TYPE_BOOLEAN;
+            case ClaimMetadata.TYPE_NUMBER -> ClaimMetadata.TYPE_NUMBER;
+            case ClaimMetadata.TYPE_FULLDATE -> ClaimMetadata.TYPE_FULLDATE;
+            case ClaimMetadata.TYPE_DATETIME -> ClaimMetadata.TYPE_DATETIME;
+            case ClaimMetadata.TYPE_LIST -> ClaimMetadata.TYPE_LIST;
+            case ClaimMetadata.TYPE_MAP -> ClaimMetadata.TYPE_MAP;
+            case null, default -> ClaimMetadata.TYPE_STRING;
         };
     }
 
