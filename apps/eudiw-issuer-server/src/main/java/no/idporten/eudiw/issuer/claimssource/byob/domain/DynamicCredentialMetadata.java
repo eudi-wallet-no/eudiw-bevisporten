@@ -7,15 +7,26 @@ import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_STRING;
-
 @Builder
 public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
                                         List<DynamicClaimMetadata> claims) {
 
 
-    public static String defaultValidationRegexString() {
+    private static String getDefaultStringValidationRegex() {
         return "^[\\x20-\\x7EæøåÆØÅ]{1,255}$";
+    }
+
+    private static String getDefaultBinaryValidationRegex() {
+        return "^[-A-Za-z0-9+/]*={0,3}$";
+    }
+
+    private String getDefaultValidationRegex(String type) {
+
+        return switch (type) {
+            case ClaimMetadata.TYPE_STRING -> getDefaultStringValidationRegex();
+            case ClaimMetadata.TYPE_CUSTOM_BILDE, ClaimMetadata.TYPE_BINARY -> getDefaultBinaryValidationRegex();
+            case null, default -> getDefaultStringValidationRegex();
+        };
     }
 
     public DocumentMetadata convertToDocumentMetadata() {
@@ -27,10 +38,10 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
         List<ClaimMetadata> claimsConverted = claims.stream()
                 .map(claim -> new ClaimMetadata(
                         claim.path(),
-                        TYPE_STRING,
+                        claim.type(),
                         claim.display().stream().collect(Collectors.toMap(DocumentMetadata.Display::locale, DocumentMetadata.Display::name)),
                         claim.mandatory(),
-                        claim.validationRegex() == null ? defaultValidationRegexString() : claim.validationRegex()
+                        claim.validationRegex() == null ? getDefaultValidationRegex(claim.type()) : claim.validationRegex()
                 ))
                 .toList();
 
