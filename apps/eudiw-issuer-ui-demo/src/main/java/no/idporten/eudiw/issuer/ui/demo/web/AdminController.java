@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialDto;
 import no.idporten.eudiw.issuer.ui.demo.credentials.CredentialService;
+import no.idporten.eudiw.issuer.ui.demo.issuer.config.IssuerServerProperties;
 import no.idporten.eudiw.issuer.ui.demo.web.models.AddCredentialForm;
 import no.idporten.eudiw.issuer.ui.demo.web.models.EditCredentialForm;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,11 +22,17 @@ public class AdminController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final CredentialService credentialService;
+    private final IssuerServerProperties properties;
 
-    public AdminController(CredentialService credentialService) {
+    public AdminController(CredentialService credentialService, IssuerServerProperties properties) {
         this.credentialService = credentialService;
+        this.properties = properties;
     }
 
+    @ModelAttribute("issuerUrl")
+    public String issuerUrl() {
+        return properties.credentialIssuer();
+    }
 
     @GetMapping("/admin")
     public ModelAndView admin() {
