@@ -12,6 +12,8 @@ public record Claims(
         @NotEmpty(message = "Claims path is null or empty")
         @JsonProperty("path")
         String path,
+        @JsonProperty("type")
+        String type,
         @JsonProperty("mandatory")
         boolean mandatory,
         @Valid

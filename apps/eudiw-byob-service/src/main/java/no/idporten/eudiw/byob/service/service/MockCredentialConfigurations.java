@@ -20,6 +20,7 @@ public class MockCredentialConfigurations {
                     ),
                     List.of(
                             new Claims("name",
+                                    "string",
                                     true,
                                     List.of(new Display("Navn", "no", "", "")
                                             , new Display("Name", "en", "", ""))
@@ -39,6 +40,7 @@ public class MockCredentialConfigurations {
                     ),
                     List.of(
                             new Claims("age",
+                                    null,
                                     true,
                                     List.of(new Display("Alder", "no", "", ""),
                                             new Display("Age", "en", "", ""))

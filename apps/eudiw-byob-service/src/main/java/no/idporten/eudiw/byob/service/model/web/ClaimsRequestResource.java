@@ -14,6 +14,8 @@ public record ClaimsRequestResource(
         @NotEmpty(message = "Claims path is null or empty")
         @JsonProperty("path")
         String path,
+        @JsonProperty("type")
+        String type,
         @JsonProperty("mandatory")
         boolean mandatory,
         @Valid
@@ -25,6 +27,7 @@ public record ClaimsRequestResource(
     public Claims toClaims() {
         return new Claims(
                 this.path,
+                this.type,
                 this.mandatory,
                 this.display == null ? Collections.emptyList() : this.display.stream().map(DisplayRequestResource::toDisplay).toList()
         );

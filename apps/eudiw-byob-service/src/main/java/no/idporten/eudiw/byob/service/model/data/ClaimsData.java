@@ -12,6 +12,8 @@ import java.util.List;
 public record ClaimsData(
         @JsonProperty("path")
         String path,
+        @JsonProperty("type")
+        String type,
         @JsonProperty("mandatory")
         boolean mandatory,
         @JsonProperty("display")
@@ -19,12 +21,13 @@ public record ClaimsData(
 ) implements Serializable {
 
     public ClaimsData(Claims claims) {
-        this(claims.path(), claims.mandatory(), claims.display().stream().map(DisplayData::new).toList());
+        this(claims.path(), claims.type(), claims.mandatory(), claims.display().stream().map(DisplayData::new).toList());
     }
 
     public Claims toClaims() {
         return new Claims(
                 this.path,
+                this.type,
                 this.mandatory,
                 this.display == null ? Collections.emptyList() : this.display.stream().map(DisplayData::toDisplay).toList()
         );
