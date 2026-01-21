@@ -5,6 +5,7 @@ import java.util.List;
 
 public record Claim(
         String path,
+        String type,
         Boolean mandatory,
         List<Display> display
 ) {

@@ -79,6 +79,10 @@ public class CredentialIssuerService {
     }
 
     private IssuanceDefinition convertFromCredentialDefinitionToIssuanceDefinition(CredentialDefinition cd, String personId) {
+        if (cd == null) {
+            throw new IssuerUiException("CredentialDefinition is null");
+
+        }
         return new IssuanceDefinition(cd.getCredentialConfigurationId(), personId, convertFromExampleDataToIssuanceClaim(cd));
     }
 

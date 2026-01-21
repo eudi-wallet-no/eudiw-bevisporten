@@ -15,7 +15,8 @@
         </h1>
     </div>
     <div>
-        <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er tilgjengelig i utstederen.</p>
+        <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er oppdatert i utstederen. </p>
+        <p class="ds-paragraph ds-alert">Gyldig type for claims er <code>string</code> for tekst og <code>bilde</code> for bilder. Dersom type ikke er angitt blir type default satt til string. Dette er en spesial utvidelse for bevisporten/bevisgenerator.</p>
     </div>
 
     <form th:fragment="add_attributes_form_fragment"
@@ -53,6 +54,7 @@
                    th:field="*{json}"></textarea>
         </div>
 
+
         <button class="ds-button"
                 type="submit"
                 style="margin-top:16px"
@@ -61,6 +63,7 @@
             Legg til bevistype
         </button>
     </form>
+
 
 </main>
 
