@@ -39,7 +39,7 @@
         <kotlinx-serialization-json-jvm.version>1.9.0</kotlinx-serialization-json-jvm.version>
         <freg-integration-lib.version>1.0.10</freg-integration-lib.version>
         <maskinporten.client.version>5.0.1</maskinporten.client.version>
-        <log-event.version>1.6.1</log-event.version>
+        <log-event.version>2.0.0</log-event.version>
         <idporten-log-audit.version>2.5.3</idporten-log-audit.version>
 
     </properties>
