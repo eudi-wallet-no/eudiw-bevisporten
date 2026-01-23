@@ -73,6 +73,11 @@ public class ClaimValueConverter {
         return buildClaim(name, new BinaryValue(imageAsBytes));
     }
 
+    public Claim getDataClaim(String key, String value) {
+        return buildClaim(key, new DataValue(value));
+    }
+
+
     // Default implementation supporting basic claim types, List and Map later
     public Claim convertClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
         return switch (claim.type()) {
@@ -93,6 +98,8 @@ public class ClaimValueConverter {
                     getDateTimeClaim(claim.name(), (ZonedDateTime) storedClaims.get(claim.name()));
             case TYPE_BINARY ->
                     getBinaryClaim(claim.name(), (String) storedClaims.get(claim.name()));
+            case TYPE_DATA ->
+                    getDataClaim(claim.name(), (String) storedClaims.get(claim.name()));
             default ->
                 // Default to string claim for now
                     getStringClaim(claim.name(), (String) storedClaims.get(claim.name()));

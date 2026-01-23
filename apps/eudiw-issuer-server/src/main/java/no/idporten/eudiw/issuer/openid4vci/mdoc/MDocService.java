@@ -88,6 +88,9 @@ public class MDocService {
             case StringValue(String value) -> {
                 return new StringElement(value);
             }
+            case DataValue(String value) -> { // eigentleg ikkje lovleg for MDoc, berre flyt i gjennom for å unngå feil. TODO konverter til base64 only string?
+                return new StringElement(value);
+            }
             case BooleanValue(Boolean value) -> {
                 return new BooleanElement(value);
             }
