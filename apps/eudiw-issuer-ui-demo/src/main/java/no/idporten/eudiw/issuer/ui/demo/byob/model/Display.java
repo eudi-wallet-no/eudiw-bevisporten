@@ -12,4 +12,8 @@ public record Display(
 
         @JsonProperty("text_color")
         String textColor
-) {}
+) {
+        public Display(String name) {
+               this(name, "no", null, null);
+        }
+}

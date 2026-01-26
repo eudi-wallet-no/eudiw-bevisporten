@@ -164,3 +164,21 @@ header {
     list-style-type: none;
     padding: 0
 }
+
+.claim {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.claim_field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    justify-content: flex-start;
+    align-items: center;
+}
