@@ -1,0 +1,45 @@
+<div class="claim" th:fragment="claim(index, claimData)">
+
+    <div class="claim_field">
+        <input class="ds-input"
+               type="text"
+               th:name="|claims[${index}].path|"
+               th:value="${claimData != null ? claimData.path : ''}"
+               placeholder="Path"
+               id="claim_path"/>
+
+        <input class="ds-input"
+               type="text"
+               th:name="|claims[${index}].name|"
+               th:value="${claimData != null ? claimData.name : ''}"
+               placeholder="Name"
+               id="claim_name"/>
+    </div>
+
+    <div class="claim_field">
+        <select class="ds-input" th:name="|claims[${index}].type|">
+            <option disabled th:selected="${claimData == null or claimData.type == null}" value="">Velg en type</option>
+            <option value="string" th:selected="${claimData != null and claimData.type == 'string'}">String</option>
+            <option disabled value="integer">Integer</option>
+            <option disabled value="boolean">Boolean</option>
+            <option disabled value="date">Date</option>
+            <option disabled value="map">Map</option>
+            <option disabled value="list">List</option>
+        </select>
+
+        <input class="ds-input"
+               type="text"
+               th:name="|claims[${index}].exampleValue|"
+               th:value="${claimData != null ? claimData.exampleValue : ''}"
+               placeholder="Example Value"
+               id="claim_exampleValue"/>
+    </div>
+
+    <button class="ds-button"
+            data-color="danger"
+            data-variant="tertiary"
+            type="button"
+            onclick="removeClaim(this)">
+        Slett
+    </button>
+</div>
