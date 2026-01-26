@@ -36,7 +36,7 @@
         <kotlinx-serialization-bom.version>1.10.0</kotlinx-serialization-bom.version>
         <kotlinx-coroutines-core.version>1.10.2</kotlinx-coroutines-core.version>
         <kotlinx-datetime-jvm.version>0.7.1-0.6.x-compat</kotlinx-datetime-jvm.version>
-        <kotlinx-serialization-json-jvm.version>1.9.0</kotlinx-serialization-json-jvm.version>
+        <kotlinx-serialization-json-jvm.version>1.10.0</kotlinx-serialization-json-jvm.version>
         <freg-integration-lib.version>1.0.10</freg-integration-lib.version>
         <maskinporten.client.version>5.0.1</maskinporten.client.version>
         <log-event.version>2.0.0</log-event.version>
