@@ -75,17 +75,25 @@
                                 Rediger
                             </button>
                         </a>
+                        <a th:href="@{/edit-credential-new/{id}(id=${c.vct()})}">
+                            <button  class="ds-button" data-size="sm" data-variant="tertiary">
+                                Rediger 2.0
+                            </button>
+                        </a>
                     </div>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
-    <div>
-       <a th:href="@{/add-credential}" style="text-decoration: none">
+    <div style="display: flex; gap:10px;">
+        <a th:href="@{/add-credential}" style="text-decoration: none">
             <button class="ds-button" data-variant="neutral" data-size="lg">+ Legg til</button>
-       </a>
-   </div>
+        </a>
+        <a th:href="@{/add-credential-new}" style="text-decoration: none">
+            <button class="ds-button" data-variant="neutral" data-size="lg">+ Legg til 2.0</button>
+        </a>
+    </div>
 
 </main>
 
