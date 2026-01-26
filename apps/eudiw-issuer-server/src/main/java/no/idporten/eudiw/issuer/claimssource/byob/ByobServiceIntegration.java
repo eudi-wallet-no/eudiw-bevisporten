@@ -40,7 +40,7 @@ public class ByobServiceIntegration {
 
     private volatile DynamicCredentialConfigurations cachedCCs = null;
     private volatile LocalDateTime lastUpdated;
-    static final Object lock = new Object();
+    private static final Object lock = new Object();
 
     @Autowired
     public ByobServiceIntegration(ByobServiceProperties byobServiceProperties,
@@ -52,10 +52,13 @@ public class ByobServiceIntegration {
 
     public DynamicCredentialConfigurations retrieveAll() {
 
-        if(cachedCCs == null || isCacheExpired()){
+        if (cachedCCs == null || isCacheExpired()) {
             synchronized (lock) {
-                cachedCCs = retrieveAllFresh();
-                lastUpdated = LocalDateTime.now();
+                // Double-check locking because of wait time between first check and acquiring the lock
+                if (cachedCCs == null || isCacheExpired()) {
+                    cachedCCs = retrieveAllFresh();
+                    lastUpdated = LocalDateTime.now();
+                }
             }
         }
         return cachedCCs;
