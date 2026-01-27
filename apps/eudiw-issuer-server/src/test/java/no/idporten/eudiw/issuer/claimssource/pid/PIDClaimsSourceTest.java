@@ -106,24 +106,22 @@ class PIDClaimsSourceTest {
 
         assertNotNull(claims);
         assertEquals(NUMBER_OF_CLAIMS, claims.size());
-        assertTrue(claims.stream().anyMatch(c-> "family_name".equals(c.getPath().getFirst())));
-        assertTrue(claims.stream().anyMatch(c-> "given_name".equals(c.getPath().getFirst())));
-        assertTrue(claims.stream().anyMatch(c-> "birth_date".equals(c.getPath().getFirst())));
-        assertTrue(claims.stream().anyMatch(c-> "place_of_birth".equals(c.getPath().getFirst())));
-        assertTrue(claims.stream().anyMatch(c-> "nationality".equals(c.getPath().getFirst())));
+        assertTrue(claims.stream().anyMatch(c-> "family_name".equals(c.getPath().getLast())));
+        assertTrue(claims.stream().anyMatch(c-> "given_name".equals(c.getPath().getLast())));
+        assertTrue(claims.stream().anyMatch(c-> "birth_date".equals(c.getPath().getLast())));
+        assertTrue(claims.stream().anyMatch(c-> "place_of_birth".equals(c.getPath().getLast())));
+        assertTrue(claims.stream().anyMatch(c-> "nationality".equals(c.getPath().getLast())));
 
         verify(fregIntegration).getFolkeregisterPerson(eq(fnr), anyList());
 
         // test personal_administrative_number is present in claims
-        Optional<Claim> fnrClaim = claims.stream().filter(c-> "personal_administrative_number".equals(c.getPath().getFirst()))
-                .findFirst();
+        Optional<Claim> fnrClaim = claims.stream().filter(c-> "personal_administrative_number".equals(c.getPath().getLast())).findFirst();
         assertTrue(fnrClaim.isPresent());
         assertInstanceOf(StringValue.class, fnrClaim.get().getValue());
         assertEquals(fnr, fnrClaim.get().getValue().value());
 
         // test birth_date is present in claims and of type FullDateValue
-        Optional<Claim> birthDateClaim = claims.stream().filter(c-> "birth_date".equals(c.getPath().getFirst()))
-                .findFirst();
+        Optional<Claim> birthDateClaim = claims.stream().filter(c-> List.of("eu.europa.ec.eudi.pid.1", "birth_date").equals(c.getPath())).findFirst();
         assertTrue(birthDateClaim.isPresent());
         assertInstanceOf(FullDateValue.class, birthDateClaim.get().getValue());
         assertEquals(LocalDate.of(2000, 1, 1), birthDateClaim.get().getValue().value());

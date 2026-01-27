@@ -9,20 +9,30 @@ import org.springframework.stereotype.Service;
 @Service
 public class PIDMdocClaimsSource extends PIDClaimsSource {
 
+    public static final String NAMESPACE = "eu.europa.ec.eudi.pid.1";
 
     public PIDMdocClaimsSource(FregService fregService, PersonConverterService personConverterService) {
         super(fregService, personConverterService);
     }
 
     /**
+     * Namespace override for mdoc.
+     * @return mdoc credential namespace
+     */
+    @Override
+    protected String getNamespace() {
+        return NAMESPACE;
+    }
+
+    /**
      * Attribute name overrides for PID in mdoc format.
      */
     @Override
-    protected String getAttributeIdentifier(String dataIdentifier) {
+    protected String calculateAttributeIdentifier(String dataIdentifier) {
         if ("birth_place".equals(dataIdentifier)) {
             return "place_of_birth";
         }
-        return super.getAttributeIdentifier(dataIdentifier);
+        return super.calculateAttributeIdentifier(dataIdentifier);
     }
 
     @Override

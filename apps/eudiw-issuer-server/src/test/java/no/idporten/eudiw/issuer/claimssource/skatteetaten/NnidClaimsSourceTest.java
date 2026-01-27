@@ -21,7 +21,6 @@ import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -30,6 +29,7 @@ class NnidClaimsSourceTest {
 
     public static final String NORWEGIAN_NATIONAL_ID_NUMBER = "norwegian_national_id_number";
     public static final String NORWEGIAN_NATIONAL_ID_NUMBER_TYPE = "norwegian_national_id_number_type";
+    public static final String NORWEGIAN_NATIONAL_ID_NUMBER_NAMESPACE = "no.skatteetaten.nnid.1";
     public static final String NORWEGIAN_NATIONAL_ID_NUMBER_DOCTYPE = "no.skatteetaten.nnid.1";
 
     private NnidClaimsSource nnidClaimsSource;
@@ -147,9 +147,9 @@ class NnidClaimsSourceTest {
             assertAll(
                     () -> assertEquals(2, claims.size()),
                     () -> assertEquals("12345678901", ((StringValue) claims.getFirst().getValue()).value()),
-                    () -> assertEquals(List.of("norwegian_national_id_number"), claims.getFirst().getPath()),
+                    () -> assertEquals(List.of(NORWEGIAN_NATIONAL_ID_NUMBER_NAMESPACE, "norwegian_national_id_number"), claims.getFirst().getPath()),
                     () -> assertEquals("D-nummer", ((StringValue) claims.getLast().getValue()).value()),
-                    () -> assertEquals(List.of("norwegian_national_id_number_type"), claims.getLast().getPath())
+                    () -> assertEquals(List.of(NORWEGIAN_NATIONAL_ID_NUMBER_NAMESPACE, "norwegian_national_id_number_type"), claims.getLast().getPath())
             );
         }
     }

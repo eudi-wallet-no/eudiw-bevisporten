@@ -26,6 +26,11 @@ class ForerkortClaimsSourceTest {
         DocumentMetadata documentMetadata = source.getDocumentMetadata(null);
         assertNotNull(documentMetadata);
         assertEquals(11, documentMetadata.claims().size());
+        for(ClaimMetadata claimMetadata : documentMetadata.claims()) {
+            assertEquals("org.iso.18013.5.1", claimMetadata.namespace());
+            assertEquals(2, claimMetadata.path().size());
+            assertEquals(claimMetadata.namespace(), claimMetadata.path().getFirst());
+        }
     }
 
     @Test

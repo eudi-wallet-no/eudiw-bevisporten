@@ -41,39 +41,57 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", getCredentialName())),
                 List.of(
-                        new ClaimMetadata(getAttributeIdentifier("personal_administrative_number"),
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("personal_administrative_number"),
+                                TYPE_STRING,
                                 Map.of("no", "Fødselsnummer"),
                                 true,
                                 "^\\d{11}$"),
-                        new ClaimMetadata(getAttributeIdentifier("given_name"),
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("given_name"),
+                                TYPE_STRING,
                                 Map.of("no", "Førenamn"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("family_name"),
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("family_name"),
+                                TYPE_STRING,
                                 Map.of("no", "Etternamn"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("birth_date"), TYPE_FULLDATE,
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("birth_date"),
+                                TYPE_FULLDATE,
                                 Map.of("no", "Fødselsdato"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("birth_place"), TYPE_MAP,
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("birth_place"),
+                                TYPE_MAP,
                                 Map.of("no", "Fødeland"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("nationality"), TYPE_LIST,
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("nationality"),
+                                TYPE_LIST,
                                 Map.of("no", "Nasjonalitet"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("expiry_date"), TYPE_FULLDATE,
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("expiry_date"),
+                                TYPE_FULLDATE,
                                 Map.of("no", "Gyldig til dato"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("issuing_authority"),
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("issuing_authority"),
+                                TYPE_STRING,
                                 Map.of("no", "Utsteda av"),
                                 true,
                                 null),
-                        new ClaimMetadata(getAttributeIdentifier("issuing_country"),
+                        new ClaimMetadata(getNamespace(),
+                                calculateAttributeIdentifier("issuing_country"),
+                                TYPE_STRING,
                                 Map.of("no", "Utsteda i land"),
                                 true,
                                 null)
@@ -101,19 +119,29 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
 
         List<Claim> claims = new ArrayList<>();
         // mandatory attributes
-        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("personal_administrative_number"), personIdentifier));
-        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("family_name"), getEtternavn(person.getNavn())));
-        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("given_name"), getFornavn(person.getNavn())));
-        claims.add(claimValueConverter.getFullDateClaim(getAttributeIdentifier("birth_date"), getFoedselsdato(person)));
-        claims.add(claimValueConverter.getMapClaim(getAttributeIdentifier("place_of_birth"), convertBirthPlace(person)));
-        claims.add(claimValueConverter.getListClaim(getAttributeIdentifier("nationality"), getNationalities(person)));
+        claims.add(claimValueConverter.getStringClaim(calculatePath("personal_administrative_number"), personIdentifier));
+        claims.add(claimValueConverter.getStringClaim(calculatePath("family_name"), getEtternavn(person.getNavn())));
+        claims.add(claimValueConverter.getStringClaim(calculatePath("given_name"), getFornavn(person.getNavn())));
+        claims.add(claimValueConverter.getFullDateClaim(calculatePath("birth_date"), getFoedselsdato(person)));
+        claims.add(claimValueConverter.getMapClaim(calculatePath("place_of_birth"), convertBirthPlace(person)));
+        claims.add(claimValueConverter.getListClaim(calculatePath("nationality"), getNationalities(person)));
 
         // mandatory metadata attributes
-        claims.add(claimValueConverter.getFullDateClaim(getAttributeIdentifier("expiry_date"), createPidExpiryDate()));
-        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("issuing_authority"), "DIGITALISERINGSDIREKTORATET"));
-        claims.add(claimValueConverter.getStringClaim(getAttributeIdentifier("issuing_country"), "NO"));
+        claims.add(claimValueConverter.getFullDateClaim(calculatePath("expiry_date"), createPidExpiryDate()));
+        claims.add(claimValueConverter.getStringClaim(calculatePath("issuing_authority"), "DIGITALISERINGSDIREKTORATET"));
+        claims.add(claimValueConverter.getStringClaim(calculatePath("issuing_country"), "NO"));
 
         return claims;
+    }
+
+    protected List<String> calculatePath(String dataIdentifier) {
+        String namespace = getNamespace();
+        List<String> path = new ArrayList<>();
+        if (namespace != null) {
+            path.add(namespace);
+        }
+        path.add(calculateAttributeIdentifier(dataIdentifier));
+        return path;
     }
 
     private static String getFoedselsdato(PersonResource person) {
@@ -159,8 +187,16 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
     /**
      * Gets format-specific attribute identifier.  Default is the data identifier itself.
      */
-    protected String getAttributeIdentifier(String dataIdentifier) {
+    protected String calculateAttributeIdentifier(String dataIdentifier) {
         return dataIdentifier;
+    }
+
+    /**
+     * Gets namespace - only relevant for mdoc.
+     * @return namespace
+     */
+    protected String getNamespace() {
+        return EMPTY_NAMESPACE;
     }
 
 }

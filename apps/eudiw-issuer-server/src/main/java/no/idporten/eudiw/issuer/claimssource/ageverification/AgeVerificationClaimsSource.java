@@ -26,6 +26,8 @@ import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_BO
 @Service
 public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource {
 
+    public final String NAMESPACE = "eu.europa.ec.av.1";
+
     private final DocumentMetadata documentMetadata;
 
     private final FregService fregService;
@@ -40,16 +42,22 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Aldersbevis")),
                 List.of(
-                        new ClaimMetadata("age_over_18", TYPE_BOOLEAN,
-                                Map.of("no", "Over 18 år"),
+                        new ClaimMetadata(
+                                NAMESPACE,
+                                "age_over_18",
+                                TYPE_BOOLEAN,
+                                Map.of("no",
+                                        "Over 18 år"),
                                 true,
                                 "^true|false$"),
-                        new ClaimMetadata("age_over_15", TYPE_BOOLEAN,
+                        new ClaimMetadata(
+                                NAMESPACE,
+                                "age_over_15",
+                                TYPE_BOOLEAN,
                                 Map.of("no", "Over 15 år"),
                                 true,
                                 "^true|false$")));
     }
-
 
     @Override
     public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
@@ -68,9 +76,9 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
         List<Claim> claims = new ArrayList<>();
         // mandatory attributes
         boolean over18 = personConverterService.calcAgeOver(person.getFoedselsdato(), 18);
-        claims.add(claimValueConverter.getBooleanClaim("age_over_18", over18));
+        claims.add(claimValueConverter.getBooleanClaim(List.of(NAMESPACE, "age_over_18"), over18));
         boolean over15 = personConverterService.calcAgeOver(person.getFoedselsdato(), 15);
-        claims.add(claimValueConverter.getBooleanClaim("age_over_15", over15));
+        claims.add(claimValueConverter.getBooleanClaim(List.of(NAMESPACE, "age_over_15"), over15));
 
 //        // mandatory metadata attributes
 //        claims.add(getDateTimeClaim("expiry_date", personConverterService.calcExpiryDateInMonths(1)));

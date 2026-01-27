@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.EMPTY_NAMESPACE;
 import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_MAP;
 
 
@@ -34,7 +35,10 @@ public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Inntektsbevis")),
                 List.of(
-                        new ClaimMetadata("fastlonn", TYPE_MAP,
+                        new ClaimMetadata(
+                                EMPTY_NAMESPACE,
+                                "fastlonn",
+                                TYPE_MAP,
                                 Map.of("no", "Fastlønn"),
                                 true,
                                 "^[\\x20-\\x7E]{1,200}$")));
