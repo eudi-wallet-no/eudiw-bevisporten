@@ -7,13 +7,11 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import id.walt.mdoc.dataelement.DataElement;
 import id.walt.mdoc.doc.MDoc;
 import kotlin.time.Instant;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -127,15 +125,15 @@ public class MDocServiceTest {
     @Test
     void testIssueMDocCredentialsList() throws Exception {
         List<ClaimValue> list = List.of(new StringValue("one"), new StringValue("two"), new StringValue("three"));
-        Claim claim = buildClaim("path", "mylist", new ListValue(list));
+        Claim claim = buildClaim("mynamespace", "mylist", new ListValue(list));
 
-        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("mydoctype", "eaa-provider"), List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
-                () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
-                () -> assertEquals("mylist", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
-                () -> assertEquals(list.size(), ((List<DataElement>) mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size()),
-                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
+                () -> assertEquals("mydoctype", mdoc.getMSO().getDocType().getValue()),
+                () -> assertEquals("mylist", mdoc.getIssuerSignedItems("mynamespace").getFirst().getElementIdentifier().getValue()),
+                () -> assertEquals(list.size(), ((List<DataElement>) mdoc.getIssuerSignedItems("mynamespace").getFirst().getElementValue().getInternalValue()).size()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("mynamespace").size())
         );
     }
 
@@ -145,15 +143,15 @@ public class MDocServiceTest {
                 "key1", new StringValue("value1"),
                 "key2", new StringValue("value2")
         );
-        Claim claim = buildClaim("path", "mymap", new MapValue(map));
+        Claim claim = buildClaim("mynamespace", "mymap", new MapValue(map));
 
-        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("foo", "eaa-provider"), List.of(claim));
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("mydoctype", "eaa-provider"), List.of(claim));
         assertAll(
                 () -> assertNotNull(mdoc),
-                () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
-                () -> assertEquals("mymap", mdoc.getIssuerSignedItems("foo").getFirst().getElementIdentifier().getValue()),
-                () -> assertEquals(map.size(), ((Map<String, DataElement>) mdoc.getIssuerSignedItems("foo").getFirst().getElementValue().getInternalValue()).size()),
-                () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size())
+                () -> assertEquals("mydoctype", mdoc.getMSO().getDocType().getValue()),
+                () -> assertEquals("mymap", mdoc.getIssuerSignedItems("mynamespace").getFirst().getElementIdentifier().getValue()),
+                () -> assertEquals(map.size(), ((Map<String, DataElement>) mdoc.getIssuerSignedItems("mynamespace").getFirst().getElementValue().getInternalValue()).size()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("mynamespace").size())
         );
     }
 

@@ -68,7 +68,8 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
 
         List<ClaimMetadata> claimsConverted = claims.stream()
                 .map(claim -> new ClaimMetadata(
-                        claim.path(),
+                        ClaimMetadata.EMPTY_NAMESPACE, // namespace only for mdoc, byob only supports SD-JWT-VC
+                        claim.path(),       // path as single string
                         convertType(claim.type()),
                         claim.display().stream().collect(Collectors.toMap(DocumentMetadata.Display::locale, DocumentMetadata.Display::name)),
                         claim.mandatory(),

@@ -15,6 +15,8 @@ import java.util.Objects;
 @Service
 public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
+    public static final String NAMESPACE = "no.advokattilsynet.advokatregisteret.1";
+
     private final DocumentMetadata documentMetadata;
     private final AdvokatregisteretIntegration advokatregisteretIntegration;
 
@@ -23,27 +25,39 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Advokatbevilling")),
                 List.of(
-                        new ClaimMetadata("personidentifikator",
+                        new ClaimMetadata(NAMESPACE,
+                                "personidentifikator",
+                                ClaimMetadata.TYPE_STRING,
                                 Map.of("no", "Personidentifikator"),
                                 true,
                                 "^\\d{11}$"),
-                        new ClaimMetadata("tittel",
+                        new ClaimMetadata(NAMESPACE,
+                                "tittel",
+                                ClaimMetadata.TYPE_STRING,
                                 Map.of("no", "Tittel"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
-                        new ClaimMetadata("mellomnavn",
+                        new ClaimMetadata(NAMESPACE,
+                                "mellomnavn",
+                                ClaimMetadata.TYPE_STRING,
                                 Map.of("no", "Mellomnavn"),
                                 false,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
-                        new ClaimMetadata("etternavn",
+                        new ClaimMetadata(NAMESPACE,
+                                "etternavn",
+                                ClaimMetadata.TYPE_STRING,
                                 Map.of("no", "Etternavn"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
-                        new ClaimMetadata("fornavn",
+                        new ClaimMetadata(NAMESPACE,
+                                "fornavn",
+                                ClaimMetadata.TYPE_STRING,
                                 Map.of("no", "Fornavn"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
-                        new ClaimMetadata("regnr",
+                        new ClaimMetadata(NAMESPACE,
+                                "regnr",
+                                ClaimMetadata.TYPE_STRING,
                                 Map.of("no", "Regnr"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$")
@@ -73,7 +87,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
     }
 
     @Override
-    public String getAuthorativeSourceName(){
+    public String getAuthorativeSourceName() {
         return AuthoritativeSource.ADVOKATREGISTERET.name();
     }
 

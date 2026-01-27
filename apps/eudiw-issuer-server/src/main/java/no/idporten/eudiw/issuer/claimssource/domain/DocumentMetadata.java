@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.domain;
 
 
+import java.util.Arrays;
 import java.util.List;
 
 public record DocumentMetadata(
@@ -10,6 +11,10 @@ public record DocumentMetadata(
 
     public ClaimMetadata findClaimMetadata(String name) {
         return claims().stream().filter(claim -> claim.name().equals(name)).findFirst().orElse(null);
+    }
+
+    public ClaimMetadata findClaimMetadata(String... path) {
+        return claims().stream().filter(claim -> claim.path().equals(Arrays.stream(path).toList())).findFirst().orElse(null);
     }
 
     public record Display(

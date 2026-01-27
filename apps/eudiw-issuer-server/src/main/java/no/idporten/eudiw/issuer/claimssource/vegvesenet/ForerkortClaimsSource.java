@@ -24,6 +24,8 @@ import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
 @Service
 public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
+    public static final String NAMESPACE = "org.iso.18013.5.1";
+    
     private static final String FORERKORT_DISCLAIMER_NO =
         "MERK: dette er ikkje eit reelt førarkort kobla til test-førarkortregisteret. Alle testbrukarar får statisk satt klasse B.";
     private static final String FORERKORT_DISCLAIMER_EN =
@@ -35,67 +37,86 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                 new DocumentMetadata.Display("en", "Norwegian driver's license", FORERKORT_DISCLAIMER_EN)
             ),
             List.of(
-                    new ClaimMetadata("family_name",
+                    new ClaimMetadata(NAMESPACE,
+                            "family_name",
+                            TYPE_STRING,
                             Map.of(
                                     "no", "Etternavn",
                                     "en", "Family name"),
                             true,
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
-                    new ClaimMetadata("given_name",
+                    new ClaimMetadata(NAMESPACE,
+                            "given_name",
+                            TYPE_STRING,
                             Map.of(
                                     "no", "Fornavn",
                                     "en", "Given name"),
                             true,
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
-                    new ClaimMetadata("birth_date", TYPE_FULLDATE,
+                    new ClaimMetadata(NAMESPACE,
+                            "birth_date",
+                            TYPE_FULLDATE,
                             Map.of(
                                     "no", "Fødselsdato",
                                     "en", "Date of birth"),
                             true,
                             "^\\d{4}-\\d{2}-\\d{2}$"),
-                    new ClaimMetadata("issue_date", TYPE_FULLDATE,
+                    new ClaimMetadata(NAMESPACE,
+                            "issue_date",
+                            TYPE_FULLDATE,
                             Map.of(
                                     "no", "Gyldig fra dato",
                                     "en", "Issue date"),
                             true,
                             "^\\d{4}-\\d{2}-\\d{2}$"),
-                    new ClaimMetadata("expiry_date", TYPE_FULLDATE,
+                    new ClaimMetadata(NAMESPACE,
+                            "expiry_date",
+                            TYPE_FULLDATE,
                             Map.of(
                                     "no", "Gyldig til dato",
                                     "en", "Expiry date"),
                             true,
                             "^\\d{4}-\\d{2}-\\d{2}$"),
-                    new ClaimMetadata("issuing_country",
+                    new ClaimMetadata(NAMESPACE,
+                            "issuing_country",
+                            TYPE_STRING,
                             Map.of(
                                     "no", "Utsted av land",
                                     "en", "Issuing country"),
                             true,
                             "^[A-Z]{2}$"),
-                    new ClaimMetadata("issuing_authority",
+                    new ClaimMetadata(NAMESPACE,
+                            "issuing_authority",
+                            TYPE_STRING,
                             Map.of(
                                     "no", "Utsteder myndighet",
                                     "en", "Issuing authority"),
                             true,
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
-                    new ClaimMetadata("document_number",TYPE_NUMBER,
+                    new ClaimMetadata(NAMESPACE, "document_number",
+                            TYPE_NUMBER,
                             Map.of(
                                     "no", "Førerkort nummer",
                                     "en", "Document number"),
                             true,
                             "^\\d{1,150}$"),
-                    new ClaimMetadata("portrait", TYPE_BINARY,
+                    new ClaimMetadata(NAMESPACE, "portrait",
+                            TYPE_BINARY,
                             Map.of(
                                     "no", "Portrett bilde",
                                     "en", "Portrait Photos"),
                             false,
                             "^[-A-Za-z0-9+/]*={0,3}$"), // base64 regex
-                    new ClaimMetadata("driving_privileges", TYPE_MAP,
+                    new ClaimMetadata(NAMESPACE, "driving_privileges",
+                            TYPE_MAP,
                             Map.of(
                                     "no", "Førerkort klasser",
                                     "en", "Driving privileges"),
                             true,
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
-                    new ClaimMetadata("un_distinguishing_sign",
+                    new ClaimMetadata(NAMESPACE,
+                            "un_distinguishing_sign",
+                            TYPE_STRING,
                             Map.of(
                                     "no", "Land",
                                     "en", "Country"),
@@ -156,10 +177,9 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
             dpClaims.put("issue_date", new FullDateValue(LocalDate.parse((String) dp.get("issue_date"))));
             dpClaims.put("expiry_date", new FullDateValue(LocalDate.parse((String) dp.get("expiry_date"))));
             dpClaims.put("codes", new StringValue((String) dp.get("codes")));
-            return Claim.builder().path(claim.name()).value(new MapValue(dpClaims)).build();
+            return Claim.builder().path(NAMESPACE).path(claim.name()).value(new MapValue(dpClaims)).build();
         }
         return super.getClaim(claim, storedClaims);
     }
-
 
 }

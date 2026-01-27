@@ -49,7 +49,7 @@ public class ClaimsSourceService implements InitializingBean {
                 .toList());
         for (ClaimMetadata claimMetadata : documentMetadata.claims()) {
             builder.claim(ClaimsDescription.builder()
-                    .path(claimMetadata.name())
+                    .path(claimMetadata.path())
                     .mandatory(claimMetadata.mandatory())
                     .displays(claimMetadata.displayNames()
                             .entrySet()

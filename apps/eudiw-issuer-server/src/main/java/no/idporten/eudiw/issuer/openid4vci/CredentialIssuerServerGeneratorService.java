@@ -51,7 +51,7 @@ public class CredentialIssuerServerGeneratorService {
                     .scope(propsTemplate.getScope())
                     .credentialMetadata(CredentialMetadata.builder()
                             .display(dcc.getCredentialMetadata().displays().stream().map(this::convertToDisplay).toList())
-                            .claims(adjustClaimsDescriptionsToCredentialFormat(propsTemplate.getFormat(), propsTemplate.getCredentialType(), convertClaimsToClaimsDescription(dcc.credentialMetadata().claims())))
+                            .claims(convertClaimsToClaimsDescription(dcc.credentialMetadata().claims()))
                             .build())
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())
@@ -115,7 +115,7 @@ public class CredentialIssuerServerGeneratorService {
                     // config from claims source
                     .credentialMetadata(CredentialMetadata.builder()
                             .display(claimsSourceMetadata.getDisplays())
-                            .claims(adjustClaimsDescriptionsToCredentialFormat(credentialConfigurationProperties.getFormat(), credentialConfigurationProperties.getCredentialType(), claimsSourceMetadata.getClaims()))
+                            .claims(claimsSourceMetadata.getClaims())
                             .build())
                     // config from issuer server
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
@@ -140,20 +140,6 @@ public class CredentialIssuerServerGeneratorService {
             log.error("Failed to fetch dynamic credential configurations from BYOB service when generate metadata. Continue without BYO-bevis. ", e);
             return Collections.emptyList();
         }
-    }
-
-    /**
-     * Adjust claims description paths to credential format.
-     * mdoc includes credential type in path.
-     * SD-JWT VC adds claims descriptions for timestamps iat and exp.
-     */
-    List<ClaimsDescription> adjustClaimsDescriptionsToCredentialFormat(CredentialFormat credentialFormat, String credentialType, List<ClaimsDescription> claimsDescriptions) {
-        List<ClaimsDescription> adjustedClaimsDescriptions = new ArrayList<>();
-        adjustedClaimsDescriptions.addAll(claimsDescriptions
-                .stream()
-                .map(claimsDescription -> claimsDescription.forFormat(credentialFormat, credentialType))
-                .toList());
-        return adjustedClaimsDescriptions;
     }
 
 }

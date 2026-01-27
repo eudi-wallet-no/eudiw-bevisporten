@@ -18,7 +18,7 @@ public class PIDSDJwtClaimsSource extends PIDClaimsSource {
      * Attribute name overrides for PID in SD-JWT VC format.
      */
     @Override
-    protected String getAttributeIdentifier(String dataIdentifier) {
+    protected String calculateAttributeIdentifier(String dataIdentifier) {
         if ("birth_date".equals(dataIdentifier)) {
             return "birthdate";
         }
@@ -28,7 +28,7 @@ public class PIDSDJwtClaimsSource extends PIDClaimsSource {
         if ("nationality".equals(dataIdentifier)) {
             return "nationalities";
         }
-        return super.getAttributeIdentifier(dataIdentifier);
+        return super.calculateAttributeIdentifier(dataIdentifier);
     }
 
     @Override

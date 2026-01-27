@@ -107,18 +107,20 @@ class AgeVerificationClaimsSourceTest {
         verify(fregIntegration).getFolkeregisterPerson(eq(fnr), anyList());
 
         // test age_over_18 is present in claims and of type BooleanValue of value true
-        Optional<Claim> ageOver18Claim = claims.stream().filter(c-> "age_over_18".equals(c.getPath().getFirst()))
+        Optional<Claim> ageOver18Claim = claims.stream().filter(c-> "age_over_18".equals(c.getPath().getLast()))
                 .findFirst();
         assertTrue(ageOver18Claim.isPresent());
+        assertEquals("eu.europa.ec.av.1", ageOver18Claim.get().getPath().getFirst());
         ClaimValue over18 = ageOver18Claim.get().getValue();
         assertInstanceOf(BooleanValue.class, over18);
         assertTrue(((BooleanValue)over18).value());
 
         // test age_over_15 is present in claims and of type BooleanValue of value true
-        Optional<Claim> ageOver15Claim = claims.stream().filter(c-> "age_over_15".equals(c.getPath().getFirst()))
+        Optional<Claim> ageOver15Claim = claims.stream().filter(c-> "age_over_15".equals(c.getPath().getLast()))
                 .findFirst();
         assertTrue(ageOver15Claim.isPresent());
         ClaimValue over15 = ageOver15Claim.get().getValue();
+        assertEquals("eu.europa.ec.av.1", ageOver15Claim.get().getPath().getFirst());
         assertInstanceOf(BooleanValue.class, over15);
         assertTrue(((BooleanValue)over15).value());
     }

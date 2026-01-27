@@ -17,7 +17,7 @@ public class JUnitClaimsSource implements ClaimsSource {
     public JUnitClaimsSource(){
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Junit doc", "Kun for junit-tester")),
-                List.of(new ClaimMetadata("attr1", Map.of("no", "attribute1"), true, ".*"))
+                List.of(new ClaimMetadata("junitdoc", "attr1", ClaimMetadata.TYPE_STRING, Map.of("no", "attribute1"), true, ".*"))
         );
     }
 

@@ -3,9 +3,7 @@ package no.idporten.eudiw.issuer.openid4vci.metadata;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,16 +34,6 @@ public class ClaimsDescription {
                 .filter(display -> display.getLocale().equals(locale))
                 .findFirst()
                 .orElse(displays.getFirst());
-    }
-
-    public ClaimsDescription forFormat(CredentialFormat credentialFormat, String credentialType) {
-        if (CredentialFormat.SD_JWT_VC.equals(credentialFormat)) {
-            return this;
-        }
-        List<String> mdocPath = new ArrayList<>();
-        mdocPath.add(credentialType);
-        mdocPath.addAll(this.path);
-        return this.withPath(mdocPath);
     }
 
 }

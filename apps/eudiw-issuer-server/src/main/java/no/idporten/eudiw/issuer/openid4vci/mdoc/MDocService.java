@@ -67,7 +67,7 @@ public class MDocService {
         MDocBuilder mDocBuilder = new MDocBuilder(docType);
         for (Claim entry : claims) {
             DataElement data = getDataElement(entry.getValue());
-            mDocBuilder.addItemToSign(docType, entry.getPath().getLast(), data);
+            mDocBuilder.addItemToSign(entry.getPath().getFirst(), entry.getPath().getLast(), data);
         }
         // TOODO hack for iOS wallet mdoc issue timestamp validation failure
         Instant signedAt = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES).toEpochMilli());
