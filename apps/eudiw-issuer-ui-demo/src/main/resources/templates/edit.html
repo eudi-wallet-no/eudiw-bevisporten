@@ -15,8 +15,8 @@
         </h1>
     </div>
     <div>
-        <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er oppdatert i utstederen. </p>
-        <p class="ds-paragraph ds-alert">Gyldig type for claims er <code>string</code> for tekst og <code>bilde</code> for bilder. Dersom type ikke er angitt blir type default satt til string. Dette er en spesial utvidelse for bevisporten/bevisgenerator.</p>
+        <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevisdefinisjonen er oppdatert i utstedaren. </p>
+        <p class="ds-paragraph ds-alert">Gyldig type for claims er <code>string</code> for tekst og <code>binary</code> for bilder. <code>mime_type</code> gjeld berre for binary type og må angis som mediatype ihht https://www.rfc-editor.org/rfc/rfc2397.html. Default er "image/png" for SD-JWT, attributten er ignorert for MDoc. Dersom type ikke er angitt blir type default satt til string. </p>
     </div>
 
     <form

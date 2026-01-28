@@ -3,12 +3,14 @@ package no.idporten.eudiw.issuer.ui.demo.byob;
 import no.idporten.eudiw.issuer.ui.demo.byob.model.CredentialDefinition;
 import no.idporten.eudiw.issuer.ui.demo.byob.model.CredentialDefinitionCollection;
 import no.idporten.eudiw.issuer.ui.demo.exception.ByobServiceException;
+import no.idporten.eudiw.issuer.ui.demo.exception.ByobServiceIOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -21,15 +23,15 @@ public class ByobService {
     private final ByobServiceProperties byobServiceProperties;
     private final RestClient restClient;
 
-   @Autowired
+    @Autowired
     public ByobService(
             ByobServiceProperties byobServiceProperties,
             @Qualifier("byobServiceRestClient")
             RestClient restClient
-   ) {
+    ) {
         this.byobServiceProperties = byobServiceProperties;
         this.restClient = restClient;
-   }
+    }
 
     public List<CredentialDefinition> getCredentialDefinitions() {
         List<CredentialDefinition> result = getCertificationDefinitionCollection().credentialConfigurations;
@@ -60,15 +62,15 @@ public class ByobService {
     }
 
     public CredentialDefinition editCredentialDefinition(CredentialDefinition cd) {
-       return putCredentialDefinition(cd);
+        return putCredentialDefinition(cd);
     }
 
     private CredentialDefinition getDefinitionById(String id) {
-       return getCredentialDefinitions()
-               .stream()
-               .filter(cd -> Objects.equals(cd.getCredentialConfigurationId(), id))
-               .findFirst()
-               .orElse(null);
+        return getCredentialDefinitions()
+                .stream()
+                .filter(cd -> Objects.equals(cd.getCredentialConfigurationId(), id))
+                .findFirst()
+                .orElse(null);
     }
 
     private CredentialDefinition getDefinitionByCvt(String vct) {
@@ -82,22 +84,26 @@ public class ByobService {
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(CredentialDefinition.class);
-        } catch (RestClientResponseException e) {
+        } catch (ResourceAccessException e) {
+            throw new ByobServiceIOException("IO error when calling BYOB service to store CredentialDefinition", e);
+        } catch (RestClientException e) {
             throw new ByobServiceException("Configuration error against byob-service? path=" + endpoint, e);
         }
     }
 
     private CredentialDefinitionCollection getCertificationDefinitionCollection() {
-       String getEndpoint = byobServiceProperties.getManyEndpoint();
+        String getEndpoint = byobServiceProperties.getManyEndpoint();
 
-       try {
-          return restClient
-                  .get()
-                  .uri(getEndpoint)
-                  .accept(MediaType.APPLICATION_JSON)
-                  .retrieve()
-                  .body(CredentialDefinitionCollection.class);
-        } catch (RestClientResponseException e) {
+        try {
+            return restClient
+                    .get()
+                    .uri(getEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(CredentialDefinitionCollection.class);
+        } catch (ResourceAccessException e) {
+            throw new ByobServiceIOException("IO error when calling BYOB service to store CredentialDefinition", e);
+        } catch (RestClientException e) {
             throw new ByobServiceException("Configuration error against byob-service? path=" + getEndpoint, e);
         }
     }
@@ -114,7 +120,9 @@ public class ByobService {
                     .body(cd)
                     .retrieve()
                     .body(CredentialDefinition.class);
-        } catch (RestClientResponseException e) {
+        } catch (ResourceAccessException e) {
+            throw new ByobServiceIOException("IO error when calling BYOB service to store CredentialDefinition", e);
+        } catch (RestClientException e) {
             throw new ByobServiceException("Configuration error against byob-service? path=" + persistEndpoint, e);
         }
     }
@@ -132,9 +140,10 @@ public class ByobService {
                     .body(cd)
                     .retrieve()
                     .body(CredentialDefinition.class);
-        }
-        catch (RestClientResponseException e) {
-            throw new ByobServiceException(e.getMessage(), e);
+        } catch (ResourceAccessException e) {
+            throw new ByobServiceIOException("IO error when calling BYOB service to add CredentialDefinition", e);
+        } catch (RestClientException e) {
+            throw new ByobServiceException("Error when calling BYOB service to add CredentialDefinition", e);
         }
     }
 
@@ -149,8 +158,11 @@ public class ByobService {
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .toBodilessEntity();
-        } catch (RestClientResponseException e) {
-            throw new ByobServiceException("Configuration error against byob-service? path=" + endpoint, e);
+
+        } catch (ResourceAccessException e) {
+            throw new ByobServiceIOException("IO error when calling BYOB service to delete CredentialDefinition", e);
+        } catch (RestClientException e) {
+            throw new ByobServiceException("Configuration error against byob-service on delete? path=" + endpoint, e);
         }
     }
 }

@@ -23,7 +23,8 @@ public class CredentialDefinition {
     @JsonProperty("credential_metadata")
     private CredentialMetadata credentialMetadata;
 
-    public CredentialDefinition() {}
+    public CredentialDefinition() {
+    }
 
     public CredentialDefinition(String vct, List<ExampleCredentialData> exampleCredentialData, CredentialMetadata credentialMetadata) {
         this.vct = vct;
@@ -82,7 +83,7 @@ public class CredentialDefinition {
         List<Claim> claims = form
                 .claims()
                 .stream()
-                .map(claim -> new Claim(claim.path(), claim.type(), true, List.of(new Display(claim.name()))))
+                .map(claim -> new Claim(claim.path(), claim.type(), claim.mimeType(), true, List.of(new Display(claim.name()))))
                 .toList();
 
         return new CredentialMetadata(display, claims);
@@ -96,7 +97,7 @@ public class CredentialDefinition {
         return form
                 .claims()
                 .stream()
-                .map(claim -> new  ExampleCredentialData(claim.path(), claim.exampleValue()))
+                .map(claim -> new ExampleCredentialData(claim.path(), claim.exampleValue()))
                 .toList();
     }
 }
