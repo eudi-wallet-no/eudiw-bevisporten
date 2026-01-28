@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
+import no.idporten.eudiw.issuer.claimssource.ClaimDataTypes;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.claimssource.skatteetaten.domain.Inntekt;
@@ -17,7 +18,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.EMPTY_NAMESPACE;
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_MAP;
 
 
 /**
@@ -38,7 +38,7 @@ public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
                         new ClaimMetadata(
                                 EMPTY_NAMESPACE,
                                 "fastlonn",
-                                TYPE_MAP,
+                                ClaimDataTypes.MAP,
                                 Map.of("no", "Fastlønn"),
                                 true,
                                 "^[\\x20-\\x7E]{1,200}$")));

@@ -1,9 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.vegvesenet;
 
-import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.CredentialData;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
@@ -17,8 +14,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
 
 // Dummy førerkort implementation, not for production use!
 @Service
@@ -39,7 +34,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
             List.of(
                     new ClaimMetadata(NAMESPACE,
                             "family_name",
-                            TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Etternavn",
                                     "en", "Family name"),
@@ -47,7 +42,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
                     new ClaimMetadata(NAMESPACE,
                             "given_name",
-                            TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Fornavn",
                                     "en", "Given name"),
@@ -55,7 +50,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
                     new ClaimMetadata(NAMESPACE,
                             "birth_date",
-                            TYPE_FULLDATE,
+                            ClaimDataTypes.ISO_DATE,
                             Map.of(
                                     "no", "Fødselsdato",
                                     "en", "Date of birth"),
@@ -63,7 +58,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^\\d{4}-\\d{2}-\\d{2}$"),
                     new ClaimMetadata(NAMESPACE,
                             "issue_date",
-                            TYPE_FULLDATE,
+                            ClaimDataTypes.ISO_DATE,
                             Map.of(
                                     "no", "Gyldig fra dato",
                                     "en", "Issue date"),
@@ -71,7 +66,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^\\d{4}-\\d{2}-\\d{2}$"),
                     new ClaimMetadata(NAMESPACE,
                             "expiry_date",
-                            TYPE_FULLDATE,
+                            ClaimDataTypes.ISO_DATE,
                             Map.of(
                                     "no", "Gyldig til dato",
                                     "en", "Expiry date"),
@@ -79,7 +74,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^\\d{4}-\\d{2}-\\d{2}$"),
                     new ClaimMetadata(NAMESPACE,
                             "issuing_country",
-                            TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Utsted av land",
                                     "en", "Issuing country"),
@@ -87,28 +82,28 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^[A-Z]{2}$"),
                     new ClaimMetadata(NAMESPACE,
                             "issuing_authority",
-                            TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Utsteder myndighet",
                                     "en", "Issuing authority"),
                             true,
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
                     new ClaimMetadata(NAMESPACE, "document_number",
-                            TYPE_NUMBER,
+                            ClaimDataTypes.NUMBER,
                             Map.of(
                                     "no", "Førerkort nummer",
                                     "en", "Document number"),
                             true,
                             "^\\d{1,150}$"),
                     new ClaimMetadata(NAMESPACE, "portrait",
-                            TYPE_BINARY,
+                            ClaimDataTypes.BINARY,
                             Map.of(
                                     "no", "Portrett bilde",
                                     "en", "Portrait Photos"),
                             false,
                             "^[-A-Za-z0-9+/]*={0,3}$"), // base64 regex
                     new ClaimMetadata(NAMESPACE, "driving_privileges",
-                            TYPE_MAP,
+                            ClaimDataTypes.MAP,
                             Map.of(
                                     "no", "Førerkort klasser",
                                     "en", "Driving privileges"),
@@ -116,7 +111,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"),
                     new ClaimMetadata(NAMESPACE,
                             "un_distinguishing_sign",
-                            TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Land",
                                     "en", "Country"),
@@ -169,7 +164,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @Override
     public Claim getClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
-       if (claim.type().equals(TYPE_MAP) && claim.name().equals("driving_privileges")) {
+       if (claim.type().equals(ClaimDataTypes.MAP) && claim.name().equals("driving_privileges")) {
             // special handling of driving_privileges claim for now
             Map<String, Object> dp = (Map<String, Object>) storedClaims.get(claim.name());
             Map<String, ClaimValue> dpClaims = new HashMap<>();

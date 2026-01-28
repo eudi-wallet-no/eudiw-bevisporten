@@ -1,14 +1,10 @@
 package no.idporten.eudiw.issuer.claimssource.kommune;
 
-import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.CredentialData;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,49 +21,49 @@ public class HandicapBevisClaimsSource extends AbstractPreAuthorizedClaimsSource
                 List.of(
                         new ClaimMetadata(NAMESPACE,
                                 "fodselsnummer",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Fødselsnummer"),
                                 true,
                                 "^\\d{11}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "bevis_nummer",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Bevisnummer"),
                                 true,
                                 "^\\d{1,20}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "kommune_nummer",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Kommunenummer"),
                                 true,
                                 "^\\d{1,20}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "status",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Status"),
                                 false,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,50}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "bruker_kode",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Brukerkode"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,50}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "type",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Type"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,50}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "gyldig_fra",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Gyldig fra"),
                                 true,
                                 "^\\d{4}-\\d{2}-\\d{2}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "gyldig_til",
-                                ClaimMetadata.TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Gyldig til"),
                                 true,
                                 "^\\d{4}-\\d{2}-\\d{2}$")

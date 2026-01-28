@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
 import static no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException.INVALID_CLAIMS_DATA;
 
 // Expects values to be non-null and of valid format
@@ -129,24 +128,26 @@ public class ClaimValueConverter {
         return buildClaim(path, new BinaryValue(base64Image, mimeType));
     }
 
-    // Default implementation supporting basic claim types, List and Map later
+    // Default for null type is String
     public Claim convertClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
+        if(claim.type() == null){
+            return getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
+        }
         return switch (claim.type()) {
-            case TYPE_STRING -> getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
-            case TYPE_NUMBER -> getNumberClaim(claim.path(), (Integer) storedClaims.get(claim.name()));
-            case TYPE_BOOLEAN -> getBooleanClaim(claim.path(), (Boolean) storedClaims.get(claim.name()));
-            case TYPE_FULLDATE -> {
+            case ClaimDataTypes.STRING -> getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
+            case ClaimDataTypes.NUMBER -> getNumberClaim(claim.path(), (Integer) storedClaims.get(claim.name()));
+            case ClaimDataTypes.BOOLEAN -> getBooleanClaim(claim.path(), (Boolean) storedClaims.get(claim.name()));
+            case ClaimDataTypes.ISO_DATE -> {
                 if (storedClaims.get(claim.name()) instanceof LocalDate localDate) {
                     yield getFullDateClaim(claim.path(), localDate);
                 } else {
                     yield getFullDateClaim(claim.path(), (String) storedClaims.get(claim.name()));
                 }
             }
-            case TYPE_DATETIME -> getDateTimeClaim(claim.path(), (ZonedDateTime) storedClaims.get(claim.name()));
-            case TYPE_BINARY -> getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()), claim.mimeType());
-            default ->
-                // Default to string claim for now
-                    getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
+            case ClaimDataTypes.ISO_DATE_TIME -> getDateTimeClaim(claim.path(), (ZonedDateTime) storedClaims.get(claim.name()));
+            case ClaimDataTypes.BINARY -> getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()), claim.mimeType());
+            case ClaimDataTypes.MAP -> getMapClaim(claim.path(), (Map<String, String>) storedClaims.get(claim.name())); // TODO handle errors better
+            case ClaimDataTypes.LIST -> getListClaim(claim.path(), (List<String>) storedClaims.get(claim.name()));
         };
     }
 }

@@ -1,9 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.skatteetaten;
 
-import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.CredentialData;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.stereotype.Service;
@@ -24,7 +21,7 @@ public class NnidClaimsSource extends AbstractPreAuthorizedClaimsSource {
             List.of(
                     new ClaimMetadata(NAMESPACE,
                             "norwegian_national_id_number",
-                            ClaimMetadata.TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Norsk identitetsnummer",
                                     "en", "Norwegian identification number"),
@@ -32,7 +29,7 @@ public class NnidClaimsSource extends AbstractPreAuthorizedClaimsSource {
                             "^\\d{11}$"),
                     new ClaimMetadata(NAMESPACE,
                             "norwegian_national_id_number_type",
-                            ClaimMetadata.TYPE_STRING,
+                            ClaimDataTypes.STRING,
                             Map.of(
                                     "no", "Type norsk identitetsnummer",
                                     "en", "Type of Norwegian identification number"),

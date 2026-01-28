@@ -4,6 +4,7 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.ClaimDataTypes;
 import no.idporten.eudiw.issuer.claimssource.ClaimValueConverter;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
@@ -23,8 +24,7 @@ import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
 
 /**
  * Claims source for Norwegian PID data from FREG.  Subclasses handles format specific claim formats.
- *
- * See https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md .
+ * See https://github.com/eu-digital-identity-wallet/eudi-doc-attestation-rulebooks-catalog/blob/main/rulebooks/pid/pid-rulebook.md.
  */
 class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
 
@@ -43,55 +43,55 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
                 List.of(
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("personal_administrative_number"),
-                                TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Fødselsnummer"),
                                 true,
                                 "^\\d{11}$"),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("given_name"),
-                                TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Førenamn"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("family_name"),
-                                TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Etternamn"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("birth_date"),
-                                TYPE_FULLDATE,
+                                ClaimDataTypes.ISO_DATE,
                                 Map.of("no", "Fødselsdato"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("birth_place"),
-                                TYPE_MAP,
+                                ClaimDataTypes.MAP,
                                 Map.of("no", "Fødeland"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("nationality"),
-                                TYPE_LIST,
+                                ClaimDataTypes.LIST,
                                 Map.of("no", "Nasjonalitet"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("expiry_date"),
-                                TYPE_FULLDATE,
+                                ClaimDataTypes.ISO_DATE,
                                 Map.of("no", "Gyldig til dato"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("issuing_authority"),
-                                TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Utsteda av"),
                                 true,
                                 null),
                         new ClaimMetadata(getNamespace(),
                                 calculateAttributeIdentifier("issuing_country"),
-                                TYPE_STRING,
+                                ClaimDataTypes.STRING,
                                 Map.of("no", "Utsteda i land"),
                                 true,
                                 null)
