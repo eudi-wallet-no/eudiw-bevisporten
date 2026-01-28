@@ -1,5 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.domain;
 
+import no.idporten.eudiw.issuer.claimssource.ClaimDataTypes;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,7 @@ import java.util.Map;
 public record ClaimMetadata (
         String namespace, // only for mdoc, first in path - shallow credentials
         String name, // last in path mdoc, complete path SD-JWT VC - shallow credentials
-        String type, // String, Number, Boolean, Binary, FullDate, DateTime, List, Map
+        ClaimDataTypes type, // String, Number, Boolean, Binary, FullDate, DateTime, List, Map
         String mimeType, // only for type = binary
         Map<String, String> displayNames,
         boolean mandatory,
@@ -28,15 +30,6 @@ public record ClaimMetadata (
 
     public static final String EMPTY_NAMESPACE = null;
 
-    public static final String TYPE_STRING = "string";
-    public static final String TYPE_NUMBER = "number";
-    public static final String TYPE_BOOLEAN = "boolean";
-    public static final String TYPE_BINARY = "binary"; // image etc
-    public static final String TYPE_FULLDATE = "fulldate"; // YYYY-MM-DD
-    public static final String TYPE_DATETIME = "datetime"; // ISO 8601
-    public static final String TYPE_LIST = "list";
-    public static final String TYPE_MAP = "map";
-
     /**
      * Claim description, leaving out namespace (SD-JWT VC only). Do not use for sd-jwt of type Binary.
      *
@@ -45,7 +38,7 @@ public record ClaimMetadata (
      * @param mandatory issuer must issue claim
      * @param validationRegex validation regex
      */
-    public ClaimMetadata(String name, String type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
+    public ClaimMetadata(String name, ClaimDataTypes type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
         this(null, name, type, null, displayNames, mandatory, validationRegex);
     }
     /**
@@ -56,7 +49,7 @@ public record ClaimMetadata (
      * @param mandatory issuer must issue claim
      * @param validationRegex validation regex
      */
-    public ClaimMetadata(String namespace, String name, String type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
+    public ClaimMetadata(String namespace, String name, ClaimDataTypes type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
         this(namespace, name, type, null, displayNames, mandatory, validationRegex);
     }
 
@@ -69,7 +62,7 @@ public record ClaimMetadata (
      * @param validationRegex validation regex
      */
     public ClaimMetadata(String name, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
-        this(null, name, TYPE_STRING, null, displayNames, mandatory, validationRegex);
+        this(null, name, ClaimDataTypes.STRING, null, displayNames, mandatory, validationRegex);
     }
 
     public String getDisplayName(String locale) {

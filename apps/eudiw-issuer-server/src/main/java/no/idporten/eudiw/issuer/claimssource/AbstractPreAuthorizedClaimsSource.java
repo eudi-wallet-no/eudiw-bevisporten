@@ -34,18 +34,19 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         this.cache = claimsSourceCache;
     }
 
+    // Skulle me droppa det her?
     public final void validateClaim(ClaimMetadata claimMetadata, Map<String, Object> claims) {
         if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
             throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
         }
-        if (ClaimMetadata.TYPE_STRING.equals(claimMetadata.type())) {
+        if (ClaimDataTypes.STRING.equals(claimMetadata.type())) {
             validateStringValue(claimMetadata, claims);
-        } else if (ClaimMetadata.TYPE_FULLDATE.equals(claimMetadata.type())) {
+        } else if (ClaimDataTypes.ISO_DATE.equals(claimMetadata.type())) {
             final LocalDate value = (LocalDate) claims.get(claimMetadata.name());
             if (claimMetadata.mandatory() && value == null) {
                 throw new IssuerServerException("invalid_request", "Missing required value for fulldate claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
             }
-        } else if (ClaimMetadata.TYPE_MAP.equals(claimMetadata.type())) {
+        } else if (ClaimDataTypes.MAP.equals(claimMetadata.type())) {
             final Map<String, Object> value = (Map<String, Object>) claims.get(claimMetadata.name());
             if (claimMetadata.mandatory() && value.isEmpty()) {
                 throw new IssuerServerException("invalid_request", "Missing required Map value for map claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
@@ -69,6 +70,9 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
 
     @Override
     public final CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData) {
+        if(credentialMetadata == null) {
+            throw new IssuerServerException("invalid_request", "credentialMetadata null in request.", HttpStatus.BAD_REQUEST);
+        }
         CredentialMetadataContext credentialMetadataContext = new CredentialMetadataContext(credentialData.credentialConfigurationId(), null, null);
         return validate(credentialMetadata, credentialData, credentialMetadataContext);
     }

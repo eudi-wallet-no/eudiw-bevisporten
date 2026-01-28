@@ -2,10 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.ageverification;
 
 import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.service.FregService;
-import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimValueConverter;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
+import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
@@ -16,8 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_BOOLEAN;
 
 
 /**
@@ -45,7 +40,7 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
                         new ClaimMetadata(
                                 NAMESPACE,
                                 "age_over_18",
-                                TYPE_BOOLEAN,
+                                ClaimDataTypes.BOOLEAN,
                                 Map.of("no",
                                         "Over 18 år"),
                                 true,
@@ -53,7 +48,7 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
                         new ClaimMetadata(
                                 NAMESPACE,
                                 "age_over_15",
-                                TYPE_BOOLEAN,
+                                ClaimDataTypes.BOOLEAN,
                                 Map.of("no", "Over 15 år"),
                                 true,
                                 "^true|false$")));
@@ -89,7 +84,7 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
     }
 
     @Override
-    public String getAuthorativeSourceName(){
+    public String getAuthorativeSourceName() {
         return AuthoritativeSource.FREG.name();
     }
 }

@@ -42,7 +42,7 @@ public class AuthorizedClaimsSourceTest {
 
         @Override
         public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-            return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata(ClaimMetadata.EMPTY_NAMESPACE, "b", ClaimMetadata.TYPE_STRING, Map.of("no", "B"), true, ".*")));
+            return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata(ClaimMetadata.EMPTY_NAMESPACE, "b", ClaimDataTypes.STRING, Map.of("no", "B"), true, ".*")));
         }
     }
 
