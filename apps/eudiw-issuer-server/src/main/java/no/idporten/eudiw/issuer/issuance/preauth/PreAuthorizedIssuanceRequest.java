@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Claim;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Subject;
 import org.springframework.http.HttpStatus;
@@ -28,27 +29,29 @@ import java.util.stream.Collectors;
 @Getter
 @Builder
 @AllArgsConstructor
-@Schema(description = "Start credential issue request", title = "Start credential issue request", type = "object")
+@Schema(title = "Start credential issue request", description = "Start credential issue request.", type = "object")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PreAuthorizedIssuanceRequest {
 
-    @Schema(description = "Credential issuer identifier.  See credential issuer metadata.", example = "https://utsteder.test.eidas2sandkasse.net")
+    @Schema(title = "Credential issuer identifier", description = "Identifier for the credential issuer handling the request.  See credential issuer metadata.", example = "https://utsteder.test.eidas2sandkasse.net")
     @JsonProperty("credential_issuer")
     private String credentialIssuer;
 
     @NotEmpty(message = "credential_configuration_id must have a value.")
-    @Schema(description = "Credential configuration identifier.  See credential issuer metadata.", example = "some.known.credential_mso_mdoc")
+    @Schema(title = "Credential configuration identifier", description = "Identifier for the credential configuration describing the credential to be issued.  See credential issuer metadata.", example = "some.known.credential_mso_mdoc")
     @JsonProperty("credential_configuration_id")
     private String credentialConfigurationId;
 
     @Valid
     @NotNull(message = "subject must have a value.")
-    @Schema(description = "Subject for credential issuance.  The identifier must match with person identifier in access token.")
+    @Schema(title = "Subject for credential issuance.", description = "Identifier for the subject the credential will be issued to.  The subject must match with the person identifier in the access token.")
     @JsonProperty("subject")
     private Subject subject;
 
+    @Schema(title = "Credential data (deprecated)", description = "Credential data as a list of claims.  Use credential_data instead.")
     @ArraySchema(schema = @Schema(implementation = Claim.class))
     @JsonProperty("claims")
+    @Deprecated
     private List<Claim> claims = new ArrayList<>();
 
     @JsonIgnore
@@ -66,6 +69,19 @@ public class PreAuthorizedIssuanceRequest {
         } catch (Exception e) {
             throw new IssuerServerException("invalid_request", "Invalid claims format", HttpStatus.BAD_REQUEST, e);
         }
+    }
+
+    @JsonProperty("credential_data")
+    @Schema(title = "Credential data",
+            description = "Credential data as a JSON object.  Use this to push credential data.")
+    private Map<String, String> credentialData;
+
+    @JsonIgnore
+    public CredentialData getCredentialData() {
+        if (credentialData != null) {
+            return new CredentialData(Collections.unmodifiableMap(credentialData), credentialConfigurationId);
+        }
+        return new CredentialData(Collections.unmodifiableMap(getClaimsMap()), getCredentialConfigurationId());
     }
 
 }

@@ -22,13 +22,12 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * system or fetched by the claims source if the pull() method is implemented.
      *
      * @param issuanceContext the issuance context
-     * @param pushedClaims pushed credential data
+     * @param credentialData pushed credential data
      */
-    default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, Map<String, String> pushedClaims) {
-        final CredentialData credentialData;
+    default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
         final DocumentMetadata documentMetadata = getDocumentMetadata(new CredentialMetadataContext(issuanceContext.credentialConfigurationId(), null, null));
-        if (!CollectionUtils.isEmpty(pushedClaims)) {
-            credentialData = validate(documentMetadata, push(issuanceContext, new CredentialData(Collections.unmodifiableMap(pushedClaims), issuanceContext.credentialConfigurationId())));
+        if (credentialData != null && !CollectionUtils.isEmpty(credentialData.claims())) {
+            credentialData = validate(documentMetadata, push(issuanceContext, credentialData));
         } else {
             credentialData = validate(documentMetadata, pull(issuanceContext));
         }

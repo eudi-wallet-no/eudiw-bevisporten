@@ -139,9 +139,10 @@ class NnidClaimsSourceTest {
             NnidClaimsSource claimsSource = spy(nnidClaimsSource);
             claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(transactionId, "ccid", accessToken, Duration.ofMinutes(10)),
-                    new TreeMap<>(Map.of(
+                    new CredentialData(new TreeMap<>(Map.of(
                             NORWEGIAN_NATIONAL_ID_NUMBER, "12345678901",
-                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")));
+                            NORWEGIAN_NATIONAL_ID_NUMBER_TYPE, "D-nummer")),
+                            null));
             verify(claimsSource).validate(any(), any(CredentialData.class));
             List<Claim> claims = nnidClaimsSource.issueClaims(new CredentialIssueContext(accessToken, null));
             assertAll(

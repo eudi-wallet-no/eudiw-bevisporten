@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Schema(description = "Claim name and value", title = "Credential claim", type = "object")
+@Schema(title = "Credential claim", description = "Claim name and value", type = "object")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
