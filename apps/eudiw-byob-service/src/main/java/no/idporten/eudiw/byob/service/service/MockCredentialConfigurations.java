@@ -3,7 +3,6 @@ package no.idporten.eudiw.byob.service.service;
 import no.idporten.eudiw.byob.service.model.*;
 
 import java.util.List;
-import java.util.Map;
 
 public class MockCredentialConfigurations {
 
@@ -21,6 +20,7 @@ public class MockCredentialConfigurations {
                     List.of(
                             new Claims("name",
                                     "string",
+                                    null,
                                     true,
                                     List.of(new Display("Navn", "no", "", "")
                                             , new Display("Name", "en", "", ""))
@@ -41,6 +41,7 @@ public class MockCredentialConfigurations {
                     List.of(
                             new Claims("age",
                                     null,
+                                    null,
                                     true,
                                     List.of(new Display("Alder", "no", "", ""),
                                             new Display("Age", "en", "", ""))
@@ -48,11 +49,6 @@ public class MockCredentialConfigurations {
                     )
             )
     );
-
-
-    public static Map<String, CredentialConfiguration> getCredentialConfigurationsMocked() {
-        return Map.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1.vct(), DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2.vct(), DYNAMIC_CREDENTIAL_CONFIGURATION_2);
-    }
 
     public static List<CredentialConfiguration> getCredentialConfigurationsListMocked() {
         return List.of(DYNAMIC_CREDENTIAL_CONFIGURATION_1, DYNAMIC_CREDENTIAL_CONFIGURATION_2);

@@ -16,6 +16,8 @@ public record ClaimsRequestResource(
         String path,
         @JsonProperty("type")
         String type,
+        @JsonProperty("mime_type")
+        String mimeType,
         @JsonProperty("mandatory")
         boolean mandatory,
         @Valid
@@ -28,6 +30,7 @@ public record ClaimsRequestResource(
         return new Claims(
                 this.path,
                 this.type,
+                this.mimeType,
                 this.mandatory,
                 this.display == null ? Collections.emptyList() : this.display.stream().map(DisplayRequestResource::toDisplay).toList()
         );
