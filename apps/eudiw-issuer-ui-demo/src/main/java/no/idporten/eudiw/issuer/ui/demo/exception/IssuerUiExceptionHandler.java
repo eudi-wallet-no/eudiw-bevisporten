@@ -5,6 +5,7 @@ import no.idporten.lib.maskinporten.exception.MaskinportenClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
@@ -47,6 +48,18 @@ public class IssuerUiExceptionHandler {
     @ExceptionHandler(MaskinportenClientException.class)
     public ModelAndView handleMaskinportenClientException(MaskinportenClientException e) {
         log.error("Unexpected exception from Maskinporten", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Integration with Maskinporten failed").addObject("statusCode", "500").addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Integration with Maskinporten failed").addObject("statusCode", HttpStatus.INTERNAL_SERVER_ERROR).addObject("details", e.getMessage());
+    }
+
+    @ExceptionHandler(ByobServiceException.class)
+    public ModelAndView handleByobServiceException(ByobServiceException e) {
+        log.error("Unexpected error from byob-service", e);
+        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with byob-service").addObject("statusCode", e.getHttpStatusCode()).addObject("details", e.getMessage());
+    }
+
+    @ExceptionHandler(ByobServiceIOException.class)
+    public ModelAndView handleByobServiceIOException(ByobServiceIOException e) {
+        log.error("Failed to connect with byob-service", e);
+        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with byob-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
     }
 }
