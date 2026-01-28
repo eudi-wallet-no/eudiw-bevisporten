@@ -1,24 +1,25 @@
 package no.idporten.eudiw.issuer.ui.demo.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.client.RestClientException;
 
 public class ByobServiceException extends RuntimeException {
 
-    private final RestClientResponseException restClientResponseException;
+    private final RestClientException restClientResponseException;
 
     public ByobServiceException(String message) {
         super(message);
         restClientResponseException = null;
     }
 
-     public ByobServiceException(String message, RestClientResponseException cause) {
+     public ByobServiceException(String message, RestClientException cause) {
         super(message, cause);
         restClientResponseException = cause;
     }
 
     public HttpStatusCode getHttpStatusCode() {
-        return restClientResponseException.getStatusCode();
+        return HttpStatus.SERVICE_UNAVAILABLE;
     }
 
     public String getCauseMessage(){
