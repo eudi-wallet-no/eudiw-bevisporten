@@ -22,6 +22,7 @@ import java.security.Security;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -119,6 +120,22 @@ public class MDocServiceTest {
                 () -> assertEquals("datotid", mdoc.getIssuerSignedItems("foo").getLast().getElementIdentifier().getValue()),
                 () -> assertEquals(expectedDatetime, mdoc.getIssuerSignedItems("foo").getLast().getElementValue().getInternalValue()),
                 () -> assertEquals(2, mdoc.getIssuerSignedItems("foo").size())
+        );
+    }
+
+
+    @Test
+    void testIssueMDocCredentialsWithBinaryClaim() throws Exception {
+        String img = "base64encodedstring";
+        Claim claim = buildClaim("namespace", "portrait", new BinaryValue(img));
+
+        MDoc mdoc = mDocService.createMDoc(generateDeviceKey(), credentialConfigurationProperties("namespace", "eaa-provider"), List.of(claim));
+        assertAll(
+                () -> assertNotNull(mdoc),
+                () -> assertEquals("namespace", mdoc.getMSO().getDocType().getValue()),
+                () -> assertEquals("portrait", mdoc.getIssuerSignedItems("namespace").getFirst().getElementIdentifier().getValue()),
+                () -> assertInstanceOf(byte[].class, mdoc.getIssuerSignedItems("namespace").getFirst().getElementValue().getInternalValue()),
+                () -> assertEquals(1, mdoc.getIssuerSignedItems("namespace").size())
         );
     }
 

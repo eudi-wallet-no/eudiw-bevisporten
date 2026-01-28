@@ -161,7 +161,7 @@ class ClaimValueConverterTest {
     @DisplayName("when call convertClaim with string type then returns StringValue Claim")
     @Test
     void convertClaim_string_type() {
-        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "given_name", TYPE_STRING, Map.of("en", "Given Name"), true, null);
+        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "given_name", TYPE_STRING, null, Map.of("en", "Given Name"), true, null);
         Map<String, Object> storedClaims = Map.of("given_name", "Alice");
 
         Claim claim = converter.convertClaim(metadata, storedClaims);
@@ -174,7 +174,7 @@ class ClaimValueConverterTest {
     @DisplayName("when call convertClaim with number type then returns NumberValue Claim")
     @Test
     void convertClaim_number_type() {
-        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "age", TYPE_NUMBER, Map.of("en", "Age"), true, null);
+        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "age", TYPE_NUMBER, null, Map.of("en", "Age"), true, null);
         Map<String, Object> storedClaims = Map.of("age", 30);
 
         Claim claim = converter.convertClaim(metadata, storedClaims);
@@ -245,7 +245,7 @@ class ClaimValueConverterTest {
         @DisplayName("with binary type then returns BinaryValue Claim")
         @Test
         void convertClaim_binary_type() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "portrait", TYPE_BINARY, Map.of("en", "Portrait"), true, null);
+            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "portrait", TYPE_BINARY, null, Map.of("en", "Portrait"), true, null);
             String base64 = Base64.getEncoder().encodeToString("test".getBytes());
             Map<String, Object> storedClaims = Map.of("portrait", base64);
 
@@ -253,7 +253,23 @@ class ClaimValueConverterTest {
 
             assertEquals("portrait", claim.getPath().getFirst());
             assertInstanceOf(BinaryValue.class, claim.getValue());
-            assertArrayEquals("test".getBytes(), ((BinaryValue) claim.getValue()).value());
+            assertEquals(base64, ((BinaryValue) claim.getValue()).value());
+        }
+
+        @DisplayName("with binary type with mimetype then returns BinaryValue Claim")
+        @Test
+        void convertClaim_binary_type_with_mimeType() {
+            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "portrait", TYPE_BINARY, "image/png", Map.of("en", "Portrait"), true, null);
+            String base64 = Base64.getEncoder().encodeToString("test".getBytes());
+            Map<String, Object> storedClaims = Map.of("portrait", base64);
+
+            Claim claim = converter.convertClaim(metadata, storedClaims);
+
+            assertEquals("portrait", claim.getPath().getFirst());
+            assertInstanceOf(BinaryValue.class, claim.getValue());
+            BinaryValue binaryValue = (BinaryValue) claim.getValue();
+            assertEquals(base64, binaryValue.value());
+            assertEquals("image/png", binaryValue.mimeType());
         }
 
         @DisplayName("with unknown type then defaults to StringValue Claim")

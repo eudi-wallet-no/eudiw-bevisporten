@@ -19,6 +19,7 @@ public record ClaimMetadata (
         String namespace, // only for mdoc, first in path - shallow credentials
         String name, // last in path mdoc, complete path SD-JWT VC - shallow credentials
         String type, // String, Number, Boolean, Binary, FullDate, DateTime, List, Map
+        String mimeType, // only for type = binary
         Map<String, String> displayNames,
         boolean mandatory,
         String validationRegex
@@ -30,12 +31,34 @@ public record ClaimMetadata (
     public static final String TYPE_STRING = "string";
     public static final String TYPE_NUMBER = "number";
     public static final String TYPE_BOOLEAN = "boolean";
-    public static final String TYPE_BINARY = "binary";
-    public static final String TYPE_DATA = "data";
+    public static final String TYPE_BINARY = "binary"; // image etc
     public static final String TYPE_FULLDATE = "fulldate"; // YYYY-MM-DD
     public static final String TYPE_DATETIME = "datetime"; // ISO 8601
     public static final String TYPE_LIST = "list";
     public static final String TYPE_MAP = "map";
+
+    /**
+     * Claim description, leaving out namespace (SD-JWT VC only). Do not use for sd-jwt of type Binary.
+     *
+     * @param name claim name
+     * @param displayNames display names
+     * @param mandatory issuer must issue claim
+     * @param validationRegex validation regex
+     */
+    public ClaimMetadata(String name, String type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
+        this(null, name, type, null, displayNames, mandatory, validationRegex);
+    }
+    /**
+     * Claim description, leaving out namespace (SD-JWT VC only). Do not use for sd-jwt of type Binary.
+     *
+     * @param name claim name
+     * @param displayNames display names
+     * @param mandatory issuer must issue claim
+     * @param validationRegex validation regex
+     */
+    public ClaimMetadata(String namespace, String name, String type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
+        this(namespace, name, type, null, displayNames, mandatory, validationRegex);
+    }
 
     /**
      * Claim description, using string as type and leaving out namespace (SD-JWT VC only).
@@ -46,7 +69,7 @@ public record ClaimMetadata (
      * @param validationRegex validation regex
      */
     public ClaimMetadata(String name, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
-        this(null, name, TYPE_STRING, displayNames, mandatory, validationRegex);
+        this(null, name, TYPE_STRING, null, displayNames, mandatory, validationRegex);
     }
 
     public String getDisplayName(String locale) {

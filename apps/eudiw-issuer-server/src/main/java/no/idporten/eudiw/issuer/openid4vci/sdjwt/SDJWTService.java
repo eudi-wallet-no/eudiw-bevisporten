@@ -34,6 +34,8 @@ public class SDJWTService {
     private final KeystoreManager keystoreManager;
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
+    public final static String BINARY_DATA_PREFIX = "data:%s;base64,";
+
     public SDJWTService(KeystoreManager keystoreManager, CredentialIssuerServerProperties credentialIssuerServerProperties) {
         this.keystoreManager = keystoreManager;
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
@@ -71,13 +73,12 @@ public class SDJWTService {
         }
         JWTClaimsSet undisclosedClaimsSet = undisclosedClaimsSetBuilder.build();
         SDPayload sdPayload = SDPayload.Companion.createSDPayload(claimsSet, undisclosedClaimsSet, DecoyMode.NONE, 42);
-        SDJwt sdJwt = SDJwt.Companion.sign(
+        return SDJwt.Companion.sign(
                 sdPayload,
                 cryptoProvider,
                 null,
                 credentialConfigurationProperties.getFormat().formatIdentifier(),
                 Map.of("x5c", List.of(Base64.getEncoder().encodeToString(keyProvider.certificate().getEncoded()))));
-        return sdJwt;
     }
 
     /**
@@ -91,15 +92,27 @@ public class SDJWTService {
             case StringValue c -> c.value();
             case NumberValue c -> c.value();
             case BooleanValue c -> c.value();
-            case DataValue c -> c.value();
-            case BinaryValue c -> c.value();
+            case BinaryValue c -> addDataPrefix(c);
             case FullDateValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            case DateTimeValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE);
+            case DateTimeValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE); //
             case ListValue c -> c.value().stream().map(this::convert).collect(Collectors.toList());
             case MapValue c ->
                     c.value().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> convert(e.getValue())));
             case null -> throw new IllegalArgumentException("claimValue cannot be null");
         };
+    }
+
+    /**
+     * Adds data prefix with mimetype, defaults to mimetype image/png, e.g.
+     * <code></>data:image/png;base64,<base64encoded-string></></code>.
+     *
+     * @param c BinaryValue
+     * @return value to issue to wallet
+     */
+    private static String addDataPrefix(BinaryValue c) {
+
+        final String dataPrefix = BINARY_DATA_PREFIX.formatted(c.mimeType() != null ? c.mimeType() : "image/png");
+        return dataPrefix + c.value();
     }
 
 }

@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.byob.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 
@@ -10,15 +11,16 @@ import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_ST
 @Builder
 public record DynamicClaimMetadata(
         String path,
-        // TODO type/hierarki/struktur
-        String type, // String, Number, Boolean, Binary, FullDate, DateTime, List, Map
+        String type, // string, number, boolean, binary, iso_date, iso_datetime, list, map
+        @JsonProperty("mime_type")
+        String mimeType, // only for type = binary
         List<DocumentMetadata.Display> display,
         boolean mandatory,
         String validationRegex
 )
 {
     public DynamicClaimMetadata(String path, List<DocumentMetadata.Display> display, boolean mandatory, String validationRegex) {
-        this(path, TYPE_STRING, display, mandatory, validationRegex);
+        this(path, TYPE_STRING, null, display, mandatory, validationRegex);
     }
 
 }
