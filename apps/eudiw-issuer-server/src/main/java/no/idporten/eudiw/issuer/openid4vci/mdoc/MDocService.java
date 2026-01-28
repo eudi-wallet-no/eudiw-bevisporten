@@ -88,17 +88,15 @@ public class MDocService {
             case StringValue(String value) -> {
                 return new StringElement(value);
             }
-            case DataValue(String value) -> { // eigentleg ikkje lovleg for MDoc, berre flyt i gjennom for å unngå feil. TODO konverter til base64 only string?
-                return new StringElement(value);
-            }
             case BooleanValue(Boolean value) -> {
                 return new BooleanElement(value);
             }
             case NumberValue(Long value) -> {
                 return new NumberElement(value);
             }
-            case BinaryValue(byte[] value) -> {
-                return new ByteStringElement(value);
+            case BinaryValue(String value, _) -> { // mimeType is only for SD-JWT, ignored for MDoc.
+                byte[] imageAsBytes = Base64.getDecoder().decode(value);
+                return new ByteStringElement(imageAsBytes);
             }
             case DateTimeValue(ZonedDateTime value) -> {
                 Instant datetime = Instant.Companion.fromEpochMilliseconds(value.toEpochSecond() * 1000);

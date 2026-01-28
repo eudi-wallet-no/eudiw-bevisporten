@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
                                         List<DynamicClaimMetadata> claims) {
 
-    public static final String TYPE_CUSTOM_BILDE = "bilde";
-
+    // Flytt ut regex på neste sak + lag enum for type
     private static String getDefaultStringValidationRegex() {
         return "^[\\x20-\\x7EæøåÆØÅ]{1,255}$";
     }
@@ -21,23 +20,10 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
         return "^[-A-Za-z0-9+/]*={0,3}$";
     }
 
-    /**
-     * Default validation regex for "data" values (e.g. data URLs).
-     * <p>
-     * Compared to {@link #getDefaultBinaryValidationRegex()}, this pattern allows the
-     * additional characters <code>:;.,/</code>. These are required to support MIME type
-     * prefixes and separators used in {@code data:} URIs, such as
-     * {@code data:image/jpeg;base64,....}.
-     */
-    private static String getDefaultDataValidationRegex() {
-        return "^[-A-Za-z0-9+/:;.,=]*={0,3}$";
-    }
-
     private String getDefaultValidationRegex(String type) {
 
         return switch (type) {
             case ClaimMetadata.TYPE_STRING -> getDefaultStringValidationRegex();
-            case TYPE_CUSTOM_BILDE -> getDefaultDataValidationRegex();
             case ClaimMetadata.TYPE_BINARY -> getDefaultBinaryValidationRegex();
             case null, default -> getDefaultStringValidationRegex();
         };
@@ -46,9 +32,8 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
     // Eksplisitt konvertering for å unngå feil ved utvidelser i fremtiden og beholde String som default.
     private String convertType(String type) {
         return switch (type) {
-            case TYPE_CUSTOM_BILDE -> ClaimMetadata.TYPE_DATA;
-            case ClaimMetadata.TYPE_BINARY -> ClaimMetadata.TYPE_BINARY;
             case ClaimMetadata.TYPE_STRING -> ClaimMetadata.TYPE_STRING;
+            case ClaimMetadata.TYPE_BINARY -> ClaimMetadata.TYPE_BINARY;
             case ClaimMetadata.TYPE_BOOLEAN -> ClaimMetadata.TYPE_BOOLEAN;
             case ClaimMetadata.TYPE_NUMBER -> ClaimMetadata.TYPE_NUMBER;
             case ClaimMetadata.TYPE_FULLDATE -> ClaimMetadata.TYPE_FULLDATE;
@@ -71,6 +56,7 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
                         ClaimMetadata.EMPTY_NAMESPACE, // namespace only for mdoc, byob only supports SD-JWT-VC
                         claim.path(),       // path as single string
                         convertType(claim.type()),
+                        claim.mimeType(),
                         claim.display().stream().collect(Collectors.toMap(DocumentMetadata.Display::locale, DocumentMetadata.Display::name)),
                         claim.mandatory(),
                         claim.validationRegex() == null ? getDefaultValidationRegex(claim.type()) : claim.validationRegex()

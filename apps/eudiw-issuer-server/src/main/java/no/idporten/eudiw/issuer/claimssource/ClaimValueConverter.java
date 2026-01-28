@@ -7,12 +7,12 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.*;
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_BINARY;
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_DATETIME;
-import static no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata.TYPE_FULLDATE;
 import static no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException.INVALID_CLAIMS_DATA;
 
 // Expects values to be non-null and of valid format
@@ -22,8 +22,8 @@ public class ClaimValueConverter {
         try {
             LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
             return buildClaim(key, new FullDateValue(date));
-        }catch(DateTimeParseException e){
-            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA,"Invalid format for claim %s from authoritative source".formatted(key), e);
+        } catch (DateTimeParseException e) {
+            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(key), e);
         }
     }
 
@@ -31,8 +31,8 @@ public class ClaimValueConverter {
         try {
             LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
             return buildClaim(path, new FullDateValue(date));
-        }catch(DateTimeParseException e){
-            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA,"Invalid format for claim %s from authoritative source".formatted(path), e);
+        } catch (DateTimeParseException e) {
+            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(path), e);
         }
     }
 
@@ -121,33 +121,20 @@ public class ClaimValueConverter {
     }
 
 
-    public Claim getBinaryClaim(String name, String base64Image) {
-        byte[] imageAsBytes = Base64.getDecoder().decode(base64Image);
-        return buildClaim(name, new BinaryValue(imageAsBytes));
+    public Claim getBinaryClaim(String name, String base64Image, String mimeType) {
+        return buildClaim(name, new BinaryValue(base64Image, mimeType));
     }
 
-    public Claim getBinaryClaim(List<String> path, String base64Image) {
-        byte[] imageAsBytes = Base64.getDecoder().decode(base64Image);
-        return buildClaim(path, new BinaryValue(imageAsBytes));
-    }
-
-    public Claim getDataClaim(String key, String value) {
-        return buildClaim(key, new DataValue(value));
-    }
-
-    public Claim getDataClaim(List<String> path, String value) {
-        return buildClaim(path, new DataValue(value));
+    public Claim getBinaryClaim(List<String> path, String base64Image, String mimeType) {
+        return buildClaim(path, new BinaryValue(base64Image, mimeType));
     }
 
     // Default implementation supporting basic claim types, List and Map later
     public Claim convertClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
         return switch (claim.type()) {
-            case TYPE_STRING ->
-                    getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
-            case TYPE_NUMBER ->
-                    getNumberClaim(claim.path(), (Integer) storedClaims.get(claim.name()));
-            case TYPE_BOOLEAN ->
-                    getBooleanClaim(claim.path(), (Boolean) storedClaims.get(claim.name()));
+            case TYPE_STRING -> getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
+            case TYPE_NUMBER -> getNumberClaim(claim.path(), (Integer) storedClaims.get(claim.name()));
+            case TYPE_BOOLEAN -> getBooleanClaim(claim.path(), (Boolean) storedClaims.get(claim.name()));
             case TYPE_FULLDATE -> {
                 if (storedClaims.get(claim.name()) instanceof LocalDate localDate) {
                     yield getFullDateClaim(claim.path(), localDate);
@@ -155,12 +142,8 @@ public class ClaimValueConverter {
                     yield getFullDateClaim(claim.path(), (String) storedClaims.get(claim.name()));
                 }
             }
-            case TYPE_DATETIME ->
-                    getDateTimeClaim(claim.path(), (ZonedDateTime) storedClaims.get(claim.name()));
-            case TYPE_BINARY ->
-                    getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()));
-            case TYPE_DATA ->
-                    getDataClaim(claim.path(), (String) storedClaims.get(claim.name()));
+            case TYPE_DATETIME -> getDateTimeClaim(claim.path(), (ZonedDateTime) storedClaims.get(claim.name()));
+            case TYPE_BINARY -> getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()), claim.mimeType());
             default ->
                 // Default to string claim for now
                     getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
