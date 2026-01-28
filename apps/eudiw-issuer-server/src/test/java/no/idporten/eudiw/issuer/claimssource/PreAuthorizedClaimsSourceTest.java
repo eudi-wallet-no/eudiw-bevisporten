@@ -74,7 +74,7 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.init(claimsSourceProperties());
             IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), "ccid", maskinportenToken(), Duration.ofMinutes(10)),
-                    Map.of("some", "data"))
+                    new CredentialData(Map.of("some", "data"), "ccid"))
             );
             assertTrue(e.getMessage().contains("does not support push"));
         }
@@ -132,7 +132,7 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.init(claimsSourceProperties());
             claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(5)),
-                    Map.of("c", "v"));
+                    new CredentialData(Map.of("c", "v"), "ccid"));
             List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), null));
             assertAll(
                     () -> assertEquals(1, claims.size()),
