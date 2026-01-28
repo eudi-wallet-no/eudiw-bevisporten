@@ -14,6 +14,8 @@ public record Claims(
         String path,
         @JsonProperty("type")
         String type,
+        @JsonProperty("mime_type")
+        String mimeType,
         @JsonProperty("mandatory")
         boolean mandatory,
         @Valid
