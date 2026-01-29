@@ -4,6 +4,8 @@ spring:
     environment: test
 
 bevisgenerator:
+  features:
+    allow-bevistyper-v2: false
   byob-service:
     base-url: https://byob-service.test.eidas2sandkasse.net
   issuer-server:

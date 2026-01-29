@@ -1,10 +1,11 @@
 package no.idporten.eudiw.bevisgenerator.web;
 
 import jakarta.validation.Valid;
-import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
 import no.idporten.eudiw.bevisgenerator.byob.CredentialService;
+import no.idporten.eudiw.bevisgenerator.config.BevisgeneratorProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.web.models.AddCredentialForm;
+import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
 import no.idporten.eudiw.bevisgenerator.web.models.EditCredentialForm;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.CreateForm;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.EditForm;
@@ -26,10 +27,17 @@ public class AdminController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final CredentialService credentialService;
     private final IssuerServerProperties properties;
+    private final BevisgeneratorProperties bevisgeneratorProperties;
 
-    public AdminController(CredentialService credentialService, IssuerServerProperties properties) {
+    public AdminController(CredentialService credentialService, IssuerServerProperties properties, BevisgeneratorProperties bevisgeneratorProperties) {
         this.credentialService = credentialService;
         this.properties = properties;
+        this.bevisgeneratorProperties = bevisgeneratorProperties;
+    }
+
+    @ModelAttribute("allowBevisTyperV2")
+    public boolean bevisTyperV2Enabled() {
+        return bevisgeneratorProperties.getFeatureSwitches().isAllowBevistyperV2();
     }
 
     @ModelAttribute("issuerUrl")
