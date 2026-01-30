@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -56,7 +56,7 @@ public class CredentialConfigurationService {
     }
 
     private static CredentialConfiguration convert(CredentialConfigurationRequestResource credentialConfiguration, String credentialConfigurationId, String vct) {
-        List<ExampleCredentialData> exampleCredentialData = convertExampleData(credentialConfiguration.exampleCredentialData());
+        ExampleCredentialData exampleCredentialData = convertExampleData(credentialConfiguration.exampleCredentialData());
         CredentialMetadata credentialMetadata = credentialConfiguration.credentialMetadata().toCredentialMetadata();
         return new CredentialConfiguration(
                 credentialConfigurationId,
@@ -67,11 +67,11 @@ public class CredentialConfigurationService {
         );
     }
 
-    private static List<ExampleCredentialData> convertExampleData(List<ExampleCredentialDataRequestResource> exampleCredentialData) {
-        if(exampleCredentialData == null || exampleCredentialData.isEmpty()) {
-            return Collections.emptyList();
+    private static ExampleCredentialData convertExampleData(ExampleCredentialDataRequestResource exampleCredentialData) {
+        if(CollectionUtils.isEmpty(exampleCredentialData)) {
+            return new ExampleCredentialData();
         }
-        return exampleCredentialData.stream().map(ExampleCredentialDataRequestResource::toExampleCredentialData).toList();
+        return new ExampleCredentialData(exampleCredentialData);
     }
 
     public CredentialConfigurations getAllEntries() {

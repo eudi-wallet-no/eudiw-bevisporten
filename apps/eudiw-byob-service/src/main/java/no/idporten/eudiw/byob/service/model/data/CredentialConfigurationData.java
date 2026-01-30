@@ -6,8 +6,6 @@ import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
 import no.idporten.eudiw.byob.service.model.ExampleCredentialData;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -23,7 +21,7 @@ public record CredentialConfigurationData(
         String format,
 
         @JsonProperty("example_credential_data")
-        List<ExampleCredentialDataData> exampleCredentialData,
+        ExampleCredentialDataData exampleCredentialData,
 
         @JsonProperty("credential_metadata")
         CredentialMetadataData credentialMetadata
@@ -39,11 +37,11 @@ public record CredentialConfigurationData(
         );
     }
 
-    private static List<ExampleCredentialDataData> getExampleCredentialDataData(List<ExampleCredentialData> exampleCredentialData) {
-        if (exampleCredentialData == null) {
-            return Collections.emptyList();
+    private static ExampleCredentialDataData getExampleCredentialDataData(ExampleCredentialData exampleClaimData) {
+        if (exampleClaimData == null) {
+            return new ExampleCredentialDataData();
         }
-        return exampleCredentialData.stream().map(example -> new ExampleCredentialDataData(example.name(), example.value())).toList();
+        return new ExampleCredentialDataData(exampleClaimData);
     }
 
     public CredentialConfiguration toCredentialConfiguration() {
@@ -56,10 +54,11 @@ public record CredentialConfigurationData(
         );
     }
 
-    private List<ExampleCredentialData> getExampleCredentialDataData() {
+    private ExampleCredentialData getExampleCredentialDataData() {
         if (this.exampleCredentialData() == null) {
-            return Collections.emptyList();
+            return new ExampleCredentialData();
         }
-        return this.exampleCredentialData().stream().map(ExampleCredentialDataData::toExampleCredentialData).toList();
+        return new ExampleCredentialData(this.exampleCredentialData());
     }
+
 }

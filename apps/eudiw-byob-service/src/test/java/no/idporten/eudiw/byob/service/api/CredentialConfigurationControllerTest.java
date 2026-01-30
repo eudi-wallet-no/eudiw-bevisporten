@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.VCT_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -101,23 +102,6 @@ class CredentialConfigurationControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.vct").value(VCT_PREFIX + input.vct()))
                     .andExpect(jsonPath("$.example_credential_data").isEmpty());
-        }
-
-        @DisplayName("and create credential-configuration with exampleData with invalid data then the response is 400 with errormessage as body")
-        @Test
-        void postRequestTestWithInvalidExampleData() throws Exception {
-
-            ObjectMapper mapper = new ObjectMapper();
-            String invalidExampleCredentialMetadata = """
-                    "example_credential_data": [{
-                        "value": "value1"
-                    }]""";
-            CredentialConfiguration input = mapper.readValue(getPostRequestWithExampleData("bevis", invalidExampleCredentialMetadata), CredentialConfiguration.class);
-            mockMvc.perform(post("/v1/credential-configuration")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(input)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.error").value("validation_error"));
         }
 
         @Nested
@@ -225,10 +209,9 @@ class CredentialConfigurationControllerTest {
 
         private String getExampleCredentialMetadata() {
             return """
-                    "example_credential_data": [{
-                        "name": "claim1",
-                        "value": "value1"
-                    }]""";
+                    "example_credential_data": {
+                        "claim1": "value1"
+                    }""";
         }
 
         private String getCredentialMetadata() {
@@ -322,7 +305,7 @@ class CredentialConfigurationControllerTest {
     }
 
     private static CredentialConfiguration createCredentialConfiguration(String credentialConfigurationId, String vct) {
-        return new CredentialConfiguration(credentialConfigurationId, vct, "dc+sd-jwt", List.of(new ExampleCredentialData("bar", "val")), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
+        return new CredentialConfiguration(credentialConfigurationId, vct, "dc+sd-jwt", new ExampleCredentialData(Map.of("bar", "val")), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
     }
 
     @Nested
@@ -352,6 +335,6 @@ class CredentialConfigurationControllerTest {
     }
 
     private static CredentialConfigurationData createCredentialConfigurationData(String credentialConfigurationId, String vct) {
-        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", List.of(new ExampleCredentialDataData("bar", "val")), new CredentialMetadataData(new ArrayList<>(), new ArrayList<>()));
+        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", new ExampleCredentialDataData(Map.of("bar", "val")), new CredentialMetadataData(new ArrayList<>(), new ArrayList<>()));
     }
 }

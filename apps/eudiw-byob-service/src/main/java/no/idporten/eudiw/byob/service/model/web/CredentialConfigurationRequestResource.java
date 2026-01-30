@@ -6,8 +6,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-import java.util.List;
-
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record CredentialConfigurationRequestResource(
@@ -23,7 +21,7 @@ public record CredentialConfigurationRequestResource(
 
         @Valid
         @JsonProperty("example_credential_data")
-        List<ExampleCredentialDataRequestResource> exampleCredentialData,
+        ExampleCredentialDataRequestResource exampleCredentialData,
 
         @Valid
         @JsonProperty("credential_metadata")

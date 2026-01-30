@@ -1,13 +1,17 @@
 package no.idporten.eudiw.byob.service.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public record ExampleCredentialData(
-        @JsonProperty("name")
-        String name,
-        @JsonProperty("value")
-        String value
-) {
+public class ExampleCredentialData extends HashMap<String, Serializable> {
+
+    public ExampleCredentialData() {
+        super();
+    }
+
+    public ExampleCredentialData(Map<String, Serializable> other) {
+        super(other);
+    }
+
 }
