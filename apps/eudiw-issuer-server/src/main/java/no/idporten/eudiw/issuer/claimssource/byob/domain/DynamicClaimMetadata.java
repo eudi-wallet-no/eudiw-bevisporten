@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.byob.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import no.idporten.eudiw.issuer.claimssource.ClaimDataTypes;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimDataType;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public record DynamicClaimMetadata(
 )
 {
     public DynamicClaimMetadata(String path, List<DocumentMetadata.Display> display, boolean mandatory, String validationRegex) {
-        this(path, ClaimDataTypes.STRING.name(), null, display, mandatory, validationRegex);
+        this(path, ClaimDataType.STRING.name(), null, display, mandatory, validationRegex);
     }
 
 }

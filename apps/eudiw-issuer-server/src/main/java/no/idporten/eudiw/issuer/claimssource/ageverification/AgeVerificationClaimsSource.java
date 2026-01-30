@@ -4,6 +4,7 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimDataType;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
@@ -40,7 +41,7 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
                         new ClaimMetadata(
                                 NAMESPACE,
                                 "age_over_18",
-                                ClaimDataTypes.BOOLEAN,
+                                ClaimDataType.BOOLEAN,
                                 Map.of("no",
                                         "Over 18 år"),
                                 true,
@@ -48,7 +49,7 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
                         new ClaimMetadata(
                                 NAMESPACE,
                                 "age_over_15",
-                                ClaimDataTypes.BOOLEAN,
+                                ClaimDataType.BOOLEAN,
                                 Map.of("no", "Over 15 år"),
                                 true,
                                 "^true|false$")));

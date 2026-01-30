@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource.byob.domain;
 
 import lombok.Builder;
-import no.idporten.eudiw.issuer.claimssource.ClaimDataTypes;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimDataType;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.jetbrains.annotations.NotNull;
@@ -15,15 +15,15 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
 
 
     // Eksplisitt konvertering for å unngå feil ved utvidelser i fremtiden og beholde String som default.
-    private ClaimDataTypes convertType(String type) {
+    private ClaimDataType convertType(String type) {
         if (type == null || type.isEmpty()) {
-            return ClaimDataTypes.STRING;
+            return ClaimDataType.STRING;
         }
         //tmp fix until bilde is deleted from redis in systest
         if (type.equals("bilde")) {
-            return ClaimDataTypes.BINARY;
+            return ClaimDataType.BINARY;
         }
-        return ClaimDataTypes.valueOfCaseInsensitive(type);
+        return ClaimDataType.valueOfCaseInsensitive(type);
     }
 
 
@@ -41,7 +41,7 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
 
     @NotNull
     private ClaimMetadata convertToClaimMetadata(DynamicClaimMetadata claim) {
-        ClaimDataTypes type = convertType(claim.type());
+        ClaimDataType type = convertType(claim.type());
         return new ClaimMetadata(
                 ClaimMetadata.EMPTY_NAMESPACE, // namespace only for mdoc, byob only supports SD-JWT-VC
                 claim.path(),       // path as single string

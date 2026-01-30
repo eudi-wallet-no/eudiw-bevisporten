@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimDataType;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ public class JUnitClaimsSource implements ClaimsSource {
     public JUnitClaimsSource(){
         this.documentMetadata = new DocumentMetadata(
                 List.of(new DocumentMetadata.Display("no", "Junit doc", "Kun for junit-tester")),
-                List.of(new ClaimMetadata("junitdoc", "attr1", ClaimDataTypes.STRING, Map.of("no", "attribute1"), true, ".*"))
+                List.of(new ClaimMetadata("junitdoc", "attr1", ClaimDataType.STRING, Map.of("no", "attribute1"), true, ".*"))
         );
     }
 

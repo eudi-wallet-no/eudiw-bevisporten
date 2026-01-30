@@ -11,11 +11,9 @@ import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -28,49 +26,18 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     private ClaimsSourceCache cache;
 
     private final ClaimValueConverter claimValueConverter = new ClaimValueConverter();
+    private final ClaimDataTypeValidator claimDataTypeValidator = new ClaimDataTypeValidator();
 
     @Autowired
     public void setClaimsSourceCache(ClaimsSourceCache claimsSourceCache) {
         this.cache = claimsSourceCache;
     }
 
-    // Skulle me droppa det her?
-    public final void validateClaim(ClaimMetadata claimMetadata, Map<String, Object> claims) {
-        if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
-            throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
-        }
-        if (ClaimDataTypes.STRING.equals(claimMetadata.type())) {
-            validateStringValue(claimMetadata, claims);
-        } else if (ClaimDataTypes.ISO_DATE.equals(claimMetadata.type())) {
-            final LocalDate value = (LocalDate) claims.get(claimMetadata.name());
-            if (claimMetadata.mandatory() && value == null) {
-                throw new IssuerServerException("invalid_request", "Missing required value for fulldate claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
-            }
-        } else if (ClaimDataTypes.MAP.equals(claimMetadata.type())) {
-            final Map<String, Object> value = (Map<String, Object>) claims.get(claimMetadata.name());
-            if (claimMetadata.mandatory() && value.isEmpty()) {
-                throw new IssuerServerException("invalid_request", "Missing required Map value for map claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
-            }
-        }
-        // TODO more validation
-    }
 
-    private static void validateStringValue(ClaimMetadata claimMetadata, Map<String, Object> claims) {
-        final String value = (String) claims.get(claimMetadata.name());
-        if (claimMetadata.mandatory() && !StringUtils.hasLength(value)) {
-            throw new IssuerServerException("invalid_request", "Missing required value for string claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
-        }
-        if (!claimMetadata.mandatory() && !StringUtils.hasLength(value)) {
-            return;
-        }
-        if (!value.matches(claimMetadata.validationRegex())) {
-            throw new IssuerServerException("invalid_request", "Invalid format for required value for string claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
-        }
-    }
 
     @Override
     public final CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData) {
-        if(credentialMetadata == null) {
+        if (credentialMetadata == null) {
             throw new IssuerServerException("invalid_request", "credentialMetadata null in request.", HttpStatus.BAD_REQUEST);
         }
         CredentialMetadataContext credentialMetadataContext = new CredentialMetadataContext(credentialData.credentialConfigurationId(), null, null);
@@ -92,6 +59,14 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
             }
         }
         return new CredentialData(Collections.unmodifiableMap(claims), credentialData.credentialConfigurationId());
+    }
+
+    // TODO change to protected, but must rewrite nnidClaimSourceTests first
+    public final void validateClaim(ClaimMetadata claimMetadata, Map<String, Object> claims) {
+        if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
+            throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
+        }
+        claimDataTypeValidator.validate(claimMetadata, claims.get(claimMetadata.name()));
     }
 
     @Override

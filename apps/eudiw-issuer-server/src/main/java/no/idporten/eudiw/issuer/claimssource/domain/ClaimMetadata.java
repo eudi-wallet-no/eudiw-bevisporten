@@ -1,7 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource.domain;
 
-import no.idporten.eudiw.issuer.claimssource.ClaimDataTypes;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +18,7 @@ import java.util.Map;
 public record ClaimMetadata (
         String namespace, // only for mdoc, first in path - shallow credentials
         String name, // last in path mdoc, complete path SD-JWT VC - shallow credentials
-        ClaimDataTypes type, // String, Number, Boolean, Binary, FullDate, DateTime, List, Map
+        ClaimDataType type, // String, Number, Boolean, Binary, FullDate, DateTime, List, Map
         String mimeType, // only for type = binary
         Map<String, String> displayNames,
         boolean mandatory,
@@ -38,7 +36,7 @@ public record ClaimMetadata (
      * @param mandatory issuer must issue claim
      * @param validationRegex validation regex
      */
-    public ClaimMetadata(String name, ClaimDataTypes type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
+    public ClaimMetadata(String name, ClaimDataType type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
         this(null, name, type, null, displayNames, mandatory, validationRegex);
     }
     /**
@@ -49,7 +47,7 @@ public record ClaimMetadata (
      * @param mandatory issuer must issue claim
      * @param validationRegex validation regex
      */
-    public ClaimMetadata(String namespace, String name, ClaimDataTypes type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
+    public ClaimMetadata(String namespace, String name, ClaimDataType type, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
         this(namespace, name, type, null, displayNames, mandatory, validationRegex);
     }
 
@@ -62,7 +60,7 @@ public record ClaimMetadata (
      * @param validationRegex validation regex
      */
     public ClaimMetadata(String name, Map<String, String> displayNames, boolean mandatory, String validationRegex) {
-        this(null, name, ClaimDataTypes.STRING, null, displayNames, mandatory, validationRegex);
+        this(null, name, ClaimDataType.STRING, null, displayNames, mandatory, validationRegex);
     }
 
     public String getDisplayName(String locale) {
