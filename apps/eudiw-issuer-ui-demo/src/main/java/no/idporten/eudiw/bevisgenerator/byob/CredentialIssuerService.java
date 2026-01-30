@@ -5,17 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.ByobService;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
-import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.ExampleCredentialData;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
-import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceClaim;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceCredentialData;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -83,17 +81,11 @@ public class CredentialIssuerService {
             throw new IssuerUiException("CredentialDefinition is null");
 
         }
-        return new IssuanceDefinition(cd.getCredentialConfigurationId(), personId, convertFromExampleDataToIssuanceClaim(cd));
+        return new IssuanceDefinition(cd.getCredentialConfigurationId(), personId, convertFromExampleDataToIssuanceCredentialData(cd));
     }
 
-    private List<IssuanceClaim> convertFromExampleDataToIssuanceClaim(CredentialDefinition cd) {
-        ArrayList<IssuanceClaim> issuanceClaims = new ArrayList<>();
-
-        for (ExampleCredentialData exampleData : cd.getExampleCredentialData()) {
-            issuanceClaims.add(new IssuanceClaim(exampleData.name(), exampleData.value()));
-        }
-
-        return issuanceClaims;
+    private IssuanceCredentialData convertFromExampleDataToIssuanceCredentialData(CredentialDefinition cd) {
+        return new IssuanceCredentialData(cd.getExampleCredentialData());
     }
 
     private String convertToJson(IssuanceDefinition issuanceDefinition) {

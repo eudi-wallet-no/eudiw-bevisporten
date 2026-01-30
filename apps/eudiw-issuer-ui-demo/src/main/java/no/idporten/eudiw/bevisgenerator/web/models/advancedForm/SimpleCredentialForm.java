@@ -5,13 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
-import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.ExampleCredentialData;
 import no.idporten.eudiw.bevisgenerator.web.models.unique.UniqueVct;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public record SimpleCredentialForm(
         @NotBlank(message = "VCT er påkrevd", groups = CreateForm.class)
@@ -39,20 +38,15 @@ public record SimpleCredentialForm(
 
     public SimpleCredentialForm(CredentialDefinition cd) {
         String name = cd.getCredentialMetadata().display().getFirst().name();
-        Map<String, String> exampleData =
-            cd.getExampleCredentialData().stream()
-                .collect(Collectors.toMap(
-                    ExampleCredentialData::name,
-                    ExampleCredentialData::value
-                ));
-
+        Map<String, Serializable> exampleData =
+            cd.getExampleCredentialData();
         List<ClaimForm> claims = cd
             .getCredentialMetadata()
             .claims()
             .stream()
             .map(claim -> {
                 String fieldName = claim.display().getFirst().name();
-                String exampleValue = exampleData.get(claim.path());
+                String exampleValue = String.valueOf(exampleData.get(claim.path()));
                 return new ClaimForm(claim.path(), fieldName, exampleValue);
             }).toList();
 
