@@ -18,7 +18,7 @@ public class CredentialDefinition {
     private String format;
 
     @JsonProperty("example_credential_data")
-    private List<ExampleCredentialData> exampleCredentialData;
+    private ExampleCredentialData exampleCredentialData;
 
     @JsonProperty("credential_metadata")
     private CredentialMetadata credentialMetadata;
@@ -26,7 +26,7 @@ public class CredentialDefinition {
     public CredentialDefinition() {
     }
 
-    public CredentialDefinition(String vct, List<ExampleCredentialData> exampleCredentialData, CredentialMetadata credentialMetadata) {
+    public CredentialDefinition(String vct, ExampleCredentialData exampleCredentialData, CredentialMetadata credentialMetadata) {
         this.vct = vct;
         this.exampleCredentialData = exampleCredentialData;
         this.credentialMetadata = credentialMetadata;
@@ -56,11 +56,11 @@ public class CredentialDefinition {
         return format;
     }
 
-    public List<ExampleCredentialData> getExampleCredentialData() {
+    public ExampleCredentialData getExampleCredentialData() {
         return exampleCredentialData;
     }
 
-    public void setExampleCredentialData(List<ExampleCredentialData> exampleCredentialData) {
+    public void setExampleCredentialData(ExampleCredentialData exampleCredentialData) {
         this.exampleCredentialData = exampleCredentialData;
     }
 
@@ -71,7 +71,6 @@ public class CredentialDefinition {
     public void setCredentialMetadata(CredentialMetadata credentialMetadata) {
         this.credentialMetadata = credentialMetadata;
     }
-
 
     private CredentialMetadata extractMetadata(SimpleCredentialForm form) {
         List<Display> display = List.of(new Display(form.name()));
@@ -89,15 +88,13 @@ public class CredentialDefinition {
         return new CredentialMetadata(display, claims);
     }
 
-    private List<ExampleCredentialData> extractExampleData(SimpleCredentialForm form) {
+    private ExampleCredentialData extractExampleData(SimpleCredentialForm form) {
+        ExampleCredentialData exampleCredentialData = new ExampleCredentialData();
         if (form.claims() == null) {
-            return Collections.emptyList();
+            return exampleCredentialData;
         }
-
-        return form
-                .claims()
-                .stream()
-                .map(claim -> new ExampleCredentialData(claim.path(), claim.exampleValue()))
-                .toList();
+        form.claims().forEach(claimForm -> exampleCredentialData.put(claimForm.path(), claimForm.exampleValue()));
+        return exampleCredentialData;
     }
+
 }
