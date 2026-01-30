@@ -103,7 +103,7 @@ class CredentialConfigurationServiceTest {
     }
 
     private static CredentialConfigurationData getCredentialConfigurationData(String credentialConfigurationId, String vct) {
-        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", List.of(), null);
+        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", null, null);
     }
 
     @Test

@@ -2,9 +2,7 @@ package no.idporten.eudiw.byob.service.data;
 
 import jakarta.annotation.PostConstruct;
 import no.idporten.eudiw.byob.service.exception.BadRequestException;
-import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
 import no.idporten.eudiw.byob.service.model.data.CredentialConfigurationData;
-import no.idporten.eudiw.byob.service.service.MockCredentialConfigurations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,18 +37,6 @@ public class RedisService {
         valueOperations = redisTemplate.opsForValue();
         Set<String> allKeys = getAllDataKeys();
         log.info("RedisService initialized. Found existing keys with prefix {} in Redis: {}", DATA_PREFIX_BYOB_TYPES, allKeys);
-        addMockedCredentialConfigurationsToRedis();
-    }
-
-    // remove me when mocked data is no longer needed
-    private void addMockedCredentialConfigurationsToRedis() {
-        List<CredentialConfiguration> credentialConfigurationsMocked = MockCredentialConfigurations.getCredentialConfigurationsListMocked();
-        for (CredentialConfiguration credentialConfiguration : credentialConfigurationsMocked) {
-            CredentialConfigurationData bevisTypeData = new CredentialConfigurationData(credentialConfiguration);
-            addBevisType(bevisTypeData);
-            log.info("Added mocked BevisType to Redis: vct={}", credentialConfiguration.vct()); // will override or not add if already exists
-        }
-        log.info("RedisService initialization complete. Total BevisTypes in Redis: {}", getAll().size());
     }
 
     public void addBevisType(CredentialConfigurationData bevisType) {

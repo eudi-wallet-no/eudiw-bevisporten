@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +34,7 @@ class RedisServiceTest {
     }
 
     private static CredentialConfigurationData createCredentialConfigurationData(String vct) {
-        return new CredentialConfigurationData("test-vct-cred-id", vct, "dc+sd-jwt", List.of(new ExampleCredentialDataData("attr1","mine")), new CredentialMetadataData(List.of(), List.of()));
+        return new CredentialConfigurationData("test-vct-cred-id", vct, "dc+sd-jwt", new ExampleCredentialDataData(Map.of("attr1","mine")), new CredentialMetadataData(List.of(), List.of()));
     }
 
     @Test
