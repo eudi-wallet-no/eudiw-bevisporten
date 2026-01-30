@@ -70,7 +70,7 @@ public class SDJWTServiceTest {
         Claim binaryClaim = buildClaim("foo", "image", new BinaryValue(base64EncodeSmileyJpeg(), "image/jpeg"));
         Claim booleanClaim = buildClaim("foo", "boolean1", new BooleanValue(true));
         Claim fullDateClaim = buildClaim("foo", "fulldate1", new FullDateValue(LocalDate.of(2025, 11, 5)));
-        Claim dateTimeClaim = buildClaim("foo", "datetime1", new DateTimeValue(ZonedDateTime.parse("2025-11-10T10:30:00+01:00[Europe/Paris]")));
+        Claim dateTimeClaim = buildClaim("foo", "datetime1", new DateTimeValue(ZonedDateTime.parse("2025-11-10T10:30:00Z")));
         Claim listNumberClaim = buildClaim("foo", "listnumbers", new ListValue(List.of(new NumberValue(1L), new NumberValue(2L), new NumberValue(3L))));
         Claim mapBooleanClaim = buildClaim("foo", "mapbooleans", new MapValue(Map.of("JA", new BooleanValue(true), "NEI", new BooleanValue(false))));
         List<Claim> claims = List.of(stringClaim1, numberClaim, binaryClaim, booleanClaim, fullDateClaim, dateTimeClaim, listNumberClaim, mapBooleanClaim);
@@ -128,7 +128,7 @@ public class SDJWTServiceTest {
                 () -> assertEquals(BINARY_DATA_PREFIX.formatted("image/jpeg") + base64EncodeSmileyJpeg(), verifiedClaims.getStringClaim("image")),
                 () -> assertEquals(true, verifiedClaims.getBooleanClaim("boolean1")),
                 () -> assertEquals("2025-11-05", verifiedClaims.getStringClaim("fulldate1")),
-                () -> assertEquals("2025-11-10", verifiedClaims.getStringClaim("datetime1")),
+                () -> assertEquals("2025-11-10T10:30:00Z", verifiedClaims.getStringClaim("datetime1")),
                 () -> assertEquals(3, verifiedClaims.getListClaim("listnumbers").size()),
                 () -> assertArrayEquals(new Long[]{1L, 2L, 3L}, verifiedClaims.getListClaim("listnumbers").toArray()),
                 () -> assertTrue((Boolean) verifiedClaims.getJSONObjectClaim("mapbooleans").get("JA")),

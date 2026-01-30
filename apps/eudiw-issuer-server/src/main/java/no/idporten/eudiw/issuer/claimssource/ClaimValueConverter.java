@@ -6,20 +6,27 @@ import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatExcepti
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
 import static no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException.INVALID_CLAIMS_DATA;
 
 // Expects values to be non-null and of valid format
 public class ClaimValueConverter {
 
+    public static final DateTimeFormatter FORMATTER_ISO_DATE = ISO_LOCAL_DATE;
+    public static final DateTimeFormatter FORMATTER_ISO_DATE_TIME = new DateTimeFormatterBuilder().parseCaseInsensitive().append(ISO_LOCAL_DATE).appendLiteral("T")
+            .append(ISO_LOCAL_TIME).appendOffsetId().toFormatter();
+
     public Claim getFullDateClaim(String key, String value) {
         try {
-            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            LocalDate date = LocalDate.parse(value, FORMATTER_ISO_DATE);
             return buildClaim(key, new FullDateValue(date));
         } catch (DateTimeParseException e) {
             throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(key), e);
@@ -28,7 +35,7 @@ public class ClaimValueConverter {
 
     public Claim getFullDateClaim(List<String> path, String value) {
         try {
-            LocalDate date = LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+            LocalDate date = LocalDate.parse(value, FORMATTER_ISO_DATE);
             return buildClaim(path, new FullDateValue(date));
         } catch (DateTimeParseException e) {
             throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(path), e);
@@ -41,6 +48,24 @@ public class ClaimValueConverter {
 
     public Claim getFullDateClaim(List<String> path, LocalDate value) {
         return buildClaim(path, new FullDateValue(value));
+    }
+
+    public Claim getDateTimeClaim(List<String> path, String value) {
+        try {
+            ZonedDateTime date = ZonedDateTime.parse(value, FORMATTER_ISO_DATE_TIME);
+            return buildClaim(path, new DateTimeValue(date));
+        } catch (DateTimeParseException e) {
+            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(path), e);
+        }
+    }
+
+    public Claim getDateTimeClaim(String key, String value) {
+        try {
+            ZonedDateTime date = ZonedDateTime.parse(value, FORMATTER_ISO_DATE_TIME);
+            return buildClaim(key, new DateTimeValue(date));
+        } catch (DateTimeParseException e) {
+            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(key), e);
+        }
     }
 
     public Claim getDateTimeClaim(String key, ZonedDateTime value) {
@@ -128,26 +153,34 @@ public class ClaimValueConverter {
         return buildClaim(path, new BinaryValue(base64Image, mimeType));
     }
 
-    // Default for null type is String
+    // If type=null, use String as default.
     public Claim convertClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
-        if(claim.type() == null){
+        if (claim.type() == null) {
             return getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
         }
         return switch (claim.type()) {
-            case ClaimDataTypes.STRING -> getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
-            case ClaimDataTypes.NUMBER -> getNumberClaim(claim.path(), (Integer) storedClaims.get(claim.name()));
-            case ClaimDataTypes.BOOLEAN -> getBooleanClaim(claim.path(), (Boolean) storedClaims.get(claim.name()));
-            case ClaimDataTypes.ISO_DATE -> {
+            case ClaimDataType.STRING -> getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
+            case ClaimDataType.NUMBER -> getNumberClaim(claim.path(), (Integer) storedClaims.get(claim.name()));
+            case ClaimDataType.BOOLEAN -> getBooleanClaim(claim.path(), (Boolean) storedClaims.get(claim.name()));
+            case ClaimDataType.ISO_DATE -> {
                 if (storedClaims.get(claim.name()) instanceof LocalDate localDate) {
                     yield getFullDateClaim(claim.path(), localDate);
                 } else {
                     yield getFullDateClaim(claim.path(), (String) storedClaims.get(claim.name()));
                 }
             }
-            case ClaimDataTypes.ISO_DATE_TIME -> getDateTimeClaim(claim.path(), (ZonedDateTime) storedClaims.get(claim.name()));
-            case ClaimDataTypes.BINARY -> getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()), claim.mimeType());
-            case ClaimDataTypes.MAP -> getMapClaim(claim.path(), (Map<String, String>) storedClaims.get(claim.name())); // TODO handle errors better
-            case ClaimDataTypes.LIST -> getListClaim(claim.path(), (List<String>) storedClaims.get(claim.name()));
+            case ClaimDataType.ISO_DATE_TIME -> {
+                if (storedClaims.get(claim.name()) instanceof ZonedDateTime zonedDateTime) {
+                    yield getDateTimeClaim(claim.path(), zonedDateTime);
+                } else {
+                    yield getDateTimeClaim(claim.path(), (String) storedClaims.get(claim.name()));
+                }
+            }
+            case ClaimDataType.BINARY ->
+                    getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()), claim.mimeType());
+            case ClaimDataType.MAP ->
+                    getMapClaim(claim.path(), (Map<String, String>) storedClaims.get(claim.name())); // TODO handle errors better
+            case ClaimDataType.LIST -> getListClaim(claim.path(), (List<String>) storedClaims.get(claim.name()));
         };
     }
 }

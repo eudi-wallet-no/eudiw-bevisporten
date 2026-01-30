@@ -41,7 +41,7 @@ public class DynamicCredentialConfigurationService {
             ccMap.put(cc.credentialConfigurationId(), cc);
 
         }
-        log.info("Retrieved all credential-configuration from byob-service credential_configuration_ids: %s".formatted(ccMap.keySet()));
+        log.debug("Retrieved all credential-configuration from byob-service credential_configuration_ids: %s".formatted(ccMap.keySet()));
         return ccMap;
     }
 
@@ -79,7 +79,7 @@ public class DynamicCredentialConfigurationService {
         }
         DynamicCredentialConfiguration cc = byobServiceIntegration.retrieve(credentialType);
         if (cc != null) {
-            log.info("Retrieved credential-configuration from byob-service by credentialType: %s".formatted(credentialType));
+            log.debug("Retrieved credential-configuration from byob-service by credentialType: %s".formatted(credentialType));
             return cc.getCredentialMetadata();
         }
         return null;
@@ -93,7 +93,7 @@ public class DynamicCredentialConfigurationService {
 
         DynamicCredentialConfiguration cc = byobServiceIntegration.searchByCredentialConfigurationId(credentialConfigurationId);
         if (cc != null) {
-            log.info("Retrieved credential-configuration from byob-service by credentialConfigurationId: %s".formatted(credentialConfigurationId));
+            log.debug("Retrieved credential-configuration from byob-service by credentialConfigurationId: %s".formatted(credentialConfigurationId));
             return cc.getCredentialMetadata();
         }
         return null;

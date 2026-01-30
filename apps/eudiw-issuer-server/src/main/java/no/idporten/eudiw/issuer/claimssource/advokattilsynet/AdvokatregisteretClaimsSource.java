@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.advokattilsynet;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.*;
 import no.idporten.eudiw.issuer.claimssource.advokattilsynet.model.PersonPrivate;
+import no.idporten.eudiw.issuer.claimssource.domain.ClaimDataType;
 import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
 import org.springframework.stereotype.Service;
@@ -27,37 +28,37 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
                 List.of(
                         new ClaimMetadata(NAMESPACE,
                                 "personidentifikator",
-                                ClaimDataTypes.STRING,
+                                ClaimDataType.STRING,
                                 Map.of("no", "Personidentifikator"),
                                 true,
                                 "^\\d{11}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "tittel",
-                                ClaimDataTypes.STRING,
+                                ClaimDataType.STRING,
                                 Map.of("no", "Tittel"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "mellomnavn",
-                                ClaimDataTypes.STRING,
+                                ClaimDataType.STRING,
                                 Map.of("no", "Mellomnavn"),
                                 false,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "etternavn",
-                                ClaimDataTypes.STRING,
+                                ClaimDataType.STRING,
                                 Map.of("no", "Etternavn"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "fornavn",
-                                ClaimDataTypes.STRING,
+                                ClaimDataType.STRING,
                                 Map.of("no", "Fornavn"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"),
                         new ClaimMetadata(NAMESPACE,
                                 "regnr",
-                                ClaimDataTypes.STRING,
+                                ClaimDataType.STRING,
                                 Map.of("no", "Regnr"),
                                 true,
                                 "^[\\x20-\\x7EæøåÆØÅ]{1,155}$")

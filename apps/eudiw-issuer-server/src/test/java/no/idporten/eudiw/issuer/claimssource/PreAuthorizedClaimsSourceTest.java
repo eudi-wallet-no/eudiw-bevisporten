@@ -5,10 +5,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
+import no.idporten.eudiw.issuer.claimssource.domain.*;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +32,7 @@ public class PreAuthorizedClaimsSourceTest {
 
         @Override
         public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-            return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata(ClaimMetadata.EMPTY_NAMESPACE, "c", ClaimDataTypes.STRING, Map.of("no", "C"), true, ".*")));
+            return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata(ClaimMetadata.EMPTY_NAMESPACE, "c", ClaimDataType.STRING, Map.of("no", "C"), true, ".*")));
         }
     }
 

@@ -74,7 +74,7 @@ public class PreAuthorizedIssuanceRequest {
     @JsonProperty("credential_data")
     @Schema(title = "Credential data",
             description = "Credential data as a JSON object.  Use this to push credential data.")
-    private Map<String, String> credentialData;
+    private Map<String, Object> credentialData;
 
     @JsonIgnore
     public CredentialData getCredentialData() {

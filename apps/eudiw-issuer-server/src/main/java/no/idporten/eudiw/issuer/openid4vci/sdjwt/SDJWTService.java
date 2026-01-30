@@ -20,13 +20,15 @@ import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
 
 import java.security.interfaces.ECPrivateKey;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static no.idporten.eudiw.issuer.claimssource.ClaimValueConverter.FORMATTER_ISO_DATE_TIME;
+import static no.idporten.eudiw.issuer.claimssource.ClaimValueConverter.FORMATTER_ISO_DATE;
 
 @Service
 public class SDJWTService {
@@ -93,8 +95,8 @@ public class SDJWTService {
             case NumberValue c -> c.value();
             case BooleanValue c -> c.value();
             case BinaryValue c -> addDataPrefix(c);
-            case FullDateValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            case DateTimeValue c -> c.value().format(DateTimeFormatter.ISO_LOCAL_DATE); //
+            case FullDateValue c -> c.value().format(FORMATTER_ISO_DATE);
+            case DateTimeValue c -> c.value().format(FORMATTER_ISO_DATE_TIME);
             case ListValue c -> c.value().stream().map(this::convert).collect(Collectors.toList());
             case MapValue c ->
                     c.value().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> convert(e.getValue())));
