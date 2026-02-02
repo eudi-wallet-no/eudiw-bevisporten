@@ -13,6 +13,7 @@ import com.nimbusds.oauth2.sdk.dpop.JWKThumbprintConfirmation;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPIssuer;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPTokenRequestVerifier;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPProofException;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
@@ -292,7 +293,7 @@ public class OpenIDConnectIntegrationBase implements OpenIDConnectIntegration {
         long maxAgeSeconds = sdkConfiguration.getDPopLifetimeSeconds();
         DPoPTokenRequestVerifier verifier = new DPoPTokenRequestVerifier(sdkConfiguration.getDPopSigningAlgValuesSupported(), endpoint, maximumTimeSkewSeconds, maxAgeSeconds, null);
         try {
-            JWKThumbprintConfirmation verify = verifier.verify(new DPoPIssuer(clientId), dPopProof, null); // TODO add Nonce later
+            JWKThumbprintConfirmation verify = verifier.verify(new DPoPIssuer(clientId), dPopProof, (Nonce) null); // TODO add Nonce later
             return verify.getValue().toString();
         } catch (InvalidDPoPProofException e) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. DPop Proof header invalid", 400, e);
