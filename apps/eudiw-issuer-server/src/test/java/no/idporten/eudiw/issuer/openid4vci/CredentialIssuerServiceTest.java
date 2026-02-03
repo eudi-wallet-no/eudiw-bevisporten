@@ -5,8 +5,10 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.StringValue;
+import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.credentials.types.StringValue;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
@@ -53,6 +55,9 @@ public class CredentialIssuerServiceTest {
     private CredentialIssuanceStatusService credentialIssuanceStatusService;
 
     @Mock
+    private CredentialCreateService credentialCreateService;
+
+    @Mock
     private AuditService auditService;
 
     @InjectMocks
@@ -83,9 +88,12 @@ public class CredentialIssuerServiceTest {
                     .credentialType("foodoc")
                     .build();
             ClaimsSource claimsSource = mock(ClaimsSource.class);
-            when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build()));
+            List<Claim> claims = List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build());
+            when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(claims);
             when(credentialConfigurationService.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfigurationProperties);
             when(claimsSourceService.findClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
+            when(credentialCreateService.createCredentials(isNull(), eq(credentialConfigurationProperties), anyList()))
+                    .thenReturn(List.of(Credential.builder().credential("{credential-with-n1-p1-v1}").build()));
             IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(transactionId);
             when(credentialIssuanceStatusService.credentialIssued(eq("cid"), eq(issuanceTransactionId))).thenReturn(new NotificationId("nid"));
             CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);

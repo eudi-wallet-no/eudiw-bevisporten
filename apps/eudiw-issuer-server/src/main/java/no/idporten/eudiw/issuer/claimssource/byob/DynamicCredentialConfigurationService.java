@@ -2,10 +2,10 @@ package no.idporten.eudiw.issuer.claimssource.byob;
 
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

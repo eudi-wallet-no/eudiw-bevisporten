@@ -5,13 +5,13 @@ import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.BYOB;
+import static no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource.BYOB;
 
 @Service
 public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {

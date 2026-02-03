@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 
-import static no.idporten.eudiw.issuer.claimssource.AuthoritativeSource.BYOB;
+import static no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource.BYOB;
 
 /**
  * Integration with byob-service to retrieve dynamic credentials configurations (BYOB = Bring Your Own Bevis).

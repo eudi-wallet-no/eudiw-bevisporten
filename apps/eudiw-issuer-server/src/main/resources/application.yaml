@@ -147,37 +147,37 @@ credential-issuer-server:
       class-name: no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
     - credential-types:
         - eu.europa.ec.eudi.pid.1
-      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDMdocClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.pid.PIDMdocClaimsSource
     - credential-types:
         - urn:eudi:pid:1
-      class-name: no.idporten.eudiw.issuer.claimssource.pid.PIDSDJwtClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.pid.PIDSDJwtClaimsSource
     - credential-types:
         - no.skatteetaten.nnid.1
-      class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.NnidClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.skatteetaten.NnidClaimsSource
     - credential-types:
         - no.advokattilsynet.advokatregisteret.1
-      class-name: no.idporten.eudiw.issuer.claimssource.advokattilsynet.AdvokatregisteretClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource
     - credential-types:
         - no:minid:mpid:1
-      class-name: no.idporten.eudiw.issuer.claimssource.minid.MpidClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.minid.MpidClaimsSource
     - credential-types:
         - no:kontaktregisteret:kontaktinformasjon:1
-      class-name: no.idporten.eudiw.issuer.claimssource.krr.KrrClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.krr.KrrClaimsSource
     - credential-types:
         - org.iso.18013.5.1.mDL
-      class-name: no.idporten.eudiw.issuer.claimssource.vegvesenet.ForerkortClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.vegvesenet.ForerkortClaimsSource
     - credential-types:
         - eu.europa.ec.av.1
-      class-name: no.idporten.eudiw.issuer.claimssource.ageverification.AgeVerificationClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.ageverification.AgeVerificationClaimsSource
     - credential-types:
         - no.skatteetaten.inntekt.1
-      class-name: no.idporten.eudiw.issuer.claimssource.skatteetaten.InntektClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.skatteetaten.InntektClaimsSource
     - credential-types:
         - no:kommunalsektor:hcregister:1
-      class-name: no.idporten.eudiw.issuer.claimssource.kommune.HandicapBevisClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.kommune.HandicapBevisClaimsSource
     - credential-types:
         - no:helsesektor:legeerklaring:1
-      class-name: no.idporten.eudiw.issuer.claimssource.helsesektor.LegeerklaringBevisClaimsSource
+      class-name: no.idporten.eudiw.issuer.authoritativesources.helsesektor.LegeerklaringBevisClaimsSource
 
 # Digdir standard logging
 digdir:

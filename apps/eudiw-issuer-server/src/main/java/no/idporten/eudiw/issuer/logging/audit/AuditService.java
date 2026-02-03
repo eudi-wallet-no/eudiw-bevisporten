@@ -6,7 +6,7 @@ import com.nimbusds.oauth2.sdk.id.Identifier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;

@@ -6,7 +6,8 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.byob.DynamicCredentialConfigurationService;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
@@ -86,7 +87,7 @@ public class CredentialIssuerServerGeneratorService {
         return displays;
     }
 
-    private Display convertToDisplay(no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata.Display display) {
+    private Display convertToDisplay(DocumentMetadata.Display display) {
         return Display.builder()
                 .locale(display.locale())
                 .name(display.name())

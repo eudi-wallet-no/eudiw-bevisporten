@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.byob.domain;
 
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

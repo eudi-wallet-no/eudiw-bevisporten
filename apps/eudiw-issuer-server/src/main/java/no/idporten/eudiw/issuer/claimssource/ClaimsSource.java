@@ -1,8 +1,8 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
