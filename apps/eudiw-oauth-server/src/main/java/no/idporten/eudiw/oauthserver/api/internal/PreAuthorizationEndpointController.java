@@ -7,10 +7,10 @@ import no.idporten.eudiw.oauthserver.server.OAuth2AuthorizationServer;
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.protocol.PreAuthorizationRequest;
 import no.idporten.sdk.oidcserver.protocol.PreAuthorizationResponse;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -32,13 +32,13 @@ public class PreAuthorizationEndpointController {
     @PostMapping(value = "/api/v1/pre-authorizations",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<PreAuthorizationResponse> createPreAuthorization(@RequestHeader HttpHeaders headers,
+    public ResponseEntity<PreAuthorizationResponse> createPreAuthorization(@RequestHeader MultiValueMap<String, String> headers,
                                                                            @RequestBody PreAuthorizationRequest preAuthorizationRequest) {
         checkApiKey(headers);
         return ResponseEntity.ok(openIDConnectSdk.process(preAuthorizationRequest, headers));
     }
 
-    private void checkApiKey(HttpHeaders headers) {
+    private void checkApiKey(MultiValueMap<String, String> headers) {
         if (!headers.containsKey(X_API_KEY_HEADER)) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing API key header.", 401);
         }

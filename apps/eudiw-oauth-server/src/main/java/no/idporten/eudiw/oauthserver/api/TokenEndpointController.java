@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.TokenRequest;
 import no.idporten.sdk.oidcserver.protocol.TokenResponse;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,7 +27,7 @@ public class TokenEndpointController {
     @PostMapping(value = "/token",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<TokenResponse> token(@RequestHeader HttpHeaders headers, @RequestParam MultiValueMap<String, String> parameters) {
+    public ResponseEntity<TokenResponse> token(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters) {
         return ResponseEntity.ok(openIDConnectSdk.process(new TokenRequest(headers, parameters)));
     }
 

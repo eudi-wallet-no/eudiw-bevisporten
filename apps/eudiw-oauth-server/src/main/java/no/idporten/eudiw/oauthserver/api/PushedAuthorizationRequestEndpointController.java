@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.PushedAuthorizationRequest;
 import no.idporten.sdk.oidcserver.protocol.PushedAuthorizationResponse;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,7 +27,7 @@ public class PushedAuthorizationRequestEndpointController {
     @PostMapping(value = "/par",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<PushedAuthorizationResponse> par(@RequestHeader HttpHeaders headers, @RequestParam MultiValueMap<String, String> parameters) {
+    public ResponseEntity<PushedAuthorizationResponse> par(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters) {
         PushedAuthorizationResponse pushedAuthorizationResponse = openIDConnectSdk.process(new PushedAuthorizationRequest(headers, parameters));
         return ResponseEntity.status(pushedAuthorizationResponse.getHttpStatusCode()).body(pushedAuthorizationResponse);
     }
