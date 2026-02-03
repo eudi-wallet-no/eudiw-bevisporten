@@ -7,7 +7,7 @@ import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import no.idporten.sdk.oidcserver.util.MultiValuedMapUtils;
 import no.idporten.sdk.oidcserver.util.StringUtils;
-import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.Map;
@@ -103,7 +103,7 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
      * Process pre-authorization request.  Create an authorization, store in cache and generate a response
      * with pre.authorization_code.
      */
-    public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest, HttpHeaders headers) {
+    public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest, MultiValueMap<String, String> headers) {
         validate(preAuthorizationRequest);
         Map<String, List<String>> headersMap = MultiValuedMapUtils.caseInsensitiveMap(headers);
         Authorization preAuthorization = Authorization.builder()

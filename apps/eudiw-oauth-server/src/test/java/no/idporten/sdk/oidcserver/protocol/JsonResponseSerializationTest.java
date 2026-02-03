@@ -1,11 +1,11 @@
 package no.idporten.sdk.oidcserver.protocol;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.sdk.oidcserver.util.JsonUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

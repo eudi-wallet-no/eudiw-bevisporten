@@ -9,7 +9,6 @@ import no.idporten.eudiw.oauthserver.proxy.OIDCProxyService;
 import no.idporten.eudiw.oauthserver.proxy.ProtocolVerifiers;
 import no.idporten.eudiw.oauthserver.server.OAuth2AuthorizationServer;
 import no.idporten.sdk.oidcserver.protocol.*;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,7 +33,7 @@ public class AuthorizationProxyEndpointController {
      * Receive client authorization request and redirect a new authorization request to OIDC server.
      */
     @GetMapping("/authorize")
-    public String authorize(@RequestHeader HttpHeaders headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request, HttpSession session) {
+    public String authorize(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request, HttpSession session) {
         PushedAuthorizationRequest pushedAuthorizationRequest = oAuth2AuthorizationServer.process(new AuthorizationRequest(headers, parameters));
         session.setAttribute(SESSION_PUSHED_AUTHORIZATION_REQUEST, pushedAuthorizationRequest);
         ProtocolVerifiers protocolVerifiers = ProtocolVerifiers.forLogin();
@@ -47,7 +46,7 @@ public class AuthorizationProxyEndpointController {
      * Receive OIDC server authorization response, extract info and redirect a new authorization response to client.
      */
     @GetMapping("/callback")
-    public String callback(@RequestHeader HttpHeaders headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request, HttpSession session) throws Exception {
+    public String callback(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request, HttpSession session) throws Exception {
         PushedAuthorizationRequest pushedAuthorizationRequest = (PushedAuthorizationRequest) session.getAttribute(SESSION_PUSHED_AUTHORIZATION_REQUEST);
         Authorization authorization = oidcProxyService.handleAuthorizationResponse(pushedAuthorizationRequest, parameters, ProtocolVerifiers.fromSession(session));
         AuthorizationResponse authorizationResponse = oAuth2AuthorizationServer.authorize(pushedAuthorizationRequest, authorization);
