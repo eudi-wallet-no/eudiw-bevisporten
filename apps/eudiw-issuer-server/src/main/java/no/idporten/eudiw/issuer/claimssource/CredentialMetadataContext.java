@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import no.idporten.eudiw.issuer.openid4vci.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 
 /**
  * Credential metadata context for claims source from issuer.  Helps claims sources adapt to different credential

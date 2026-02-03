@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.domain.Claim;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
 import org.springframework.http.HttpStatus;
 
 import java.text.ParseException;

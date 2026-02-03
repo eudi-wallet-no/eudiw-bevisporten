@@ -14,7 +14,7 @@ import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
-import no.idporten.eudiw.issuer.oauth2.preauth.PreAuthorizationService;
+import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationIntegration;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Grants;
 import no.idporten.eudiw.issuer.openid4vci.protocol.PreAuthorizedCodeGrant;
@@ -32,7 +32,7 @@ public class PreAuthorizedIssuanceService {
     private final CredentialConfigurationService credentialConfigurationService;
     private final ClaimsSourceService claimsSourceService;
     private final AccessTokenValidationService accessTokenValidationService;
-    private final PreAuthorizationService preAuthorizationService;
+    private final PreAuthorizationIntegration preAuthorizationIntegration;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuditService auditService;
 
@@ -45,7 +45,7 @@ public class PreAuthorizedIssuanceService {
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
         ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
-        final String preAuthorizedCode = preAuthorizationService.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
+        final String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
         claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfigurationProperties.getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())

@@ -1,9 +1,9 @@
 package no.idporten.eudiw.issuer.claimssource.byob.domain;
 
 import lombok.Builder;
-import no.idporten.eudiw.issuer.claimssource.domain.ClaimDataType;
-import no.idporten.eudiw.issuer.claimssource.domain.ClaimMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
+import no.idporten.eudiw.issuer.credentials.types.ClaimMetadata;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

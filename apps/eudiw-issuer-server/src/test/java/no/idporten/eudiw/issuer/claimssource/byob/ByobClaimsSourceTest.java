@@ -1,13 +1,13 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
-import no.idporten.eudiw.issuer.claimssource.AuthoritativeSource;
+import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata.Display;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata.Display;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

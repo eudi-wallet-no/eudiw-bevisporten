@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
+import no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.logging.audit.AuditLogger;

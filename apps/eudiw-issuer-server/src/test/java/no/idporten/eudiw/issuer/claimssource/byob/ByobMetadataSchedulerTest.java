@@ -4,7 +4,7 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
-import no.idporten.eudiw.issuer.claimssource.domain.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerServerGeneratorService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
