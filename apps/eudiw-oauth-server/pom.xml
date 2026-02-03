@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.1</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>eudiw-oauth2-server</artifactId>
@@ -21,7 +21,6 @@
         <idporten-validators.version>1.6.0</idporten-validators.version>
         <opentelemetry-api.version>1.58.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
-        <log4j2.version>2.16.0</log4j2.version>
         <nimbus-jose-jwt.version>10.7</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.32</oauth2-oidc-sdk.version>
         <lombok.version>1.18.42</lombok.version>
@@ -30,13 +29,11 @@
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
