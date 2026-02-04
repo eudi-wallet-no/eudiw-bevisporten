@@ -7,15 +7,17 @@ import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import no.idporten.sdk.oidcserver.util.MultiValuedMapUtils;
 import no.idporten.sdk.oidcserver.util.StringUtils;
-import org.springframework.util.MultiValueMap;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static no.idporten.sdk.oidcserver.util.StringUtils.hasText;
 
 public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
 
+    public final static String X_API_KEY_HEADER = "X-API-KEY";
 
     public OAuth2AuthorizationServer(OpenIDConnectSdkConfiguration sdkConfiguration) {
         super(sdkConfiguration);
@@ -99,13 +101,26 @@ public class OAuth2AuthorizationServer extends OpenIDConnectIntegrationBase {
         return clientMetadata;
     }
 
+    private void validateApiKey(Map<String, List<String>> headers) {
+        if (!headers.containsKey(X_API_KEY_HEADER)) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing API key header.", 401);
+        }
+        if (CollectionUtils.isEmpty(headers.get(X_API_KEY_HEADER))) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Empty API key header.", 401);
+        }
+        if (!Objects.equals(getSDKConfiguration().getApiKey(), headers.get(X_API_KEY_HEADER).getFirst())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid API key.", 401);
+        }
+    }
+
     /**
      * Process pre-authorization request.  Create an authorization, store in cache and generate a response
      * with pre.authorization_code.
      */
-    public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest, MultiValueMap<String, String> headers) {
-        validate(preAuthorizationRequest);
+    public PreAuthorizationResponse process(PreAuthorizationRequest preAuthorizationRequest, Map<String, List<String>> headers) {
         Map<String, List<String>> headersMap = MultiValuedMapUtils.caseInsensitiveMap(headers);
+        validateApiKey(headersMap);
+        validate(preAuthorizationRequest);
         Authorization preAuthorization = Authorization.builder()
                 .sub(preAuthorizationRequest.getSub())
                 .aud(preAuthorizationRequest.getAud())

@@ -16,6 +16,8 @@ import com.nimbusds.oauth2.sdk.dpop.DPoPProofFactory;
 import com.nimbusds.oauth2.sdk.dpop.DefaultDPoPProofFactory;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
 import no.idporten.sdk.oidcserver.config.OpenIDConnectSdkConfiguration;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -69,6 +71,19 @@ public class TestUtils {
     }
 
     /**
+     * A default api key for testing.
+     */
+    public static String defaultApiKey() {
+        return "junit-api-key";
+    }
+
+    public static MultiValueMap<String, String> headersWithApiKey(String apiKey) {
+        LinkedMultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("X-API-KEY", apiKey);
+        return headers;
+    }
+
+    /**
      * A default SDK configuration for testing.
      */
     public static OpenIDConnectSdkConfiguration defaultSdkTestConfiguration() throws Exception {
@@ -80,6 +95,7 @@ public class TestUtils {
      */
     public static OpenIDConnectSdkConfiguration.OpenIDConnectSdkConfigurationBuilder defaultSdkTestConfigurationBuilder() throws Exception {
         return OpenIDConnectSdkConfiguration.builder()
+                .apiKey(defaultApiKey())
                 .issuer(new URI(defaultIssuer()))
                 .grantTypesSupported(List.of("urn:ietf:params:oauth:grant-type:pre-authorized_code", "authorization_code"))
                 .cache(new SimpleOpenIDConnectCache())

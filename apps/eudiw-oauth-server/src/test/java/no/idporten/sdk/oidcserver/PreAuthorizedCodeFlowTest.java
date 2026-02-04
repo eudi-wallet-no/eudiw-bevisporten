@@ -14,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.util.LinkedMultiValueMap;
 
 import java.util.List;
 import java.util.Set;
@@ -51,7 +50,7 @@ class PreAuthorizedCodeFlowTest {
         preAuthorizationRequest.setScope(List.of("scp1", "scp2"));
         preAuthorizationRequest.setTxId("tid1");
         preAuthorizationRequest.setAuthorizationLifetimeSeconds(999);
-        PreAuthorizationResponse preAuthorizationResponse = oAuth2AuthorizationServer.process(preAuthorizationRequest, new LinkedMultiValueMap<>());
+        PreAuthorizationResponse preAuthorizationResponse = oAuth2AuthorizationServer.process(preAuthorizationRequest, TestUtils.headersWithApiKey(TestUtils.defaultApiKey()));
         assertNotNull(preAuthorizationResponse.getPreAuthorizedCode());
         assertEquals(999, preAuthorizationResponse.getExpiresInSeconds(), 10);
         verify(auditLogger).auditAuthorization(any(Authorization.class));
