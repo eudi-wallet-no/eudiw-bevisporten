@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.7</version>
+        <version>4.0.2</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>eudiw-bevisgenerator</artifactId>
@@ -14,18 +14,18 @@
     <description>EUDIW bevisgenerator for demo/testing purposes</description>
     <properties>
         <java.version>25</java.version>
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>3.0.0</idporten-access-log.version>
         <opentelemetry-api.version>1.58.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
-        <idporten.maskinporten.client.version>5.0.1</idporten.maskinporten.client.version>
+        <idporten.maskinporten.client.version>6.0.0</idporten.maskinporten.client.version>
         <zxing.javase.version>3.5.4</zxing.javase.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -37,25 +37,22 @@
         </dependency>
         <dependency>
             <groupId>no.idporten.actuator</groupId>
-            <artifactId>idporten-actuator-starter</artifactId>
+            <artifactId>idporten-actuator-4-starter</artifactId>
             <version>${idporten-actuator-starter.version}</version>
         </dependency>
-
         <dependency>
             <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
+            <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
         </dependency>
-
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
             <version>${opentelemetry-api.version}</version>
         </dependency>
-
         <dependency>
             <groupId>no.idporten</groupId>
-            <artifactId>lib-maskinporten-client</artifactId>
+            <artifactId>lib-maskinporten-client-spring-boot-4</artifactId>
             <version>${idporten.maskinporten.client.version}</version>
         </dependency>
         <dependency>
@@ -70,11 +67,29 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.5.22</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>1.5.22</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback.access</groupId>
+                <artifactId>logback-access-common</artifactId>
+                <version>2.0.7</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <plugins>
             <plugin>

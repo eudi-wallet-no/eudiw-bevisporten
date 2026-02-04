@@ -1,7 +1,5 @@
 package no.idporten.eudiw.bevisgenerator.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
@@ -24,6 +22,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -121,7 +121,7 @@ public class StartIssuanceController {
     private String toJsonString(IssuanceResponse response) {
         try {
             return objectMapper.writeValueAsString(response.credentialOffer());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IssuerUiException("Failed to convert response to Json string", e);
         }
     }
@@ -129,7 +129,7 @@ public class StartIssuanceController {
     private String toPrettyJsonString(IssuanceResponse response) {
         try {
             return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IssuerUiException("Failed to convert response to pretty Json string", e);
         }
     }

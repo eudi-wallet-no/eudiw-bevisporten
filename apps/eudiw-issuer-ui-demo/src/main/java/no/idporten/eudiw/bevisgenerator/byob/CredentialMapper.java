@@ -1,12 +1,12 @@
 package no.idporten.eudiw.bevisgenerator.byob;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.SimpleCredentialForm;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class CredentialMapper {
@@ -20,7 +20,7 @@ public class CredentialMapper {
     public CredentialDto toDto(CredentialDefinition cd) {
         try {
             return new CredentialDto(cd.getVct(), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(cd));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IssuerUiException("Failed converting to CredentialDto from CredentialDefinition from %s".formatted(cd), e);
         }
     }
@@ -28,7 +28,7 @@ public class CredentialMapper {
     public CredentialDefinition fromDto(CredentialDto dto) {
         try {
             return objectMapper.readValue(dto.json(), CredentialDefinition.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IssuerUiException("Failed converting to CredentialDefinition from CredentialDto.json=%s".formatted(dto.json()), e);
         }
     }
