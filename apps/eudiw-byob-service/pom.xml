@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.9</version>
+        <version>4.0.2</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>eudiw-byob-service</artifactId>
@@ -14,30 +14,33 @@
     <description>EUDIW Bring your own bevis service</description>
     <properties>
         <java.version>25</java.version>
-        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
-        <idporten-actuator-starter.version>2.0.0</idporten-actuator-starter.version>
-        <idporten-access-log.version>3.0.0</idporten-access-log.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
+        <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
         <opentelemetry-api.version>1.57.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
-        <springdoc.version>2.8.13</springdoc.version>
+        <springdoc.version>3.0.1</springdoc.version>
         <idporten.maskinporten.client.version>5.0.1</idporten.maskinporten.client.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
-
         <!-- Redis dependency for caching/data storage -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
@@ -49,43 +52,33 @@
             <version>1.4.3</version>
             <scope>test</scope>
         </dependency>
+        <!-- logging -->
+        <dependency>
+            <groupId>no.idporten.logging</groupId>
+            <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
+            <version>${idporten-access-log.version}</version>
+        </dependency>
+        <!-- management -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
         <dependency>
             <groupId>no.idporten.actuator</groupId>
-            <artifactId>idporten-actuator-starter</artifactId>
+            <artifactId>idporten-actuator-4-starter</artifactId>
             <version>${idporten-actuator-starter.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
-            <version>${idporten-access-log.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${springdoc.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
             <version>${opentelemetry-api.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>no.idporten</groupId>
-            <artifactId>lib-maskinporten-client</artifactId>
-            <version>${idporten.maskinporten.client.version}</version>
-        </dependency>
+        <!-- test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
     <build>
         <plugins>
