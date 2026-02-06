@@ -17,7 +17,6 @@ public class FregPIDService {
     private final AuditLogger auditLogger;
     private final EventLogger eventLogger;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public FregPIDService(FregIntegration fregIntegration, AuditLogger auditLogger, EventLogger eventLogger) {
@@ -32,7 +31,8 @@ public class FregPIDService {
                 new FregResultMapper(),
                 new AuditLog(auditLogger),
                 new EventLog(eventLogger),
-                objectMapper,
+                // TODO venter på Jackson 3 i freg lib
+                new ObjectMapper(),
                 fregIntegration);
     }
 

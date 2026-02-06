@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.authoritativesources.ageverification;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import no.digdir.freg.audit.AuditLog;
 import no.digdir.freg.domain.json.Folkeregisterperson;
 import no.digdir.freg.eventlog.EventLog;
@@ -61,7 +61,7 @@ class AgeVerificationClaimsSourceTest {
 
     @BeforeEach
     void manuallyConfigureBeans() {
-        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
+        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new JsonMapper(), fregIntegration);
         aVClaimsSource = new AgeVerificationClaimsSource(fregService, personConverterService);
         aVClaimsSource.init(properties);
     }

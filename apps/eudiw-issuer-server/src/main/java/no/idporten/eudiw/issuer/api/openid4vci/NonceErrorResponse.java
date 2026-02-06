@@ -1,11 +1,11 @@
 package no.idporten.eudiw.issuer.api.openid4vci;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.nimbusds.openid.connect.sdk.Nonce;
 import io.opentelemetry.api.trace.Span;
 import jakarta.validation.constraints.NotNull;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 public record NonceErrorResponse(
         @NotNull

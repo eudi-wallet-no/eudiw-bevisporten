@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.authoritativesources.advokattilsynet;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
@@ -19,6 +18,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Collections;
 import java.util.Map;
@@ -109,7 +109,7 @@ public class AdvokatregisteretClaimsSourceTest {
                         }
                     ]
                 }""";
-        PersonPrivate personPrivate = new ObjectMapper().readValue(response, PersonPrivate.class);
+        PersonPrivate personPrivate = new JsonMapper().readValue(response, PersonPrivate.class);
         when(advokatregisteretIntegration.retrieve(eq(personIdentifier))).thenReturn(personPrivate);
         CredentialData credentialData = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), accessToken));
         Map<String, Object> claims = credentialData.claims();

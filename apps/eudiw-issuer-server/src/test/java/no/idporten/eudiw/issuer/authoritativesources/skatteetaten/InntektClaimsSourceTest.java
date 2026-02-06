@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.authoritativesources.skatteetaten;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.MapValue;
 import no.idporten.eudiw.issuer.authoritativesources.skatteetaten.domain.Respons;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -234,7 +234,7 @@ public class InntektClaimsSourceTest {
                     }
                   ]
                 }""";
-        Respons respons = new ObjectMapper().readValue(response, Respons.class);
+        Respons respons = new JsonMapper().readValue(response, Respons.class);
         when(inntektsApiIntegration.retrieve(eq(personIdentifier))).thenReturn(respons);
         List<Claim> claims = claimsSource.pull(personIdentifier);
         assertAll(
