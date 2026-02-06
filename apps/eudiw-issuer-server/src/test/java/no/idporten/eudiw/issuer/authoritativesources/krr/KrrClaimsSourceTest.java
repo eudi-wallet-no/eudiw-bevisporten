@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.authoritativesources.krr;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
@@ -16,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Collections;
 import java.util.Map;
@@ -94,7 +94,7 @@ public class KrrClaimsSourceTest {
                 
                 }""";
 
-        PersonKrr personKrr = new ObjectMapper().readValue(response, PersonKrr.class);
+        PersonKrr personKrr = new JsonMapper().readValue(response, PersonKrr.class);
         when(krrIntegration.retrieve(eq(personIdentifier))).thenReturn(personKrr);
         CredentialData data = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), accessToken));
         assertNotNull(data);

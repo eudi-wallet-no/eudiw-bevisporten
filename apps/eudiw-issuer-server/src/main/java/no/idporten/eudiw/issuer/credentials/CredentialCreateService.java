@@ -1,7 +1,5 @@
 package no.idporten.eudiw.issuer.credentials;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWK;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
@@ -12,6 +10,8 @@ import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -48,8 +48,8 @@ public class CredentialCreateService {
 
     private static Credential issueCredentialJsonDebug(List<Claim> claims) {
         try {
-            return Credential.builder().credential(new ObjectMapper().writer().withDefaultPrettyPrinter().writeValueAsString(claims)).build();
-        } catch (JsonProcessingException e) {
+            return Credential.builder().credential(new JsonMapper().writer().withDefaultPrettyPrinter().writeValueAsString(claims)).build();
+        } catch (JacksonException e) {
             throw new IssuerServerException("Failed to issue credentials of format JSON_DEBUG for claims %s".formatted(claims), "Failed to issue credentials of format JSON_DEBUG", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }

@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.authoritativesources.pid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.digdir.freg.domain.json.Folkeregisterfoedsel;
 import no.digdir.freg.domain.json.Folkeregisterperson;
 import no.digdir.freg.domain.json.Folkeregisterpersonnavn;
@@ -14,12 +13,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.boot.test.web.client.MockServerRestClientCustomizer;
+import org.springframework.boot.restclient.test.MockServerRestClientCustomizer;
+import org.springframework.boot.restclient.test.autoconfigure.RestClientTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +41,7 @@ class FregConfigurationTest {
     private JwtGrantTokenInterceptor maskinportenInterceptor;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     private MockServerRestClientCustomizer customizer;
 
@@ -59,7 +59,7 @@ class FregConfigurationTest {
 
         // setup mock response from Freg
         FregPerson person = createFregPerson();
-        String personString = objectMapper.writeValueAsString(person);
+        String personString = jsonMapper.writeValueAsString(person);
 
         customizer.getServer().expect(requestTo("v1/personer/%s?part=person-basis".formatted(fnr)))
                 .andRespond(withSuccess(personString, MediaType.APPLICATION_JSON));

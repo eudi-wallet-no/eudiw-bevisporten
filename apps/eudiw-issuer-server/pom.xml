@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.9</version>
+        <version>4.0.2</version>
         <relativePath/>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
@@ -22,10 +22,10 @@
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <lombok.version>1.18.42</lombok.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
-        <idporten-access-log.version>3.0.0</idporten-access-log.version>
+        <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
         <opentelemetry-api.version>1.58.0</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
-        <springdoc.version>2.8.14</springdoc.version>
+        <springdoc.version>3.0.1</springdoc.version>
         <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
         <nimbus-jose-jwt.version>10.7</nimbus-jose-jwt.version>
@@ -38,16 +38,15 @@
         <kotlinx-datetime-jvm.version>0.7.1-0.6.x-compat</kotlinx-datetime-jvm.version>
         <kotlinx-serialization-json-jvm.version>1.10.0</kotlinx-serialization-json-jvm.version>
         <freg-integration-lib.version>1.0.10</freg-integration-lib.version>
-        <maskinporten.client.version>5.0.1</maskinporten.client.version>
-        <log-event.version>2.0.0</log-event.version>
+        <maskinporten.client.version>6.0.0</maskinporten.client.version>
+        <log-event.version>2.0.0-rc1</log-event.version>
         <idporten-log-audit.version>3.0.0</idporten-log-audit.version>
-
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -68,22 +67,22 @@
         </dependency>
         <dependency>
             <groupId>no.idporten.actuator</groupId>
-            <artifactId>idporten-actuator-starter</artifactId>
+            <artifactId>idporten-actuator-4-starter</artifactId>
             <version>${idporten-actuator-starter.version}</version>
         </dependency>
         <dependency>
             <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-access-log-spring-boot-3-starter</artifactId>
+            <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
         </dependency>
         <dependency>
             <groupId>no.idporten.logging</groupId>
-            <artifactId>idporten-log-audit-spring-boot-3-starter</artifactId>
+            <artifactId>idporten-log-audit-spring-boot-4-starter</artifactId>
             <version>${idporten-log-audit.version}</version>
         </dependency>
         <dependency>
             <groupId>no.digdir.logging</groupId>
-            <artifactId>log-event-spring-boot-starter</artifactId>
+            <artifactId>log-event-spring-boot4-starter</artifactId>
             <version>${log-event.version}</version>
         </dependency>
         <dependency>
@@ -158,6 +157,7 @@
             <type>pom</type>
         </dependency>
         <!-- Move to claims-source application for PID -->
+        <!-- TODO freg integration lib bruker gammel event og gammel jackson, men har fått det til å fungere likevel -->
         <dependency>
             <groupId>no.digdir.freg</groupId>
             <artifactId>freg-integration-lib</artifactId>
@@ -165,7 +165,7 @@
         </dependency>
         <dependency>
             <groupId>no.idporten</groupId>
-            <artifactId>lib-maskinporten-client</artifactId>
+            <artifactId>lib-maskinporten-client-spring-boot-4</artifactId>
             <version>${maskinporten.client.version}</version>
         </dependency>
         <!-- end: Move to claims-source -->
@@ -177,7 +177,12 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

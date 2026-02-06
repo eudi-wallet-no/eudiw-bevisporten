@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
@@ -11,14 +10,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.web.client.MockServerRestClientCustomizer;
+import org.springframework.boot.restclient.test.MockServerRestClientCustomizer;
+import org.springframework.boot.restclient.test.autoconfigure.RestClientTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,7 +42,7 @@ class ByobServiceIntegrationTest {
     private ByobServiceIntegration byobServiceIntegration;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     @BeforeEach
     public void setUp() {
@@ -63,7 +63,7 @@ class ByobServiceIntegrationTest {
         void testRetrieveAllSuccess() throws JsonProcessingException {
             List<DynamicCredentialConfiguration> dynamicCredentialConfiguration = List.of(getDynamicCredentialConfiguration("sandkasse:1"), getDynamicCredentialConfiguration("sandkasse:2"));
             DynamicCredentialConfigurations dcc = createDynamicCredentialConfigurations(dynamicCredentialConfiguration);
-            String bevisDefinisjonarString = objectMapper.writeValueAsString(dcc);
+            String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
 
             mockServer.expect(requestTo("v1/credential-configurations"))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
@@ -121,7 +121,7 @@ class ByobServiceIntegrationTest {
         void testRetrieveVctOneSuccess() throws JsonProcessingException {
             String vct = "mitt_bevis";
             DynamicCredentialConfiguration dcc = getDynamicCredentialConfiguration(vct);
-            String bevisDefinisjonarString = objectMapper.writeValueAsString(dcc);
+            String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
 
             mockServer.expect(requestTo("v1/credential-configuration/%s".formatted(vct)))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
@@ -164,7 +164,7 @@ class ByobServiceIntegrationTest {
             String vct = "mitt_bevis";
             String credentialConfigurationId = vct + "_sd_jwt";
             DynamicCredentialConfiguration dcc = getDynamicCredentialConfiguration(vct);
-            String bevisDefinisjonarString = objectMapper.writeValueAsString(dcc);
+            String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
 
             mockServer.expect(requestTo("v1/credential-configuration/search?credentialConfigurationId=%s".formatted(credentialConfigurationId)))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
@@ -206,7 +206,7 @@ class ByobServiceIntegrationTest {
         void testRetrieveAllFromCache() throws JsonProcessingException {
             List<DynamicCredentialConfiguration> dynamicCredentialConfiguration = List.of(getDynamicCredentialConfiguration("sandkasse:1"), getDynamicCredentialConfiguration("sandkasse:2"));
             DynamicCredentialConfigurations dcc = createDynamicCredentialConfigurations(dynamicCredentialConfiguration);
-            String bevisDefinisjonarString = objectMapper.writeValueAsString(dcc);
+            String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
             // First call to populate cache
             mockServer.expect(ExpectedCount.once(), requestTo("v1/credential-configurations"))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
