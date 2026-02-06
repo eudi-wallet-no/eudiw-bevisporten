@@ -2,7 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: digital-lommebok-byob-service
-  description: EUDIWs byob-service
+  description: EUDIWs Bring-your-own Bevis service
   annotations:
     github.com/project-slug: eudi-wallet-no/eudiw-byob-service
 spec:
@@ -11,5 +11,5 @@ spec:
   owner: team-digital-lommebok
   system: digital-lommebok
   dependsOn:
-    - resource:digital-lommebok-redis
+    - resource:digital-lommebok-byob-redis
 
