@@ -16,7 +16,22 @@
     </div>
     <div>
         <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevisdefinisjonen er oppdatert i utstedaren. </p>
-        <p class="ds-paragraph ds-alert">Gyldig type for claims er <code>string</code> for tekst og <code>binary</code> for bilder. <code>mime_type</code> gjeld berre for binary type og må angis som mediatype ihht https://www.rfc-editor.org/rfc/rfc2397.html. Default er "image/png" for SD-JWT, attributten er ignorert for MDoc. Dersom type ikke er angitt blir type default satt til string. </p>
+        <div class="ds-container ds-alert">
+            <p class="ds-paragraph ">Gyldig <code>type</code> for claims (datatyper) er:</p>
+            <ol>
+                <li><code>string</code>: for tekst</li>
+                <li><code>boolean</code>: for bolske verdier (true/false)</li>
+                <li><code>number</code>: positiv tal (Java Integer: 2³¹ - 1 )</li>
+                <li><code>iso_date</code>: ISO 8601 format YYYY-MM-DD som string f.eks. "2026-12-31"</li>
+                <li><code>iso_date_time</code>: ISO 8601 format YYYY-MM-DDThh:mm:ssZ som string f.eks. "2025-11-10T10:30:00Z"</li>
+                <li><code>binary</code>: for binære data som bilder som er base64encoded. <code>mime_type</code> gjeld
+                    berre for binary type og må angis som mediatype ihht https://www.rfc-editor.org/rfc/rfc2397.html.
+                    Default er "image/png" for SD-JWT, attributten er ignorert for MDoc.
+                </li>
+            </ol>
+            <p class="ds-paragraph ">Dersom <code>type</code> ikke er angitt blir string brukt som default.
+            </p>
+        </div>
     </div>
 
     <form
