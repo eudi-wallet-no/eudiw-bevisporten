@@ -22,7 +22,7 @@
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <lombok.version>1.18.42</lombok.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
-        <idporten-access-log.version>3.0.1-rc1</idporten-access-log.version>
+        <idporten-access-log.version>3.0.1-rc4</idporten-access-log.version>
         <opentelemetry-api.version>1.59.0</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <springdoc.version>3.0.1</springdoc.version>
