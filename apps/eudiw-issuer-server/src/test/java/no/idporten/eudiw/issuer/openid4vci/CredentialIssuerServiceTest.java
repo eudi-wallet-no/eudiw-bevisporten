@@ -84,7 +84,7 @@ public class CredentialIssuerServiceTest {
             CredentialConfigurationProperties credentialConfigurationProperties = CredentialConfigurationProperties.builder()
                     .authorizationServer("https://junit.idporten.no")
                     .scope("foo:bar")
-                    .format(CredentialFormat.JSON_DEBUG)
+                    .format(CredentialFormat.SD_JWT_VC)
                     .credentialType("foodoc")
                     .build();
             ClaimsSource claimsSource = mock(ClaimsSource.class);
@@ -108,7 +108,7 @@ public class CredentialIssuerServiceTest {
             );
             verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(eq(accessToken), eq("https://junit.idporten.no"), eq("foo:bar"));
             verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
-            verify(auditService).logIssueCredentials(eq("https://junit.idporten.no"), eq("cid"), eq(issuanceTransactionId), eq(CredentialFormat.JSON_DEBUG), eq(new NotificationId("nid")) ,eq(accessToken));
+            verify(auditService).logIssueCredentials(eq("https://junit.idporten.no"), eq("cid"), eq(issuanceTransactionId), eq(CredentialFormat.SD_JWT_VC), eq(new NotificationId("nid")) ,eq(accessToken));
         }
 
     }
