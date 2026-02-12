@@ -10,8 +10,6 @@ import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -42,15 +40,8 @@ public class CredentialCreateService {
         return switch (credentialConfigurationProperties.getFormat()) {
             case MSO_MDOC -> mDocService.issueCredential(bindingKey, credentialConfigurationProperties, claims);
             case SD_JWT_VC -> sdjwtService.issueCredential(bindingKey, credentialConfigurationProperties, claims);
-            case JSON_DEBUG -> issueCredentialJsonDebug(claims);
+            case null -> throw new IssuerServerException("server_error", "Missing credential format.", HttpStatus.INTERNAL_SERVER_ERROR);
         };
     }
 
-    private static Credential issueCredentialJsonDebug(List<Claim> claims) {
-        try {
-            return Credential.builder().credential(new JsonMapper().writer().withDefaultPrettyPrinter().writeValueAsString(claims)).build();
-        } catch (JacksonException e) {
-            throw new IssuerServerException("Failed to issue credentials of format JSON_DEBUG for claims %s".formatted(claims), "Failed to issue credentials of format JSON_DEBUG", HttpStatus.INTERNAL_SERVER_ERROR, e);
-        }
-    }
 }
