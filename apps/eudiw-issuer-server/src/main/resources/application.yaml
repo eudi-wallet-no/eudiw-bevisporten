@@ -113,22 +113,6 @@ credential-issuer-server:
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
-    - identifier: no.kommunalsektor.hcregister_mso_mdoc
-      scope: eudiw:no:kommunalsektor:hcregister
-      format: mso_mdoc
-      credential-type: no:kommunalsektor:hcregister:1
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-      key-store-name: eaa-provider
-    - identifier: no.helsesektor.legeerklaring_mso_mdoc
-      scope: eudiw:no:helsesektor:legeerklaring
-      format: mso_mdoc
-      credential-type: no:helsesektor:legeerklaring:1
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-      key-store-name: eaa-provider
 
   dynamic-credential-configuration-template:
     identifier: "net.eidas2sandkasse:"
@@ -172,12 +156,6 @@ credential-issuer-server:
     - credential-types:
         - no.skatteetaten.inntekt.1
       class-name: no.idporten.eudiw.issuer.authoritativesources.skatteetaten.InntektClaimsSource
-    - credential-types:
-        - no:kommunalsektor:hcregister:1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.kommune.HandicapBevisClaimsSource
-    - credential-types:
-        - no:helsesektor:legeerklaring:1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.helsesektor.LegeerklaringBevisClaimsSource
 
 # Digdir standard logging
 digdir:
