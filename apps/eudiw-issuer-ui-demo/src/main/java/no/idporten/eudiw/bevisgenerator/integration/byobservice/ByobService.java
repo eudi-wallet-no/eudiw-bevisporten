@@ -45,20 +45,20 @@ public class ByobService {
         return storeCredential(credentialDefinition);
     }
 
-    public CredentialDefinition getByVct(String vct) {
-        return getDefinitionByCvt(vct);
+    public CredentialDefinition getByCredentialType(String credentialType) {
+        return getDefinitionByCredentialType(credentialType);
     }
 
     public CredentialDefinition getByCredentialConfigurationId(String credentialConfigurationId) {
         return getDefinitionById(credentialConfigurationId);
     }
 
-    public void removeCustomCredentialDefinition(String vct) {
-        deleteCredentialDefinition(vct);
+    public void removeCustomCredentialDefinition(String credentialType) {
+        deleteCredentialDefinition(credentialType);
     }
 
-    public boolean existsByVct(String vct) {
-        return getCredentialDefinitions().stream().anyMatch(c -> c.getVct().equals(vct));
+    public boolean existsByCredentialType(String credentialType) {
+        return getCredentialDefinitions().stream().anyMatch(c -> c.getCredentialType().equals(credentialType));
     }
 
     public CredentialDefinition editCredentialDefinition(CredentialDefinition cd) {
@@ -73,9 +73,9 @@ public class ByobService {
                 .orElse(null);
     }
 
-    private CredentialDefinition getDefinitionByCvt(String vct) {
+    private CredentialDefinition getDefinitionByCredentialType(String credentialType) {
         String endpoint = byobServiceProperties.getEndpoint();
-        URI uri = UriComponentsBuilder.fromUriString(endpoint).path("/%s".formatted(vct)).build().toUri();
+        URI uri = UriComponentsBuilder.fromUriString(endpoint).path("/%s".formatted(credentialType)).build().toUri();
 
         try {
             return restClient
@@ -147,9 +147,9 @@ public class ByobService {
         }
     }
 
-    private void deleteCredentialDefinition(String vct) {
+    private void deleteCredentialDefinition(String credentialType) {
         String endpoint = byobServiceProperties.getEndpoint();
-        URI uri = UriComponentsBuilder.fromUriString(endpoint).queryParam("vct", vct).build().toUri();
+        URI uri = UriComponentsBuilder.fromUriString(endpoint).queryParam("credential-type", credentialType).build().toUri();
 
         try {
             restClient
