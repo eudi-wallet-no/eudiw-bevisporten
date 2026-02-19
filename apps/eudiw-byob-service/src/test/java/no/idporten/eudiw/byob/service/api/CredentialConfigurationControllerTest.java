@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.VCT_PREFIX;
+import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.DYNAMIC_CREDENTIAL_TYPE_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -100,7 +100,7 @@ class CredentialConfigurationControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(mapper.writeValueAsString(input)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.vct").value(VCT_PREFIX + input.vct()))
+                    .andExpect(jsonPath("$.credential_type").value(DYNAMIC_CREDENTIAL_TYPE_PREFIX + input.credentialType()))
                     .andExpect(jsonPath("$.example_credential_data").isEmpty());
         }
 
@@ -112,13 +112,13 @@ class CredentialConfigurationControllerTest {
             void putUpdateBevisTypeOk() throws Exception {
 
                 ObjectMapper mapper = new ObjectMapper();
-                String vct = "net.eidas2sandkasse:bevisetmitt";
+                String credentialType = "net.eidas2sandkasse:bevisetmitt";
                 String credentialConfigurationId = "cc-id";
-                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(vct), CredentialConfigurationRequestResource.class);
-                CredentialConfiguration output = mapper.readValue(getPostResponse(vct, credentialConfigurationId), CredentialConfiguration.class);
+                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(credentialType), CredentialConfigurationRequestResource.class);
+                CredentialConfiguration output = mapper.readValue(getPostResponse(credentialType, credentialConfigurationId), CredentialConfiguration.class);
 
 
-                when(redisService.getBevisType(eq(vct))).thenReturn(createCredentialConfigurationData(credentialConfigurationId, vct));
+                when(redisService.getBevisType(eq(credentialType))).thenReturn(createCredentialConfigurationData(credentialConfigurationId, credentialType));
 
                 mockMvc.perform(put("/v1/credential-configuration")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -134,12 +134,12 @@ class CredentialConfigurationControllerTest {
             void putUpdateBevisTypeInvalidInput() throws Exception {
 
                 ObjectMapper mapper = new ObjectMapper();
-                String vct = "net.eidas2sandkasse:bevisetmitt";
+                String credentialType = "net.eidas2sandkasse:bevisetmitt";
                 String credentialConfigurationId = "cc-id";
-                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(vct), CredentialConfigurationRequestResource.class);
+                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(credentialType), CredentialConfigurationRequestResource.class);
                 input.credentialMetadata().display().clear(); // remove all display entries to make it invalid (bevis name).
 
-                when(redisService.getBevisType(eq(vct))).thenReturn(createCredentialConfigurationData(credentialConfigurationId, vct));
+                when(redisService.getBevisType(eq(credentialType))).thenReturn(createCredentialConfigurationData(credentialConfigurationId, credentialType));
 
                 mockMvc.perform(put("/v1/credential-configuration")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -155,11 +155,11 @@ class CredentialConfigurationControllerTest {
             void putUpdateBevisTypeWhenNotExists() throws Exception {
 
                 ObjectMapper mapper = new ObjectMapper();
-                String vct = "net.eidas2sandkasse:bevisetmitt";
-                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(vct), CredentialConfigurationRequestResource.class);
+                String credentialType = "net.eidas2sandkasse:bevisetmitt";
+                CredentialConfigurationRequestResource input = mapper.readValue(getPostRequest(credentialType), CredentialConfigurationRequestResource.class);
 
 
-                when(redisService.getBevisType(eq(vct))).thenReturn(null);
+                when(redisService.getBevisType(eq(credentialType))).thenReturn(null);
 
                 mockMvc.perform(put("/v1/credential-configuration")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -171,34 +171,36 @@ class CredentialConfigurationControllerTest {
             }
         }
 
-        private String getPostRequest(String vct) {
-            return getPostRequestWithExampleData(vct, getExampleCredentialMetadata());
+        private String getPostRequest(String credentialType) {
+            return getPostRequestWithExampleData(credentialType, getExampleCredentialMetadata());
         }
 
-        private String getPostRequestWithExampleData(String vct, String exampleCredentialMetadata) {
+        private String getPostRequestWithExampleData(String credentialType, String exampleCredentialMetadata) {
 
             return
                     """ 
                             {
-                                "vct": "%s",
+                                "credential_type": "%s",
                                 "format": "dc+sd-jwt",
+                                "scope": "eudiw:junit",
                                 %s,
                                 %s
                             }
-                            """.formatted(vct, exampleCredentialMetadata, getCredentialMetadata());
+                            """.formatted(credentialType, exampleCredentialMetadata, getCredentialMetadata());
         }
 
-        private String getPostResponse(String vct, String credentialConfigurationId) {
+        private String getPostResponse(String credentialType, String credentialConfigurationId) {
             return
                     """ 
                             {
                                 "credential_configuration_id": "%s",
-                                "vct": "%s",
+                                "credential_type": "%s",
                                 "format": "dc+sd-jwt",
+                                "scope": "eudiw:junit",
                                 %s,
                                 %s
                             }
-                            """.formatted(credentialConfigurationId, vct, getExampleCredentialMetadata(), getCredentialMetadata());
+                            """.formatted(credentialConfigurationId, credentialType, getExampleCredentialMetadata(), getCredentialMetadata());
         }
 
         private String getPostResponse(String vctName) {
@@ -265,19 +267,19 @@ class CredentialConfigurationControllerTest {
     @DisplayName("when calling GET to credential-configuration endpoint")
     class TestGetSingle {
 
-        @DisplayName("with vct as path is should return response 200 with valid credentialConfiguration when the vct is found")
+        @DisplayName("with credential_type as path is should return response 200 with valid credentialConfiguration when the credential_type is found")
         @Test
         void getByIdWhenIdDoesExistTest() throws Exception {
-            String vct = "example_sd-jwt";
-            String credentialConfigurationId = VCT_PREFIX + vct;
-            when(service.getCredentialConfiguration(eq(vct))).thenReturn(createCredentialConfiguration(credentialConfigurationId, vct));
-            mockMvc.perform(get("/v1/credential-configuration/{id}", vct))
+            String credentialType = "example_sd-jwt";
+            String credentialConfigurationId = DYNAMIC_CREDENTIAL_TYPE_PREFIX + credentialType;
+            when(service.getCredentialConfiguration(eq(credentialType))).thenReturn(createCredentialConfiguration(credentialConfigurationId, credentialType));
+            mockMvc.perform(get("/v1/credential-configuration/{id}", credentialType))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.credential_configuration_id").value(credentialConfigurationId))
-                    .andExpect(jsonPath("$.vct").value(vct));
+                    .andExpect(jsonPath("$.credential_type").value(credentialType));
         }
 
-        @DisplayName("with vct as path is should return response 404 when the id is not found")
+        @DisplayName("with credential_type as path is should return response 404 when the id is not found")
         @Test
         void getByIdWhenIdDoesNotExistTest() throws Exception {
             mockMvc.perform(get("/v1/credential-configuration/{id}", "nonexistent"))
@@ -287,13 +289,13 @@ class CredentialConfigurationControllerTest {
         @DisplayName("with search and credential_configuration_id as request parameter should return response 200 with valid credentialConfiguration when the credential_configuration_id is found")
         @Test
         void searchByCredentialConfigurationIdWhenIdDoesExistTest() throws Exception {
-            String vct = "example_sd-jwt";
-            String credentialConfigurationId = VCT_PREFIX + vct;
-            when(service.searchCredentialConfiguration(eq(credentialConfigurationId))).thenReturn(createCredentialConfiguration(credentialConfigurationId, vct));
+            String credentialType = "example_sd-jwt";
+            String credentialConfigurationId = DYNAMIC_CREDENTIAL_TYPE_PREFIX + credentialType;
+            when(service.searchCredentialConfiguration(eq(credentialConfigurationId))).thenReturn(createCredentialConfiguration(credentialConfigurationId, credentialType));
             mockMvc.perform(get("/v1/credential-configuration/search").param("credentialConfigurationId", credentialConfigurationId))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.credential_configuration_id").value(credentialConfigurationId))
-                    .andExpect(jsonPath("$.vct").value(vct));
+                    .andExpect(jsonPath("$.credential_type").value(credentialType));
         }
 
         @DisplayName("search with credential_configuration_id as request param should return 404 when the credentialConfigurationId is not found")
@@ -304,22 +306,22 @@ class CredentialConfigurationControllerTest {
         }
     }
 
-    private static CredentialConfiguration createCredentialConfiguration(String credentialConfigurationId, String vct) {
-        return new CredentialConfiguration(credentialConfigurationId, vct, "dc+sd-jwt", new ExampleCredentialData(Map.of("bar", "val")), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
+    private static CredentialConfiguration createCredentialConfiguration(String credentialConfigurationId, String credentialType) {
+        return new CredentialConfiguration(credentialConfigurationId, credentialType, "dc+sd-jwt", "eudiw:foo", new ExampleCredentialData(Map.of("bar", "val")), new CredentialMetadata(new ArrayList<>(), new ArrayList<>()));
     }
 
     @Nested
     @DisplayName("when calling DELETE to credential-configuration endpoint")
     class TestDelete {
 
-        @DisplayName("delete with vct as request param should return 204 when vct is found and deleted")
+        @DisplayName("delete with credential_type as request param should return 204 when credential type is found and deleted")
         @Test
         public void testDelete() throws Exception {
-            String vct = "my-vct";
-            when(redisService.getBevisType(eq(vct))).thenReturn(createCredentialConfigurationData("cc-id", vct));
-            mockMvc.perform(delete("/v1/credential-configuration").param("vct", vct))
+            String credentialType = "my-vct";
+            when(redisService.getBevisType(eq(credentialType))).thenReturn(createCredentialConfigurationData("cc-id", credentialType));
+            mockMvc.perform(delete("/v1/credential-configuration").param("credential-type", credentialType))
                     .andExpect(status().isNoContent());
-            verify(redisService).delete(eq(vct));
+            verify(redisService).delete(eq(credentialType));
         }
 
         @DisplayName("deleteAll should return 204 when all is found and deleted")
@@ -334,7 +336,7 @@ class CredentialConfigurationControllerTest {
 
     }
 
-    private static CredentialConfigurationData createCredentialConfigurationData(String credentialConfigurationId, String vct) {
-        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", new ExampleCredentialDataData(Map.of("bar", "val")), new CredentialMetadataData(new ArrayList<>(), new ArrayList<>()));
+    private static CredentialConfigurationData createCredentialConfigurationData(String credentialConfigurationId, String credentialType) {
+        return new CredentialConfigurationData(credentialConfigurationId, credentialType, "dc+sd-jwt", "eudiw:foo", new ExampleCredentialDataData(Map.of("bar", "val")), new CredentialMetadataData(new ArrayList<>(), new ArrayList<>()));
     }
 }
