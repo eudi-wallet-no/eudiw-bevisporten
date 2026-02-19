@@ -4,7 +4,6 @@ package no.idporten.eudiw.byob.service.exception;
 import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,12 +36,12 @@ public class ApplicationExceptionHandler {
             details.append("Attribute %s has error= %s\n".formatted(fieldError.getField(), fieldError.getDefaultMessage()));
         }
 
-        String vct = "";
+        String credentialType = "";
         if (ex.getBindingResult().getTarget() instanceof CredentialConfigurationRequestResource) {
-            vct = ((CredentialConfigurationRequestResource) ex.getBindingResult().getTarget()).vct();
+            credentialType = ((CredentialConfigurationRequestResource) ex.getBindingResult().getTarget()).credentialType();
         }
         ErrorResponse errorResponse = new ErrorResponse("validation_error", details.toString());
-        log.warn("Validation of input failed for vct=%s: %s, %s".formatted(vct, errorResponse.error(), errorResponse.errorDescription())); // TODO: remove when in production with more traffic
+        log.warn("Validation of input failed for credential type=%s: %s, %s".formatted(credentialType, errorResponse.error(), errorResponse.errorDescription())); // TODO: remove when in production with more traffic
         return ResponseEntity.badRequest().body(errorResponse);
     }
 }

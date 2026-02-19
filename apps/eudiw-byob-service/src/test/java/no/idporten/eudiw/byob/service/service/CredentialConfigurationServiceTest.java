@@ -17,7 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.VCT_PREFIX;
+import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.DYNAMIC_CREDENTIAL_TYPE_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,9 +40,9 @@ class CredentialConfigurationServiceTest {
         CredentialConfigurationRequestResource credentialConfigurationRequestResource = createCredentialConfigurationRequestResource("vct-example");
         CredentialConfiguration credentialConfiguration = credentialConfigurationService.create(credentialConfigurationRequestResource);
         assertAll(
-                () -> assertEquals(VCT_PREFIX + credentialConfigurationRequestResource.vct(), credentialConfiguration.vct()),
+                () -> assertEquals(DYNAMIC_CREDENTIAL_TYPE_PREFIX + credentialConfigurationRequestResource.credentialType(), credentialConfiguration.credentialType()),
                 () -> assertNotNull(credentialConfiguration.credentialConfigurationId()),
-                () -> assertTrue(credentialConfiguration.credentialConfigurationId().startsWith(VCT_PREFIX)),
+                () -> assertTrue(credentialConfiguration.credentialConfigurationId().startsWith(DYNAMIC_CREDENTIAL_TYPE_PREFIX)),
                 () -> assertNotNull(credentialConfiguration.credentialMetadata()),
                 () -> assertNotNull(credentialConfiguration.credentialMetadata().display()),
                 () -> assertFalse(credentialConfiguration.credentialMetadata().display().isEmpty()),
@@ -51,10 +51,10 @@ class CredentialConfigurationServiceTest {
         );
     }
 
-    private static CredentialConfigurationRequestResource createCredentialConfigurationRequestResource(String vct) {
+    private static CredentialConfigurationRequestResource createCredentialConfigurationRequestResource(String credentialType) {
         DisplayRequestResource bevisName = createDisplay("Bevis Name");
         DisplayRequestResource claimName = createDisplay("Claim Name");
-        return new CredentialConfigurationRequestResource(vct, "dc+sd-jwt", null, new CredentialMetadataRequestResource(List.of(bevisName), List.of(new ClaimsRequestResource("path", null, null,true, List.of(claimName)))));
+        return new CredentialConfigurationRequestResource(credentialType, "dc+sd-jwt", "eudiw:foo", null, new CredentialMetadataRequestResource(List.of(bevisName), List.of(new ClaimsRequestResource("path", null, null,true, List.of(claimName)))));
     }
 
     private static DisplayRequestResource createDisplay(String displayName) {
@@ -91,19 +91,19 @@ class CredentialConfigurationServiceTest {
 
     @Test
     void getCredentialConfiguration() {
-        String vct = "some-vct";
-        when(redisService.getBevisType(eq(vct)))
-                .thenReturn(getCredentialConfigurationData("some-cc-id", vct));
-        CredentialConfiguration credentialConfiguration = credentialConfigurationService.getCredentialConfiguration(vct);
+        String credentialType = "some-vct";
+        when(redisService.getBevisType(eq(credentialType)))
+                .thenReturn(getCredentialConfigurationData("some-cc-id", credentialType));
+        CredentialConfiguration credentialConfiguration = credentialConfigurationService.getCredentialConfiguration(credentialType);
         assertAll(
                 () -> assertNotNull(credentialConfiguration),
-                () -> assertEquals(vct, credentialConfiguration.vct()),
-                () -> verify(redisService).getBevisType(eq(vct))
+                () -> assertEquals(credentialType, credentialConfiguration.credentialType()),
+                () -> verify(redisService).getBevisType(eq(credentialType))
         );
     }
 
-    private static CredentialConfigurationData getCredentialConfigurationData(String credentialConfigurationId, String vct) {
-        return new CredentialConfigurationData(credentialConfigurationId, vct, "dc+sd-jwt", null, null);
+    private static CredentialConfigurationData getCredentialConfigurationData(String credentialConfigurationId, String credentialType) {
+        return new CredentialConfigurationData(credentialConfigurationId, credentialType, "dc+sd-jwt", "eudiw:foo", null, null);
     }
 
     @Test

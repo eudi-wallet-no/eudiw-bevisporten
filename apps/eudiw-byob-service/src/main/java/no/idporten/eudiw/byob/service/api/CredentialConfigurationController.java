@@ -48,7 +48,7 @@ public class CredentialConfigurationController {
     }
 
     @Operation(summary = "Oppdater bevistype",
-            description = "Oppdater en eksisterende bevistype ved å sende inn den oppdaterte konfigurasjonen. VCT og credentialConfigurationId kan ikke endres.")
+            description = "Oppdater en eksisterende bevistype ved å sende inn den oppdaterte konfigurasjonen. Feltene credentialType og credentialConfigurationId kan ikke endres.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Returner bevistypen som ble oppdatert",
                     content = @Content(mediaType = "application/json"
@@ -63,18 +63,18 @@ public class CredentialConfigurationController {
         return ResponseEntity.ok().body(body);
     }
 
-    @Operation(summary = "Slett bevistype fra vct",
-            description = "Slett en bevistype ved å bruke vct (verifiable credential type) som identifikator.")
+    @Operation(summary = "Slett bevistype",
+            description = "Slett en bevistype ved å bruke credential type (verifiable credential type) som identifikator.")
     @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Returner vct som ble slettet",
+            @ApiResponse(responseCode = "204", description = "Returner credential type som ble slettet",
                     content = @Content(mediaType = "application/json"
                     )),
             @ApiResponse(responseCode = "500", description = "Internal error",
                     content = @Content(examples= @ExampleObject(description = "Intern feil", value = ByobServiceAPISwaggerExamples.SERVER_ERROR_EXAMPLE)))
     })
     @DeleteMapping(path = "/v1/credential-configuration")
-    public ResponseEntity<String> deleteCredentialConfiguration(@NotEmpty @RequestParam(name = "vct") String vct){
-        service.delete(vct);
+    public ResponseEntity<String> deleteCredentialConfiguration(@NotEmpty @RequestParam(name = "credential-type") String credentialType){
+        service.delete(credentialType);
         return ResponseEntity.noContent().build();
     }
 
@@ -102,17 +102,17 @@ public class CredentialConfigurationController {
     }
 
     @Operation(
-            summary = "Hent en gitt bevistype ut frå vct",
+            summary = "Hent en gitt bevistype ut frå credential type (vct, doctype)",
             description = "")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Bevistype med matchende VCT"),
+            @ApiResponse(responseCode = "200", description = "Bevistype med matchende credential type"),
             @ApiResponse(responseCode = "500", description = "Intern feil"),
-            @ApiResponse(responseCode = "404", description = "Fant ingen bevis med gitt VCT",
+            @ApiResponse(responseCode = "404", description = "Fant ingen bevis med gitt credential type",
                     content = @Content(examples= @ExampleObject(description = "Ikke funnet", value = ByobServiceAPISwaggerExamples.NOT_FOUND)))
     })
-    @GetMapping(value = "/v1/credential-configuration/{vct}", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public  ResponseEntity<CredentialConfiguration> retrieveCredentialConfiguration(@PathVariable String vct) {
-        return ResponseEntity.ofNullable(service.getCredentialConfiguration(vct));
+    @GetMapping(value = "/v1/credential-configuration/{credentialType}", produces =  MediaType.APPLICATION_JSON_VALUE)
+    public  ResponseEntity<CredentialConfiguration> retrieveCredentialConfiguration(@PathVariable String credentialType) {
+        return ResponseEntity.ofNullable(service.getCredentialConfiguration(credentialType));
     }
 
     @Operation(

@@ -33,8 +33,8 @@ class RedisServiceTest {
         redisService.addBevisType(bevisType1);
     }
 
-    private static CredentialConfigurationData createCredentialConfigurationData(String vct) {
-        return new CredentialConfigurationData("test-vct-cred-id", vct, "dc+sd-jwt", new ExampleCredentialDataData(Map.of("attr1","mine")), new CredentialMetadataData(List.of(), List.of()));
+    private static CredentialConfigurationData createCredentialConfigurationData(String credentialType) {
+        return new CredentialConfigurationData("test-vct-cred-id", credentialType, "dc+sd-jwt", "eudiw:foo", new ExampleCredentialDataData(Map.of("attr1","mine")), new CredentialMetadataData(List.of(), List.of()));
     }
 
     @Test
@@ -50,9 +50,9 @@ class RedisServiceTest {
     public void deleteFromRedis() {
         CredentialConfigurationData bevisType1 = createCredentialConfigurationData("test-vct-to-delete");
         redisService.addBevisType(bevisType1);
-        assertNotNull(redisService.getBevisType(bevisType1.vct()));
-        redisService.delete(bevisType1.vct());
-        assertNull(redisService.getBevisType(bevisType1.vct()));
+        assertNotNull(redisService.getBevisType(bevisType1.credentialType()));
+        redisService.delete(bevisType1.credentialType());
+        assertNull(redisService.getBevisType(bevisType1.credentialType()));
     }
 
     @Disabled
@@ -62,10 +62,10 @@ class RedisServiceTest {
         redisService.addBevisType(bevisType1);
         CredentialConfigurationData bevisType2 = createCredentialConfigurationData("test-vct-to-delete-2");
         redisService.addBevisType(bevisType2);
-        assertNotNull(redisService.getBevisType(bevisType1.vct()));
-        assertNotNull(redisService.getBevisType(bevisType2.vct()));
+        assertNotNull(redisService.getBevisType(bevisType1.credentialType()));
+        assertNotNull(redisService.getBevisType(bevisType2.credentialType()));
         redisService.deleteAll();
-        assertNull(redisService.getBevisType(bevisType1.vct()));
-        assertNull(redisService.getBevisType(bevisType2.vct()));
+        assertNull(redisService.getBevisType(bevisType1.credentialType()));
+        assertNull(redisService.getBevisType(bevisType2.credentialType()));
     }
 }

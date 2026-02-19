@@ -11,13 +11,16 @@ public record CredentialConfiguration(
         @JsonProperty("credential_configuration_id")
         String credentialConfigurationId,
 
-        @JsonProperty("vct")
+        @JsonProperty("credential_type")
         @Pattern(regexp = "^[a-z0-9_:.]{3,255}$",
-                message = "vct kan ikke ha spesielle karakterer eller symboler")
-        String vct,
+                message = "Credential type kan ikke ha spesielle karakterer eller symboler")
+        String credentialType,
 
         @JsonProperty("format")
         String format,
+
+        @JsonProperty("scope")
+        String scope,
 
         @JsonProperty("example_credential_data")
         ExampleCredentialData exampleCredentialData,
