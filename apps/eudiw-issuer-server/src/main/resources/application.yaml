@@ -119,6 +119,7 @@ credential-issuer-server:
     scope: eudiw:eidas2sandkasse:dynamicvc
     format: sd_jwt_vc
     credential-type: "net.eidas2sandkasse:"
+    validity-days: 30
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
     authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
     pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}

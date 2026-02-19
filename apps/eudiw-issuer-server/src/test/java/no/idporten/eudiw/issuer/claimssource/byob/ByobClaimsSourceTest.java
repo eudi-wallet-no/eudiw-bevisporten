@@ -96,9 +96,9 @@ class ByobClaimsSourceTest {
     }
 
     @NotNull
-    private static DynamicCredentialConfiguration createDynamicCredentialConfiguration(String credentialConfigurationId, String claimName, String vct) {
+    private static DynamicCredentialConfiguration createDynamicCredentialConfiguration(String credentialConfigurationId, String claimName, String credentialType) {
         DynamicCredentialMetadata credentialMetadata = new DynamicCredentialMetadata(List.of(new Display("no", "bevis1")), List.of(new DynamicClaimMetadata(claimName, List.of(new Display("no", "navn")), true, ".*")));
-        return new DynamicCredentialConfiguration(credentialConfigurationId, vct, credentialMetadata, "sd-jwt");
+        return new DynamicCredentialConfiguration(credentialConfigurationId, "eudiw:any:scope", credentialType, credentialMetadata, "sd-jwt");
     }
 
     @DisplayName("then getDocumentMetadata returns null for non-existing credential_configuration_id")

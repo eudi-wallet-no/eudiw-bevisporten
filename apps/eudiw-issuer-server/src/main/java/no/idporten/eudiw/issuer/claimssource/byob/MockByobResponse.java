@@ -12,7 +12,7 @@ import java.util.List;
 public class MockByobResponse {
     private static final DynamicCredentialConfiguration DYNAMIC_CREDENTIAL_CONFIGURATION_1 = DynamicCredentialConfiguration.builder()
             .credentialConfigurationId("net.eidas2sandkasse:dynamic:1_sd_jwt_vc")
-            .vct("dynamic:1")
+            .credentialType("dynamic:1")
             .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
             .credentialMetadata(new DynamicCredentialMetadata(
                             List.of(
@@ -33,7 +33,7 @@ public class MockByobResponse {
 
     private static final DynamicCredentialConfiguration DYNAMIC_CREDENTIAL_CONFIGURATION_2 = DynamicCredentialConfiguration.builder()
             .credentialConfigurationId("net.eidas2sandkasse:dynamic:2_sd_jwt_vc")
-            .vct("dynamic:2")
+            .credentialType("dynamic:2")
             .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
             .credentialMetadata(new DynamicCredentialMetadata(
                             List.of(

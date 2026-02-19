@@ -73,7 +73,7 @@ class ByobServiceIntegrationTest {
                     () -> assertNotNull(dynamicCredentialConfigurations),
                     () -> assertEquals(dcc.getCredentialConfigurations().size(), dynamicCredentialConfigurations.getCredentialConfigurations().size()),
                     () -> assertEquals(dcc.getCredentialConfigurations().getFirst().credentialConfigurationId(), dynamicCredentialConfigurations.getCredentialConfigurations().getFirst().credentialConfigurationId()),
-                    () -> assertEquals(dcc.getCredentialConfigurations().getFirst().vct(), dynamicCredentialConfigurations.getCredentialConfigurations().getFirst().vct())
+                    () -> assertEquals(dcc.getCredentialConfigurations().getFirst().credentialType(), dynamicCredentialConfigurations.getCredentialConfigurations().getFirst().credentialType())
             );
 
         }
@@ -130,7 +130,7 @@ class ByobServiceIntegrationTest {
             assertAll(
                     () -> assertNotNull(dynamicCredentialConfiguration),
                     () -> assertEquals(dcc.credentialConfigurationId(), dynamicCredentialConfiguration.credentialConfigurationId()),
-                    () -> assertEquals(dcc.vct(), dynamicCredentialConfiguration.vct())
+                    () -> assertEquals(dcc.credentialType(), dynamicCredentialConfiguration.credentialType())
             );
         }
 
@@ -173,7 +173,7 @@ class ByobServiceIntegrationTest {
             assertAll(
                     () -> assertNotNull(dynamicCredentialConfiguration),
                     () -> assertEquals(dcc.credentialConfigurationId(), dynamicCredentialConfiguration.credentialConfigurationId()),
-                    () -> assertEquals(dcc.vct(), dynamicCredentialConfiguration.vct())
+                    () -> assertEquals(dcc.credentialType(), dynamicCredentialConfiguration.credentialType())
             );
         }
 
@@ -232,7 +232,7 @@ class ByobServiceIntegrationTest {
                 .build();
     }
 
-    private static DynamicCredentialConfiguration getDynamicCredentialConfiguration(final String vct) {
-        return DynamicCredentialConfiguration.builder().credentialConfigurationId(vct + "_sd_jwt").vct(vct).build();
+    private static DynamicCredentialConfiguration getDynamicCredentialConfiguration(final String credentialType) {
+        return DynamicCredentialConfiguration.builder().credentialConfigurationId(credentialType + "_sd_jwt").credentialType(credentialType).build();
     }
 }

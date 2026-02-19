@@ -98,15 +98,15 @@ public class ByobServiceIntegration {
         }
     }
 
-    public DynamicCredentialConfiguration retrieve(String vct) {
-        if (vct == null) {
-            log.warn("vct/credentialType is null");
+    public DynamicCredentialConfiguration retrieve(String credentialType) {
+        if (credentialType == null) {
+            log.warn("credentialType is null");
             return null;
         }
         if (cachedCCs != null && cachedCCs.getCredentialConfigurations() != null && !isCacheExpired()) {
-            Optional<DynamicCredentialConfiguration> first = cachedCCs.getCredentialConfigurations().stream().filter(c -> vct.equals(c.vct())).findFirst();
+            Optional<DynamicCredentialConfiguration> first = cachedCCs.getCredentialConfigurations().stream().filter(c -> credentialType.equals(c.credentialType())).findFirst();
             if (first.isPresent()) {
-                log.info("Retrieved credential-configuration from cache by vct: {}", vct);
+                log.info("Retrieved credential-configuration from cache by credential type: {}", credentialType);
                 return first.get();
             }
         }
@@ -114,16 +114,16 @@ public class ByobServiceIntegration {
         try {
             return byobServiceRestClient
                     .get()
-                    .uri("v1/credential-configuration/{vct}", vct)
+                    .uri("v1/credential-configuration/{credential-type}", credentialType)
                     .header(API_KEY, byobServiceProperties.apiKey())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
                     .body(DynamicCredentialConfiguration.class);
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException(BYOB.name(), "IO error when calling Byob-service for vct=%s".formatted(vct), e);
+            throw new ClaimsSourceIOException(BYOB.name(), "IO error when calling Byob-service for credentialType=%s".formatted(credentialType), e);
         } catch (RestClientException e) {
-            throw new ClaimsSourceException(BYOB.name(), "server_error", "Failed to get information from Byob-service for vct=%s".formatted(vct), HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new ClaimsSourceException(BYOB.name(), "server_error", "Failed to get information from Byob-service for credentialType=%s".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
