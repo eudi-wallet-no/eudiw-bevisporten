@@ -4,6 +4,7 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerServerGeneratorService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
@@ -134,8 +135,8 @@ class ByobMetadataSchedulerTest {
     private static DynamicCredentialConfiguration createOneCredentialConfig(String vct, String credentialConfigurationId) {
         return DynamicCredentialConfiguration.builder()
                 .credentialConfigurationId(credentialConfigurationId)
-                .format("sd_jwt")
-                .vct(vct)
+                .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
+                .credentialType(vct)
                 .credentialMetadata(DynamicCredentialMetadata.builder()
                         .display(List.of(new DocumentMetadata.Display("no", "A test credential from BYOB", "black", null)))
                         .claims(List.of(new DynamicClaimMetadata("claim1", List.of(new DocumentMetadata.Display("no", "Claim 1", null, null)), true, null)))

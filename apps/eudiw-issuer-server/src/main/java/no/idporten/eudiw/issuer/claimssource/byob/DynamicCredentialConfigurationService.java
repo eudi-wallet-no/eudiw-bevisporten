@@ -60,11 +60,13 @@ public class DynamicCredentialConfigurationService {
         CredentialConfigurationProperties dynamicCredentialConfigurationTemplate = credentialIssuerServerProperties.getDynamicCredentialConfigurationTemplate();
         DynamicCredentialConfiguration dynamicCredentialConfiguration = getDynamicCredentialConfigurations().get(credentialConfigurationId);
         CredentialConfigurationProperties credentialConfiguration = new CredentialConfigurationProperties();
+        // from byob
         credentialConfiguration.setIdentifier(dynamicCredentialConfiguration.credentialConfigurationId());
-        credentialConfiguration.setCredentialType(dynamicCredentialConfiguration.vct());
+        credentialConfiguration.setCredentialType(dynamicCredentialConfiguration.credentialType());
         credentialConfiguration.setFormat(CredentialFormat.fromString(dynamicCredentialConfiguration.format()));
-        credentialConfiguration.setValidityDays(30);
-        credentialConfiguration.setScope(dynamicCredentialConfigurationTemplate.getScope());
+        credentialConfiguration.setScope(dynamicCredentialConfiguration.scope());
+        // from config (applies to all from byob)
+        credentialConfiguration.setValidityDays(dynamicCredentialConfigurationTemplate.getValidityDays());
         credentialConfiguration.setGrantType(dynamicCredentialConfigurationTemplate.getGrantType());
         credentialConfiguration.setAuthorizationServer(dynamicCredentialConfigurationTemplate.getAuthorizationServer());
         credentialConfiguration.setPreAuthorizationServer(dynamicCredentialConfigurationTemplate.getPreAuthorizationServer());

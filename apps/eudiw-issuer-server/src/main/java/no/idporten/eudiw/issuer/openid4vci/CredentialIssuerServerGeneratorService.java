@@ -43,16 +43,17 @@ public class CredentialIssuerServerGeneratorService {
             return Collections.emptyMap();
         }
         Map<String, CredentialConfiguration> credentialConfigurations = new HashMap<>();
-        CredentialConfigurationProperties propsTemplate = credentialIssuerProperties.getDynamicCredentialConfigurationTemplate();
         for (String credentialConfigurationId : configs.keySet()) {
             DynamicCredentialConfiguration dcc = configs.get(credentialConfigurationId);
+            CredentialFormat format = CredentialFormat.fromString(dcc.format());
             CredentialConfiguration credentialConfiguration = CredentialConfiguration.builder()
-                    .vct(dcc.vct())
+                    .vct(CredentialFormat.SD_JWT_VC.equals(format) ? dcc.credentialType() : null)
+                    .doctype(CredentialFormat.MSO_MDOC.equals(format) ? dcc.credentialType() : null)
                     .format(dcc.format())
-                    .scope(propsTemplate.getScope())
+                    .scope(dcc.scope())
                     .credentialMetadata(CredentialMetadata.builder()
                             .display(dcc.getCredentialMetadata().displays().stream().map(this::convertToDisplay).toList())
-                            .claims(convertClaimsToClaimsDescription(dcc.credentialMetadata().claims()))
+                            .claims(convertClaimsToClaimsDescription(dcc.credentialMetadata().claims(), format, dcc.credentialType()))
                             .build())
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())
@@ -63,17 +64,22 @@ public class CredentialIssuerServerGeneratorService {
         return credentialConfigurations;
     }
 
-    private List<ClaimsDescription> convertClaimsToClaimsDescription(List<DynamicClaimMetadata> claimMetadata) {
+    private List<ClaimsDescription> convertClaimsToClaimsDescription(List<DynamicClaimMetadata> claimMetadata, CredentialFormat credentialFormat, String credentialType) {
         List<ClaimsDescription> claimsDescriptions = new ArrayList<>();
         for (DynamicClaimMetadata claimsMetadata : claimMetadata) {
-            claimsDescriptions.add(convertToClaimsDescription(claimsMetadata));
+            claimsDescriptions.add(convertToClaimsDescription(claimsMetadata, credentialFormat, credentialType));
         }
         return claimsDescriptions;
     }
 
-    private ClaimsDescription convertToClaimsDescription(DynamicClaimMetadata claimsMetadata) {
+    private ClaimsDescription convertToClaimsDescription(DynamicClaimMetadata claimsMetadata, CredentialFormat credentialFormat, String credentialType) {
+        List<String> path = new ArrayList<>();
+        if (CredentialFormat.MSO_MDOC.equals(credentialFormat)) {
+            path.add(credentialType);
+        }
+        path.add(claimsMetadata.path());
         return ClaimsDescription.builder()
-                .path(claimsMetadata.path())
+                .path(path)
                 .mandatory(claimsMetadata.mandatory())
                 .displays(convertDynamicDisplaysToDisplays(claimsMetadata.display()))
                 .build();
