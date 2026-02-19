@@ -41,19 +41,19 @@
           method="POST">
 
         <div class="ds-field"
-             th:classappend="${#fields.hasErrors('vct')} ? 'ds-field--error'">
+             th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
 
-            <label class="ds-label" for="vct">ID (vct)</label>
+            <label class="ds-label" for="credentialType">ID (credentialType)</label>
 
             <input class="ds-input"
                    type="text"
-                   id="vct"
-                   th:field="*{vct}">
+                   id="credentialType"
+                   th:field="*{credentialType}">
 
-            <div th:if="${#fields.hasErrors('vct')}">
+            <div th:if="${#fields.hasErrors('credentialType')}">
                 <div class="ds-validation-message"
                      data-field="validation"
-                     th:each="error : ${#fields.errors('vct')}" th:text="${error}">
+                     th:each="error : ${#fields.errors('credentialType')}" th:text="${error}">
                 </div>
             </div>
         </div>

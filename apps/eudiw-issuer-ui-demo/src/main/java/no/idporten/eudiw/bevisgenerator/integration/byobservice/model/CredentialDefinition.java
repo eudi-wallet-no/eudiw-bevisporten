@@ -14,8 +14,14 @@ public class CredentialDefinition {
     @JsonProperty("credential_configuration_id")
     private String credentialConfigurationId;
 
-    private String vct;
+    @JsonProperty("credential_type")
+    private String credentialType;
+
+    @JsonProperty("format")
     private String format;
+
+    @JsonProperty("scope")
+    private String scope;
 
     @JsonProperty("example_credential_data")
     private ExampleCredentialData exampleCredentialData;
@@ -26,26 +32,24 @@ public class CredentialDefinition {
     public CredentialDefinition() {
     }
 
-    public CredentialDefinition(String vct, ExampleCredentialData exampleCredentialData, CredentialMetadata credentialMetadata) {
-        this.vct = vct;
+    public CredentialDefinition(String credentialType, String format, String scope, ExampleCredentialData exampleCredentialData, CredentialMetadata credentialMetadata) {
+        this.credentialType = credentialType;
+        this.format = format;
+        this.scope = scope;
         this.exampleCredentialData = exampleCredentialData;
         this.credentialMetadata = credentialMetadata;
-        this.format = "dc+sd-jwt";
     }
 
     public CredentialDefinition(SimpleCredentialForm form) {
-        this.vct = form.vct();
-        this.format = "dc+sd-jwt";
-        this.exampleCredentialData = extractExampleData(form);
-        this.credentialMetadata = extractMetadata(form);
+        this(form.credentialType(), form.format(), form.scope(), extractExampleData(form), extractMetadata(form));
     }
 
-    public String getVct() {
-        return vct;
+    public String getCredentialType() {
+        return credentialType;
     }
 
-    public void setVct(String vct) {
-        this.vct = vct;
+    public void setCredentialType(String credentialType) {
+        this.credentialType = credentialType;
     }
 
     public String getCredentialConfigurationId() {
@@ -54,6 +58,10 @@ public class CredentialDefinition {
 
     public String getFormat() {
         return format;
+    }
+
+    public String getScope() {
+        return scope;
     }
 
     public ExampleCredentialData getExampleCredentialData() {
@@ -72,7 +80,7 @@ public class CredentialDefinition {
         this.credentialMetadata = credentialMetadata;
     }
 
-    private CredentialMetadata extractMetadata(SimpleCredentialForm form) {
+    private static CredentialMetadata extractMetadata(SimpleCredentialForm form) {
         List<Display> display = List.of(new Display(form.name()));
 
         if (form.claims() == null) {
@@ -88,7 +96,7 @@ public class CredentialDefinition {
         return new CredentialMetadata(display, claims);
     }
 
-    private ExampleCredentialData extractExampleData(SimpleCredentialForm form) {
+    private static ExampleCredentialData extractExampleData(SimpleCredentialForm form) {
         ExampleCredentialData exampleCredentialData = new ExampleCredentialData();
         if (form.claims() == null) {
             return exampleCredentialData;

@@ -70,12 +70,12 @@
                 <td th:text="${c.name()}">Navn</td>
                 <td>
                     <div class="actions">
-                        <a th:href="@{/edit-credential/{id}(id=${c.vct()})}">
+                        <a th:href="@{/edit-credential/{id}(id=${c.credentialType()})}">
                             <button  class="ds-button" data-size="sm" data-variant="tertiary">
                                 Rediger
                             </button>
                         </a>
-                        <a th:href="@{/edit-credential-new/{id}(id=${c.vct()})}" th:if="${allowBevisTyperV2}">
+                        <a th:href="@{/edit-credential-new/{id}(id=${c.credentialType()})}" th:if="${allowBevisTyperV2}">
                             <button  class="ds-button" data-size="sm" data-variant="tertiary">
                                 Rediger 2.0
                             </button>

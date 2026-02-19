@@ -19,7 +19,7 @@ public class CredentialMapper {
 
     public CredentialDto toDto(CredentialDefinition cd) {
         try {
-            return new CredentialDto(cd.getVct(), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(cd));
+            return new CredentialDto(cd.getCredentialType(), objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(cd));
         } catch (JacksonException e) {
             throw new IssuerUiException("Failed converting to CredentialDto from CredentialDefinition from %s".formatted(cd), e);
         }
