@@ -64,20 +64,20 @@ public class AdminController {
             return new ModelAndView("add", "addCredentialForm", addCredentialForm);
         }
 
-        credentialService.storeCredential(new CredentialDto(addCredentialForm.vct(), addCredentialForm.json()));
+        credentialService.storeCredential(new CredentialDto(addCredentialForm.credentialType(), addCredentialForm.json()));
 
         return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
     }
 
-    @GetMapping("/edit-credential/{vct}")
-    public ModelAndView editCredential(@PathVariable("vct") String vct) {
-        CredentialDto cd = credentialService.findCredential(vct);
-        return new ModelAndView("edit", "editCredentialForm", new EditCredentialForm(vct, cd.json()));
+    @GetMapping("/edit-credential/{credential_type}")
+    public ModelAndView editCredential(@PathVariable("credential_type") String credentialType) {
+        CredentialDto cd = credentialService.findCredential(credentialType);
+        return new ModelAndView("edit", "editCredentialForm", new EditCredentialForm(credentialType, cd.json()));
     }
 
-    @PostMapping("/edit-credential/{vct}")
+    @PostMapping("/edit-credential/{credential_type}")
     public ModelAndView editCredentialPost(
-            @PathVariable("vct") String vct,
+            @PathVariable("credential_type") String credentialType,
             @Valid EditCredentialForm editCredentialForm,
             BindingResult bindingResult
     ) {
@@ -87,16 +87,16 @@ public class AdminController {
             return new ModelAndView("add", "editCredentialForm", editCredentialForm);
         }
 
-        logger.info("Editing credential with vct {}", vct);
+        logger.info("Editing credential with credentialType {}", credentialType);
 
-        credentialService.editCredential(new CredentialDto(vct, editCredentialForm.json()));
+        credentialService.editCredential(new CredentialDto(credentialType, editCredentialForm.json()));
         return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
     }
 
     /*
     @GetMapping("/delete-credential/{credential_configuration_id}")
     public ModelAndView deleteCredential(@PathVariable("credential_configuration_id") String credentialConfigurationId) {
-        logger.info("Deleting credential with vct {}", credentialConfigurationId);
+        logger.info("Deleting credential with credentialType {}", credentialConfigurationId);
 
         credentialService.deleteCredential(credentialConfigurationId);
         return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
@@ -120,14 +120,14 @@ public class AdminController {
         return new ModelAndView("redirect:/admin");
     }
 
-    @GetMapping("/edit-credential-new/{vct}")
-    public ModelAndView edit(@PathVariable String vct) {
-        SimpleCredentialForm form = credentialService.findSimpleCredential(vct);
+    @GetMapping("/edit-credential-new/{credential_type}")
+    public ModelAndView edit(@PathVariable("credential_type") String credentialType) {
+        SimpleCredentialForm form = credentialService.findSimpleCredential(credentialType);
         return new ModelAndView("edit-new", "form", form);
     }
 
-    @PostMapping("/edit-credential-new/{vct}")
-    public ModelAndView edit(@PathVariable String vct,
+    @PostMapping("/edit-credential-new/{credential_type}")
+    public ModelAndView edit(@PathVariable("credential_type") String credentialType,
                              @Validated(EditForm.class) @Valid SimpleCredentialForm form,
                              BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -135,7 +135,7 @@ public class AdminController {
             return new ModelAndView("edit-new", "form", form);
         }
 
-        credentialService.editCredential(new SimpleCredentialForm(vct, form.name(), form.claims()));
+        credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims()));
         return new ModelAndView("redirect:/admin");
     }
 
