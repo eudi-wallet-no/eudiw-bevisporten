@@ -45,14 +45,14 @@
         <div>
             <div class="ds-field"
                  style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;"
-                 th:classappend="${#fields.hasErrors('vct')} ? 'ds-field--error'">
+                 th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
 
-                <label class="ds-label" for="vct">VCT</label>
+                <label class="ds-label" for="credentialType">Credential type</label>
 
                 <input class="ds-input"
                        type="text"
-                       id="vct"
-                       th:field="*{vct}"
+                       id="credentialType"
+                       th:field="*{credentialType}"
                        style="width: 50%" >
 
             </div>
@@ -61,6 +61,16 @@
                  style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;">
                 <label for="name-field" class="ds-label">Name</label>
                 <input id="name-field" style="width:50%;" class="ds-input" type="text" th:field="*{name}" />
+            </div>
+            <div class="ds-field"
+                 style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;">
+                <label for="format-field" class="ds-label">Format</label>
+                <input id="format-field" style="width:50%;" class="ds-input" type="text" th:field="*{format}" />
+            </div>
+            <div class="ds-field"
+                 style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;">
+                <label for="scope-field" class="ds-label">Scope</label>
+                <input id="scope-field" style="width:50%;" class="ds-input" type="text" th:field="*{scope}" />
             </div>
         </div>
 

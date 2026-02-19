@@ -6,12 +6,12 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = UniqueVctValidator.class)
+@Constraint(validatedBy = UniqueCredentialTypeValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UniqueVct {
+public @interface UniqueCredentialType {
 
-    String message() default "VCT finnes allerede";
+    String message() default "Credential type finnes allerede";
 
     Class<?>[] groups() default {};
 

@@ -37,7 +37,7 @@
     <form
           id="add_attributes_form"
           th:object="${editCredentialForm}"
-          th:action="@{/edit-credential/{id}(id=*{vct})}"
+          th:action="@{/edit-credential/{id}(id=*{credentialType})}"
           method="POST">
 
         <div class="ds-field">
