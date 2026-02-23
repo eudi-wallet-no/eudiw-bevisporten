@@ -63,8 +63,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         return new CredentialData(Collections.unmodifiableMap(claims), credentialData.credentialConfigurationId());
     }
 
-    // TODO change to protected, but must rewrite nnidClaimSourceTests first
-    public final void validateClaim(ClaimMetadata claimMetadata, Map<String, Object> claims) {
+    protected final void validateClaim(ClaimMetadata claimMetadata, Map<String, Object> claims) {
         if (claimMetadata.mandatory() && !claims.containsKey(claimMetadata.name())) {
             throw new IssuerServerException("invalid_request", "Missing required claim %s".formatted(claimMetadata.name()), HttpStatus.BAD_REQUEST);
         }
