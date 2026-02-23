@@ -17,7 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static no.idporten.eudiw.byob.service.service.CredentialConfigurationService.DYNAMIC_CREDENTIAL_TYPE_PREFIX;
+import static no.idporten.eudiw.byob.service.service.CredentialConfigurationContext.PUBLIC_CREDENTIAL_TYPE_PREFIX;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,11 +39,11 @@ class CredentialConfigurationServiceTest {
     @Test
     void create() {
         CredentialConfigurationRequestResource credentialConfigurationRequestResource = createCredentialConfigurationRequestResource("vct-example");
-        CredentialConfiguration credentialConfiguration = credentialConfigurationService.create(credentialConfigurationRequestResource);
+        CredentialConfiguration credentialConfiguration = credentialConfigurationService.create(credentialConfigurationRequestResource, CredentialConfigurationContext.forPublic());
         assertAll(
-                () -> assertEquals(DYNAMIC_CREDENTIAL_TYPE_PREFIX + credentialConfigurationRequestResource.credentialType(), credentialConfiguration.credentialType()),
+                () -> assertEquals(PUBLIC_CREDENTIAL_TYPE_PREFIX + credentialConfigurationRequestResource.credentialType(), credentialConfiguration.credentialType()),
                 () -> assertNotNull(credentialConfiguration.credentialConfigurationId()),
-                () -> assertTrue(credentialConfiguration.credentialConfigurationId().startsWith(DYNAMIC_CREDENTIAL_TYPE_PREFIX)),
+                () -> assertTrue(credentialConfiguration.credentialConfigurationId().startsWith(PUBLIC_CREDENTIAL_TYPE_PREFIX)),
                 () -> assertNotNull(credentialConfiguration.credentialMetadata()),
                 () -> assertNotNull(credentialConfiguration.credentialMetadata().display()),
                 () -> assertFalse(credentialConfiguration.credentialMetadata().display().isEmpty()),
@@ -64,7 +65,7 @@ class CredentialConfigurationServiceTest {
     @Test
     void getAllEntriesWhenNothingInRedisReturnsEmpty() {
 
-        CredentialConfigurations all = credentialConfigurationService.getAllEntries();
+        CredentialConfigurations all = credentialConfigurationService.getAllEntries(CredentialConfigurationContext.forAdmin());
         assertAll(
                 () -> assertNotNull(all),
                 () -> assertNotNull(all.credentialConfigurations()),
@@ -80,7 +81,7 @@ class CredentialConfigurationServiceTest {
                 getCredentialConfigurationData("cc-id-2", "vct-2")
         );
         when(redisService.getAll()).thenReturn(credentialConfigurationData);
-        CredentialConfigurations all = credentialConfigurationService.getAllEntries();
+        CredentialConfigurations all = credentialConfigurationService.getAllEntries(CredentialConfigurationContext.forAdmin());
         assertAll(
                 () -> assertNotNull(all),
                 () -> assertNotNull(all.credentialConfigurations()),
@@ -91,10 +92,10 @@ class CredentialConfigurationServiceTest {
 
     @Test
     void getCredentialConfiguration() {
-        String credentialType = "some-vct";
+        String credentialType = "net.eidas2sandkasse:some-vct";
         when(redisService.getBevisType(eq(credentialType)))
-                .thenReturn(getCredentialConfigurationData("some-cc-id", credentialType));
-        CredentialConfiguration credentialConfiguration = credentialConfigurationService.getCredentialConfiguration(credentialType);
+                .thenReturn(getCredentialConfigurationData("net.eidas2sandkasse:some-cc-id_mso_mdoc", credentialType));
+        CredentialConfiguration credentialConfiguration = credentialConfigurationService.getCredentialConfiguration(credentialType, CredentialConfigurationContext.forPublic());
         assertAll(
                 () -> assertNotNull(credentialConfiguration),
                 () -> assertEquals(credentialType, credentialConfiguration.credentialType()),

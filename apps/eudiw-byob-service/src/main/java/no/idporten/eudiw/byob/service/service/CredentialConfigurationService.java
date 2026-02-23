@@ -2,6 +2,7 @@ package no.idporten.eudiw.byob.service.service;
 
 import no.idporten.eudiw.byob.service.data.RedisService;
 import no.idporten.eudiw.byob.service.exception.BadRequestException;
+import no.idporten.eudiw.byob.service.exception.ForbiddenRequestException;
 import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
 import no.idporten.eudiw.byob.service.model.CredentialConfigurations;
 import no.idporten.eudiw.byob.service.model.CredentialMetadata;
@@ -22,7 +23,6 @@ public class CredentialConfigurationService {
 
     private static final Logger log = LoggerFactory.getLogger(CredentialConfigurationService.class);
 
-    public static final String DYNAMIC_CREDENTIAL_TYPE_PREFIX = "net.eidas2sandkasse:";
     private static final String SD_JWT_VC_SUFFIX = "_sd_jwt_vc";
     private static final String MSO_MDOC_SUFFIX = "_mso_mdoc";
 
@@ -39,17 +39,20 @@ public class CredentialConfigurationService {
      * as well as the credentialConfiguration.
      *
      * @param credentialConfiguration user input that user POSTS in to BYOB in order to "build your own bevis"
+     * @param context context with rights and filtering instructions
      * @return a new CredentialConfiguration with an id that consists of a set prefix, the credential type given in input plus format.
      */
-    public CredentialConfiguration create(CredentialConfigurationRequestResource credentialConfiguration) {
+    public CredentialConfiguration create(CredentialConfigurationRequestResource credentialConfiguration, CredentialConfigurationContext context) {
         String credentialType = credentialConfiguration.credentialType();
-        if (!credentialConfiguration.credentialType().startsWith(DYNAMIC_CREDENTIAL_TYPE_PREFIX)) {
-            credentialType = DYNAMIC_CREDENTIAL_TYPE_PREFIX + credentialType;
+        if (! context.accessAll()) {
+            if (!credentialConfiguration.credentialType().startsWith(context.allowedPrefix())) {
+                credentialType = context.allowedPrefix() + credentialType;
+            }
         }
         if (redisService.getBevisType(credentialType) != null) {
             throw new BadRequestException("Credential-configuration already exists for credentialType=%s".formatted(credentialConfiguration.credentialType()));
         }
-        String credentialConfigurationId = DYNAMIC_CREDENTIAL_TYPE_PREFIX + credentialConfiguration.credentialType() + ("dc+sd-jwt".equals(credentialConfiguration.format()) ?  SD_JWT_VC_SUFFIX : MSO_MDOC_SUFFIX);
+        String credentialConfigurationId = credentialType + ("dc+sd-jwt".equals(credentialConfiguration.format()) ?  SD_JWT_VC_SUFFIX : MSO_MDOC_SUFFIX);
         CredentialConfiguration cc = convert(credentialConfiguration, credentialConfigurationId, credentialType);
         redisService.addBevisType(new CredentialConfigurationData(cc));
         log.info("Generated new credential-configuration for credentialType: {}", cc.credentialType());
@@ -76,15 +79,20 @@ public class CredentialConfigurationService {
         return new ExampleCredentialData(exampleCredentialData);
     }
 
-    public CredentialConfigurations getAllEntries() {
+    public CredentialConfigurations getAllEntries(CredentialConfigurationContext context) {
         List<CredentialConfigurationData> all = redisService.getAll();
-        List<CredentialConfiguration> list = all.stream().map(CredentialConfigurationData::toCredentialConfiguration).toList();
+        List<CredentialConfiguration> list = all.stream()
+                .filter(ccd -> context.hasAccessToCredentialType(ccd.credentialType()))
+                .map(CredentialConfigurationData::toCredentialConfiguration).toList();
         return new CredentialConfigurations(list);
     }
 
-    public CredentialConfiguration getCredentialConfiguration(String credentialType) {
+    public CredentialConfiguration getCredentialConfiguration(String credentialType, CredentialConfigurationContext context) {
         CredentialConfigurationData data = redisService.getBevisType(credentialType);
         if (data == null) { return null;}
+        if (! context.hasAccessToCredentialType(credentialType)) {
+            throw new ForbiddenRequestException("Not allowed to access credential-configuration for credentialType=%s".formatted(credentialType));
+        }
         return data.toCredentialConfiguration();
     }
 
@@ -94,16 +102,22 @@ public class CredentialConfigurationService {
         return data.toCredentialConfiguration();
     }
 
-    public void delete(String credentialType) {
-         redisService.delete(credentialType);
+    public void delete(String credentialType, CredentialConfigurationContext context) {
+        if (! context.hasAccessToCredentialType(credentialType)) {
+            throw new ForbiddenRequestException("Not allowed to delete credential-configuration for credentialType=%s".formatted(credentialType));
+        }
+        redisService.delete(credentialType);
     }
 
     public void deleteAll() {
         redisService.deleteAll();
     }
 
-    public CredentialConfiguration update(CredentialConfigurationRequestResource credentialConfiguration) {
+    public CredentialConfiguration update(CredentialConfigurationRequestResource credentialConfiguration, CredentialConfigurationContext context) {
         String credentialType = credentialConfiguration.credentialType();
+        if (! context.hasAccessToCredentialType(credentialType)) {
+            throw new ForbiddenRequestException("Not allowed to update credential-configuration for credentialType=%s".formatted(credentialConfiguration.credentialType()));
+        }
         CredentialConfigurationData oldBevisType = redisService.getBevisType(credentialType);
         if (oldBevisType == null) {
             throw new BadRequestException("Credential-configuration not created for credentialType=%s. Create bevisType before update.".formatted(credentialConfiguration.credentialType()));

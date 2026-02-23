@@ -4,6 +4,7 @@ package no.idporten.eudiw.byob.service.exception;
 import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,6 +21,13 @@ public class ApplicationExceptionHandler {
         log.warn("Client error : {}", e.getMessage());
         ErrorResponse errorResponse = new ErrorResponse("invalid_request", e.getMessage());
         return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    @ExceptionHandler(ForbiddenRequestException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenRequestException(ForbiddenRequestException e) {
+        log.warn("Forbidden attempt to modify resource : {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse("invalid_request", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
     @ExceptionHandler(ByobServiceException.class)
