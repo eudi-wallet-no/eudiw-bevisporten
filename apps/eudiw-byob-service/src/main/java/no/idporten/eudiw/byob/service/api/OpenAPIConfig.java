@@ -10,8 +10,18 @@ public class OpenAPIConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        return new OpenAPI().info(new Info().title("Bring Your Own Bevis-API").version("1.0").description("API for å " +
-                "enkelt kunne legge til nye bevistyper i sandkassemiljøet. Her kan du også se alle bevistypene som er laget " +
-                "med BYOB (Bring Your Own Bevis) utstederen, samt søke blant bevisene."));
+        return new OpenAPI()
+                .info(
+                        new Info()
+                                .title("Bring Your Own Bevis-API")
+                                .version("1.0")
+                                .description("""
+                                        API for å administrere bevistyper for test i sandkassemiljøet.  Bevistyper kan opprettes,
+                                        endres, hentes ut og søkes på.
+                                        
+                                        public-endepunktene er for Bevisgeneratoren og brukes for å administrere bevistyper i navnerom "net.eidas2sandkasse*".  
+                                        
+                                        admin-endepunktene er for andre applikasjoner og har ingen begrensninger på navnerom.
+                                        """));
     }
 }
