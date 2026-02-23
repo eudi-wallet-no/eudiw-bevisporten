@@ -33,8 +33,16 @@ public class ByobService {
         this.restClient = restClient;
     }
 
-    public List<CredentialDefinition> getCredentialDefinitions() {
-        List<CredentialDefinition> result = getCertificationDefinitionCollection().credentialConfigurations;
+    public List<CredentialDefinition> getCredentialDefinitionsForEdit() {
+        List<CredentialDefinition> result = getCertificationDefinitionCollection(byobServiceProperties.getAllEditEndpoint()).credentialConfigurations;
+        if (result == null) {
+            result = new ArrayList<>();
+        }
+        return result;
+    }
+
+    public List<CredentialDefinition> getCredentialDefinitionsForIssuance() {
+        List<CredentialDefinition> result = getCertificationDefinitionCollection(byobServiceProperties.getAllIssueEndpoint()).credentialConfigurations;
         if (result == null) {
             result = new ArrayList<>();
         }
@@ -58,7 +66,7 @@ public class ByobService {
     }
 
     public boolean existsByCredentialType(String credentialType) {
-        return getCredentialDefinitions().stream().anyMatch(c -> c.getCredentialType().equals(credentialType));
+        return getCredentialDefinitionsForEdit().stream().anyMatch(c -> c.getCredentialType().equals(credentialType));
     }
 
     public CredentialDefinition editCredentialDefinition(CredentialDefinition cd) {
@@ -66,7 +74,7 @@ public class ByobService {
     }
 
     private CredentialDefinition getDefinitionById(String id) {
-        return getCredentialDefinitions()
+        return getCredentialDefinitionsForIssuance()
                 .stream()
                 .filter(cd -> Objects.equals(cd.getCredentialConfigurationId(), id))
                 .findFirst()
@@ -91,20 +99,18 @@ public class ByobService {
         }
     }
 
-    private CredentialDefinitionCollection getCertificationDefinitionCollection() {
-        String getEndpoint = byobServiceProperties.getManyEndpoint();
-
+    private CredentialDefinitionCollection getCertificationDefinitionCollection(String endpoint) {
         try {
             return restClient
                     .get()
-                    .uri(getEndpoint)
+                    .uri(endpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(CredentialDefinitionCollection.class);
         } catch (ResourceAccessException e) {
             throw new ByobServiceIOException("IO error when calling BYOB service to store CredentialDefinition", e);
         } catch (RestClientException e) {
-            throw new ByobServiceException("Configuration error against byob-service? path=" + getEndpoint, e);
+            throw new ByobServiceException("Configuration error against byob-service? path=" + endpoint, e);
         }
     }
 
