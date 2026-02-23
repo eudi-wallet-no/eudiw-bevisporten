@@ -65,7 +65,7 @@ class ByobServiceIntegrationTest {
             DynamicCredentialConfigurations dcc = createDynamicCredentialConfigurations(dynamicCredentialConfiguration);
             String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
 
-            mockServer.expect(requestTo("v1/credential-configurations"))
+            mockServer.expect(requestTo("v1/admin/credential-configurations"))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
 
             DynamicCredentialConfigurations dynamicCredentialConfigurations = byobServiceIntegration.retrieveAll();
@@ -82,7 +82,7 @@ class ByobServiceIntegrationTest {
         @Test
         void testRetrieveAllEmptySuccess() {
 
-            mockServer.expect(requestTo("v1/credential-configurations"))
+            mockServer.expect(requestTo("v1/admin/credential-configurations"))
                     .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
 
             DynamicCredentialConfigurations dynamicCredentialConfigurations = byobServiceIntegration.retrieveAll();
@@ -97,7 +97,7 @@ class ByobServiceIntegrationTest {
         @Test
         void testRetrieveAllFails500() {
 
-            mockServer.expect(requestTo("v1/credential-configurations"))
+            mockServer.expect(requestTo("v1/admin/credential-configurations"))
                     .andRespond(withServerError());
             assertThrows(ClaimsSourceException.class, () -> byobServiceIntegration.retrieveAll());
         }
@@ -106,7 +106,7 @@ class ByobServiceIntegrationTest {
         @Test
         void testRetrieveAllFailsIOError() {
 
-            mockServer.expect(requestTo("v1/credential-configurations"))
+            mockServer.expect(requestTo("v1/admin/credential-configurations"))
                     .andRespond(withException(new IOException("can not connect to byob-service")));
             assertThrows(ClaimsSourceIOException.class, () -> byobServiceIntegration.retrieveAll());
         }
@@ -123,7 +123,7 @@ class ByobServiceIntegrationTest {
             DynamicCredentialConfiguration dcc = getDynamicCredentialConfiguration(vct);
             String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
 
-            mockServer.expect(requestTo("v1/credential-configuration/%s".formatted(vct)))
+            mockServer.expect(requestTo("v1/admin/credential-configurations/%s".formatted(vct)))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
 
             DynamicCredentialConfiguration dynamicCredentialConfiguration = byobServiceIntegration.retrieve(vct);
@@ -139,7 +139,7 @@ class ByobServiceIntegrationTest {
         void testRetrieveVctNotFound() {
             String vct = "mitt_bevis";
 
-            mockServer.expect(requestTo("v1/credential-configuration/%s".formatted(vct)))
+            mockServer.expect(requestTo("v1/admin/credential-configurations/%s".formatted(vct)))
                     .andRespond(withResourceNotFound());
 
             assertThrows(ClaimsSourceException.class, () -> byobServiceIntegration.retrieve(vct));
@@ -166,7 +166,7 @@ class ByobServiceIntegrationTest {
             DynamicCredentialConfiguration dcc = getDynamicCredentialConfiguration(vct);
             String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
 
-            mockServer.expect(requestTo("v1/credential-configuration/search?credentialConfigurationId=%s".formatted(credentialConfigurationId)))
+            mockServer.expect(requestTo("v1/admin/credential-configurations/search?credentialConfigurationId=%s".formatted(credentialConfigurationId)))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
 
             DynamicCredentialConfiguration dynamicCredentialConfiguration = byobServiceIntegration.searchByCredentialConfigurationId(credentialConfigurationId);
@@ -182,7 +182,7 @@ class ByobServiceIntegrationTest {
         void testRetrieveSearchNotFound() {
             String vct = "mitt_bevis";
             String credentialConfigurationId = vct + "_sd_jwt";
-            mockServer.expect(requestTo("v1/credential-configuration/search?credentialConfigurationId=%s".formatted(credentialConfigurationId)))
+            mockServer.expect(requestTo("v1/admin/credential-configurations/search?credentialConfigurationId=%s".formatted(credentialConfigurationId)))
                     .andRespond(withResourceNotFound());
 
             assertThrows(ClaimsSourceException.class, () -> byobServiceIntegration.searchByCredentialConfigurationId(credentialConfigurationId));
@@ -208,7 +208,7 @@ class ByobServiceIntegrationTest {
             DynamicCredentialConfigurations dcc = createDynamicCredentialConfigurations(dynamicCredentialConfiguration);
             String bevisDefinisjonarString = jsonMapper.writeValueAsString(dcc);
             // First call to populate cache
-            mockServer.expect(ExpectedCount.once(), requestTo("v1/credential-configurations"))
+            mockServer.expect(ExpectedCount.once(), requestTo("v1/admin/credential-configurations"))
                     .andRespond(withSuccess(bevisDefinisjonarString, MediaType.APPLICATION_JSON));
             DynamicCredentialConfigurations dynamicCredentialConfigurations = byobServiceIntegration.retrieveAll();
             assertAll(

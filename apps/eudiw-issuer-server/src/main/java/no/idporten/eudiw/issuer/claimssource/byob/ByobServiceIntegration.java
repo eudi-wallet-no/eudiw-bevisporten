@@ -77,7 +77,7 @@ public class ByobServiceIntegration {
         try {
             DynamicCredentialConfigurations credentialConfigurations = byobServiceRestClient
                     .get()
-                    .uri("v1/credential-configurations")
+                    .uri("v1/admin/credential-configurations")
                     .header(API_KEY, byobServiceProperties.apiKey())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
@@ -114,7 +114,7 @@ public class ByobServiceIntegration {
         try {
             return byobServiceRestClient
                     .get()
-                    .uri("v1/credential-configuration/{credential-type}", credentialType)
+                    .uri("v1/admin/credential-configurations/{credential-type}", credentialType)
                     .header(API_KEY, byobServiceProperties.apiKey())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
@@ -142,7 +142,7 @@ public class ByobServiceIntegration {
         try {
             return byobServiceRestClient
                     .get()
-                    .uri("v1/credential-configuration/search?credentialConfigurationId={credentialConfigurationId}", credentialConfigurationId)
+                    .uri("v1/admin/credential-configurations/search?credentialConfigurationId={credentialConfigurationId}", credentialConfigurationId)
                     .header(API_KEY, byobServiceProperties.apiKey())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
