@@ -56,14 +56,6 @@ credential-issuer-server:
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
-    - identifier: no.skatteetaten.nnid_mso_mdoc
-      scope: eudiw:no:skatteetaten:nnid
-      format: mso_mdoc
-      credential-type: no.skatteetaten.nnid.1
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-      key-store-name: eaa-provider
     - identifier: no.advokattilsynet.advokatregisteret_mso_mdoc
       scope: eudiw:no:advokattilsynet:advokatregisteret
       format: mso_mdoc
@@ -71,15 +63,6 @@ credential-issuer-server:
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-      key-store-name: eaa-provider
-    - identifier: no.minid.mpid_sd_jwt_vc
-      scope: eudiw:no:minid:mpid
-      format: sd_jwt_vc
-      credential-type: no:minid:mpid:1
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-      require-tx-code: false
       key-store-name: eaa-provider
     - identifier: no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc
       scope: eudiw:no:kontaktregisteret:kontaktinformasjon
@@ -132,14 +115,8 @@ credential-issuer-server:
         - urn:eudi:pid:1
       class-name: no.idporten.eudiw.issuer.authoritativesources.pid.PIDSDJwtClaimsSource
     - credential-types:
-        - no.skatteetaten.nnid.1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.skatteetaten.NnidClaimsSource
-    - credential-types:
         - no.advokattilsynet.advokatregisteret.1
       class-name: no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource
-    - credential-types:
-        - no:minid:mpid:1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.minid.MpidClaimsSource
     - credential-types:
         - no:kontaktregisteret:kontaktinformasjon:1
       class-name: no.idporten.eudiw.issuer.authoritativesources.krr.KrrClaimsSource
