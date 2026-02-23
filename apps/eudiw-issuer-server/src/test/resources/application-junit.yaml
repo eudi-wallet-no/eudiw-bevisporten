@@ -44,14 +44,10 @@ credential-issuer-server:
       key-store-name: eaa-provider
 
   dynamic-credential-configuration-template:
-    identifier: "net.eidas2sandkasse:"
-    scope: eudiw:eidas2sandkasse:dynamicvc
-    format: sd_jwt_vc
-    credential-type: "net.eidas2sandkasse:"
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
     authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
     pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
-    key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
+    key-store-name: eaa-provider
 
   claims-sources:
     - credential-types:

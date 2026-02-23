@@ -20,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.util.List;
 
-import static no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
@@ -65,7 +64,7 @@ class ByobMetadataSchedulerTest {
 
         // 1. run with one (1) added
         String vct1 = "test-config-1";
-        String credentialConfigurationId1 = DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + vct1 + "_sd_jwt";
+        String credentialConfigurationId1 = "net.eidas2sandkasse:" + vct1 + "_sd_jwt";
         DynamicCredentialConfigurations credentialConfigs1 = createCredentialConfigs(vct1, credentialConfigurationId1);
         when(byobServiceIntegration.retrieveAll()).thenReturn(credentialConfigs1);
 
@@ -85,7 +84,7 @@ class ByobMetadataSchedulerTest {
 
         // 2. run with last one (1) deleted and one new added (2)
         String vct2 = "test-config-2";
-        String credentialConfigurationId2 = DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + vct2 + "_sd_jwt";
+        String credentialConfigurationId2 = "net.eidas2sandkasse:" + vct2 + "_sd_jwt";
         DynamicCredentialConfiguration credentialConfig2 = createOneCredentialConfig(vct2, credentialConfigurationId2);
         DynamicCredentialConfigurations credentialConfigs2 = DynamicCredentialConfigurations.builder().credentialConfigurations(List.of(credentialConfig2)).build();
         when(byobServiceIntegration.retrieveAll()).thenReturn(credentialConfigs2); // does not return the previous one, so it is deleted correctly by another api call outside scope of this test
@@ -106,7 +105,7 @@ class ByobMetadataSchedulerTest {
 
         // 3. run with one existing (2) from previous run and one new added (3)
         String vct3 = "test-config-3";
-        String credentialConfigurationId3 = DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + vct3 + "_sd_jwt";
+        String credentialConfigurationId3 = "net.eidas2sandkasse:" + vct3 + "_sd_jwt";
         DynamicCredentialConfiguration credentialConfig3 = createOneCredentialConfig(vct3, credentialConfigurationId3);
         DynamicCredentialConfigurations credentialConfigsWith2 = DynamicCredentialConfigurations.builder().credentialConfigurations(List.of(credentialConfig2, credentialConfig3)).build();
         when(byobServiceIntegration.retrieveAll()).thenReturn(credentialConfigsWith2);

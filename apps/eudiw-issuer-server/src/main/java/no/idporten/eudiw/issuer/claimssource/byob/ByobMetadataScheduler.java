@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerServerGeneratorService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
@@ -15,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX;
 
 @Component
 public class ByobMetadataScheduler {
@@ -24,11 +24,13 @@ public class ByobMetadataScheduler {
 
     private final CredentialIssuerMetadata credentialIssuerMetadata;
     private final CredentialIssuerServerGeneratorService credentialIssuerServerGeneratorService;
+    private final CredentialConfigurationService credentialConfigurationService;
 
     @Autowired
-    public ByobMetadataScheduler(CredentialIssuerMetadata credentialIssuerMetadata, CredentialIssuerServerGeneratorService credentialIssuerServerGeneratorService) {
+    public ByobMetadataScheduler(CredentialIssuerMetadata credentialIssuerMetadata, CredentialIssuerServerGeneratorService credentialIssuerServerGeneratorService, CredentialConfigurationService credentialConfigurationService) {
         this.credentialIssuerMetadata = credentialIssuerMetadata;
         this.credentialIssuerServerGeneratorService = credentialIssuerServerGeneratorService;
+        this.credentialConfigurationService = credentialConfigurationService;
     }
 
     @Scheduled(fixedDelayString = "${credential-issuer-server.metadata-refresh-rate-in-millis}", initialDelayString = "${credential-issuer-server.metadata-refresh-rate-in-millis}")
@@ -62,7 +64,7 @@ public class ByobMetadataScheduler {
     private List<String> getDeletedCredentialConfigurationIds(Map<String, CredentialConfiguration> newByobCcs, Set<String> existingCredentialConfigurationIds) {
         List<String> keysToRemove = new ArrayList<>();
         for (String existingCC : existingCredentialConfigurationIds) {
-            if (!existingCC.startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
+            if (credentialConfigurationService.isStaticCredentialConfiguration(existingCC)) {
                 continue;
             }
             if (newByobCcs.containsKey(existingCC)) {

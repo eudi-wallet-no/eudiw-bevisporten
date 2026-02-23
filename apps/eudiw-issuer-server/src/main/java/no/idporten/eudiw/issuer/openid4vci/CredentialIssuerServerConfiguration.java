@@ -2,15 +2,12 @@ package no.idporten.eudiw.issuer.openid4vci;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.api.Endpoints;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
-import no.idporten.eudiw.issuer.claimssource.byob.DynamicCredentialConfigurationService;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
-import no.idporten.eudiw.issuer.openid4vci.metadata.*;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfigurations;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
+import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -22,9 +19,6 @@ import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
