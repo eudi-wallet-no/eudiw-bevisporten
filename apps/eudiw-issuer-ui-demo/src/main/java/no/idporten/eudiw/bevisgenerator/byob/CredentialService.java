@@ -23,8 +23,8 @@ public class CredentialService {
         return mapper.toDto(CredentialDefinitionFactory.empty());
     }
 
-    public List<CredentialDto> getCredentials() {
-        List<CredentialDefinition> credentialDefinitions = byobService.getCredentialDefinitions();
+    public List<CredentialDto> getCredentialsForEdit() {
+        List<CredentialDefinition> credentialDefinitions = byobService.getCredentialDefinitionsForEdit();
 
         return credentialDefinitions
                 .stream()
