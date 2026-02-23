@@ -10,8 +10,13 @@ import jakarta.validation.constraints.Pattern;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-
 public record CredentialConfigurationRequestResource(
+
+        @JsonProperty("credential_configuration_id")
+        @Schema(description = "Credential configuration id", example = "my_credential_sd_jwt_vc")
+        @Pattern(regexp = "^[a-z0-9_:.]{3,155}$",
+                message = "Preferred credential configuration id (only for admin)")
+        String credentialConfigurationId,
 
         @JsonProperty("credential_type")
         @Schema(description = "Credential type", example = "my_credential")

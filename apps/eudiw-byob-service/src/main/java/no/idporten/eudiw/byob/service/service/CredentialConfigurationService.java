@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -44,19 +45,27 @@ public class CredentialConfigurationService {
      */
     public CredentialConfiguration create(CredentialConfigurationRequestResource credentialConfiguration, CredentialConfigurationContext context) {
         String credentialType = credentialConfiguration.credentialType();
+        String credentialConfigurationId = credentialConfiguration.credentialConfigurationId();
         if (! context.accessAll()) {
             if (!credentialConfiguration.credentialType().startsWith(context.allowedPrefix())) {
                 credentialType = context.allowedPrefix() + credentialType;
             }
+            credentialConfigurationId = generateCredentialConfigurationId(credentialConfiguration, credentialType);
+        } if (context.accessAll() && ! StringUtils.hasText(credentialConfigurationId)) {
+            // admin can choose to provide credentialConfigurationId, but if not provided, we generate it based on credentialType and format
+            credentialConfigurationId = generateCredentialConfigurationId(credentialConfiguration, credentialType);
         }
         if (redisService.getBevisType(credentialType) != null) {
             throw new BadRequestException("Credential-configuration already exists for credentialType=%s".formatted(credentialConfiguration.credentialType()));
         }
-        String credentialConfigurationId = credentialType + ("dc+sd-jwt".equals(credentialConfiguration.format()) ?  SD_JWT_VC_SUFFIX : MSO_MDOC_SUFFIX);
         CredentialConfiguration cc = convert(credentialConfiguration, credentialConfigurationId, credentialType);
         redisService.addBevisType(new CredentialConfigurationData(cc));
         log.info("Generated new credential-configuration for credentialType: {}", cc.credentialType());
         return cc;
+    }
+
+    private String generateCredentialConfigurationId(CredentialConfigurationRequestResource credentialConfiguration, String credentialType) {
+        return credentialType + ("dc+sd-jwt".equals(credentialConfiguration.format()) ? SD_JWT_VC_SUFFIX : MSO_MDOC_SUFFIX);
     }
 
     private static CredentialConfiguration convert(CredentialConfigurationRequestResource credentialConfiguration, String credentialConfigurationId, String credentialType) {

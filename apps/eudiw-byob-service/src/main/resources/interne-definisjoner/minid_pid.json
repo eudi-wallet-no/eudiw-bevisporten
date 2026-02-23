@@ -1,0 +1,96 @@
+{
+  "credential_configuration_id": "no.minid.mpid_sd_jwt_vc",
+  "credential_type": "no:minid:mpid:1",
+  "scope": "eudiw:no:minid:mpid",
+  "format": "dc+sd-jwt",
+  "credential_metadata": {
+    "display": [
+      {
+        "name": "MinID PID",
+        "locale": "no",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": "personal_administrative_number",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Norsk identitetsnummer",
+            "locale": "no"
+          }
+        ]
+      },
+      {
+        "path": "family_name",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Etternavn",
+            "locale": "no"
+          }
+        ]
+      },
+      {
+        "path": "given_name",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Fornavn",
+            "locale": "no"
+          }
+        ]
+      },
+      {
+        "path": "middle_name",
+        "mandatory": false,
+        "display": [
+          {
+            "name": "Mellomnavn",
+            "locale": "no"
+          }
+        ]
+      },
+      {
+        "path": "birth_date",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Fødselsdato",
+            "locale": "no"
+          }
+        ]
+      },
+      {
+        "path": "expiry_date",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Gyldig til",
+            "locale": "no"
+          }
+        ]
+      },
+      {
+        "path": "issuance_date",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Ustedt",
+            "locale": "no"
+          }
+        ]
+      }
+    ]
+  },
+  "example_credential_data": {
+    "personal_administrative_number": "24838674964",
+    "family_name": "KJENDIS",
+    "given_name": "UTØRST",
+    "birth_date": "1886-03-24",
+    "expiry_date": "2025-11-01",
+    "issuance_date": "2025-09-17"
+  }
+}
