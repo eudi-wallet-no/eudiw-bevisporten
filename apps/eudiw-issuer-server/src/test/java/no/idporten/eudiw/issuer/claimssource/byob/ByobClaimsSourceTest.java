@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 class ByobClaimsSourceTest {
 
-
     @Autowired
     ByobClaimsSource claimsSource;
 
@@ -50,9 +49,9 @@ class ByobClaimsSourceTest {
     @DisplayName("then supports returns true for credential_configuration_id with existing credential configuration")
     @Test
     void whenCallSupportsWithExisitingCredentialConfigurationIdThenReturnTrue() {
-        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
+        String credentialConfigurationId = "net.eidas2sandkasse:cred-config-id";
         String claimName = "name-claim";
-        String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
+        String vct = "net.eidas2sandkasse:credential-type";
         DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
         when(integration.retrieve(eq(vct))).thenReturn(cc);
         boolean supports = claimsSource.supports(vct);
@@ -63,9 +62,9 @@ class ByobClaimsSourceTest {
     @DisplayName("then supports returns false when credential_configuration_id does not exist")
     @Test
     void whenCallSupportsWithNonExisitingCredentialConfigurationIdThenReturnFalse() {
-        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
+        String credentialConfigurationId = "net.eidas2sandkasse:cred-config-id";
         String claimName = "name-claim";
-        String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
+        String vct = "net.eidas2sandkasse:credential-type";
         DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
         when(integration.retrieve(eq(vct))).thenReturn(cc);
         boolean supports = claimsSource.supports("non-existing-credential-type");
@@ -82,9 +81,9 @@ class ByobClaimsSourceTest {
     @DisplayName("then getDocumentMetadata returns valid DocumentMetadata for valid credential_configuration_id")
     @Test
     void getDocumentMetadataForValidCredentialConfigurationIdReturnsValidDocumentMetadata() {
-        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
+        String credentialConfigurationId = "net.eidas2sandkasse:cred-config-id";
         String claimName = "name-claim";
-        String vct = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-type";
+        String vct = "net.eidas2sandkasse:credential-type";
         DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
         when(integration.retrieve(eq(vct))).thenReturn(cc);
         DocumentMetadata documentMetadata = claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, vct, null));
@@ -104,7 +103,7 @@ class ByobClaimsSourceTest {
     @DisplayName("then getDocumentMetadata returns null for non-existing credential_configuration_id")
     @Test
     void getDocumentMetadataForNonExistingCredentialConfigurationIdReturnEmptyDocumentMetadata() {
-        String credentialConfigurationId = ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "cred-config-id";
+        String credentialConfigurationId = "net.eidas2sandkasse:cred-config-id";
         when(integration.retrieveAll()).thenReturn(null);
         assertNull(claimsSource.getDocumentMetadata(new CredentialMetadataContext(credentialConfigurationId, null, null)));
     }
@@ -113,7 +112,7 @@ class ByobClaimsSourceTest {
     @DisplayName("when pushing credential data then the same data is returned")
     @Test
     void testPush() {
-        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"), ByobClaimsSource.DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX + "credential-payload");
+        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"), "net.eidas2sandkasse:credential-payload");
         CredentialData result = claimsSource.push(null, credentialData);
         assertEquals(credentialData, result);
     }

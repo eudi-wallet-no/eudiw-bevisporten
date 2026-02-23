@@ -18,22 +18,16 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     private static final Logger log = LoggerFactory.getLogger(ByobClaimsSource.class);
 
-    public static final String DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX = "net.eidas2sandkasse:";
+    private final DynamicCredentialConfigurationService dynamicCredentialConfigurationService;
 
-    private final DynamicCredentialConfigurationService credentialConfigurationService;
-
-    public ByobClaimsSource(DynamicCredentialConfigurationService credentialConfigurationService) {
-        this.credentialConfigurationService = credentialConfigurationService;
+    public ByobClaimsSource(DynamicCredentialConfigurationService dynamicCredentialConfigurationService) {
+        this.dynamicCredentialConfigurationService = dynamicCredentialConfigurationService;
     }
 
     @Override
     public boolean supports(String credentialType) {
-        if (!credentialType.startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
-            return false;
-        }
-
         try {
-            return credentialConfigurationService.getDocumentMetadataByCredentialType(credentialType) != null;
+            return dynamicCredentialConfigurationService.getDocumentMetadataByCredentialType(credentialType) != null;
         } catch (IssuerServerException e) {
             log.error("Error checking support for credentialType={}. Ignore and continue", credentialType, e);
             return false;
@@ -45,15 +39,14 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
         if (credentialMetadataContext == null) {
             throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialMetadataContext cannot be null for BYOB claimssource");
         }
-        if (credentialMetadataContext.credentialType() != null && credentialMetadataContext.credentialType().startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
-            return credentialConfigurationService.getDocumentMetadataByCredentialType(credentialMetadataContext.credentialType());
+        if (credentialMetadataContext.credentialType() != null) {
+            return dynamicCredentialConfigurationService.getDocumentMetadataByCredentialType(credentialMetadataContext.credentialType());
         }
-        if (credentialMetadataContext.credentialConfigurationId() != null && credentialMetadataContext.credentialConfigurationId().startsWith(DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX)) {
-            return credentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
+        if (credentialMetadataContext.credentialConfigurationId() != null) {
+            return dynamicCredentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
         }
-        log.warn("credentialType ({}) or credentialConfigurationId ({}) does not start with {} for BYOB claimssource, returning null metadata", credentialMetadataContext.credentialType(), credentialMetadataContext.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX);
+        log.warn("credentialType ({}) or credentialConfigurationId ({}) not found for BYOB claimssource, returning null metadata", credentialMetadataContext.credentialType(), credentialMetadataContext.credentialConfigurationId());
         return null;
-        //throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialType (%s) or credentialConfigurationId (%s) must start with %s for BYOB claimssource".formatted(credentialMetadataContext.credentialType(), credentialMetadataContext.credentialConfigurationId(), DYNAMIC_CREDENTIAL_CONFIGURATION_PREFIX));
     }
 
     @Override
