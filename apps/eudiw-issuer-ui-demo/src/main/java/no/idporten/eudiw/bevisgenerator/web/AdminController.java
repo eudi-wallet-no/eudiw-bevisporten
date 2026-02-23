@@ -47,7 +47,7 @@ public class AdminController {
 
     @GetMapping("/admin")
     public ModelAndView admin() {
-        return new ModelAndView("admin", "credentials", credentialService.getCredentials());
+        return new ModelAndView("admin", "credentials", credentialService.getCredentialsForEdit());
     }
 
     @GetMapping("/add-credential")
@@ -66,7 +66,7 @@ public class AdminController {
 
         credentialService.storeCredential(new CredentialDto(addCredentialForm.credentialType(), addCredentialForm.json()));
 
-        return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
+        return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentialsForEdit());
     }
 
     @GetMapping("/edit-credential/{credential_type}")
@@ -90,7 +90,7 @@ public class AdminController {
         logger.info("Editing credential with credentialType {}", credentialType);
 
         credentialService.editCredential(new CredentialDto(credentialType, editCredentialForm.json()));
-        return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentials());
+        return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentialsForEdit());
     }
 
     /*
