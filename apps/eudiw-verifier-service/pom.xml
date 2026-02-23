@@ -20,7 +20,7 @@
         <idporten.keystore.version>2.0.0-rc1</idporten.keystore.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>3.0.1-rc4</idporten-access-log.version>
-        <nimbus-jose-jwt.version>10.7</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.33</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>0.15.1</waltid-mdoc-credentials-jvm.version>
         <waltid-sdjwt-jvm.version>0.17.1</waltid-sdjwt-jvm.version>
