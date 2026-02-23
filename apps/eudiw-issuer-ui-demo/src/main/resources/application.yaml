@@ -40,40 +40,6 @@ bevisgenerator:
   issuer-server:
     issuance-endpoint: /api/v1/credential/issuance-transaction
     credential-configurations:
-      - credential-configuration-id: no.skatteetaten.nnid_mso_mdoc
-        description: Norsk identitetsnummer
-        scope: eudiw:no:skatteetaten:nnid
-        person-identifier: 50917500484
-        json-request: |
-          {
-            "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
-            "subject": {
-              "identifier": "50917500484"
-            },
-            "credential_data": {
-              "norwegian_national_id_number": "50917500484",
-              "norwegian_national_id_number_type": "D-nummer"
-            }
-          }
-      - credential-configuration-id: no.minid.mpid_sd_jwt_vc
-        description: MinID PID
-        scope: eudiw:no:minid:mpid
-        person-identifier: 24838674964
-        json-request: |
-          {
-            "credential_configuration_id": "no.minid.mpid_sd_jwt_vc",
-            "subject": {
-              "identifier": "24838674964"
-            },
-            "credential_data": {
-              "personal_administrative_number": "24838674964",
-              "family_name": "KJENDIS",
-              "given_name": "UTØRST",
-              "birth_date": "1886-03-24",
-              "expiry_date": "2025-11-01",
-              "issuance_date": "2025-09-17"
-            }
-          }
       - credential-configuration-id: no.advokattilsynet.advokatregisteret_mso_mdoc
         description: Advokatbevilling
         scope: eudiw:no:advokattilsynet:advokatregisteret
