@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public record ByobServiceProperties(
         String baseUrl,
         String createEndpoint,
-        String getManyEndpoint,
-        String getEndpoint,
-        String searchEndpoint
+        String getAllEditEndpoint,
+        String getAllIssueEndpoint,
+        String getEndpoint
 ) { }
