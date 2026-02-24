@@ -23,10 +23,7 @@ import java.util.Objects;
 
 public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements PreAuthorizedClaimsSource {
 
-    private ClaimsSourceProperties properties;
-
     private ClaimsSourceCache cache;
-
     private final ClaimValueConverter claimValueConverter = new ClaimValueConverter();
     private final ClaimDataTypeValidator claimDataTypeValidator = new ClaimDataTypeValidator();
 
@@ -34,8 +31,6 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     public void setClaimsSourceCache(ClaimsSourceCache claimsSourceCache) {
         this.cache = claimsSourceCache;
     }
-
-
 
     @Override
     public final CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData) {
@@ -75,20 +70,6 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         cache.storeClaims(issuanceTransactionId, claims, lifetime);
         return issuanceTransactionId;
     }
-
-    @Override
-    public void init(ClaimsSourceProperties properties) {
-        this.properties = properties;
-        if (this.cache == null) {
-            throw new IllegalStateException("Claims cache not initialized for claims source supporting credential types %s".formatted(properties.getCredentialTypes()));
-        }
-    }
-
-    @Override
-    public final ClaimsSourceProperties getProperties() {
-        return properties;
-    }
-
 
     @Override
     public final List<Claim> issueClaims(CredentialIssueContext credentialIssueContext) {

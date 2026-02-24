@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.authoritativesources;
 
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
@@ -17,7 +16,6 @@ import java.util.Map;
 public class JUnitClaimsSource implements ClaimsSource {
 
     private final DocumentMetadata documentMetadata;
-    private ClaimsSourceProperties properties;
 
     public JUnitClaimsSource(){
         this.documentMetadata = new DocumentMetadata(
@@ -29,16 +27,6 @@ public class JUnitClaimsSource implements ClaimsSource {
     @Override
     public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
         return documentMetadata;
-    }
-
-    @Override
-    public void init(ClaimsSourceProperties properties) {
-        this.properties = properties;
-    }
-
-    @Override
-    public ClaimsSourceProperties getProperties() {
-        return properties;
     }
 
     @Override

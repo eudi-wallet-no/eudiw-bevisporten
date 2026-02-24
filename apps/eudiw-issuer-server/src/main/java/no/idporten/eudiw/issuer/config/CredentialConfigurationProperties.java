@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import org.springframework.validation.annotation.Validated;
 
+import java.net.URI;
 import java.time.Duration;
 
 @Validated
@@ -31,6 +32,9 @@ public class CredentialConfigurationProperties {
      */
     @NotNull
     private String credentialType;
+
+    @NotNull
+    private URI claimsSourceUri;
 
     /**
      * Credential format

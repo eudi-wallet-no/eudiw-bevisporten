@@ -46,6 +46,7 @@ credential-issuer-server:
       scope: eudiw:no:pid
       format: mso_mdoc
       credential-type: eu.europa.ec.eudi.pid.1
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.pid.PIDMdocClaimsSource
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
@@ -53,6 +54,7 @@ credential-issuer-server:
       scope: eudiw:no:pid
       format: sd_jwt_vc
       credential-type: urn:eudi:pid:1
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.pid.PIDSDJwtClaimsSource
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
@@ -60,6 +62,7 @@ credential-issuer-server:
       scope: eudiw:no:advokattilsynet:advokatregisteret
       format: mso_mdoc
       credential-type: no.advokattilsynet.advokatregisteret.1
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
@@ -68,6 +71,7 @@ credential-issuer-server:
       scope: eudiw:no:kontaktregisteret:kontaktinformasjon
       format: sd_jwt_vc
       credential-type: no:kontaktregisteret:kontaktinformasjon:1
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.krr.KrrClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
@@ -76,6 +80,7 @@ credential-issuer-server:
       scope: eudiw:no:vegvesen:mdl
       format: mso_mdoc
       credential-type: org.iso.18013.5.1.mDL
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.vegvesenet.ForerkortClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
@@ -84,6 +89,7 @@ credential-issuer-server:
       scope: proof_of_age
       format: mso_mdoc
       credential-type: eu.europa.ec.av.1
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.ageverification.AgeVerificationClaimsSource
       validity-days: 30
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
@@ -92,43 +98,19 @@ credential-issuer-server:
       scope: eudiw:no:skatteetaten:inntekt
       format: sd_jwt_vc
       credential-type: no.skatteetaten.inntekt.1
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.skatteetaten.InntektClaimsSource
       validity-days: 180
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider
 
   dynamic-credential-configuration-template:
+    claims-source-uri: class://no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
     validity-days: 30
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
     authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
     pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
     key-store-name: eaa-provider
-
-  claims-sources:
-    - credential-types:
-        - eidas2sandkasse.wildcard_sd_jwt_vc
-      class-name: no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
-    - credential-types:
-        - eu.europa.ec.eudi.pid.1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.pid.PIDMdocClaimsSource
-    - credential-types:
-        - urn:eudi:pid:1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.pid.PIDSDJwtClaimsSource
-    - credential-types:
-        - no.advokattilsynet.advokatregisteret.1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource
-    - credential-types:
-        - no:kontaktregisteret:kontaktinformasjon:1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.krr.KrrClaimsSource
-    - credential-types:
-        - org.iso.18013.5.1.mDL
-      class-name: no.idporten.eudiw.issuer.authoritativesources.vegvesenet.ForerkortClaimsSource
-    - credential-types:
-        - eu.europa.ec.av.1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.ageverification.AgeVerificationClaimsSource
-    - credential-types:
-        - no.skatteetaten.inntekt.1
-      class-name: no.idporten.eudiw.issuer.authoritativesources.skatteetaten.InntektClaimsSource
 
 # Digdir standard logging
 digdir:

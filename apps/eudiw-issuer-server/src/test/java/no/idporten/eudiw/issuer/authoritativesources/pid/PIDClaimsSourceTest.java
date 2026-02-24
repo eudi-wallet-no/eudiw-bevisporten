@@ -7,7 +7,6 @@ import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
 import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.credentials.types.*;
@@ -39,9 +38,6 @@ class PIDClaimsSourceTest {
 
     public static final int NUMBER_OF_CLAIMS = 9;
 
-    @MockitoBean
-    private ClaimsSourceProperties properties;
-
     private PIDClaimsSource pidClaimsSource;
 
     @Autowired
@@ -64,7 +60,6 @@ class PIDClaimsSourceTest {
     void manuallyConfigureBeans() {
         FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
         pidClaimsSource = new PIDMdocClaimsSource(fregService, personConverterService);
-        pidClaimsSource.init(properties);
     }
 
     @Test
@@ -132,7 +127,6 @@ class PIDClaimsSourceTest {
     void pullSDJwtVC() {
         FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
         PIDSDJwtClaimsSource pidCs = new PIDSDJwtClaimsSource(fregService, personConverterService);
-        pidCs.init(properties);
         String fnr = "12345678901";
         Folkeregisterperson fregPerson = createFolkeregisterperson();
         when(fregIntegration.getFolkeregisterPerson(eq(fnr), anyList())).thenReturn(fregPerson);

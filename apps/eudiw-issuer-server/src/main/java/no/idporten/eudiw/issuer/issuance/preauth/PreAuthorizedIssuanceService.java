@@ -42,7 +42,7 @@ public class PreAuthorizedIssuanceService {
             throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
-        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
+        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
         ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);

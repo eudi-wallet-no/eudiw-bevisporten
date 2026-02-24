@@ -41,7 +41,7 @@ public class CredentialIssuerService {
     public CredentialResponse issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope());
-        ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
+        ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
         List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs(), credentialRequest.getProof());
         List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(accessToken, credentialConfigurationProperties.getIdentifier()));
         List<Credential> credentials = credentialCreateService.createCredentials(bindingKeys, credentialConfigurationProperties, claims);
@@ -70,8 +70,5 @@ public class CredentialIssuerService {
         }
         return null;
     }
-
-
-
 
 }

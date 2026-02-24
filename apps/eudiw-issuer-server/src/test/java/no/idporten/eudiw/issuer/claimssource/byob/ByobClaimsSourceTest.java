@@ -37,47 +37,6 @@ class ByobClaimsSourceTest {
     @MockitoBean
     ByobServiceIntegration integration;
 
-    @DisplayName("then the claims source is loaded and initialized")
-    @Test
-    void testClaimsSourceInitialized() {
-        assertAll(
-                () -> assertNotNull(claimsSource),
-                () -> assertNotNull(claimsSource.getProperties())
-        );
-    }
-
-    @DisplayName("then supports returns true for credential_configuration_id with existing credential configuration")
-    @Test
-    void whenCallSupportsWithExisitingCredentialConfigurationIdThenReturnTrue() {
-        String credentialConfigurationId = "net.eidas2sandkasse:cred-config-id";
-        String claimName = "name-claim";
-        String vct = "net.eidas2sandkasse:credential-type";
-        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
-        when(integration.retrieve(eq(vct))).thenReturn(cc);
-        boolean supports = claimsSource.supports(vct);
-        assertTrue(supports);
-
-    }
-
-    @DisplayName("then supports returns false when credential_configuration_id does not exist")
-    @Test
-    void whenCallSupportsWithNonExisitingCredentialConfigurationIdThenReturnFalse() {
-        String credentialConfigurationId = "net.eidas2sandkasse:cred-config-id";
-        String claimName = "name-claim";
-        String vct = "net.eidas2sandkasse:credential-type";
-        DynamicCredentialConfiguration cc = createDynamicCredentialConfiguration(credentialConfigurationId, claimName, vct);
-        when(integration.retrieve(eq(vct))).thenReturn(cc);
-        boolean supports = claimsSource.supports("non-existing-credential-type");
-        assertFalse(supports);
-    }
-
-    @DisplayName("then supports returns false when no credential configurations are available")
-    @Test
-    void whenCallSupportsWithNoCredentialConfigurationsThenReturnFalse() {
-        boolean supports = claimsSource.supports("non-existing-credential-type");
-        assertFalse(supports);
-    }
-
     @DisplayName("then getDocumentMetadata returns valid DocumentMetadata for valid credential_configuration_id")
     @Test
     void getDocumentMetadataForValidCredentialConfigurationIdReturnsValidDocumentMetadata() {
