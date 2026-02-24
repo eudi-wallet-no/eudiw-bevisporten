@@ -1,12 +1,11 @@
 package no.idporten.eudiw.issuer.claimssource.byob;
 
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,16 +21,6 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     public ByobClaimsSource(DynamicCredentialConfigurationService dynamicCredentialConfigurationService) {
         this.dynamicCredentialConfigurationService = dynamicCredentialConfigurationService;
-    }
-
-    @Override
-    public boolean supports(String credentialType) {
-        try {
-            return dynamicCredentialConfigurationService.getDocumentMetadataByCredentialType(credentialType) != null;
-        } catch (IssuerServerException e) {
-            log.error("Error checking support for credentialType={}. Ignore and continue", credentialType, e);
-            return false;
-        }
     }
 
     @Override

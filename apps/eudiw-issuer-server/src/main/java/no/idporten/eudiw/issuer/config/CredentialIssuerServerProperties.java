@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -45,8 +44,6 @@ public class CredentialIssuerServerProperties {
 
     private CredentialConfigurationProperties dynamicCredentialConfigurationTemplate;
 
-    @NotEmpty
-    private List<@Valid ClaimsSourceProperties> claimsSources;
     @NotNull
     private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
 

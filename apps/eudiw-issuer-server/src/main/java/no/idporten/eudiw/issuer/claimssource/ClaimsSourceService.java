@@ -3,34 +3,34 @@ package no.idporten.eudiw.issuer.claimssource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.credentials.types.ClaimMetadata;
 import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class ClaimsSourceService implements InitializingBean {
 
-    private final CredentialIssuerServerProperties credentialIssuerServerProperties;
-    private final GenericApplicationContext applicationContext;
     private final List<ClaimsSource> claimsSources;
 
-    public ClaimsSource findClaimsSource(String credentialType) {
-        log.info("Finding claims source for credential type {}", credentialType);
+    public ClaimsSource findClaimsSource(URI uri) {
+        if (! "class".equals(uri.getScheme())) {
+            throw new IssuerServerException("server_error", "Unsupported claims source URI scheme for uri [%s]".formatted(uri), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return claimsSources.stream()
-                .filter(claimsSource -> claimsSource.supports(credentialType))
+                .filter(claimsSource -> claimsSource.getClass().getName().equals(uri.getAuthority()))
                 .findFirst()
-                .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for credential type [%s]".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR));
+                .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for uri [%s]".formatted(uri), HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     public final ClaimsSourceMetadata getMetadata(ClaimsSource claimsSource, CredentialConfigurationProperties credentialConfigurationProperties) {
@@ -61,13 +61,11 @@ public class ClaimsSourceService implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
-        for (ClaimsSourceProperties claimsSourceProperties : credentialIssuerServerProperties.getClaimsSources()) {
-            ClaimsSource claimsSource = (ClaimsSource) applicationContext.getBean(Class.forName(claimsSourceProperties.getClassName()));
-            claimsSource.init(claimsSourceProperties);
-            log.info("Claims source initialized for credential types {}: {}", claimsSource.getProperties().getCredentialTypes(), claimsSource.getClass().getName());
-        }
+    public void afterPropertiesSet() {
         log.info("Claims source service managing {} claims sources", claimsSources.size());
+        claimsSources.forEach(claimsSource -> {
+            log.info("Claims source [{}]", claimsSource.getClass().getName());
+        });
     }
 
 }

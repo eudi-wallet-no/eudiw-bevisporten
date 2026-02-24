@@ -7,7 +7,6 @@ import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
 import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceProperties;
 import no.idporten.eudiw.issuer.authoritativesources.pid.FregIntegration;
 import no.idporten.eudiw.issuer.authoritativesources.pid.PersonConverterService;
 import no.idporten.eudiw.issuer.credentials.types.*;
@@ -38,10 +37,6 @@ class AgeVerificationClaimsSourceTest {
 
     public static final int NUMBER_OF_CLAIMS = 2;
 
-    @MockitoBean
-    private ClaimsSourceProperties properties;
-
-
     private AgeVerificationClaimsSource aVClaimsSource;
 
     @Autowired
@@ -63,7 +58,6 @@ class AgeVerificationClaimsSourceTest {
     void manuallyConfigureBeans() {
         FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new JsonMapper(), fregIntegration);
         aVClaimsSource = new AgeVerificationClaimsSource(fregService, personConverterService);
-        aVClaimsSource.init(properties);
     }
 
     @Test

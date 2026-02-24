@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,13 +34,6 @@ public class PreAuthorizedClaimsSourceTest {
             return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata(ClaimMetadata.EMPTY_NAMESPACE, "c", ClaimDataType.STRING, Map.of("no", "C"), true, ".*")));
         }
     }
-
-    ClaimsSourceProperties claimsSourceProperties() {
-        ClaimsSourceProperties claimsSourceProperties = new ClaimsSourceProperties();
-        claimsSourceProperties.setCredentialTypes(Set.of("junit.1"));
-        return claimsSourceProperties;
-    }
-
 
     JWT maskinportenToken() {
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().build();
@@ -68,7 +60,6 @@ public class PreAuthorizedClaimsSourceTest {
         @Test
         void pushNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PullClaimsSource();
-            claimsSource.init(claimsSourceProperties());
             IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), "ccid", maskinportenToken(), Duration.ofMinutes(10)),
                     new CredentialData(Map.of("some", "data"), "ccid"))
@@ -81,7 +72,6 @@ public class PreAuthorizedClaimsSourceTest {
         public void testPullClaimsSourceLifecycle() {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PullClaimsSource());
-            claimsSource.init(claimsSourceProperties());
             claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(9)),
                     null);
@@ -115,7 +105,6 @@ public class PreAuthorizedClaimsSourceTest {
         @Test
         void pullNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PushClaimsSource();
-            claimsSource.init(claimsSourceProperties());
             IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), "ccid", maskinportenToken(), Duration.ofMinutes(10)), null));
             assertTrue(e.getMessage().contains("does not support pull"));
@@ -126,7 +115,6 @@ public class PreAuthorizedClaimsSourceTest {
         public void testPushClaimsSourceLifecycle() {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PushClaimsSource());
-            claimsSource.init(claimsSourceProperties());
             claimsSource.preAuthorize(
                     new PreAuthorizedIssuanceContext(issuanceTransactionId, "ccid", maskinportenToken(), Duration.ofMinutes(5)),
                     new CredentialData(Map.of("c", "v"), "ccid"));

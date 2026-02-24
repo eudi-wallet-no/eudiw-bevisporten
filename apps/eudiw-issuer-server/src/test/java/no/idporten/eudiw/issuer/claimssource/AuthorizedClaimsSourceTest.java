@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -22,14 +21,6 @@ import static org.mockito.Mockito.verify;
 
 @DisplayName("When using authorized claims sources")
 public class AuthorizedClaimsSourceTest {
-
-
-    ClaimsSourceProperties claimsSourceProperties() {
-        ClaimsSourceProperties claimsSourceProperties = new ClaimsSourceProperties();
-        claimsSourceProperties.setCredentialTypes(Set.of("junit.1"));
-        return claimsSourceProperties;
-    }
-
 
     static class AuthorizedJUnitClaimsSource extends AbstractAuthorizedClaimsSource {
         @Override
@@ -48,7 +39,6 @@ public class AuthorizedClaimsSourceTest {
     @Test
     public void testIssueClaimsSource() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
-        claimsSource.init(claimsSourceProperties());
         String fnr = "12345678910";
         List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(fnr), null));
         assertAll(
@@ -63,7 +53,6 @@ public class AuthorizedClaimsSourceTest {
     @Test
     public void testIssueClaimsSourceWithInvalidToken() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
-        claimsSource.init(claimsSourceProperties());
         assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(null), null)));
         assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(" "), null)));
     }

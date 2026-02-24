@@ -43,16 +43,6 @@ public class AdvokatregisteretClaimsSourceTest {
     @MockitoBean
     AdvokatregisteretIntegration advokatregisteretIntegration;
 
-    @DisplayName("then the claims source is loaded and initialized")
-    @Test
-    void testClaimsSourceInitialized() {
-        assertAll(
-                () -> assertNotNull(claimsSource),
-                () -> assertNotNull(claimsSource.getProperties()),
-                () -> assertTrue(claimsSource.supports("no.advokattilsynet.advokatregisteret.1"))
-        );
-    }
-
     @DisplayName("then claims source metadata is provided to the issuer")
     @Test
     void testMetadata() {

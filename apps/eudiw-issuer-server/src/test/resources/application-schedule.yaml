@@ -18,6 +18,7 @@ credential-issuer-server:
       scope: eudiw:junit
       format: mso_mdoc
       credential-type: junitdoc
+      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
       grant-type: authorization_code
       authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
       key-store-name: eaa-provider

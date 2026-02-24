@@ -5,15 +5,15 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
+import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.StringValue;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
@@ -30,6 +30,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -81,17 +82,18 @@ public class CredentialIssuerServiceTest {
                     .build();
             PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
             CredentialRequest credentialRequest = CredentialRequest.builder().credentialConfigurationId("cid").build();
+            ClaimsSource claimsSource = mock(ClaimsSource.class);
             CredentialConfigurationProperties credentialConfigurationProperties = CredentialConfigurationProperties.builder()
                     .authorizationServer("https://junit.idporten.no")
                     .scope("foo:bar")
                     .format(CredentialFormat.SD_JWT_VC)
                     .credentialType("foodoc")
+                    .claimsSourceUri(URI.create("class://" + claimsSource.getClass().getName()))
                     .build();
-            ClaimsSource claimsSource = mock(ClaimsSource.class);
             List<Claim> claims = List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build());
             when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(claims);
             when(credentialConfigurationService.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfigurationProperties);
-            when(claimsSourceService.findClaimsSource(eq("foodoc"))).thenReturn(claimsSource);
+            when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
             when(credentialCreateService.createCredentials(isNull(), eq(credentialConfigurationProperties), anyList()))
                     .thenReturn(List.of(Credential.builder().credential("{credential-with-n1-p1-v1}").build()));
             IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(transactionId);

@@ -109,7 +109,7 @@ public class CredentialIssuerServerGeneratorService {
             ClaimsSource claimsSource;
             ClaimsSourceMetadata claimsSourceMetadata;
             try {
-                claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialType());
+                claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
                 claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
             } catch (Exception e) {
                 log.error("Error generating metadata for credential configuration id={} and credential type={}. Skipping this credential configuration in metadata response.", credentialConfigurationProperties.getIdentifier(), credentialConfigurationProperties.getCredentialType(), e);
