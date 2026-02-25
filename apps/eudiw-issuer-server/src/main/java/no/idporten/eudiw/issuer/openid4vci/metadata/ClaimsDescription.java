@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.openid4vci.metadata;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -26,14 +25,6 @@ public class ClaimsDescription {
 
     @Singular("display")
     @JsonProperty("display")
-    private List<Display> displays;
-
-    @JsonIgnore
-    public Display findDisplay(String locale) {
-        return displays.stream()
-                .filter(display -> display.getLocale().equals(locale))
-                .findFirst()
-                .orElse(displays.getFirst());
-    }
+    private List<Display> display;
 
 }

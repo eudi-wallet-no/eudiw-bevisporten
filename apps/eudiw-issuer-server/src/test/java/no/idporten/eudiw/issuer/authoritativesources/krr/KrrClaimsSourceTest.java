@@ -4,10 +4,9 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.authoritativesources.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
-import no.idporten.eudiw.issuer.authoritativesources.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,30 +33,6 @@ public class KrrClaimsSourceTest {
 
     @MockitoBean
     KrrIntegration krrIntegration;
-
-    @DisplayName("then claims source metadata is provided to the issuer")
-    @Test
-    void testMetadata() {
-        DocumentMetadata claimsSourceMetadata = claimsSource.getDocumentMetadata(null);
-        assertAll(
-                () -> assertEquals(3, claimsSourceMetadata.claims().size()),
-                () -> assertEquals(
-                        "Personidentifikator",
-                        claimsSourceMetadata
-                                .findClaimMetadata("personidentifikator")
-                                .getDisplayName("no")),
-                () -> assertEquals(
-                        "Epost",
-                        claimsSourceMetadata
-                                .findClaimMetadata("epostadresse")
-                                .getDisplayName("no")),
-                () -> assertEquals(
-                        "Telefonnummer",
-                        claimsSourceMetadata
-                                .findClaimMetadata("mobiltelefonnummer")
-                                .getDisplayName("no"))
-        );
-    }
 
     @DisplayName("then push is not supported")
     @Test

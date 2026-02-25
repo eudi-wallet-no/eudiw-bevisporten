@@ -9,7 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import org.springframework.validation.annotation.Validated;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
 import java.time.Duration;
@@ -89,9 +91,17 @@ public class CredentialConfigurationProperties {
     @NotNull
     private String keyStoreName;
 
-    /**
-     * Hook for dynamic credential configurations?
-     */
-    private boolean dynamic = false;
+    // TODO binder sammen fra yaml (bytt til json) og BYOB
+    private String credentialMetadata;
+    private ExtendedCredentialMetadata extendedCredentialMetadata;
 
+    public ExtendedCredentialMetadata getCredentialMetadata() {
+        if (extendedCredentialMetadata != null) {
+            return extendedCredentialMetadata;
+        }
+        if (credentialMetadata == null) {
+            return null;
+        }
+        return new JsonMapper().readValue(credentialMetadata, ExtendedCredentialMetadata.class);
+    }
 }

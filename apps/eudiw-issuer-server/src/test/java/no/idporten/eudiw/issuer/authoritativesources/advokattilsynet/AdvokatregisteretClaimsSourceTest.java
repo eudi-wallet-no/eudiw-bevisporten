@@ -5,10 +5,9 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
-import no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.model.PersonPrivate;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.DisplayName;
@@ -42,37 +41,6 @@ public class AdvokatregisteretClaimsSourceTest {
 
     @MockitoBean
     AdvokatregisteretIntegration advokatregisteretIntegration;
-
-    @DisplayName("then claims source metadata is provided to the issuer")
-    @Test
-    void testMetadata() {
-        DocumentMetadata claimsSourceMetadata = claimsSource.getDocumentMetadata(null);
-        assertAll(
-                () -> assertEquals(6, claimsSourceMetadata.claims().size()),
-                () -> assertEquals(
-                        "Personidentifikator",
-                        claimsSourceMetadata
-                                .findClaimMetadata("personidentifikator")
-                                .getDisplayName("no")),
-                () -> assertEquals(
-                        "Tittel",
-                        claimsSourceMetadata
-                                .findClaimMetadata("tittel")
-                                .getDisplayName("no")),
-                () -> assertEquals(
-                        "Etternavn",
-                        claimsSourceMetadata
-                                .findClaimMetadata("etternavn")
-                                .getDisplayName("no")),
-                () -> assertEquals(
-                        "Fornavn",
-                        claimsSourceMetadata
-                                .findClaimMetadata("fornavn")
-                                .getDisplayName("no")),
-                () -> assertFalse(claimsSourceMetadata.findClaimMetadata("mellomnavn").mandatory()),
-                () -> assertTrue(claimsSourceMetadata.findClaimMetadata("regnr").mandatory())
-        );
-    }
 
     @DisplayName("then push is not supported")
     @Test

@@ -48,7 +48,6 @@ public class CredentialIssuerServerProperties {
     private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
 
     public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
-        List<CredentialIssuerServerProperties> allCredentialConfigurations = new ArrayList<>();
         return credentialConfigurations.stream()
                 .filter(credentialConfigurationProperties -> Objects.equals(credentialIdentifier, credentialConfigurationProperties.getIdentifier()))
                 .findFirst()

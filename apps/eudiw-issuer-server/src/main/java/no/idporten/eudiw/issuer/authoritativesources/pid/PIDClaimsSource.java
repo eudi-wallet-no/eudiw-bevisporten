@@ -4,13 +4,9 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
-import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
-import no.idporten.eudiw.issuer.credentials.types.Claim;
-import no.idporten.eudiw.issuer.credentials.types.ClaimMetadata;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource.FREG;
-import static no.idporten.eudiw.issuer.credentials.types.ClaimMetadata.EMPTY_NAMESPACE;
+import static no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription.EMPTY_NAMESPACE;
 
 
 /**
@@ -32,80 +28,10 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
     private final PersonConverterService personConverterService;
 
     private final ClaimValueConverter claimValueConverter = new ClaimValueConverter();
-    private final DocumentMetadata documentMetadata;
-
 
     public PIDClaimsSource(FregService fregService, PersonConverterService personConverterService) {
         this.fregService = fregService;
         this.personConverterService = personConverterService;
-        this.documentMetadata = new DocumentMetadata(
-                List.of(new DocumentMetadata.Display("no", getCredentialName())),
-                List.of(
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("personal_administrative_number"),
-                                ClaimDataType.STRING,
-                                Map.of("no", "Fødselsnummer"),
-                                true,
-                                "^\\d{11}$"),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("given_name"),
-                                ClaimDataType.STRING,
-                                Map.of("no", "Førenamn"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("family_name"),
-                                ClaimDataType.STRING,
-                                Map.of("no", "Etternamn"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("birth_date"),
-                                ClaimDataType.ISO_DATE,
-                                Map.of("no", "Fødselsdato"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("birth_place"),
-                                ClaimDataType.MAP,
-                                Map.of("no", "Fødeland"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("nationality"),
-                                ClaimDataType.LIST,
-                                Map.of("no", "Nasjonalitet"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("expiry_date"),
-                                ClaimDataType.ISO_DATE,
-                                Map.of("no", "Gyldig til dato"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("issuing_authority"),
-                                ClaimDataType.STRING,
-                                Map.of("no", "Utsteda av"),
-                                true,
-                                null),
-                        new ClaimMetadata(getNamespace(),
-                                calculateAttributeIdentifier("issuing_country"),
-                                ClaimDataType.STRING,
-                                Map.of("no", "Utsteda i land"),
-                                true,
-                                null)
-                )
-        );
-    }
-
-    protected String getCredentialName() {
-        return "Norsk ID-bevis";
-    }
-
-    @Override
-    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-        return documentMetadata;
     }
 
     @Override

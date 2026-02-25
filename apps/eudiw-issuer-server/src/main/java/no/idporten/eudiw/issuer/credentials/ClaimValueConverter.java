@@ -154,7 +154,7 @@ public class ClaimValueConverter {
     }
 
     // If type=null, use String as default.
-    public Claim convertClaim(ClaimMetadata claim, Map<String, Object> storedClaims) {
+    public Claim convertClaim(ExtendedClaimsDescription claim, Map<String, Object> storedClaims) {
         if (claim.type() == null) {
             return getStringClaim(claim.path(), (String) storedClaims.get(claim.name()));
         }

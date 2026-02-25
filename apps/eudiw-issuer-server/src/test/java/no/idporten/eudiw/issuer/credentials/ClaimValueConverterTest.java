@@ -13,7 +13,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static no.idporten.eudiw.issuer.credentials.types.ClaimMetadata.EMPTY_NAMESPACE;
+import static no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription.EMPTY_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("ClaimValueConverter tests")
@@ -161,7 +161,7 @@ class ClaimValueConverterTest {
     @DisplayName("when call convertClaim with string type then returns StringValue Claim")
     @Test
     void convertClaim_string_type() {
-        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "given_name", ClaimDataType.STRING, null, Map.of("en", "Given Name"), true, null);
+        ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "given_name", ClaimDataType.STRING, null, Map.of("en", "Given Name"), true, null);
         Map<String, Object> storedClaims = Map.of("given_name", "Alice");
 
         Claim claim = converter.convertClaim(metadata, storedClaims);
@@ -174,7 +174,7 @@ class ClaimValueConverterTest {
     @DisplayName("when call convertClaim with number type then returns NumberValue Claim")
     @Test
     void convertClaim_number_type() {
-        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "age", ClaimDataType.NUMBER, null, Map.of("en", "Age"), true, null);
+        ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "age", ClaimDataType.NUMBER, null, Map.of("en", "Age"), true, null);
         Map<String, Object> storedClaims = Map.of("age", 30);
 
         Claim claim = converter.convertClaim(metadata, storedClaims);
@@ -187,7 +187,7 @@ class ClaimValueConverterTest {
     @DisplayName("when call convertClaim with boolean type then returns BooleanValue Claim")
     @Test
     void convertClaim_boolean_type() {
-        ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "active", ClaimDataType.BOOLEAN, Map.of("en", "Active"), true, null);
+        ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "active", ClaimDataType.BOOLEAN, Map.of("en", "Active"), true, null);
         Map<String, Object> storedClaims = Map.of("active", true);
 
         Claim claim = converter.convertClaim(metadata, storedClaims);
@@ -204,7 +204,7 @@ class ClaimValueConverterTest {
         @DisplayName("with fulldate type and LocalDate then returns FullDateValue Claim")
         @Test
         void convertClaim_fulldate_type_localdate() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "birth_date", ClaimDataType.ISO_DATE, Map.of("en", "Birth Date"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "birth_date", ClaimDataType.ISO_DATE, Map.of("en", "Birth Date"), true, null);
             LocalDate date = LocalDate.of(1990, 5, 15);
             Map<String, Object> storedClaims = Map.of("birth_date", date);
 
@@ -218,7 +218,7 @@ class ClaimValueConverterTest {
         @DisplayName("with fulldate type and string then returns FullDateValue Claim")
         @Test
         void convertClaim_fulldate_type_string() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "birth_date", ClaimDataType.ISO_DATE, Map.of("en", "Birth Date"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "birth_date", ClaimDataType.ISO_DATE, Map.of("en", "Birth Date"), true, null);
             Map<String, Object> storedClaims = Map.of("birth_date", "1990-05-15");
 
             Claim claim = converter.convertClaim(metadata, storedClaims);
@@ -231,7 +231,7 @@ class ClaimValueConverterTest {
         @DisplayName("with datetime type then returns DateTimeValue Claim")
         @Test
         void convertClaim_datetime_type() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "issued_at", ClaimDataType.ISO_DATE_TIME, Map.of("en", "Issued At"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "issued_at", ClaimDataType.ISO_DATE_TIME, Map.of("en", "Issued At"), true, null);
             ZonedDateTime timestamp = ZonedDateTime.now(ZoneId.of("UTC")).withNano(0);
             Map<String, Object> storedClaims = Map.of("issued_at", timestamp);
 
@@ -245,7 +245,7 @@ class ClaimValueConverterTest {
         @DisplayName("with datetime type as string then returns DateTimeValue Claim")
         @Test
         void convertClaim_datetime_type_string() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "issued_at", ClaimDataType.ISO_DATE_TIME, Map.of("en", "Issued At"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "issued_at", ClaimDataType.ISO_DATE_TIME, Map.of("en", "Issued At"), true, null);
             String timestamp = "2024-06-15T12:30:00Z";
             Map<String, Object> storedClaims = Map.of("issued_at", timestamp);
 
@@ -258,7 +258,7 @@ class ClaimValueConverterTest {
         @DisplayName("with binary type then returns BinaryValue Claim")
         @Test
         void convertClaim_binary_type() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "portrait", ClaimDataType.BINARY, null, Map.of("en", "Portrait"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "portrait", ClaimDataType.BINARY, null, Map.of("en", "Portrait"), true, null);
             String base64 = Base64.getEncoder().encodeToString("test".getBytes());
             Map<String, Object> storedClaims = Map.of("portrait", base64);
 
@@ -272,7 +272,7 @@ class ClaimValueConverterTest {
         @DisplayName("with binary type with mimetype then returns BinaryValue Claim")
         @Test
         void convertClaim_binary_type_with_mimeType() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "portrait", ClaimDataType.BINARY, "image/png", Map.of("en", "Portrait"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "portrait", ClaimDataType.BINARY, "image/png", Map.of("en", "Portrait"), true, null);
             String base64 = Base64.getEncoder().encodeToString("test".getBytes());
             Map<String, Object> storedClaims = Map.of("portrait", base64);
 
@@ -288,7 +288,7 @@ class ClaimValueConverterTest {
         @DisplayName("with unknown type then defaults to StringValue Claim")
         @Test
         void convertClaim_unknown_type_defaults_to_string() {
-            ClaimMetadata metadata = new ClaimMetadata(EMPTY_NAMESPACE, "custom", null, Map.of("en", "Custom"), true, null);
+            ExtendedClaimsDescription metadata = new ExtendedClaimsDescription(EMPTY_NAMESPACE, "custom", null, Map.of("en", "Custom"), true, null);
             Map<String, Object> storedClaims = Map.of("custom", "custom_value");
 
             Claim claim = converter.convertClaim(metadata, storedClaims);

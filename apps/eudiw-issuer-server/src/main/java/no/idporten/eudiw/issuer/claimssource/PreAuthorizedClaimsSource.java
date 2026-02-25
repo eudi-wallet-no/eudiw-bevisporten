@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -24,11 +24,11 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * @param credentialData pushed credential data
      */
     default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
-        final DocumentMetadata documentMetadata = getDocumentMetadata(new CredentialMetadataContext(issuanceContext.credentialConfigurationId(), null, null));
+        final ExtendedCredentialMetadata extendedCredentialMetadata = issuanceContext.credentialMetadata();
         if (credentialData != null && !CollectionUtils.isEmpty(credentialData.claims())) {
-            credentialData = validate(documentMetadata, push(issuanceContext, credentialData));
+            credentialData = validate(extendedCredentialMetadata, push(issuanceContext, credentialData));
         } else {
-            credentialData = validate(documentMetadata, pull(issuanceContext));
+            credentialData = validate(extendedCredentialMetadata, pull(issuanceContext));
         }
         store(issuanceContext.issuanceTransactionId(), credentialData.claims(), issuanceContext.authorizationLifetime());
     }
@@ -50,7 +50,7 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
     /**
      * Validate that claims data is valid according to credential metadata.
      */
-    CredentialData validate(DocumentMetadata credentialMetadata, CredentialData credentialData);
+    CredentialData validate(ExtendedCredentialMetadata credentialMetadata, CredentialData credentialData);
 
     /**
      * Store claims data in cache for a given lifetime.

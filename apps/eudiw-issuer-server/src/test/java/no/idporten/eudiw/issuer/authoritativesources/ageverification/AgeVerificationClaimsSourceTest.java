@@ -61,33 +61,6 @@ class AgeVerificationClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("verify that call metadata returns correct number of claims")
-    void getMetadata() {
-        DocumentMetadata metadata = aVClaimsSource.getDocumentMetadata(null);
-        assertNotNull(metadata);
-        assertNotNull(metadata.claims());
-        assertEquals(NUMBER_OF_CLAIMS, metadata.claims().size());
-        assertNotNull(metadata.displays().stream()
-                .filter(display -> display.name().contains("Aldersbevis"))
-                .findFirst()
-                .orElse(null));
-
-
-        // Stikkprøve å finne eit kjent claim
-        String expectedDisplayName = "Over 18 år";
-        boolean foundExpectedName = false;
-        for (ClaimMetadata desc : metadata.claims()) {
-            String noDisplayName = desc.getDisplayName("no");
-            assertNotNull(noDisplayName);
-            if(expectedDisplayName.equals(noDisplayName)) {
-                foundExpectedName = true;
-                break;
-            }
-        }
-        assertTrue(foundExpectedName, "Did not find claim with name=%s".formatted(expectedDisplayName));
-    }
-
-    @Test
     @DisplayName("verify that data can be retrieved from authoritative source and contains BooleanValue claims age_over_18 and age_over_15")
     void pull() {
         String fnr = "12345678901";

@@ -1,16 +1,17 @@
 package no.idporten.eudiw.issuer.claimssource.byob.domain;
 
 import lombok.Builder;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
-import no.idporten.eudiw.issuer.credentials.types.ClaimMetadata;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Builder
-public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
+public record DynamicCredentialMetadata(List<Display> display,
                                         List<DynamicClaimMetadata> claims) {
 
 
@@ -27,29 +28,30 @@ public record DynamicCredentialMetadata(List<DocumentMetadata.Display> display,
     }
 
 
-    public DocumentMetadata convertToDocumentMetadata() {
+    public ExtendedCredentialMetadata toExtendedCredentialMetadata(DynamicCredentialConfiguration dynamicCredentialConfiguration) {
         if (claims == null) {
-            return new DocumentMetadata(display, null);
+            return new ExtendedCredentialMetadata(display, null);
         }
 
-        List<ClaimMetadata> claimsConverted = claims.stream()
-                .map(this::convertToClaimMetadata)
+        List<ExtendedClaimsDescription> claimsConverted = claims.stream()
+                .map(claim -> convertToExtendedClaimsDescription(claim, dynamicCredentialConfiguration))
                 .toList();
 
-        return new DocumentMetadata(display, claimsConverted);
+        return new ExtendedCredentialMetadata(display, claimsConverted);
     }
 
     @NotNull
-    private ClaimMetadata convertToClaimMetadata(DynamicClaimMetadata claim) {
-        ClaimDataType type = convertType(claim.type());
-        return new ClaimMetadata(
-                ClaimMetadata.EMPTY_NAMESPACE, // namespace only for mdoc, byob only supports SD-JWT-VC
+    private ExtendedClaimsDescription convertToExtendedClaimsDescription(DynamicClaimMetadata claim, DynamicCredentialConfiguration dynamicCredentialConfiguration) {
+        ClaimDataType type =convertType(claim.type());
+        return new ExtendedClaimsDescription(
+                CredentialFormat.fromString(dynamicCredentialConfiguration.format()) == CredentialFormat.SD_JWT_VC
+                        ? ExtendedClaimsDescription.EMPTY_NAMESPACE
+                        : dynamicCredentialConfiguration.credentialType(),
                 claim.path(),       // path as single string
                 type,
                 claim.mimeType(),
-                claim.display().stream().collect(Collectors.toMap(DocumentMetadata.Display::locale, DocumentMetadata.Display::name)),
+                claim.display(),
                 claim.mandatory(),
-                claim.validationRegex() != null ? claim.validationRegex() : type.getDefaultRegex()
-        );
+                claim.validationRegex() != null ? claim.validationRegex() : type.getDefaultRegex());
     }
 }

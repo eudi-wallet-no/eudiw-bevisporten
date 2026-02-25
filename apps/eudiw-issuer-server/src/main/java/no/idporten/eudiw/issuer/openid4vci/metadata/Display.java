@@ -33,4 +33,12 @@ public class Display {
     @JsonProperty("text_color")
     private String textColor;
 
+    public Display(String locale, String name) {
+        this(name, null, locale, "#afcee9", "#002c54");
+    }
+
+    public Display(String locale, String name, String description) {
+        this(name, description, locale, "#afcee9", "#002c54");
+    }
+
 }

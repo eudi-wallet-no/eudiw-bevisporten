@@ -5,10 +5,11 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfig
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerServerGeneratorService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
+import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -137,8 +138,8 @@ class ByobMetadataSchedulerTest {
                 .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
                 .credentialType(vct)
                 .credentialMetadata(DynamicCredentialMetadata.builder()
-                        .display(List.of(new DocumentMetadata.Display("no", "A test credential from BYOB", "black", null)))
-                        .claims(List.of(new DynamicClaimMetadata("claim1", List.of(new DocumentMetadata.Display("no", "Claim 1", null, null)), true, null)))
+                        .display(List.of(new Display("A test credential from BYOB", "no", "Desc", "black", "white")))
+                        .claims(List.of(new DynamicClaimMetadata("claim1", List.of(new Display("no", "Claim 1")), true, null)))
                         .build())
                 .build();
     }

@@ -63,33 +63,6 @@ class PIDClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("validate that metadata can be retrieved from PIDClaimsSource")
-    void verifyMetadata() {
-        DocumentMetadata metadata = pidClaimsSource.getDocumentMetadata(null);
-        assertNotNull(metadata);
-        assertNotNull(metadata.claims());
-        assertEquals(NUMBER_OF_CLAIMS, metadata.claims().size());
-        assertNotNull(metadata.displays().stream()
-                .filter(display -> display.name().contains("Norsk ID-bevis"))
-                .findFirst()
-                .orElse(null));
-
-
-        // Stikkprøve å finne eit kjent claim
-        String expectedName = "Fødselsnummer";
-        boolean foundExpectedName = false;
-        for (ClaimMetadata desc : metadata.claims()) {
-            String noDisplayName = desc.getDisplayName("no");
-            assertNotNull(noDisplayName);
-            if (expectedName.equals(noDisplayName)) {
-                foundExpectedName = true;
-                break;
-            }
-        }
-        assertTrue(foundExpectedName, "Did not find claim with name=%s".formatted(expectedName));
-    }
-
-    @Test
     @DisplayName("then data can be pulled from authoritative source with a valid accesstoken with fnr as subject should return a valid Person from FREG mapped to Claims for mdoc format")
     void pullMdoc() {
 
