@@ -27,13 +27,7 @@ public class AuthorizedClaimsSourceTest {
         public List<Claim> pull(String pid) {
             return Collections.singletonList(new Claim(Collections.singletonList("c"), new StringValue("v")));
         }
-
-        @Override
-        public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-            return new DocumentMetadata(List.of(new DocumentMetadata.Display("no", "Junit")), List.of(new ClaimMetadata(ClaimMetadata.EMPTY_NAMESPACE, "b", ClaimDataType.STRING, Map.of("no", "B"), true, ".*")));
-        }
     }
-
 
     @DisplayName("then authorized claims are issued")
     @Test

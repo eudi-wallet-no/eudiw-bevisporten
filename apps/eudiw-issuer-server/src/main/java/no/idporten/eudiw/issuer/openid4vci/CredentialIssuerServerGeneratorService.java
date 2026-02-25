@@ -1,16 +1,17 @@
 package no.idporten.eudiw.issuer.openid4vci;
 
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.byob.DynamicCredentialConfigurationService;
-import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
-import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.openid4vci.metadata.*;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfiguration;
+import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialConfigurations;
+import no.idporten.eudiw.issuer.openid4vci.metadata.JwtProofType;
+import no.idporten.eudiw.issuer.openid4vci.metadata.ProofTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +52,7 @@ public class CredentialIssuerServerGeneratorService {
                     .doctype(CredentialFormat.MSO_MDOC.equals(format) ? dcc.credentialType() : null)
                     .format(dcc.format())
                     .scope(dcc.scope())
-                    .credentialMetadata(CredentialMetadata.builder()
-                            .display(dcc.getCredentialMetadata().displays().stream().map(this::convertToDisplay).toList())
-                            .claims(convertClaimsToClaimsDescription(dcc.credentialMetadata().claims(), format, dcc.credentialType()))
-                            .build())
+                    .credentialMetadata(dcc.toExtendedCredentialMetadata().toCredentialMetadata())
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())
                     .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build())
@@ -64,42 +62,6 @@ public class CredentialIssuerServerGeneratorService {
         return credentialConfigurations;
     }
 
-    private List<ClaimsDescription> convertClaimsToClaimsDescription(List<DynamicClaimMetadata> claimMetadata, CredentialFormat credentialFormat, String credentialType) {
-        List<ClaimsDescription> claimsDescriptions = new ArrayList<>();
-        for (DynamicClaimMetadata claimsMetadata : claimMetadata) {
-            claimsDescriptions.add(convertToClaimsDescription(claimsMetadata, credentialFormat, credentialType));
-        }
-        return claimsDescriptions;
-    }
-
-    private ClaimsDescription convertToClaimsDescription(DynamicClaimMetadata claimsMetadata, CredentialFormat credentialFormat, String credentialType) {
-        List<String> path = new ArrayList<>();
-        if (CredentialFormat.MSO_MDOC.equals(credentialFormat)) {
-            path.add(credentialType);
-        }
-        path.add(claimsMetadata.path());
-        return ClaimsDescription.builder()
-                .path(path)
-                .mandatory(claimsMetadata.mandatory())
-                .displays(convertDynamicDisplaysToDisplays(claimsMetadata.display()))
-                .build();
-    }
-
-    private List<Display> convertDynamicDisplaysToDisplays(List<DocumentMetadata.Display> dynamicDisplays) {
-        List<Display> displays = new ArrayList<>();
-        for (DocumentMetadata.Display display : dynamicDisplays) {
-            displays.add(convertToDisplay(display));
-        }
-        return displays;
-    }
-
-    private Display convertToDisplay(DocumentMetadata.Display display) {
-        return Display.builder()
-                .locale(display.locale())
-                .name(display.name())
-                .build();
-    }
-
     public CredentialConfigurations findCredentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties) {
         List<CredentialConfigurationProperties> allCredentialConfigurationProperties = new ArrayList<>();
         allCredentialConfigurationProperties.addAll(credentialIssuerProperties.getCredentialConfigurations());
@@ -107,23 +69,20 @@ public class CredentialIssuerServerGeneratorService {
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
         for (CredentialConfigurationProperties credentialConfigurationProperties : allCredentialConfigurationProperties) {
             ClaimsSource claimsSource;
-            ClaimsSourceMetadata claimsSourceMetadata;
+            ExtendedCredentialMetadata claimsSourceMetadata;
             try {
                 claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
-                claimsSourceMetadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
+                claimsSourceMetadata = credentialConfigurationProperties.getCredentialMetadata();
             } catch (Exception e) {
-                log.error("Error generating metadata for credential configuration id={} and credential type={}. Skipping this credential configuration in metadata response.", credentialConfigurationProperties.getIdentifier(), credentialConfigurationProperties.getCredentialType(), e);
+                 log.error("Error generating metadata for credential configuration id={} and credential type={}. Skipping this credential configuration in metadata response.", credentialConfigurationProperties.getIdentifier(), credentialConfigurationProperties.getCredentialType(), e);
                 continue;
             }
             CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
                     // credential-specific config
                     .format(credentialConfigurationProperties.getFormat().formatIdentifier())
                     .scope(credentialConfigurationProperties.getScope())
-                    // config from claims source
-                    .credentialMetadata(CredentialMetadata.builder()
-                            .display(claimsSourceMetadata.getDisplays())
-                            .claims(claimsSourceMetadata.getClaims())
-                            .build())
+                    // metadata from extended internal model
+                    .credentialMetadata(claimsSourceMetadata.toCredentialMetadata())
                     // config from issuer server
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())

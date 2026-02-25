@@ -3,19 +3,15 @@ package no.idporten.eudiw.issuer.authoritativesources.ageverification;
 import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource;
-import no.idporten.eudiw.issuer.claimssource.*;
+import no.idporten.eudiw.issuer.authoritativesources.pid.PersonConverterService;
+import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
-import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
-import no.idporten.eudiw.issuer.credentials.types.ClaimMetadata;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import no.idporten.eudiw.issuer.authoritativesources.pid.PersonConverterService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -26,8 +22,6 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
 
     public final String NAMESPACE = "eu.europa.ec.av.1";
 
-    private final DocumentMetadata documentMetadata;
-
     private final FregService fregService;
     private final PersonConverterService personConverterService;
 
@@ -37,29 +31,6 @@ public class AgeVerificationClaimsSource extends AbstractAuthorizedClaimsSource 
     public AgeVerificationClaimsSource(FregService fregService, PersonConverterService personConverterService) {
         this.fregService = fregService;
         this.personConverterService = personConverterService;
-        this.documentMetadata = new DocumentMetadata(
-                List.of(new DocumentMetadata.Display("no", "Aldersbevis")),
-                List.of(
-                        new ClaimMetadata(
-                                NAMESPACE,
-                                "age_over_18",
-                                ClaimDataType.BOOLEAN,
-                                Map.of("no",
-                                        "Over 18 år"),
-                                true,
-                                "^true|false$"),
-                        new ClaimMetadata(
-                                NAMESPACE,
-                                "age_over_15",
-                                ClaimDataType.BOOLEAN,
-                                Map.of("no", "Over 15 år"),
-                                true,
-                                "^true|false$")));
-    }
-
-    @Override
-    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-        return documentMetadata;
     }
 
     @Override

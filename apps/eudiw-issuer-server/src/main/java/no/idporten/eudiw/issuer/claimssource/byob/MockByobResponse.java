@@ -4,8 +4,8 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicClaimMetadata;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialMetadata;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 
 import java.util.List;
 
@@ -16,14 +16,14 @@ public class MockByobResponse {
             .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
             .credentialMetadata(new DynamicCredentialMetadata(
                             List.of(
-                                    new DocumentMetadata.Display("no", "Bring ditt eget bevis 1"),
-                                    new DocumentMetadata.Display("en", "Bring your own bevis 1")
+                                    new Display("no", "Bring ditt eget bevis 1"),
+                                    new Display("en", "Bring your own bevis 1")
                             ),
                             List.of(
                                     new DynamicClaimMetadata("name",
                                             List.of(
-                                                    new DocumentMetadata.Display("no", "Navn"),
-                                                    new DocumentMetadata.Display("en", "Name")),
+                                                    new Display("no", "Navn"),
+                                                    new Display("en", "Name")),
                                             true,
                                             "^[\\x20-\\x7EæøåÆØÅ]{1,255}$")
                             )
@@ -37,12 +37,12 @@ public class MockByobResponse {
             .format(CredentialFormat.SD_JWT_VC.formatIdentifier())
             .credentialMetadata(new DynamicCredentialMetadata(
                             List.of(
-                                    new DocumentMetadata.Display("no", "Bring ditt eget bevis 2")
+                                    new Display("no", "Bring ditt eget bevis 2")
                             ),
                             List.of(
                                     new DynamicClaimMetadata("age",
                                             List.of(
-                                                    new DocumentMetadata.Display("no", "Alder")),
+                                                    new Display("no", "Alder")),
                                             true,
                                             "^[\\x20-\\x7EæøåÆØÅ]{1,255}$")
                             )

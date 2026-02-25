@@ -5,7 +5,7 @@ import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfig
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -65,6 +65,7 @@ public class DynamicCredentialConfigurationService {
         credentialConfiguration.setCredentialType(dynamicCredentialConfiguration.credentialType());
         credentialConfiguration.setFormat(CredentialFormat.fromString(dynamicCredentialConfiguration.format()));
         credentialConfiguration.setScope(dynamicCredentialConfiguration.scope());
+        credentialConfiguration.setExtendedCredentialMetadata(dynamicCredentialConfiguration.toExtendedCredentialMetadata());
         // from config (applies to all from byob)
         credentialConfiguration.setClaimsSourceUri(dynamicCredentialConfigurationTemplate.getClaimsSourceUri());
         credentialConfiguration.setValidityDays(dynamicCredentialConfigurationTemplate.getValidityDays());
@@ -75,7 +76,7 @@ public class DynamicCredentialConfigurationService {
         return credentialConfiguration;
     }
 
-    public DocumentMetadata getDocumentMetadataByCredentialType(String credentialType) {
+    public ExtendedCredentialMetadata getDocumentMetadataByCredentialType(String credentialType) {
         if (credentialType == null) {
             log.info("credentialType is null, cannot retrieve credential-configuration from byob-service");
             return null;
@@ -83,12 +84,12 @@ public class DynamicCredentialConfigurationService {
         DynamicCredentialConfiguration cc = byobServiceIntegration.retrieve(credentialType);
         if (cc != null) {
             log.debug("Retrieved credential-configuration from byob-service by credentialType: %s".formatted(credentialType));
-            return cc.getCredentialMetadata();
+            return cc.toExtendedCredentialMetadata();
         }
         return null;
     }
 
-    public DocumentMetadata getDocumentMetadata(String credentialConfigurationId) {
+    public ExtendedCredentialMetadata getDocumentMetadata(String credentialConfigurationId) {
         if (credentialConfigurationId == null) {
             log.warn("Failed to retrieved credential-configuration from byob-service by credentialConfigurationId: null");
             return null;
@@ -97,7 +98,7 @@ public class DynamicCredentialConfigurationService {
         DynamicCredentialConfiguration cc = byobServiceIntegration.searchByCredentialConfigurationId(credentialConfigurationId);
         if (cc != null) {
             log.debug("Retrieved credential-configuration from byob-service by credentialConfigurationId: %s".formatted(credentialConfigurationId));
-            return cc.getCredentialMetadata();
+            return cc.toExtendedCredentialMetadata();
         }
         return null;
     }

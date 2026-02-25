@@ -2,10 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.byob;
 
 import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
-import no.idporten.eudiw.issuer.claimssource.CredentialMetadataContext;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,22 +19,6 @@ public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
     public ByobClaimsSource(DynamicCredentialConfigurationService dynamicCredentialConfigurationService) {
         this.dynamicCredentialConfigurationService = dynamicCredentialConfigurationService;
     }
-
-    @Override
-    public DocumentMetadata getDocumentMetadata(CredentialMetadataContext credentialMetadataContext) {
-        if (credentialMetadataContext == null) {
-            throw new ClaimsSourceInvalidDataException(getAuthorativeSourceName(), "credentialMetadataContext cannot be null for BYOB claimssource");
-        }
-        if (credentialMetadataContext.credentialType() != null) {
-            return dynamicCredentialConfigurationService.getDocumentMetadataByCredentialType(credentialMetadataContext.credentialType());
-        }
-        if (credentialMetadataContext.credentialConfigurationId() != null) {
-            return dynamicCredentialConfigurationService.getDocumentMetadata(credentialMetadataContext.credentialConfigurationId());
-        }
-        log.warn("credentialType ({}) or credentialConfigurationId ({}) not found for BYOB claimssource, returning null metadata", credentialMetadataContext.credentialType(), credentialMetadataContext.credentialConfigurationId());
-        return null;
-    }
-
     @Override
     public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
         return credentialData;

@@ -3,7 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.byob.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import no.idporten.eudiw.issuer.credentials.types.DocumentMetadata;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,9 +26,8 @@ public record DynamicCredentialConfiguration(
         String format) {
 
 
-    public DocumentMetadata getCredentialMetadata() {
-
-        return credentialMetadata.convertToDocumentMetadata();
+    public ExtendedCredentialMetadata toExtendedCredentialMetadata() {
+        return credentialMetadata.toExtendedCredentialMetadata(this);
     }
 
 

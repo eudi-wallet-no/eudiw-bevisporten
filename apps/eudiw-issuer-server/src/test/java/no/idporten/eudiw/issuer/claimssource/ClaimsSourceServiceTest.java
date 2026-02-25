@@ -53,26 +53,6 @@ public class ClaimsSourceServiceTest {
         );
     }
 
-    @DisplayName("then metadata can be retrieved from claims sources for different credential types")
-    @ParameterizedTest
-    @ValueSource(strings = {"junitdoc", "urn:junitdoc-pre"})
-    void testGetMetadataExists(String credentialType) {
-        ClaimsSource claimsSource = findClaimsSourceByCredentialType(credentialType);
-        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource, new CredentialConfigurationProperties());
-
-        assertAll(
-                () -> assertNotNull(metadata),
-                () -> assertNotNull(metadata.getDisplays()),
-                () -> assertFalse(metadata.getDisplays().isEmpty()),
-                () -> assertNotNull(metadata.getClaims()),
-                () -> assertFalse(metadata.getClaims().isEmpty()),
-                () -> assertTrue(metadata.getClaims().stream()
-                        .allMatch(claim -> claim.getPath() != null)),
-                () -> assertTrue(metadata.getClaims().stream()
-                        .anyMatch(ClaimsDescription::isMandatory))
-        );
-    }
-
         @DisplayName("then an exception is thrown when looking up an unknown claims source")
         @Test
         void testGetMetadataNonExistingClaimsSource() {

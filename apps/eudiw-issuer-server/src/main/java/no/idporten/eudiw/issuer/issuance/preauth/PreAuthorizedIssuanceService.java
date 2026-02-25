@@ -3,18 +3,18 @@ package no.idporten.eudiw.issuer.issuance.preauth;
 import com.nimbusds.jwt.JWT;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceMetadata;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationIntegration;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
+import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
-import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationIntegration;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Grants;
 import no.idporten.eudiw.issuer.openid4vci.protocol.PreAuthorizedCodeGrant;
@@ -43,10 +43,10 @@ public class PreAuthorizedIssuanceService {
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
-        ClaimsSourceMetadata metadata = claimsSourceService.getMetadata(claimsSource, credentialConfigurationProperties);
+        ExtendedCredentialMetadata metadata = credentialConfigurationProperties.getCredentialMetadata();
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
-        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfigurationProperties.getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
+        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, credentialConfigurationProperties.getCredentialMetadata(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfigurationProperties.getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
@@ -56,7 +56,7 @@ public class PreAuthorizedIssuanceService {
                                         TxCode.builder()
                                                 .inputMode("numeric")
                                                 .length(4)
-                                                .description("Enter code from SMS to issue %s".formatted(metadata.getDisplays().getFirst().getName()))
+                                                .description("Enter code from SMS to issue %s".formatted(metadata.display().getFirst().getName()))
                                                 .build()
                                         : null)
                                 .build())
