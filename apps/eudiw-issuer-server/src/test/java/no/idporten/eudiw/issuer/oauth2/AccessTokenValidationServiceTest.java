@@ -150,7 +150,7 @@ public class AccessTokenValidationServiceTest {
                 .claim("scope", "openid profile foo:bar foo")
                 .build();
         PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
-        IssuerServerException e = assertThrows(IssuerServerException.class, () -> accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, "https://junit.idporten.no", "bar"));
+        IssuerServerException e = assertThrows(IssuerServerException.class, () -> accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization("junit", "bar")));
         assertAll(
                 () -> assertEquals("insufficient_scope", e.getError()),
                 () -> assertTrue(e.getErrorDescription().contains("Invalid scope")),
@@ -165,7 +165,7 @@ public class AccessTokenValidationServiceTest {
                 .issuer("https://junit.idporten.no")
                 .build();
         PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
-        IssuerServerException e = assertThrows(IssuerServerException.class, () -> accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, "https://unknown.junit.idporten.no", "bar"));
+        IssuerServerException e = assertThrows(IssuerServerException.class, () -> accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization("junit-invalid", "bar")));
         assertAll(
                 () -> assertEquals("invalid_token", e.getError()),
                 () -> assertTrue(e.getErrorDescription().contains("Invalid authorization server")),

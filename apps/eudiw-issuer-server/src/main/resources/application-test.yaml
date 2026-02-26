@@ -16,11 +16,13 @@ spring:
 credential-issuer-server:
   credential-issuer: https://utsteder.test.eidas2sandkasse.net
   authorization-servers:
-    - issuer: https://auth.test.eidas2sandkasse.net
+    - id: auth-eidas2sandkasse
+      issuer: https://auth.test.eidas2sandkasse.net
       jwks-uri: http://digital-lommebok-oauth-server-service:8080/jwks
       api-key: ${AUTH_PROXY_API_KEY}
   pre-authorization-servers:
-    - issuer: https://test.maskinporten.no/
+    - id: maskinporten
+      issuer: https://test.maskinporten.no/
       jwks-uri: https://test.maskinporten.no/jwk
 
 maskinporten:

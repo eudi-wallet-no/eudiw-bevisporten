@@ -15,6 +15,7 @@ import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
@@ -40,7 +41,7 @@ public class CredentialIssuerService {
     @SneakyThrows
     public CredentialResponse issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
         CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
-        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope());
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfigurationProperties.getAuthorizationServer(), credentialConfigurationProperties.getScope()));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
         List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs(), credentialRequest.getProof());
         List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(accessToken, credentialConfigurationProperties.getCredentialMetadata()));

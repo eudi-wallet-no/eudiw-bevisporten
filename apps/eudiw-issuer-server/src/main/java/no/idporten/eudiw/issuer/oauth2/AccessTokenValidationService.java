@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.net.URI;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +39,7 @@ public class AccessTokenValidationService {
         try {
             AccessToken accessToken = AccessToken.parse(context.authorizationHeader(), AccessTokenType.DPOP);
             JWT jwtAccessToken = SignedJWT.parse(accessToken.getValue());
-            AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServer(jwtAccessToken.getJWTClaimsSet().getIssuer(), context.authorizationServers());
+            AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServerByIssuer(jwtAccessToken.getJWTClaimsSet().getIssuer(), context.authorizationServers());
             if (authorizationServer == null) {
                 throw new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED);
             }
@@ -106,12 +107,15 @@ public class AccessTokenValidationService {
     /**
      * Checks that a validated access token also meets the requirements of the credential configuration.
      */
-    public void validateAccessTokenForCredentialConfiguration(JWT accessToken, String requiredAuthorizationServer, String requiredScope) {
+    public void validateAccessTokenForCredentialConfiguration(JWT accessToken, AccessTokenCredentialValidationContext validationContext) {
+        AuthorizationServer authorizationServer = validationContext.authorizationServer() != null
+                ? authorizationServerService.findAuthorizationServerById(validationContext.authorizationServer())
+                : authorizationServerService.findPreAuthorizationServerById(validationContext.preAuthorizationServer());
         try {
-            if (! requiredAuthorizationServer.equals(accessToken.getJWTClaimsSet().getIssuer())) {
+            if (! authorizationServer.getIssuer().equals(URI.create(accessToken.getJWTClaimsSet().getIssuer()))) {
                 throw new IssuerServerException("invalid_token", "Invalid authorization server for credential configuration.", HttpStatus.UNAUTHORIZED);
             }
-            if (! validateScope(requiredScope, accessToken)) {
+            if (! validateScope(validationContext.scope(), accessToken)) {
                 throw new IssuerServerException("insufficient_scope", "Invalid scope for credential configuration.", HttpStatus.FORBIDDEN);
             }
 

@@ -15,6 +15,13 @@ import java.util.Set;
 public class AuthorizationServer {
 
     /**
+     * Internal identifier for authorization server.  Used to reference authorization server as a logical entity from
+     * configuration.
+     */
+    @NotEmpty
+    private String id;
+
+    /**
      * OAuth2 authorization server issuer.
      */
     @NotNull
