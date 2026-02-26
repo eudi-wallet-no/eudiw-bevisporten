@@ -14,6 +14,7 @@ import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationInt
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Grants;
@@ -41,7 +42,7 @@ public class PreAuthorizedIssuanceService {
         if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
             throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
-        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope()));
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
         ExtendedCredentialMetadata metadata = credentialConfigurationProperties.getCredentialMetadata();
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();

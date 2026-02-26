@@ -48,7 +48,7 @@ credential-issuer-server:
       credential-type: eu.europa.ec.eudi.pid.1
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.pid.PIDMdocClaimsSource
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
       credential-metadata: |
         {
@@ -157,7 +157,7 @@ credential-issuer-server:
       credential-type: urn:eudi:pid:1
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.pid.PIDSDJwtClaimsSource
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: ${credential-issuer-server.features.pid-signing-keystore}
       credential-metadata: |
         {
@@ -266,8 +266,8 @@ credential-issuer-server:
       credential-type: no.advokattilsynet.advokatregisteret.1
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -346,8 +346,8 @@ credential-issuer-server:
       credential-type: no:kontaktregisteret:kontaktinformasjon:1
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.krr.KrrClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -397,8 +397,8 @@ credential-issuer-server:
       credential-type: org.iso.18013.5.1.mDL
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.vegvesenet.ForerkortClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
+      pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -545,7 +545,7 @@ credential-issuer-server:
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.ageverification.AgeVerificationClaimsSource
       validity-days: 30
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
           {
@@ -591,7 +591,7 @@ credential-issuer-server:
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.skatteetaten.InntektClaimsSource
       validity-days: 180
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -619,8 +619,8 @@ credential-issuer-server:
     claims-source-uri: class://no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
     validity-days: 30
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-    authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+    authorization-server: ${credential-issuer-server.authorization-servers[0].id}
+    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
     key-store-name: eaa-provider
 
 # Digdir standard logging

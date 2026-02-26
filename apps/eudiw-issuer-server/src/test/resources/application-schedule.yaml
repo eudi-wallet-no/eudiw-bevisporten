@@ -6,7 +6,8 @@ spring:
 credential-issuer-server:
   credential-issuer: https://schedule.eidas2sandkasse.dev/
   authorization-servers:
-    - issuer: https://schedule.idporten.no
+    - id: junit
+      issuer: https://schedule.idporten.no
       jwks-uri: https://schedule.idporten.no/jwks.json
       api-key: schedule-key
   cryptographic-bindings:
@@ -20,7 +21,7 @@ credential-issuer-server:
       credential-type: junitdoc
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -44,8 +45,8 @@ credential-issuer-server:
         ]}
   dynamic-credential-configuration-template:
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-    authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+    authorization-server: ${credential-issuer-server.authorization-servers[0].id}
+    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
     key-store-name: eaa-provider
 
   claims-sources:

@@ -15,6 +15,7 @@ import no.idporten.eudiw.issuer.credentials.types.StringValue;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
@@ -64,6 +65,10 @@ public class CredentialIssuerServiceTest {
     @InjectMocks
     private CredentialIssuerService credentialIssuerService;
 
+    @Captor
+    private ArgumentCaptor<AccessTokenCredentialValidationContext> accessTokenCredentialValidationContextCaptor;
+
+
     @DisplayName("When issuing credentials")
     @Nested
     class IssueTests {
@@ -84,7 +89,7 @@ public class CredentialIssuerServiceTest {
             CredentialRequest credentialRequest = CredentialRequest.builder().credentialConfigurationId("cid").build();
             ClaimsSource claimsSource = mock(ClaimsSource.class);
             CredentialConfigurationProperties credentialConfigurationProperties = CredentialConfigurationProperties.builder()
-                    .authorizationServer("https://junit.idporten.no")
+                    .authorizationServer("junit")
                     .scope("foo:bar")
                     .format(CredentialFormat.SD_JWT_VC)
                     .credentialType("foodoc")
@@ -108,9 +113,13 @@ public class CredentialIssuerServiceTest {
                     () -> assertTrue(credentials.getFirst().getCredential().contains("v1")),
                     () -> assertEquals("nid", credentialResponse.getNotificationId().getValue())
             );
-            verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(eq(accessToken), eq("https://junit.idporten.no"), eq("foo:bar"));
+            verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(eq(accessToken), accessTokenCredentialValidationContextCaptor.capture());
+            assertAll(
+                    () -> assertEquals("junit", accessTokenCredentialValidationContextCaptor.getValue().authorizationServer()),
+                    () -> assertEquals("foo:bar", accessTokenCredentialValidationContextCaptor.getValue().scope())
+            );
             verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
-            verify(auditService).logIssueCredentials(eq("https://junit.idporten.no"), eq("cid"), eq(issuanceTransactionId), eq(CredentialFormat.SD_JWT_VC), eq(new NotificationId("nid")) ,eq(accessToken));
+            verify(auditService).logIssueCredentials(eq("junit"), eq("cid"), eq(issuanceTransactionId), eq(CredentialFormat.SD_JWT_VC), eq(new NotificationId("nid")) ,eq(accessToken));
         }
 
     }

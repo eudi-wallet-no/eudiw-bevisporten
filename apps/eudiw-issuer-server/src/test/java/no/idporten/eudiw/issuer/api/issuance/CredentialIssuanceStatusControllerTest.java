@@ -60,7 +60,7 @@ public class CredentialIssuanceStatusControllerTest {
         AuthorizationServer authorizationServer = mock(AuthorizationServer.class);
         when(authorizationServer.getIssuer()).thenReturn(URI.create("https://idporten.dev"));
         when(authorizationServer.getAccessTokenValidator()).thenReturn(accessTokenValidator);
-        when(authorizationServerService.findAuthorizationServer(any(), any())).thenReturn(authorizationServer);
+        when(authorizationServerService.findAuthorizationServerByIssuer(any(), any())).thenReturn(authorizationServer);
         when(authorizationServerService.getPreAuthorizationServers()).thenReturn(List.of(authorizationServer));
     }
 

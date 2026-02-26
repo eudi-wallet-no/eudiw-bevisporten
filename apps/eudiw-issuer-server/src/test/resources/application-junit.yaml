@@ -6,8 +6,13 @@ spring:
 credential-issuer-server:
   credential-issuer: https://junit.eidas2sandkasse.dev/
   authorization-servers:
-    - issuer: https://junit.idporten.no
+    - id: junit
+      issuer: https://junit.idporten.no
       jwks-uri: https://junit.idporten.no/jwks.json
+      api-key: junit-key
+    - id: junit-invalid
+      issuer: https://junit-invalid.idporten.no
+      jwks-uri: https://junit-invalid.idporten.no/jwks.json
       api-key: junit-key
   cryptographic-bindings:
     - jwk
@@ -20,7 +25,7 @@ credential-issuer-server:
       credential-type: junitdoc
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -48,7 +53,7 @@ credential-issuer-server:
       credential-type: junitdoc
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
       grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -74,7 +79,7 @@ credential-issuer-server:
       credential-type: junitdoc-pre
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitPreAuthorizedClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -100,7 +105,7 @@ credential-issuer-server:
       credential-type: urn:junitdoc-pre
       claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitPreAuthorizedClaimsSource
       grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
+      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
       key-store-name: eaa-provider
       credential-metadata: |
         {
@@ -123,8 +128,8 @@ credential-issuer-server:
 
   dynamic-credential-configuration-template:
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-    authorization-server: ${credential-issuer-server.authorization-servers[0].issuer}
-    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].issuer}
+    authorization-server: ${credential-issuer-server.authorization-servers[0].id}
+    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
     key-store-name: eaa-provider
 
 maskinporten:

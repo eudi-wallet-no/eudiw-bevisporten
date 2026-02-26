@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import org.slf4j.Logger;
@@ -69,7 +70,7 @@ public class CredentialIssuanceStatusService {
             return new CredentialIssuanceStatus(issuanceTransactionId, null, "unknown");
         }
         CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
-         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope());
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope()));
         return issuanceStatus;
     }
 

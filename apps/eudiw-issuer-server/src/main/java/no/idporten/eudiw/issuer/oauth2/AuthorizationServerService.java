@@ -18,6 +18,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 @RequiredArgsConstructor
 @Service
@@ -26,16 +27,33 @@ public class AuthorizationServerService implements InitializingBean {
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
 
-    public AuthorizationServer findAuthorizationServer(String issuer, List<AuthorizationServer> authorizationServers) {
-        return authorizationServers
-                .stream()
-                .filter(authorizationServer -> URI.create(issuer).equals(authorizationServer.getIssuer()))
-                .findFirst()
-                .orElseThrow(() -> new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED));
+    /**
+     * Find an authorization server by issuer uri.
+     */
+    public AuthorizationServer findAuthorizationServerByIssuer(String issuer, List<AuthorizationServer> authorizationServers) {
+        return findAuthorizationServer((authorizationServer) -> URI.create(issuer).equals(authorizationServer.getIssuer()), authorizationServers);
     }
 
-    public AuthorizationServer findAuthorizationServer(String issuer) {
-        return findAuthorizationServer(issuer, credentialIssuerServerProperties.getAuthorizationServers());
+    /**
+     * Find an authorization server by id/logical name.
+     */
+    public AuthorizationServer findAuthorizationServerById(String id) {
+        return findAuthorizationServer((authorizationServer) -> id.equals(authorizationServer.getId()), credentialIssuerServerProperties.getAuthorizationServers());
+    }
+
+    /**
+     * Find a pre-authorization server by id/logical name.
+     */
+    public AuthorizationServer findPreAuthorizationServerById(String id) {
+        return findAuthorizationServer((authorizationServer) -> id.equals(authorizationServer.getId()), credentialIssuerServerProperties.getPreAuthorizationServers());
+    }
+
+    private AuthorizationServer findAuthorizationServer(Predicate<AuthorizationServer> predicate, List<AuthorizationServer> authorizationServers) {
+        return authorizationServers
+                .stream()
+                .filter(predicate)
+                .findFirst()
+                .orElseThrow(() -> new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED));
     }
 
     /**
