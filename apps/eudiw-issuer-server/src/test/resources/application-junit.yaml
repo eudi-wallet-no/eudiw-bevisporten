@@ -16,121 +16,17 @@ credential-issuer-server:
       api-key: junit-key
   cryptographic-bindings:
     - jwk
-  formats:
-    - mso_mdoc
-  credential-configurations:
-    - identifier: junitdoc_mso_mdoc
-      scope: eudiw:junit
-      format: mso_mdoc
-      credential-type: junitdoc
-      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
-      grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-      key-store-name: eaa-provider
-      credential-metadata: |
-        {
-          "display" : [ {
-            "locale" : "no",
-            "name" : "Junit doc",
-            "description": "Kun for junit-tester",
-            "background_color": "#afcee9",
-            "text_color": "#002c54"
-          } ],
-          "claims" : [ {
-            "namespace" : "junitdoc",
-            "name" : "attr1",
-            "type" : "string",
-            "display" : [{
-              "locale": "no", "name": "Attributt 1"
-            }],
-            "mandatory" : true,
-            "validation_regex" : ".*"
-          }
-        ]}
-    - identifier: junitdoc_sd_jwt_vc
-      scope: eudiw:junit
-      format: sd_jwt_vc
-      credential-type: junitdoc
-      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
-      grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-      key-store-name: eaa-provider
-      credential-metadata: |
-        {
-          "display" : [ {
-            "locale" : "no",
-            "name" : "Junit doc",
-            "description": "Kun for junit-tester"
-          } ],
-          "claims" : [ {
-            "namespace" : "junitdoc",
-            "name" : "attr1",
-            "type" : "string",
-            "display" : [{
-              "locale": "no", "name": "Attributt 1"
-            }],
-            "mandatory" : true,
-            "validation_regex" : ".*"
-          }
-        ]}
-    - identifier: junitdoc_pre_mso_mdoc
-      scope: eudiw:junit
-      format: mso_mdoc
-      credential-type: junitdoc-pre
-      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitPreAuthorizedClaimsSource
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-      key-store-name: eaa-provider
-      credential-metadata: |
-        {
-          "display" : [ {
-            "locale" : "no",
-            "name" : "Junit doc",
-            "description": "Kun for junit-tester"
-          } ],
-          "claims" : [ {
-            "namespace" : "junitdoc",
-            "name" : "attr1",
-            "type" : "string",
-            "display" : [{
-              "locale": "no", "name": "Attributt 1"
-            }],
-            "mandatory" : true,
-            "validation_regex" : ".*"
-          }
-        ]}
-    - identifier: junitdoc_pre_sd_jwt_vc
-      scope: eudiw:junit
-      format: sd_jwt_vc
-      credential-type: urn:junitdoc-pre
-      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitPreAuthorizedClaimsSource
-      grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-      key-store-name: eaa-provider
-      credential-metadata: |
-        {
-          "display" : [ {
-            "locale" : "no",
-            "name" : "Junit doc",
-            "description": "Kun for junit-tester"
-          } ],
-          "claims" : [ {
-            "namespace" : "junitdoc",
-            "name" : "attr1",
-            "type" : "string",
-            "display" : [{
-              "locale": "no", "name": "Attributt 1"
-            }],
-            "mandatory" : true,
-            "validation_regex" : ".*"
-          }
-        ]}
+  credential-configuration-sources:
+    - classpath:credential-configurations/junit_mso_mdoc.json
+    - classpath:credential-configurations/junit_sd_jwt_vc.json
+    - classpath:credential-configurations/junit_pre_mso_mdoc.json
+    - classpath:credential-configurations/junit_pre_sd_jwt_vc.json
 
   dynamic-credential-configuration-template:
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
     authorization-server: ${credential-issuer-server.authorization-servers[0].id}
     pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
-    key-store-name: eaa-provider
+    credential_signing_keystore: eaa-provider
 
 maskinporten:
   lib:

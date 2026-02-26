@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.claimssource.byob;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
 import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
@@ -57,7 +58,7 @@ public class DynamicCredentialConfigurationService {
     }
 
     protected CredentialConfigurationProperties generateCredentialConfiguration(String credentialConfigurationId) {
-        CredentialConfigurationProperties dynamicCredentialConfigurationTemplate = credentialIssuerServerProperties.getDynamicCredentialConfigurationTemplate();
+        CredentialIssuerContext credentialIssuerContext = credentialIssuerServerProperties.getDynamicCredentialConfigurationTemplate();
         DynamicCredentialConfiguration dynamicCredentialConfiguration = getDynamicCredentialConfigurations().get(credentialConfigurationId);
         CredentialConfigurationProperties credentialConfiguration = new CredentialConfigurationProperties();
         // from byob
@@ -67,12 +68,12 @@ public class DynamicCredentialConfigurationService {
         credentialConfiguration.setScope(dynamicCredentialConfiguration.scope());
         credentialConfiguration.setExtendedCredentialMetadata(dynamicCredentialConfiguration.toExtendedCredentialMetadata());
         // from config (applies to all from byob)
-        credentialConfiguration.setClaimsSourceUri(dynamicCredentialConfigurationTemplate.getClaimsSourceUri());
-        credentialConfiguration.setValidityDays(dynamicCredentialConfigurationTemplate.getValidityDays());
-        credentialConfiguration.setGrantType(dynamicCredentialConfigurationTemplate.getGrantType());
-        credentialConfiguration.setAuthorizationServer(dynamicCredentialConfigurationTemplate.getAuthorizationServer());
-        credentialConfiguration.setPreAuthorizationServer(dynamicCredentialConfigurationTemplate.getPreAuthorizationServer());
-        credentialConfiguration.setKeyStoreName(dynamicCredentialConfigurationTemplate.getKeyStoreName());
+        credentialConfiguration.setClaimsSourceUri(credentialIssuerContext.getCredentialDataSourceUri());
+        credentialConfiguration.setValidityDays(credentialIssuerContext.getValidityDays());
+        credentialConfiguration.setGrantType(credentialIssuerContext.getGrantType());
+        credentialConfiguration.setAuthorizationServer(credentialIssuerContext.getAuthorizationServer());
+        credentialConfiguration.setPreAuthorizationServer(credentialIssuerContext.getPreAuthorizationServer());
+        credentialConfiguration.setKeyStoreName(credentialIssuerContext.getCredentialSigningKeystore());
         return credentialConfiguration;
     }
 

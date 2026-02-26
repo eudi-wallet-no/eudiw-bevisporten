@@ -1,0 +1,110 @@
+{
+  "credential_configuration_id": "no.advokattilsynet.advokatregisteret_mso_mdoc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "scope": "eudiw:no:advokattilsynet:advokatregisteret",
+  "format": "mso_mdoc",
+  "credential_type": "no.advokattilsynet.advokatregisteret.1",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Advokatbevilling",
+        "description": null,
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "namespace": "no.advokattilsynet.advokatregisteret.1",
+        "name": "personidentifikator",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Personidentifikator"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{11}$"
+      },
+      {
+        "namespace": "no.advokattilsynet.advokatregisteret.1",
+        "name": "tittel",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Tittel"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      },
+      {
+        "namespace": "no.advokattilsynet.advokatregisteret.1",
+        "name": "mellomnavn",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Mellomnavn"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      },
+      {
+        "namespace": "no.advokattilsynet.advokatregisteret.1",
+        "name": "etternavn",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Etternavn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      },
+      {
+        "namespace": "no.advokattilsynet.advokatregisteret.1",
+        "name": "fornavn",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fornavn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      },
+      {
+        "namespace": "no.advokattilsynet.advokatregisteret.1",
+        "name": "regnr",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Regnr"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      }
+    ]
+  }
+}
