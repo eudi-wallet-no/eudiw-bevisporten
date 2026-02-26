@@ -1,0 +1,231 @@
+{
+  "credential_configuration_id": "org.iso.18013.5.1.mDL_mso_mdoc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.vegvesenet.ForerkortClaimsSource",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "credential_type": "org.iso.18013.5.1.mDL",
+  "format": "mso_mdoc",
+  "scope": "eudiw:no:vegvesen:mdl",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Norsk førerkort",
+        "description": "MERK: dette er ikkje eit reelt førarkort kobla til test-førarkortregisteret. Alle testbrukarar får statisk satt klasse B.",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      },
+      {
+        "locale": "en",
+        "name": "Norwegian driver's license",
+        "description": "NOTE: this is not a real driver's license tied to the test license register. All test users are granted class B license.",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "family_name",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Family name"
+          },
+          {
+            "locale": "no",
+            "name": "Etternavn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "given_name",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Given name"
+          },
+          {
+            "locale": "no",
+            "name": "Fornavn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "birth_date",
+        "type": "iso_date",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Date of birth"
+          },
+          {
+            "locale": "no",
+            "name": "Fødselsdato"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "issue_date",
+        "type": "iso_date",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Issue date"
+          },
+          {
+            "locale": "no",
+            "name": "Gyldig fra dato"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "expiry_date",
+        "type": "iso_date",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Expiry date"
+          },
+          {
+            "locale": "no",
+            "name": "Gyldig til dato"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "issuing_country",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Issuing country"
+          },
+          {
+            "locale": "no",
+            "name": "Utsted av land"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[A-Z]{2}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "issuing_authority",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Issuing authority"
+          },
+          {
+            "locale": "no",
+            "name": "Utsteder myndighet"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "document_number",
+        "type": "number",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Document number"
+          },
+          {
+            "locale": "no",
+            "name": "Førerkort nummer"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{1,150}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "portrait",
+        "type": "binary",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Portrait Photos"
+          },
+          {
+            "locale": "no",
+            "name": "Portrett bilde"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^[-A-Za-z0-9+/]*={0,3}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "driving_privileges",
+        "type": "map",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Driving privileges"
+          },
+          {
+            "locale": "no",
+            "name": "Førerkort klasser"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "namespace": "org.iso.18013.5.1",
+        "name": "un_distinguishing_sign",
+        "type": "string",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "en",
+            "name": "Country"
+          },
+          {
+            "locale": "no",
+            "name": "Land"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[A-Z]{1,4}$"
+      }
+    ]
+  }
+}

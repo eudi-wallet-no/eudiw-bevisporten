@@ -12,47 +12,12 @@ credential-issuer-server:
       api-key: schedule-key
   cryptographic-bindings:
     - jwk
-  formats:
-    - mso_mdoc
   credential-configurations:
-    - identifier: junitdoc_mso_mdoc
-      scope: eudiw:junit
-      format: mso_mdoc
-      credential-type: junitdoc
-      claims-source-uri: class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource
-      grant-type: authorization_code
-      authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-      key-store-name: eaa-provider
-      credential-metadata: |
-        {
-          "display" : [ {
-            "locale" : "no",
-            "name" : "Junit doc",
-            "description": "Kun for junit-tester",
-            "background_color": "#afcee9",
-            "text_color": "#002c54"
-          } ],
-          "claims" : [ {
-            "namespace" : "junitdoc",
-            "name" : "attr1",
-            "type" : "string",
-            "display" : [{
-              "locale": "no", "name": "Attributt 1"
-            }],
-            "mandatory" : true,
-            "validation_regex" : ".*"
-          }
-        ]}
   dynamic-credential-configuration-template:
     grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
     authorization-server: ${credential-issuer-server.authorization-servers[0].id}
     pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
-    key-store-name: eaa-provider
-
-  claims-sources:
-    - credential-types:
-        - eidas2sandkasse.wildcard_sd_jwt_vc
-      class-name: no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
+    credential_signing_keystore: eaa-provider
 
 maskinporten:
   lib:
