@@ -32,7 +32,7 @@ advoktatregisteret:
   subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f
 
 byob-service:
-  uri: http://byob-service:9296/
+  uri: http://byob-service:9296/v1/admin/credential-configurations
   api-key: invalid
 
 maskinporten:

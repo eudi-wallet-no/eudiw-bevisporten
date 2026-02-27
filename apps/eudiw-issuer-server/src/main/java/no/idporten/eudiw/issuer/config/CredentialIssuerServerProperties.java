@@ -40,7 +40,9 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     private List<@Valid AuthorizationServer> preAuthorizationServers = new ArrayList<>();
     private List<@Valid CredentialConfigurationProperties> credentialConfigurations = new ArrayList<>();
 
-    private List<URI> credentialConfigurationSources = new ArrayList<>();
+    private List<CredentialConfigurationSource> credentialConfigurationSources = new ArrayList<>();
+
+    private List<CredentialConfigurationSourceProperties> credentialConfigurationSourcesProperties = new ArrayList<>();
 
     private CredentialIssuerContext dynamicCredentialConfigurationTemplate;
 
@@ -57,9 +59,11 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         // TODO Glue for new -> old configuration, should be removed when old configuration is removed.
-        for (URI credentialConfigurationSourceUri : credentialConfigurationSources) {
-            ClasspathCredentialConfigurationSource credentialConfigurationSource = new ClasspathCredentialConfigurationSource();
-            List<ExtendedCredentialConfiguration> credentialConfigurations = credentialConfigurationSource.retrieve(credentialConfigurationSourceUri);
+        for (CredentialConfigurationSourceProperties properties : credentialConfigurationSourcesProperties) {
+
+            CredentialConfigurationSource credentialConfigurationSource = createCredentialConfigurationSource(properties);
+            this.credentialConfigurationSources.add(credentialConfigurationSource);
+            List<ExtendedCredentialConfiguration> credentialConfigurations = credentialConfigurationSource.retrieve();
             for (ExtendedCredentialConfiguration credentialConfiguration : credentialConfigurations) {
                 CredentialConfigurationProperties credentialConfigurationProperties = CredentialConfigurationProperties.builder()
                         .identifier(credentialConfiguration.getCredentialConfigurationId())
@@ -75,11 +79,21 @@ public class CredentialIssuerServerProperties implements InitializingBean {
                         .keyStoreName(credentialConfiguration.getCredentialIssuerContext().getCredentialSigningKeystore())
                         .validityDays(credentialConfiguration.getCredentialIssuerContext().getValidityDays())
                         .requireTxCode(credentialConfiguration.getCredentialIssuerContext().isRequireTxCode())
-                        //
                         .build();
                 this.credentialConfigurations.add(credentialConfigurationProperties);
             }
         }
     }
+
+    protected CredentialConfigurationSource createCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
+        if (properties.uri().startsWith("classpath")) {
+            return new ClasspathSingleCredentialConfigurationSource(properties);
+        }
+        if (properties.uri().startsWith("http")) {
+            return new HttpCredentialConfigurationSource(properties);
+        }
+        throw new IllegalArgumentException("Unsupported credential configuration source URI: %s".formatted(properties.uri())); // TODO
+    }
+
 }
 

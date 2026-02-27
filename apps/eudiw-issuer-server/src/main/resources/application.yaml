@@ -39,17 +39,19 @@ credential-issuer-server:
     - ES256
   credential-signing-algorithms:
     - ES256
-  credential-configuration-sources:
-    - classpath:credential-configurations/pid/pid_mso_mdoc.json
-    - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-    - classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
-    - classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
-    - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
-    - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
-    - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
-# TODO BYOB
-
-  credential-configurations:
+  credentialConfigurationSourcesProperties:
+    - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
+    - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+    - uri: classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
+    - uri: classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
+    - uri: classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
+    - uri: classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
+    - uri: classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
+    - uri: ${byob-service.uri}
+      api-key: ${byob-service.api-key}
+      connect-timeout: 2s
+      read-timeout: 2s
+      cache-ttl: 28s
 
   dynamic-credential-configuration-template:
     credential-datasource-uri: class://no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
@@ -111,7 +113,7 @@ inntektsapi:
 
 ## byob-service: Bring your own bevis service properties
 byob-service:
-  uri: http://digital-lommebok-byob-service-service:8080/
+  uri: http://digital-lommebok-byob-service-service:8080/v1/admin/credential-configurations
   api-key: ${API_KEY}
   connect-timeout: 2s
   read-timeout: 2s
