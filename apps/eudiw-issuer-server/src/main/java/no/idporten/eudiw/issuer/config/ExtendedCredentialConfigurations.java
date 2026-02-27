@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.claimssource.byob.domain;
+package no.idporten.eudiw.issuer.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -12,9 +12,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DynamicCredentialConfigurations {
+public class ExtendedCredentialConfigurations {
 
     @JsonProperty("credential_configurations")
-    private List<DynamicCredentialConfiguration> credentialConfigurations;
+    private List<ExtendedCredentialConfiguration> credentialConfigurations;
 
 }

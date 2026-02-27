@@ -21,8 +21,10 @@
     ],
     "claims": [
       {
-        "namespace": "eu.europa.ec.av.1",
-        "name": "age_over_18",
+        "path": [
+          "eu.europa.ec.av.1",
+          "age_over_18"
+        ],
         "type": "boolean",
         "display": [
           {
@@ -34,8 +36,10 @@
         "validation_regex": "^true|false$"
       },
       {
-        "namespace": "eu.europa.ec.av.1",
-        "name": "age_over_15",
+        "path": [
+          "eu.europa.ec.av.1",
+          "age_over_15"
+        ],
         "type": "boolean",
         "display": [
           {

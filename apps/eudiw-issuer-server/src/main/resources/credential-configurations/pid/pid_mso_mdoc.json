@@ -14,17 +14,17 @@
       {
         "locale": "no",
         "name": "Norsk ID-bevis (mdoc)",
-        "description": null,
         "background_color": "#afcee9",
         "text_color": "#002c54"
       }
     ],
     "claims": [
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "personal_administrative_number",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "personal_administrative_number"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
@@ -35,10 +35,11 @@
         "validation_regex": "^\\d{11}$"
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "given_name",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "given_name"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
@@ -49,22 +50,24 @@
         "validation_regex": null
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "family_name",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "family_name"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
             "name": "Etternamn"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "birth_date",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "birth_date"
+        ],
         "type": "iso_date",
         "mime_type": null,
         "display": [
@@ -73,12 +76,13 @@
             "name": "Fødselsdato"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "place_of_birth",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "place_of_birth"
+        ],
         "type": "map",
         "mime_type": null,
         "display": [
@@ -87,12 +91,13 @@
             "name": "Fødeland"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "nationality",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "nationality"
+        ],
         "type": "list",
         "mime_type": null,
         "display": [
@@ -101,26 +106,27 @@
             "name": "Nasjonalitet"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "expiry_date",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "expiry_date"
+        ],
         "type": "iso_date",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
             "name": "Gyldig til dato"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "issuing_authority",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "issuing_authority"
+        ],
         "type": "string",
         "mime_type": null,
         "display": [
@@ -129,22 +135,21 @@
             "name": "Utsteda av"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
-        "namespace": "eu.europa.ec.eudi.pid.1",
-        "name": "issuing_country",
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "issuing_country"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
             "name": "Utsteda i land"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       }
     ]
   }
