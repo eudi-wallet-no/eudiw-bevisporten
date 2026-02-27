@@ -29,10 +29,11 @@
     ],
     "claims": [
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "family_name",
+        "path": [
+          "org.iso.18013.5.1",
+          "family_name"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -47,10 +48,11 @@
         "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "given_name",
+        "path": [
+          "org.iso.18013.5.1",
+          "given_name"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -65,10 +67,11 @@
         "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "birth_date",
+        "path": [
+          "org.iso.18013.5.1",
+          "birth_date"
+        ],
         "type": "iso_date",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -83,10 +86,11 @@
         "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "issue_date",
+        "path": [
+          "org.iso.18013.5.1",
+          "issue_date"
+        ],
         "type": "iso_date",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -101,10 +105,11 @@
         "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "expiry_date",
+        "path": [
+          "org.iso.18013.5.1",
+          "expiry_date"
+        ],
         "type": "iso_date",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -119,10 +124,11 @@
         "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "issuing_country",
+        "path": [
+          "org.iso.18013.5.1",
+          "issuing_country"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -137,10 +143,11 @@
         "validation_regex": "^[A-Z]{2}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "issuing_authority",
+        "path": [
+          "org.iso.18013.5.1",
+          "issuing_authority"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -155,10 +162,11 @@
         "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "document_number",
+        "path": [
+          "org.iso.18013.5.1",
+          "document_number"
+        ],
         "type": "number",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -173,10 +181,11 @@
         "validation_regex": "^\\d{1,150}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "portrait",
+        "path": [
+          "org.iso.18013.5.1",
+          "portrait"
+        ],
         "type": "binary",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -191,10 +200,11 @@
         "validation_regex": "^[-A-Za-z0-9+/]*={0,3}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "driving_privileges",
+        "path": [
+          "org.iso.18013.5.1",
+          "driving_privileges"
+        ],
         "type": "map",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",
@@ -209,10 +219,11 @@
         "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
       },
       {
-        "namespace": "org.iso.18013.5.1",
-        "name": "un_distinguishing_sign",
+        "path": [
+          "org.iso.18013.5.1",
+          "un_distinguishing_sign"
+        ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "en",

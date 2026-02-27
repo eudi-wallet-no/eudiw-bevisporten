@@ -1,10 +1,11 @@
 package no.idporten.eudiw.issuer.config;
 
-import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfiguration;
-import no.idporten.eudiw.issuer.claimssource.byob.domain.DynamicCredentialConfigurations;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription;
+import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -62,21 +63,21 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
         try {
-            DynamicCredentialConfigurations credentialConfigurations = restClient
+            ExtendedCredentialConfigurations credentialConfigurations = restClient
                     .get()
                     .uri(properties.uri())
                     .header(API_KEY, properties.apiKey())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
-                    .body(DynamicCredentialConfigurations.class);
+                    .body(ExtendedCredentialConfigurations.class);
 
             if (credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
                 log.warn("No credential configurations retrieved from {}", properties.uri());
                 return;
             }
             log.info("Retrieved {} credential-configurations from {}", credentialConfigurations.getCredentialConfigurations().size(), properties.uri());
-            List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = credentialConfigurations.getCredentialConfigurations().stream().map(this::convert).toList();
+            List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = credentialConfigurations.getCredentialConfigurations().stream().map(this::fixByobCredentialConfiguration).toList();
             this.credentialConfigurations.clear();
             this.credentialConfigurations.addAll(extendedCredentialConfigurations);
         } catch (ResourceAccessException e) {
@@ -92,16 +93,10 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         throw new ClaimsSourceException("BYOB", "server_error", "Failed to get information from Byob-service", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
     }
 
-    protected ExtendedCredentialConfiguration convert(DynamicCredentialConfiguration dynamicCredentialConfiguration) {
-        ExtendedCredentialConfiguration credentialConfiguration = new ExtendedCredentialConfiguration();
-        // from byob
-        credentialConfiguration.setCredentialConfigurationId(dynamicCredentialConfiguration.credentialConfigurationId());
-        credentialConfiguration.setCredentialType(dynamicCredentialConfiguration.credentialType());
-        credentialConfiguration.setFormat(CredentialFormat.fromString(dynamicCredentialConfiguration.format()));
-        credentialConfiguration.setScope(dynamicCredentialConfiguration.scope());
-        credentialConfiguration.setExtendedCredentialMetadata(dynamicCredentialConfiguration.toExtendedCredentialMetadata());
-        CredentialIssuerContext credentialIssuerContext = new CredentialIssuerContext();
+    protected ExtendedCredentialConfiguration fixByobCredentialConfiguration(ExtendedCredentialConfiguration credentialConfiguration) {
         // TODO dette kan på sikt styres av konfigurasjonsskilden BYOB selv
+        credentialConfiguration.setExtendedCredentialMetadata(fixCredentialMetadata(credentialConfiguration));
+        CredentialIssuerContext credentialIssuerContext = new CredentialIssuerContext();
         credentialIssuerContext.setCredentialDataSourceUri(URI.create("class://no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource"));
         credentialIssuerContext.setValidityDays(30);
         credentialIssuerContext.setGrantType("urn:ietf:params:oauth:grant-type:pre-authorized_code");
@@ -110,6 +105,39 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         credentialIssuerContext.setCredentialSigningKeystore("eaa-provider");
         credentialConfiguration.setCredentialIssuerContext(credentialIssuerContext);
         return credentialConfiguration;
+    }
+    private ExtendedCredentialMetadata fixCredentialMetadata(ExtendedCredentialConfiguration credentialConfiguration) {
+        List<ExtendedClaimsDescription> claims = credentialConfiguration.getExtendedCredentialMetadata().claims().stream()
+                .map(claim -> {
+                    final ClaimDataType type = fixType(claim.type());
+                    return new ExtendedClaimsDescription(
+                            fixPath(claim.path(), credentialConfiguration.getFormat(), credentialConfiguration.getCredentialType()),
+                            type,
+                            claim.mimeType(),
+                            claim.display(),
+                            claim.mandatory(),
+                            fixValidationRegex(claim.validationRegex(), type));
+                })
+                .toList();
+        return new ExtendedCredentialMetadata(credentialConfiguration.getExtendedCredentialMetadata().display(), claims);
+    }
+
+    private String fixValidationRegex(String validationRegex, ClaimDataType type) {
+        return validationRegex != null ? validationRegex : type.getDefaultRegex();
+    }
+
+    private ClaimDataType fixType(ClaimDataType type) {
+        if (type == null) {
+            return ClaimDataType.STRING;
+        }
+        return type;
+    }
+
+    private List<String> fixPath(List<String> path, CredentialFormat credentialFormat, String doctype) {
+        if (credentialFormat == CredentialFormat.SD_JWT_VC) {
+            return path;
+        }
+        return List.of(doctype, path.getFirst());
     }
 
 }

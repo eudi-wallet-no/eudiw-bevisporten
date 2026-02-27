@@ -22,8 +22,10 @@
     ],
     "claims": [
       {
-        "namespace": "junitdoc",
-        "name": "attr1",
+        "path": [
+          "junitdoc",
+          "attr1"
+        ],
         "type": "string",
         "display": [
           {

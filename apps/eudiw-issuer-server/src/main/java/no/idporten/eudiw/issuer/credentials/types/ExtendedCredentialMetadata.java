@@ -5,14 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialMetadata;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Extended credential metadata used internally in the credential issuer server.
- *
- * @param display
- * @param claims
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ExtendedCredentialMetadata(
@@ -22,10 +18,6 @@ public record ExtendedCredentialMetadata(
 
     public ExtendedClaimsDescription findClaimMetadata(String name) {
         return claims().stream().filter(claim -> claim.name().equals(name)).findFirst().orElse(null);
-    }
-
-    public ExtendedClaimsDescription findClaimMetadata(String... path) {
-        return claims().stream().filter(claim -> claim.path().equals(Arrays.stream(path).toList())).findFirst().orElse(null);
     }
 
     /**
