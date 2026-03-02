@@ -1,9 +1,10 @@
 package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
+import no.idporten.eudiw.issuer.config.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import org.junit.jupiter.api.DisplayName;
@@ -40,9 +41,9 @@ public class CredentialOfferServiceTest {
     @Test
     void testCreateCredentialOfferForAuthorizationCodeFlow() {
         when(credentialIssuerServerProperties.getCredentialIssuer()).thenReturn(URI.create("https://junit.issuer.idporten.no"));
-        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
-                .identifier("foo")
-                .grantType("authorization_code")
+        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(ExtendedCredentialConfiguration.builder()
+                .credentialConfigurationId("foo")
+                .credentialIssuerContext(CredentialIssuerContext.builder().grantType("authorization_code").build())
                 .build());
         CredentialOffer credentialOffer = credentialOfferService.createCredentialOffer("foo");
         assertAll(
@@ -58,9 +59,9 @@ public class CredentialOfferServiceTest {
     @DisplayName("then an error is returned for credential configurations supporting only the pre-authorized code flow")
     @Test
     void testDenyCredentialOfferForPreAuthorizedCodeFlow() {
-        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
-                .identifier("foo")
-                .grantType("urn:ietf:params:oauth:grant-type:pre-authorized_code")
+        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(ExtendedCredentialConfiguration.builder()
+                .credentialConfigurationId("foo")
+                .credentialIssuerContext(CredentialIssuerContext.builder().grantType("urn:ietf:params:oauth:grant-type:pre-authorized_code").build())
                 .build());
         IssuerServerException e = assertThrows(IssuerServerException.class, () -> credentialOfferService.createCredentialOffer("foo"));
         assertAll(

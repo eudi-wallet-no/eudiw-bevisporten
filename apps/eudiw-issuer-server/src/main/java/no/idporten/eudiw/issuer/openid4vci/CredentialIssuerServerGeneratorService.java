@@ -31,36 +31,36 @@ public class CredentialIssuerServerGeneratorService {
 
 
     public CredentialConfigurations findCredentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties) {
-        List<ExtendedCredentialConfiguration> allCredentialConfigurationProperties = new ArrayList<>();
+        List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = new ArrayList<>();
         for (CredentialConfigurationSource credentialConfigurationSource : credentialIssuerProperties.getCredentialConfigurationSources()) {
-            allCredentialConfigurationProperties.addAll(credentialConfigurationSource.retrieve());
+            extendedCredentialConfigurations.addAll(credentialConfigurationSource.retrieve());
         }
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();
-        for (ExtendedCredentialConfiguration credentialConfigurationProperties : allCredentialConfigurationProperties) {
-            ExtendedCredentialMetadata claimsSourceMetadata = credentialConfigurationProperties.getExtendedCredentialMetadata();
+        for (ExtendedCredentialConfiguration credentialConfiguration : extendedCredentialConfigurations) {
+            ExtendedCredentialMetadata claimsSourceMetadata = credentialConfiguration.getExtendedCredentialMetadata();
             try {
-                claimsSourceService.findClaimsSource(credentialConfigurationProperties.getCredentialIssuerContext().getCredentialDataSourceUri());
+                claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
             } catch (Exception e) {
-                 log.error("Error generating metadata for credential configuration id={} and credential type={}. Skipping this credential configuration in metadata response.", credentialConfigurationProperties.getCredentialConfigurationId(), credentialConfigurationProperties.getCredentialType(), e);
+                 log.error("Error generating metadata for credential configuration id={} and credential type={}. Skipping this credential configuration in metadata response.", credentialConfiguration.getCredentialConfigurationId(), credentialConfiguration.getCredentialType(), e);
                 continue;
             }
             CredentialConfiguration.CredentialConfigurationBuilder credentialConfigurationBuilder = CredentialConfiguration.builder()
                     // credential-specific config
-                    .format(credentialConfigurationProperties.getFormat().formatIdentifier())
-                    .scope(credentialConfigurationProperties.getScope())
+                    .format(credentialConfiguration.getFormat().formatIdentifier())
+                    .scope(credentialConfiguration.getScope())
                     // metadata from extended internal model
-                    .credentialMetadata(claimsSourceMetadata.toCredentialMetadata())
+                    .credentialMetadata(claimsSourceMetadata.toOpenID4VCICredentialMetadata())
                     // config from issuer server
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
                     .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())
                     .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
             // config for formats
-            if (CredentialFormat.MSO_MDOC.equals(credentialConfigurationProperties.getFormat())) {
-                credentialConfigurationBuilder.doctype(credentialConfigurationProperties.getCredentialType());
-            } else if (CredentialFormat.SD_JWT_VC.equals(credentialConfigurationProperties.getFormat())) {
-                credentialConfigurationBuilder.vct(credentialConfigurationProperties.getCredentialType());
+            if (CredentialFormat.MSO_MDOC.equals(credentialConfiguration.getFormat())) {
+                credentialConfigurationBuilder.doctype(credentialConfiguration.getCredentialType());
+            } else if (CredentialFormat.SD_JWT_VC.equals(credentialConfiguration.getFormat())) {
+                credentialConfigurationBuilder.vct(credentialConfiguration.getCredentialType());
             }
-            credentialConfigurations.put(credentialConfigurationProperties.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
+            credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;
 

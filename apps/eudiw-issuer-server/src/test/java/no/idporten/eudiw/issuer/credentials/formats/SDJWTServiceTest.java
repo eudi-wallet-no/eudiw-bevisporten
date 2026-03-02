@@ -15,7 +15,8 @@ import com.nimbusds.jwt.SignedJWT;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerContext;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,13 +53,15 @@ public class SDJWTServiceTest {
     @MockitoBean
     private AuditLogger auditLogger;
 
-    private CredentialConfigurationProperties credentialConfigurationProperties(String credentialType, String keyStoreName, int validityDays) {
-        CredentialConfigurationProperties credentialConfigurationProperties = new CredentialConfigurationProperties();
-        credentialConfigurationProperties.setCredentialType(credentialType);
-        credentialConfigurationProperties.setFormat(CredentialFormat.SD_JWT_VC);
-        credentialConfigurationProperties.setKeyStoreName(keyStoreName);
-        credentialConfigurationProperties.setValidityDays(validityDays);
-        return credentialConfigurationProperties;
+    private ExtendedCredentialConfiguration credentialConfiguration(String credentialType, String credentialSigningKeystore, int validityDays) {
+        ExtendedCredentialConfiguration credentialConfiguration = new ExtendedCredentialConfiguration();
+        credentialConfiguration.setCredentialType(credentialType);
+        credentialConfiguration.setFormat(CredentialFormat.SD_JWT_VC);
+        CredentialIssuerContext credentialIssuerContext = new CredentialIssuerContext();
+        credentialIssuerContext.setCredentialSigningKeystore(credentialSigningKeystore);
+        credentialIssuerContext.setValidityDays(validityDays);
+        credentialConfiguration.setCredentialIssuerContext(credentialIssuerContext);
+        return credentialConfiguration;
     }
 
     @DisplayName("then claims are disclosed and data formats are handled")
@@ -73,14 +76,14 @@ public class SDJWTServiceTest {
         Claim listNumberClaim = buildClaim("foo", "listnumbers", new ListValue(List.of(new NumberValue(1L), new NumberValue(2L), new NumberValue(3L))));
         Claim mapBooleanClaim = buildClaim("foo", "mapbooleans", new MapValue(Map.of("JA", new BooleanValue(true), "NEI", new BooleanValue(false))));
         List<Claim> claims = List.of(stringClaim1, numberClaim, binaryClaim, booleanClaim, fullDateClaim, dateTimeClaim, listNumberClaim, mapBooleanClaim);
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationProperties(
+        ExtendedCredentialConfiguration credentialConfiguration = credentialConfiguration(
                 "urn:foo",
                 "eaa-provider",
                 30);
         JWK deviceKey = generateDeviceKey();
         SDJwt sdJwt = sdjwtService.createSDJwt(
                 deviceKey,
-                credentialConfigurationProperties,
+                credentialConfiguration,
                 claims);
         String encodedSDJwt = sdjwtService.encode(sdJwt);
         assertAll(

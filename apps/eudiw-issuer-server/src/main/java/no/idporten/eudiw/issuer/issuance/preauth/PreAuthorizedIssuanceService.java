@@ -6,9 +6,9 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationIntegration;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
@@ -38,22 +38,22 @@ public class PreAuthorizedIssuanceService {
     private final AuditService auditService;
 
     public PreAuthorizedIssuanceResponse startIssuerTransaction(PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest, JWT accessToken) {
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
-        if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
+        if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfiguration.getCredentialIssuerContext().getGrantType())) {
             throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
         }
-        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope()));
-        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfigurationProperties.getClaimsSourceUri());
-        ExtendedCredentialMetadata metadata = credentialConfigurationProperties.getCredentialMetadata();
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer(), credentialConfiguration.getScope()));
+        PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
+        ExtendedCredentialMetadata metadata = credentialConfiguration.getExtendedCredentialMetadata();
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
-        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, credentialConfigurationProperties.getCredentialMetadata(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfigurationProperties.getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
+        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, credentialConfiguration.getExtendedCredentialMetadata(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerServerProperties.getCredentialIssuer().toString())
-                .credentialConfigurationId(credentialConfigurationProperties.getIdentifier())
+                .credentialConfigurationId(credentialConfiguration.getCredentialConfigurationId())
                 .grants(Grants.builder()
                         .preAuthorizedCodeGrant(PreAuthorizedCodeGrant.builder().preAuthorizedCode(preAuthorizedCode)
-                                .txCode(credentialConfigurationProperties.isRequireTxCode() ?
+                                .txCode(credentialConfiguration.getCredentialIssuerContext().isRequireTxCode() ?
                                         TxCode.builder()
                                                 .inputMode("numeric")
                                                 .length(4)

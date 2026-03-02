@@ -13,8 +13,8 @@ import id.walt.sdjwt.SDPayload;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import net.minidev.json.JSONObject;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;
@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static no.idporten.eudiw.issuer.credentials.ClaimValueConverter.FORMATTER_ISO_DATE_TIME;
 import static no.idporten.eudiw.issuer.credentials.ClaimValueConverter.FORMATTER_ISO_DATE;
+import static no.idporten.eudiw.issuer.credentials.ClaimValueConverter.FORMATTER_ISO_DATE_TIME;
 
 @Service
 public class SDJWTService {
@@ -47,11 +47,11 @@ public class SDJWTService {
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
     }
 
-    public Credential issueCredential(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
+    public Credential issueCredential(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
         try {
-            return Credential.builder().credential(encode(createSDJwt(jwk, credentialConfigurationProperties, claims))).build();
+            return Credential.builder().credential(encode(createSDJwt(jwk, credentialConfiguration, claims))).build();
         } catch (JOSEException|CertificateEncodingException e) {
-            throw new IssuerServerException("Failed to issue credentials of SD-JWT format for config=%s".formatted(credentialConfigurationProperties), "Failed to issue credentials of SD-JWT format", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new IssuerServerException("Failed to issue credentials of SD-JWT format for config=%s".formatted(credentialConfiguration), "Failed to issue credentials of SD-JWT format", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -59,8 +59,8 @@ public class SDJWTService {
         return sdJwt.getJwt() + sdJwt.getDisclosures().stream().collect(Collectors.joining("~", "~", "~"));
     }
 
-    protected SDJwt createSDJwt(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) throws JOSEException, CertificateEncodingException {
-        KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfigurationProperties.getKeyStoreName());
+    protected SDJwt createSDJwt(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) throws JOSEException, CertificateEncodingException {
+        KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfiguration.getCredentialIssuerContext().getCredentialSigningKeystore());
         JWSSigner jwsSigner = new ECDSASigner((ECPrivateKey) keyProvider.privateKey());
         JWSAlgorithm jwsAlgorithm = ECDSA.resolveAlgorithm((ECPrivateKey) keyProvider.privateKey());
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, jwsSigner, null);
@@ -69,8 +69,8 @@ public class SDJWTService {
         JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
         claimsSetBuilder.issuer(credentialIssuerServerProperties.getCredentialIssuer().toString());
         claimsSetBuilder.issueTime(now);
-        claimsSetBuilder.expirationTime(Date.from(now.toInstant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS)));
-        claimsSetBuilder.claim("vct", credentialConfigurationProperties.getCredentialType());
+        claimsSetBuilder.expirationTime(Date.from(now.toInstant().plus(credentialConfiguration.getCredentialIssuerContext().getValidityDays(), ChronoUnit.DAYS)));
+        claimsSetBuilder.claim("vct", credentialConfiguration.getCredentialType());
         claimsSetBuilder.claim("_sd_alg", "sha-256");
         claimsSetBuilder.claim("cnf", new JSONObject().appendField("jwk", jwk.toPublicJWK().toJSONObject()));
         for (Claim claim : claims) {
@@ -87,7 +87,7 @@ public class SDJWTService {
                 sdPayload,
                 cryptoProvider,
                 null,
-                credentialConfigurationProperties.getFormat().formatIdentifier(),
+                credentialConfiguration.getFormat().formatIdentifier(),
                 Map.of("x5c", List.of(Base64.getEncoder().encodeToString(keyProvider.certificate().getEncoded()))));
     }
 

@@ -23,10 +23,10 @@ public record ExtendedCredentialMetadata(
     /**
      * Convert to external model.
      */
-    public CredentialMetadata toCredentialMetadata() {
+    public CredentialMetadata toOpenID4VCICredentialMetadata() {
         return CredentialMetadata.builder()
                 .display(display())
-                .claims(claims().stream().map(ExtendedClaimsDescription::toClaimsDescription).toList())
+                .claims(claims().stream().map(ExtendedClaimsDescription::toOpenID4VCIClaimsDescription).toList())
                 .build();
     }
 

@@ -2,9 +2,9 @@ package no.idporten.eudiw.issuer.issuance.authz;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.AuthorizedCodeGrant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
@@ -34,11 +34,11 @@ public class CredentialOfferService {
     public CredentialOffer createCredentialOffer(Set<String> credentialConfigurationIds) {
         List<String> validCredentialConfigurationIds = new ArrayList<>();
         for (String credentialConfigurationId : credentialConfigurationIds) {
-            CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(credentialConfigurationId);
-            if (!GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfigurationProperties.getGrantType())) {
+            ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(credentialConfigurationId);
+            if (!GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfiguration.getCredentialIssuerContext().getGrantType())) {
                 throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the authorization code flow", HttpStatus.BAD_REQUEST);
             }
-            validCredentialConfigurationIds.add(credentialConfigurationProperties.getIdentifier());
+            validCredentialConfigurationIds.add(credentialConfiguration.getCredentialConfigurationId());
         }
         auditService.logCreateCredentialOffer(credentialIssuerServerProperties.getCredentialIssuer().toString(), validCredentialConfigurationIds);
         return CredentialOffer.builder()

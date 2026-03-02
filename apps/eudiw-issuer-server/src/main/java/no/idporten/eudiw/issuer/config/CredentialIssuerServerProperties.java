@@ -38,7 +38,7 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     @NotEmpty
     private List<@Valid AuthorizationServer> authorizationServers;
     private List<@Valid AuthorizationServer> preAuthorizationServers = new ArrayList<>();
-    private List<@Valid CredentialConfigurationProperties> credentialConfigurations = new ArrayList<>();
+    private List<@Valid ExtendedCredentialConfiguration> credentialConfigurations = new ArrayList<>();
 
     private List<CredentialConfigurationSource> credentialConfigurationSources = new ArrayList<>();
 
@@ -49,39 +49,23 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     @NotNull
     private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
 
-    public CredentialConfigurationProperties findCredentialConfiguration(String credentialIdentifier) {
-        return credentialConfigurations.stream()
-                .filter(credentialConfigurationProperties -> Objects.equals(credentialIdentifier, credentialConfigurationProperties.getIdentifier()))
+    public ExtendedCredentialConfiguration findCredentialConfiguration(String credentialIdentifier) {
+        return credentialConfigurationSources.stream()
+                .map(ccs -> ccs.findConfiguration(credentialIdentifier))
+                .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(() -> new IssuerServerException("unknown_credential_identifier", "Unknown credential identifier.", HttpStatus.BAD_REQUEST));
     }
 
+    /**
+     * Load credential configurations from credential configuration sources.
+     */
     @Override
-    public void afterPropertiesSet() throws Exception {
-        // TODO Glue for new -> old configuration, should be removed when old configuration is removed.
+    public void afterPropertiesSet() {
         for (CredentialConfigurationSourceProperties properties : credentialConfigurationSourcesProperties) {
-
             CredentialConfigurationSource credentialConfigurationSource = createCredentialConfigurationSource(properties);
             this.credentialConfigurationSources.add(credentialConfigurationSource);
-            List<ExtendedCredentialConfiguration> credentialConfigurations = credentialConfigurationSource.retrieve();
-            for (ExtendedCredentialConfiguration credentialConfiguration : credentialConfigurations) {
-                CredentialConfigurationProperties credentialConfigurationProperties = CredentialConfigurationProperties.builder()
-                        .identifier(credentialConfiguration.getCredentialConfigurationId())
-                        .credentialType(credentialConfiguration.getCredentialType())
-                        .format(credentialConfiguration.getFormat())
-                        .scope(credentialConfiguration.getScope())
-                        .extendedCredentialMetadata(credentialConfiguration.getExtendedCredentialMetadata())
-                        .claimsSourceUri(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri())
-                        .grantType(credentialConfiguration.getCredentialIssuerContext().getGrantType())
-                        .authorizationServer(credentialConfiguration.getCredentialIssuerContext().getAuthorizationServer())
-                        .preAuthorizationServer(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer())
-                        .preAuthorizationLifetime(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationLifetime())
-                        .keyStoreName(credentialConfiguration.getCredentialIssuerContext().getCredentialSigningKeystore())
-                        .validityDays(credentialConfiguration.getCredentialIssuerContext().getValidityDays())
-                        .requireTxCode(credentialConfiguration.getCredentialIssuerContext().isRequireTxCode())
-                        .build();
-                this.credentialConfigurations.add(credentialConfigurationProperties);
-            }
+            this.credentialConfigurations.addAll(credentialConfigurationSource.retrieve());
         }
     }
 

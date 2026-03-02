@@ -1,6 +1,8 @@
 package no.idporten.eudiw.issuer.oauth2;
 
 
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+
 /**
  * Context for access_token validation specific to a credential configuration.
  */
@@ -15,6 +17,13 @@ public record AccessTokenCredentialValidationContext(
      */
     public static AccessTokenCredentialValidationContext forAuthorization(String authorizationServer, String scope) {
         return new AccessTokenCredentialValidationContext(authorizationServer, null, scope);
+    }
+
+    /**
+     * Context for authorization server.  Use in OpenID4VCI endpoints.
+     */
+    public static AccessTokenCredentialValidationContext forAuthorization(ExtendedCredentialConfiguration credentialConfiguration) {
+        return new AccessTokenCredentialValidationContext(credentialConfiguration.getCredentialIssuerContext().getAuthorizationServer(), null, credentialConfiguration.getScope());
     }
 
     /**

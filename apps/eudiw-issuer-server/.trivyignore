@@ -1,1 +1,2 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
+GHSA-72hv-8253-57qq # Jackson number length. Fixed in 3.1.0

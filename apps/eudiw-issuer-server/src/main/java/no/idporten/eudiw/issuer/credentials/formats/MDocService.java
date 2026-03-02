@@ -11,7 +11,7 @@ import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.ValidityInfo;
 import kotlin.time.Instant;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;
@@ -37,8 +37,8 @@ public class MDocService {
         this.keystoreManager = keystoreManager;
     }
 
-    public Credential issueCredential(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
-        String mDoc = encode(createMDoc(jwk, credentialConfigurationProperties, claims));
+    public Credential issueCredential(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+        String mDoc = encode(createMDoc(jwk, credentialConfiguration, claims));
         //System.out.println("Issuing credential " + mDoc);
         return Credential.builder().credential(mDoc).build();
     }
@@ -47,12 +47,12 @@ public class MDocService {
         return Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
     }
 
-    protected MDoc createMDoc(JWK jwk, CredentialConfigurationProperties credentialConfigurationProperties, List<Claim> claims) {
+    protected MDoc createMDoc(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
         var ISSUER_KEY_ID = "ISSUER_KEY";
         var DEVICE_KEY_ID = "DEVICE_KEY";
         var READER_KEY_ID = "READER_KEY";
-        KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfigurationProperties.getKeyStoreName());
-        String docType = credentialConfigurationProperties.getCredentialType();
+        KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfiguration.getCredentialIssuerContext().getCredentialSigningKeystore());
+        String docType = credentialConfiguration.getCredentialType();
 
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(
                 List.of(
@@ -76,7 +76,7 @@ public class MDocService {
         // TODO hack for iOS wallet mdoc issue timestamp validation failure
         Instant signedAt = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES).toEpochMilli());
         Instant validFrom = signedAt;
-        Instant validTo = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().plus(credentialConfigurationProperties.getValidityDays(), ChronoUnit.DAYS).toEpochMilli());
+        Instant validTo = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().plus(credentialConfiguration.getCredentialIssuerContext().getValidityDays(), ChronoUnit.DAYS).toEpochMilli());
         Instant expectedUpdateAt = validTo;
         return mDocBuilder.sign(
                 new ValidityInfo(signedAt, validFrom, validTo, expectedUpdateAt),
