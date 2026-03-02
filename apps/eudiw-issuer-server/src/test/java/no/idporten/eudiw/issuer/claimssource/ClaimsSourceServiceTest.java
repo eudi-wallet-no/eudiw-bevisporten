@@ -3,7 +3,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

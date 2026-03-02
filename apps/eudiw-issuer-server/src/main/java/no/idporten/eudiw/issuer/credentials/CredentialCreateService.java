@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.credentials;
 
 import com.nimbusds.jose.jwk.JWK;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.formats.MDocService;
 import no.idporten.eudiw.issuer.credentials.formats.SDJWTService;
 import no.idporten.eudiw.issuer.credentials.types.Claim;

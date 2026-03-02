@@ -9,7 +9,7 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;

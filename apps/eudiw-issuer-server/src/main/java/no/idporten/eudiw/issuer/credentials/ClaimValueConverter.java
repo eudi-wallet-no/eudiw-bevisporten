@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.credentials;
 
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.types.*;
 
 import java.time.LocalDate;

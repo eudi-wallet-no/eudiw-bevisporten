@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.credentials;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 

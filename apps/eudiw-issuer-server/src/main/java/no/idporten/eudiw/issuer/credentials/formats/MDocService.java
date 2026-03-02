@@ -11,7 +11,7 @@ import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.ValidityInfo;
 import kotlin.time.Instant;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;

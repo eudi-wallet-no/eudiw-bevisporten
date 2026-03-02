@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.AuthorizedCodeGrant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;

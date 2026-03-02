@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.config;
+package no.idporten.eudiw.issuer.credentials.configurations;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import org.springframework.validation.annotation.Validated;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

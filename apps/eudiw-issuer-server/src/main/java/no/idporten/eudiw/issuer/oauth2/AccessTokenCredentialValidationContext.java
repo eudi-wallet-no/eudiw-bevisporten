@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.oauth2;
 
 
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 
 /**
  * Context for access_token validation specific to a credential configuration.

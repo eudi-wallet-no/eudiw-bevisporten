@@ -2,9 +2,9 @@ package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.config.CredentialIssuerContext;
+import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import org.junit.jupiter.api.DisplayName;
