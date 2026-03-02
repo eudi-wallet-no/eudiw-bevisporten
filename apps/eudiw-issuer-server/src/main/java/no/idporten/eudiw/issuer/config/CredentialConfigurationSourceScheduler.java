@@ -35,7 +35,7 @@ public class CredentialConfigurationSourceScheduler implements InitializingBean 
     private void scheduleUpdate(String cronExpression, CredentialConfigurationSource credentialConfigurationSource) {
         Runnable task = () -> {
             log.info("Executing scheduled task to update credential configurations from {}", credentialConfigurationSource.getProperties().uri());
-            credentialConfigurationSource.update();
+            credentialConfigurationSource.refresh();
         };
         CronTrigger cronTrigger = new CronTrigger(cronExpression);
         taskScheduler.schedule(task, cronTrigger);

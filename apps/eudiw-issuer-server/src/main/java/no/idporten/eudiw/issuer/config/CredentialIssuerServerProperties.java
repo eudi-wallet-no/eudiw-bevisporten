@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,8 @@ import java.util.Objects;
 @Configuration
 @ConfigurationProperties(prefix = "credential-issuer-server")
 public class CredentialIssuerServerProperties implements InitializingBean {
+
+    private static final Logger log = LoggerFactory.getLogger(CredentialIssuerServerProperties.class);
 
     @NotNull
     private URI credentialIssuer;
@@ -64,6 +68,12 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     public void afterPropertiesSet() {
         for (CredentialConfigurationSourceProperties properties : credentialConfigurationSourcesProperties) {
             CredentialConfigurationSource credentialConfigurationSource = createCredentialConfigurationSource(properties);
+            try {
+                credentialConfigurationSource.init();
+                log.info("Initialized credential configuration source with URI {}.", properties.uri());
+            } catch (Exception e) {
+                log.warn("Failed to initialize credential configuration source with URI {}.", properties.uri(), e);
+            }
             this.credentialConfigurationSources.add(credentialConfigurationSource);
             this.credentialConfigurations.addAll(credentialConfigurationSource.retrieve());
         }
@@ -76,7 +86,7 @@ public class CredentialIssuerServerProperties implements InitializingBean {
         if (properties.uri().startsWith("http")) {
             return new HttpCredentialConfigurationSource(properties);
         }
-        throw new IllegalArgumentException("Unsupported credential configuration source URI: %s".formatted(properties.uri())); // TODO
+        throw new IllegalArgumentException("Unsupported credential configuration source URI: %s".formatted(properties.uri()));
     }
 
 }
