@@ -1,5 +1,7 @@
 package no.idporten.eudiw.issuer.config;
 
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+
 import java.util.List;
 import java.util.Objects;
 

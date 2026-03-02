@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.config;
 
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import org.springframework.stereotype.Service;
 
 /**

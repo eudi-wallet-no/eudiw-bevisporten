@@ -2,10 +2,9 @@ package no.idporten.eudiw.issuer.config;
 
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
+import no.idporten.eudiw.issuer.credentials.configurations.*;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;

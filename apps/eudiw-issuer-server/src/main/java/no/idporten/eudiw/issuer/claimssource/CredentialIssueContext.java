@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 
 /**
  * Context for credential issuance.

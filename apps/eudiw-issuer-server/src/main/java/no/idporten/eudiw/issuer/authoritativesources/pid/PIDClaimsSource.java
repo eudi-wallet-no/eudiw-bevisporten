@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource.FREG;
-import static no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription.EMPTY_NAMESPACE;
+import static no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription.EMPTY_NAMESPACE;
 
 
 /**

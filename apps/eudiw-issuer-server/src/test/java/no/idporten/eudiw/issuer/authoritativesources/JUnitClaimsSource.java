@@ -4,8 +4,8 @@ import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription;
-import no.idporten.eudiw.issuer.credentials.types.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.stereotype.Service;
 

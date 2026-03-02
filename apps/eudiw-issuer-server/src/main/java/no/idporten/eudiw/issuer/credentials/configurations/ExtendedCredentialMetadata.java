@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.credentials.types;
+package no.idporten.eudiw.issuer.credentials.configurations;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

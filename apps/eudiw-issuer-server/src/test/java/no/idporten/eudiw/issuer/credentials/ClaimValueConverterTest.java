@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.credentials;
 
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,7 +14,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static no.idporten.eudiw.issuer.credentials.types.ExtendedClaimsDescription.EMPTY_NAMESPACE;
+import static no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription.EMPTY_NAMESPACE;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("ClaimValueConverter tests")

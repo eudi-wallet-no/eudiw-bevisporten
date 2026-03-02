@@ -1,8 +1,9 @@
-package no.idporten.eudiw.issuer.credentials.types;
+package no.idporten.eudiw.issuer.credentials.configurations;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 
