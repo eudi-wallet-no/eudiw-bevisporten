@@ -1,8 +1,8 @@
 package no.idporten.eudiw.issuer.oauth2.integration;
 
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
 import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationIntegration;
@@ -52,8 +52,8 @@ public class PreAuthorizationIntegrationTest {
     void testCreatePreAuthorization() {
         final String subjectIdentifier = "11111111111";
         final String credentialConfigurationId = "junitdoc_pre_mso_mdoc";
-        final CredentialConfigurationProperties credentialConfigurationProperties = credentialIssuerServerProperties.findCredentialConfiguration(credentialConfigurationId);
-        credentialConfigurationProperties.setPreAuthorizationLifetime(Duration.ofMinutes(3));
+        final ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(credentialConfigurationId);
+        credentialConfiguration.getCredentialIssuerContext().setPreAuthorizationLifetime(Duration.ofMinutes(3));
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest = PreAuthorizedIssuanceRequest.builder()
                 .credentialConfigurationId(credentialConfigurationId)

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +17,8 @@ import java.time.Duration;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Validated
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Data
 public class CredentialIssuerContext {
 

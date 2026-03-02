@@ -1,9 +1,9 @@
 package no.idporten.eudiw.issuer.issuance.status;
 
 import com.nimbusds.jwt.JWT;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
@@ -69,8 +69,8 @@ public class CredentialIssuanceStatusService {
             log.info("No issuance status found for issuance_transaction_id {}", issuanceTransactionId);
             return new CredentialIssuanceStatus(issuanceTransactionId, null, "unknown");
         }
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
-        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfigurationProperties.getPreAuthorizationServer(), credentialConfigurationProperties.getScope()));
+        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer(), credentialConfiguration.getScope()));
         return issuanceStatus;
     }
 

@@ -4,9 +4,10 @@ package no.idporten.eudiw.issuer.issuance.status;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
+import no.idporten.eudiw.issuer.config.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
@@ -53,9 +54,11 @@ public class CredentialIssuanceStatusServiceTest {
     @BeforeEach
     void setUp() {
         when(credentialConfigurationService.findCredentialConfiguration(eq("cid"))).thenReturn(
-                CredentialConfigurationProperties.builder()
-                        .identifier("cid")
-                        .scope("test").build());
+                ExtendedCredentialConfiguration.builder()
+                        .credentialConfigurationId("cid")
+                        .scope("test")
+                        .credentialIssuerContext(CredentialIssuerContext.builder().build())
+                        .build());
     }
 
     private JWT createIssuanceAccessToken(IssuanceTransactionId issuanceTransactionId) {

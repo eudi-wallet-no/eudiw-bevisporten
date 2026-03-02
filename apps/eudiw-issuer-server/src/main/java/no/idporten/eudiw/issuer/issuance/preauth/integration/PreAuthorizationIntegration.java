@@ -1,11 +1,11 @@
 package no.idporten.eudiw.issuer.issuance.preauth.integration;
 
 import lombok.RequiredArgsConstructor;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -23,14 +23,14 @@ public class PreAuthorizationIntegration {
     private final RestClient preAuthorizationRestClient;
 
     public String preAuthorize(IssuanceTransactionId issuanceTransactionId, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest) {
-        CredentialConfigurationProperties credentialConfigurationProperties = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
+        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         PreAuthorizationRequest preAuthorizationRequest = PreAuthorizationRequest.builder()
                 .aud(credentialIssuerServerProperties.getCredentialIssuer().toString())
                 .sub(preAuthorizedIssuanceRequest.getSubject().getIdentifier())
-                .scope(credentialConfigurationProperties.getScope())
+                .scope(credentialConfiguration.getScope())
                 .txId(issuanceTransactionId.getValue())
                 // .txCodeChallenge("A6xnQhbz4Vx2HuGl4lXwZ5U2I8iziLRFnhP5eNfIRvQ") // TODO tx_code senere feature
-                .authorizationLifetimeSeconds(credentialConfigurationProperties.getPreAuthorizationLifetime().toSeconds())
+                .authorizationLifetimeSeconds(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationLifetime().toSeconds())
                 .build();
         PreAuthorizationResponse preAuthorizationResponse = preAuthorizationRestClient
                 .post()

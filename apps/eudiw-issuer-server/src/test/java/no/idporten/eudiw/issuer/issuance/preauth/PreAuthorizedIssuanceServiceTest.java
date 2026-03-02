@@ -3,9 +3,10 @@ package no.idporten.eudiw.issuer.issuance.preauth;
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
+import no.idporten.eudiw.issuer.config.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
@@ -48,9 +49,9 @@ public class PreAuthorizedIssuanceServiceTest {
     @DisplayName("then credential configuration must support the pre-authorized code flow")
     @Test
     void testConfigurationMustSupportPreAuthorizedCodeFlow() {
-        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(CredentialConfigurationProperties.builder()
-                .identifier("foo")
-                .grantType("authorization_code")
+        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(ExtendedCredentialConfiguration.builder()
+                .credentialConfigurationId("foo")
+                        .credentialIssuerContext(CredentialIssuerContext.builder().grantType("authorization_code").build())
                 .build());
         PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest = PreAuthorizedIssuanceRequest.builder().credentialConfigurationId("foo").build();
         IssuerServerException e = assertThrows(IssuerServerException.class, () -> preAuthorizedIssuanceService.startIssuerTransaction(preAuthorizedIssuanceRequest, mock(JWT.class)));

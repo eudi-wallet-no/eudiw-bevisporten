@@ -2,14 +2,11 @@ package no.idporten.eudiw.issuer.claimssource;
 
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.openid4vci.metadata.ClaimsDescription;
+import no.idporten.eudiw.issuer.config.ExtendedCredentialConfiguration;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -35,11 +32,11 @@ public class ClaimsSourceServiceTest {
     AuditLogger auditLogger;
 
     private ClaimsSource findClaimsSourceByCredentialType(String credentialType) {
-        CredentialConfigurationProperties ccp = credentialIssuerServerProperties.getCredentialConfigurations().stream()
-                .filter(credentialConfigurationProperties -> credentialConfigurationProperties.getCredentialType().equals(credentialType))
+        ExtendedCredentialConfiguration ccp = credentialIssuerServerProperties.getCredentialConfigurations().stream()
+                .filter(credentialConfiguration -> credentialConfiguration.getCredentialType().equals(credentialType))
                 .findFirst()
                 .orElseThrow(() -> new IssuerServerException("server_error", "Unknown credential type [%s]".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR));
-        return claimsSourceService.findClaimsSource(ccp.getClaimsSourceUri());
+        return claimsSourceService.findClaimsSource(ccp.getCredentialIssuerContext().getCredentialDataSourceUri());
     }
 
     @DisplayName("then the same claims source can be used for several credential configurations")

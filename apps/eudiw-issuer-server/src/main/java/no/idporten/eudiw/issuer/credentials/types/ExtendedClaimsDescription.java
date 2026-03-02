@@ -81,7 +81,7 @@ public record ExtendedClaimsDescription(
     /**
      * Convert to external model.
      */
-    public ClaimsDescription toClaimsDescription() {
+    public ClaimsDescription toOpenID4VCIClaimsDescription() {
         return ClaimsDescription.builder()
                 .path(path())
                 .mandatory(mandatory)
