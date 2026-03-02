@@ -40,7 +40,6 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
 
     public HttpCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
         this.properties = properties;
-        this.update();
     }
 
     @Override
@@ -48,13 +47,24 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         return properties;
     }
 
+    /**
+     * Initializes credential configuration source by refreshing.
+     */
+    @Override
+    public void init() {
+        refresh();
+    }
+
     @Override
     public List<ExtendedCredentialConfiguration> retrieve() {
         return credentialConfigurations;
     }
 
+    /**
+     * Refreshes credential configurations by calling external service. Clears existing configurations and replaces with new ones.
+     */
     @Override
-    public void update() {
+    public void refresh() {
         SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         clientHttpRequestFactory.setConnectTimeout(properties.connectTimeout());
         clientHttpRequestFactory.setReadTimeout(properties.readTimeout());

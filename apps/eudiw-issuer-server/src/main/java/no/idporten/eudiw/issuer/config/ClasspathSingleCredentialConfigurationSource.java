@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.http.HttpStatus;
-import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
@@ -26,7 +25,6 @@ public class ClasspathSingleCredentialConfigurationSource implements CredentialC
     public ClasspathSingleCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
         this.properties = properties;
         this.credentialConfigurations = new ArrayList<>();
-        init();
     }
 
     @Override
@@ -34,15 +32,12 @@ public class ClasspathSingleCredentialConfigurationSource implements CredentialC
         return properties;
     }
 
+    /**
+     * Initializes and creates credential configuration only once.
+     */
     @Override
-    public List<ExtendedCredentialConfiguration> retrieve() {
-        return credentialConfigurations;
-    }
-
-    void init() {
-        JsonMapper jsonMapper = JsonMapper.builder()
-                .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
-                .build();
+    public void init() {
+        JsonMapper jsonMapper = JsonMapper.builderWithJackson2Defaults().build();
         try (InputStream inputStream = new DefaultResourceLoader().getResource(properties.uri()).getInputStream()) {
             ExtendedCredentialConfiguration extendedCredentialConfiguration = jsonMapper.readValue(inputStream, ExtendedCredentialConfiguration.class);
             log.info("Retrieved credential configuration for {} from uri {}", extendedCredentialConfiguration.getCredentialType(), properties.uri());
@@ -50,6 +45,11 @@ public class ClasspathSingleCredentialConfigurationSource implements CredentialC
         } catch (IOException e) {
             throw new IssuerServerException("server_error", "Failed to init credential configuration source.", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
+    }
+
+    @Override
+    public List<ExtendedCredentialConfiguration> retrieve() {
+        return credentialConfigurations;
     }
 
 }

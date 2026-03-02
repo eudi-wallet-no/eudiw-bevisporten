@@ -1,7 +1,9 @@
 package no.idporten.eudiw.issuer.api.openid4vci;
 
 
+import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerMetadataService;
 import no.idporten.logging.audit.AuditLogger;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,6 +29,14 @@ public class CredentialIssuerMetadataEndpointControllerTest {
 
     @MockitoBean
     private AuditLogger auditLogger;
+
+    @MockitoSpyBean
+    private CredentialIssuerMetadataService credentialIssuerMetadataService;
+
+    @BeforeEach
+    void setUp() {
+        credentialIssuerMetadataService.refreshCredentialIssuerMetadata();
+    }
 
     @DisplayName("then the issuers metadata is returned in a JSON format")
     @Test

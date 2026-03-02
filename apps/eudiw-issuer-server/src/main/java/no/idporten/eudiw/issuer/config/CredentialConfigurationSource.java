@@ -11,15 +11,19 @@ public interface CredentialConfigurationSource {
     CredentialConfigurationSourceProperties getProperties();
 
     /**
+     * Initialize this credential configuration source.  Will be called once at startup.
+     */
+    void init();
+
+    /**
      * Gets all credential configurations from this source.
-     * @return
      */
     List<ExtendedCredentialConfiguration> retrieve();
 
     /**
      * Updates the credential configurations from this source.
      */
-    default void update() {
+    default void refresh() {
     }
 
     /**
