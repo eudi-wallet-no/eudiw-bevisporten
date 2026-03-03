@@ -3,21 +3,26 @@ package no.idporten.eudiw.issuer.authoritativesources.vegvesenet;
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.config.ClasspathSingleCredentialConfigurationSource;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationSourceProperties;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class ForerkortClaimsSourceTest {
 
-
-    @Disabled
     @Test
     @DisplayName("when call push with 4 claims, then all required claims from metadata are included in push result")
     void allRequiredClaimsFromMetadataAreIncludedInPushResult() {
@@ -33,11 +38,13 @@ class ForerkortClaimsSourceTest {
 
         CredentialData credentialData = source.push(new PreAuthorizedIssuanceContext(txId, jwt), new CredentialData(Collections.unmodifiableMap(inputClaims), null));
         Map<String, Object> result = credentialData.claims();
-        // Get all claim names from DocumentMetadata
-        // TODO
-//        Set<String> expectedClaims = source.getDocumentMetadata(null).claims().stream()
-//                .map(ExtendedClaimsDescription::name)
-//                .collect(java.util.stream.Collectors.toSet());
-//        assertTrue(result.keySet().containsAll(expectedClaims), "All claims should be present in result");
+        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties("classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json", null,null, null, null));
+        credentialConfigurationSource.init();
+        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationSource.retrieve().getFirst();
+        ExtendedCredentialMetadata credentialMetadata =  credentialConfiguration.getExtendedCredentialMetadata();
+        Set<String> expectedClaims = credentialMetadata.claims().stream()
+                .map(ExtendedClaimsDescription::name)
+                .collect(java.util.stream.Collectors.toSet());
+        assertTrue(result.keySet().containsAll(expectedClaims), "All claims should be present in result");
     }
 }

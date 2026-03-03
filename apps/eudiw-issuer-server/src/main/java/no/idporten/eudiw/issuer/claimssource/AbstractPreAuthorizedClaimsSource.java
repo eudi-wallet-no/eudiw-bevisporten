@@ -2,15 +2,14 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.cache.ClaimsSourceCache;
-import no.idporten.eudiw.issuer.credentials.ClaimDataTypeValidator;
-import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;
-import no.idporten.eudiw.issuer.credentials.types.Claim;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.issuer.credentials.ClaimDataTypeValidator;
+import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -37,13 +36,6 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         if (credentialMetadata == null) {
             throw new IssuerServerException("invalid_request", "credentialMetadata null in request.", HttpStatus.BAD_REQUEST);
         }
-        CredentialMetadataContext credentialMetadataContext = new CredentialMetadataContext(credentialData.credentialConfigurationId(), null, null);
-        return validate(credentialMetadata, credentialData, credentialMetadataContext);
-    }
-
-    @NotNull
-    private CredentialData validate(ExtendedCredentialMetadata credentialMetadata, CredentialData credentialData, CredentialMetadataContext credentialMetadataContext) {
-
         Map<String, Object> claims = credentialData.claims();
         for (ExtendedClaimsDescription extendedClaimsDescription : credentialMetadata.claims()) {
             validateClaim(extendedClaimsDescription, claims);
