@@ -1,14 +1,14 @@
-package no.idporten.eudiw.issuer.claimssource.byob;
+package no.idporten.eudiw.issuer.claimssource;
 
-import no.idporten.eudiw.issuer.claimssource.AbstractPreAuthorizedClaimsSource;
-import no.idporten.eudiw.issuer.claimssource.CredentialData;
-import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import org.springframework.stereotype.Service;
 
 import static no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource.BYOB;
 
+/**
+ * Generic claims source for pre-authorized issuance where the credential data is pushed to the claims source.
+ */
 @Service
-public class ByobClaimsSource extends AbstractPreAuthorizedClaimsSource {
+public class PushPreAuthorizedClaimsSource extends AbstractPreAuthorizedClaimsSource {
 
     @Override
     public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {

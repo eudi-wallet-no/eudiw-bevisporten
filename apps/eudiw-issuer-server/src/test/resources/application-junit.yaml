@@ -22,12 +22,6 @@ credential-issuer-server:
     - uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
     - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
 
-  dynamic-credential-configuration-template:
-    grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-    authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
-    credential_signing_keystore: eaa-provider
-
 maskinporten:
   lib:
     issuer: https://dummy-maskinporten.no/

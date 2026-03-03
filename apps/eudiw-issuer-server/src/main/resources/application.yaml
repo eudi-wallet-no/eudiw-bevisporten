@@ -53,14 +53,6 @@ credential-issuer-server:
       read-timeout: 2s
       cache-ttl: 28s
 
-  dynamic-credential-configuration-template:
-    credential-datasource-uri: class://no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource
-    validity-days: 30
-    grant-type: urn:ietf:params:oauth:grant-type:pre-authorized_code
-    authorization-server: ${credential-issuer-server.authorization-servers[0].id}
-    pre-authorization-server: ${credential-issuer-server.pre-authorization-servers[0].id}
-    credential-signing-keystore: eaa-provider
-
 # Digdir standard logging
 digdir:
   access:

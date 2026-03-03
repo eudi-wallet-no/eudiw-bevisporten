@@ -35,10 +35,19 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
 
     private final CredentialConfigurationSourceProperties properties;
 
+    private RestClient restClient;
+
     private final CopyOnWriteArrayList<ExtendedCredentialConfiguration> credentialConfigurations = new CopyOnWriteArrayList<>();
 
     public HttpCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
         this.properties = properties;
+        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(properties.connectTimeout());
+        clientHttpRequestFactory.setReadTimeout(properties.readTimeout());
+        this.restClient = RestClient.builder()
+                .requestFactory(clientHttpRequestFactory)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .build();
     }
 
     @Override
@@ -64,13 +73,6 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
      */
     @Override
     public void refresh() {
-        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-        clientHttpRequestFactory.setConnectTimeout(properties.connectTimeout());
-        clientHttpRequestFactory.setReadTimeout(properties.readTimeout());
-        RestClient restClient = RestClient.builder()
-                .requestFactory(clientHttpRequestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .build();
         try {
             ExtendedCredentialConfigurations credentialConfigurations = restClient
                     .get()
@@ -106,7 +108,7 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         // TODO dette kan på sikt styres av konfigurasjonsskilden BYOB selv
         credentialConfiguration.setExtendedCredentialMetadata(fixCredentialMetadata(credentialConfiguration));
         CredentialIssuerContext credentialIssuerContext = new CredentialIssuerContext();
-        credentialIssuerContext.setCredentialDataSourceUri(URI.create("class://no.idporten.eudiw.issuer.claimssource.byob.ByobClaimsSource"));
+        credentialIssuerContext.setCredentialDataSourceUri(URI.create("class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource"));
         credentialIssuerContext.setValidityDays(30);
         credentialIssuerContext.setGrantType("urn:ietf:params:oauth:grant-type:pre-authorized_code");
         credentialIssuerContext.setAuthorizationServer("auth-eidas2sandkasse");
@@ -115,6 +117,7 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         credentialConfiguration.setCredentialIssuerContext(credentialIssuerContext);
         return credentialConfiguration;
     }
+
     private ExtendedCredentialMetadata fixCredentialMetadata(ExtendedCredentialConfiguration credentialConfiguration) {
         List<ExtendedClaimsDescription> claims = credentialConfiguration.getExtendedCredentialMetadata().claims().stream()
                 .map(claim -> {
@@ -147,6 +150,10 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
             return path;
         }
         return List.of(doctype, path.getFirst());
+    }
+
+    protected void setRestClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
 }

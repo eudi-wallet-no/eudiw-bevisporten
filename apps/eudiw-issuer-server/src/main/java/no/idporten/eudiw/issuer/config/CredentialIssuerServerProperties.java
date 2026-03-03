@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import org.slf4j.Logger;
@@ -49,8 +48,6 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     private List<CredentialConfigurationSource> credentialConfigurationSources = new ArrayList<>();
 
     private List<CredentialConfigurationSourceProperties> credentialConfigurationSourcesProperties = new ArrayList<>();
-
-    private CredentialIssuerContext dynamicCredentialConfigurationTemplate;
 
     @NotNull
     private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
