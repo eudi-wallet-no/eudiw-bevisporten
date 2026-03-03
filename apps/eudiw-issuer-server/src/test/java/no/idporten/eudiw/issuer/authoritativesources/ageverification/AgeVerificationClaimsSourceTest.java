@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.authoritativesources.ageverification;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import no.digdir.freg.audit.AuditLog;
 import no.digdir.freg.domain.json.Folkeregisterperson;
 import no.digdir.freg.eventlog.EventLog;
@@ -19,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +42,9 @@ class AgeVerificationClaimsSourceTest {
     @Autowired
     private PersonConverterService personConverterService;
 
+    @Autowired
+    private JsonMapper jsonMapper;
+
     @MockitoBean("fregRestClient")
     private RestClient restClient;
 
@@ -56,7 +59,7 @@ class AgeVerificationClaimsSourceTest {
 
     @BeforeEach
     void manuallyConfigureBeans() {
-        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new JsonMapper(), fregIntegration);
+        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), jsonMapper, fregIntegration);
         aVClaimsSource = new AgeVerificationClaimsSource(fregService, personConverterService);
     }
 

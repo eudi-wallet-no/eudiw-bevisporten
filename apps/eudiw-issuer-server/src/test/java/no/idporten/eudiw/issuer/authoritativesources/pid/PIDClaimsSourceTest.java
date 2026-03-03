@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.authoritativesources.pid;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.digdir.freg.audit.AuditLog;
 import no.digdir.freg.domain.json.Folkeregisterperson;
 import no.digdir.freg.eventlog.EventLog;
@@ -19,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -46,6 +46,9 @@ class PIDClaimsSourceTest {
     @MockitoBean("fregRestClient")
     private RestClient restClient;
 
+    @Autowired
+    private JsonMapper jsonMapper;
+
     @MockitoBean
     private FregIntegration fregIntegration;
 
@@ -58,7 +61,7 @@ class PIDClaimsSourceTest {
 
     @BeforeEach
     void manuallyConfigureBeans() {
-        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
+        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), jsonMapper, fregIntegration);
         pidClaimsSource = new PIDMdocClaimsSource(fregService, personConverterService);
     }
 
@@ -98,7 +101,7 @@ class PIDClaimsSourceTest {
     @Test
     @DisplayName("then attribute names can be constructed for SD-JWT VC format")
     void pullSDJwtVC() {
-        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), new ObjectMapper(), fregIntegration);
+        FregService fregService = new FregService(new FregResultMapper(), new AuditLog(auditLogger), new EventLog(eventLogger), jsonMapper, fregIntegration);
         PIDSDJwtClaimsSource pidCs = new PIDSDJwtClaimsSource(fregService, personConverterService);
         String fnr = "12345678901";
         Folkeregisterperson fregPerson = createFolkeregisterperson();
