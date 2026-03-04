@@ -52,8 +52,10 @@ public class IssuanceStatusController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Status for credential issuance process", content = @Content(schema = @Schema(implementation = CredentialIssuanceStatusResponse.class))),
     })
-    @GetMapping(path = Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_STATUS_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = {Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_STATUS_ENDPOINT, Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_STATUS_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialIssuanceStatusResponse> issuanceStatusEndpoint(
+            @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
+            @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @Parameter(description = "Issuance transaction id", example = "xyz123...")
             @PathVariable(name = "issuance_transaction_id") String issuanceTransactionId,
             HttpServletRequest request) {
