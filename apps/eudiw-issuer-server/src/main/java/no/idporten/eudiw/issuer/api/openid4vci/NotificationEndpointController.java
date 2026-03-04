@@ -31,8 +31,9 @@ public class NotificationEndpointController {
         this.accessTokenValidationService = accessTokenValidationService;
     }
 
-    @PostMapping(path = Endpoints.NOTIFICATION_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = {Endpoints.NOTIFICATION_ENDPOINT, Endpoints.NOTIFICATION_ENDPOINT_TENANT}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> notificationEndpoint(
+            @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @RequestBody NotificationRequest notificationRequest,
             @RequestHeader(required = false, value = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         // TODO JWT accessToken = https://digdir.atlassian.net/browse/EUW-533

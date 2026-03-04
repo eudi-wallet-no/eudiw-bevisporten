@@ -67,8 +67,10 @@ public class CredentialOfferController {
                             schema = @Schema(implementation = ErrorResponse.class))),
 
     })
-    @GetMapping(path = Endpoints.CREATE_CREDENTIAL_OFFER_ENDPOINT, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = {Endpoints.CREATE_CREDENTIAL_OFFER_ENDPOINT, Endpoints.CREATE_CREDENTIAL_OFFER_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialOffer> createCredentialOfferEndpoint(
+            @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
+            @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @Parameter(description = "Credential configuration identifier. See credential issuer metadata.", example = "some.known.credential_mso_mdoc")
             @RequestParam(name = "credential_configuration_id", required = false) String credentialConfigurationId) {
         return ResponseEntity
@@ -97,8 +99,10 @@ public class CredentialOfferController {
                             schema = @Schema(implementation = ErrorResponse.class))),
 
     })
-    @PostMapping(path = Endpoints.CREATE_CREDENTIAL_OFFER_ENDPOINT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = {Endpoints.CREATE_CREDENTIAL_OFFER_ENDPOINT, Endpoints.CREATE_CREDENTIAL_OFFER_ENDPOINT_TENANT}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CredentialOffer> createCredentialOfferEndpoint(
+            @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
+            @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @Valid @RequestBody CredentialOfferRequest credentialOfferRequest) {
         return ResponseEntity
                 .status(HttpStatus.OK)
