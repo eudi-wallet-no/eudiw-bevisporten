@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.credentials;
 
 import com.nimbusds.jose.jwk.JWK;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.formats.MDocService;
 import no.idporten.eudiw.issuer.credentials.formats.SDJWTService;
@@ -28,18 +29,18 @@ public class CredentialCreateService {
     /**
      * Creates credentials in the format configured on credential configuration.
      */
-    public List<Credential> createCredentials(List<JWK> bindingKeys, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    public List<Credential> createCredentials(CredentialIssuerTenant tenant, List<JWK> bindingKeys, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
         if (bindingKeys == null) {
             // TODO this is most likely invalid - test with android and ios updated to OpenID4VCI 1!
-            return List.of(createCredential(null, credentialConfiguration, claims));
+            return List.of(createCredential(tenant, null, credentialConfiguration, claims));
         }
-        return bindingKeys.stream().map(bindingKey -> createCredential(bindingKey, credentialConfiguration, claims)).toList();
+        return bindingKeys.stream().map(bindingKey -> createCredential(tenant, bindingKey, credentialConfiguration, claims)).toList();
     }
 
-    private Credential createCredential(JWK bindingKey, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    private Credential createCredential(CredentialIssuerTenant tenant, JWK bindingKey, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
         return switch (credentialConfiguration.getFormat()) {
-            case MSO_MDOC -> mDocService.issueCredential(bindingKey, credentialConfiguration, claims);
-            case SD_JWT_VC -> sdjwtService.issueCredential(bindingKey, credentialConfiguration, claims);
+            case MSO_MDOC -> mDocService.issueCredential(tenant, bindingKey, credentialConfiguration, claims);
+            case SD_JWT_VC -> sdjwtService.issueCredential(tenant, bindingKey, credentialConfiguration, claims);
             case null -> throw new IssuerServerException("server_error", "Missing credential format.", HttpStatus.INTERNAL_SERVER_ERROR);
         };
     }

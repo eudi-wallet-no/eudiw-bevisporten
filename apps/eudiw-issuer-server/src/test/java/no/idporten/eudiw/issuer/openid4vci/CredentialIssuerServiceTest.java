@@ -5,11 +5,10 @@ import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
+import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.StringValue;
@@ -41,12 +40,6 @@ import static org.mockito.Mockito.*;
 @DisplayName("When issuing credentials")
 @ExtendWith(MockitoExtension.class)
 public class CredentialIssuerServiceTest {
-
-    @Mock
-    private CredentialIssuerServerProperties credentialIssuerServerProperties;
-
-    @Mock
-    private CredentialConfigurationService credentialConfigurationService;
 
     @Mock
     private ClaimsSourceService claimsSourceService;
@@ -98,15 +91,17 @@ public class CredentialIssuerServiceTest {
                             .credentialDataSourceUri(URI.create("class://" + claimsSource.getClass().getName()))
                             .build())
                     .build();
+            CredentialIssuerTenant credentialIssuerTenant = spy(CredentialIssuerTenant.builder().credentialIssuer(URI.create("https://junit.idporten.no")).build());
+            doReturn(credentialConfiguration).when(credentialIssuerTenant).findCredentialConfiguration(eq("cid"));
+
             List<Claim> claims = List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build());
             when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(claims);
-            when(credentialConfigurationService.findCredentialConfiguration(eq("cid"))).thenReturn(credentialConfiguration);
             when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
-            when(credentialCreateService.createCredentials(isNull(), eq(credentialConfiguration), anyList()))
+            when(credentialCreateService.createCredentials(any(), isNull(), eq(credentialConfiguration), anyList()))
                     .thenReturn(List.of(Credential.builder().credential("{credential-with-n1-p1-v1}").build()));
             IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(transactionId);
             when(credentialIssuanceStatusService.credentialIssued(eq("cid"), eq(issuanceTransactionId))).thenReturn(new NotificationId("nid"));
-            CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
+            CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialIssuerTenant, credentialRequest, accessToken);
             List<Credential> credentials = credentialResponse.getCredentials();
             assertAll(
                     () -> assertEquals(accessToken, credentialIssueContextCaptor.getValue().accessToken()),

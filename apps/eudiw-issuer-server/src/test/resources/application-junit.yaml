@@ -4,7 +4,7 @@ spring:
     environment: junit
 
 credential-issuer-server:
-  credential-issuer: https://junit.eidas2sandkasse.dev/
+  credential-issuer: https://junit.eidas2sandkasse.dev
   authorization-servers:
     - id: junit
       issuer: https://junit.idporten.no
@@ -16,11 +16,13 @@ credential-issuer-server:
       api-key: junit-key
   cryptographic-bindings:
     - jwk
-  credentialConfigurationSourcesProperties:
-    - uri: classpath:credential-configurations/junit_mso_mdoc.json
-    - uri: classpath:credential-configurations/junit_sd_jwt_vc.json
-    - uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
-    - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+  tenants:
+    root:
+      credential-configuration-sources-properties:
+        - uri: classpath:credential-configurations/junit_mso_mdoc.json
+        - uri: classpath:credential-configurations/junit_sd_jwt_vc.json
+        - uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
+        - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
 
 maskinporten:
   lib:

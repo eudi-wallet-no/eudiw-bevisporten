@@ -15,6 +15,7 @@ import com.nimbusds.jwt.SignedJWT;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
@@ -44,6 +45,9 @@ public class SDJWTServiceTest {
 
     @Autowired
     private SDJWTService sdjwtService;
+
+    @Autowired
+    private CredentialIssuerTenantService credentialIssuerTenantService;
 
     @BeforeAll
     static void addBouncyCastle() {
@@ -82,6 +86,7 @@ public class SDJWTServiceTest {
                 30);
         JWK deviceKey = generateDeviceKey();
         SDJwt sdJwt = sdjwtService.createSDJwt(
+                credentialIssuerTenantService.findTenantById("root"),
                 deviceKey,
                 credentialConfiguration,
                 claims);
@@ -107,7 +112,7 @@ public class SDJWTServiceTest {
         SDJwt verifiedSDJwt = verificationResult.getSdJwt();
         SignedJWT signedJwt = SignedJWT.parse(verifiedSDJwt.getJwt());
         assertAll(
-                () -> assertEquals("https://junit.eidas2sandkasse.dev/", signedJwt.getJWTClaimsSet().getIssuer()),
+                () -> assertEquals("https://junit.eidas2sandkasse.dev", signedJwt.getJWTClaimsSet().getIssuer()),
                 () -> assertEquals("urn:foo", signedJwt.getJWTClaimsSet().getStringClaim("vct")),
                 () -> assertEquals(
                         Clock.systemUTC().instant().getEpochSecond(),

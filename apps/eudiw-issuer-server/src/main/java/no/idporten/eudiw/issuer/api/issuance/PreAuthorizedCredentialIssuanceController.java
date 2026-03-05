@@ -11,9 +11,10 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.api.SwaggerConfiguration;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceResponse;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceService;
@@ -29,13 +30,20 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = SwaggerConfiguration.API_TAG, description = SwaggerConfiguration.API_DESCRIPTION)
-@RequiredArgsConstructor
 @RestController
 public class PreAuthorizedCredentialIssuanceController {
 
+    private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final PreAuthorizedIssuanceService preAuthorizedIssuanceService;
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
+
+    public PreAuthorizedCredentialIssuanceController(CredentialIssuerTenantService credentialIssuerTenantService, PreAuthorizedIssuanceService preAuthorizedIssuanceService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService) {
+        this.credentialIssuerTenantService = credentialIssuerTenantService;
+        this.preAuthorizedIssuanceService = preAuthorizedIssuanceService;
+        this.authorizationServerService = authorizationServerService;
+        this.accessTokenValidationService = accessTokenValidationService;
+    }
 
     @Operation(
             summary = "Start credential issuance transaction",
@@ -58,9 +66,10 @@ public class PreAuthorizedCredentialIssuanceController {
                     required = true)
             @RequestBody @Valid PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest,
             HttpServletRequest request) {
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers()));
         accessTokenValidationService.validateAccessTokenBoundToSubject(accessToken, preAuthorizedIssuanceRequest.getSubject().getIdentifier());
-        PreAuthorizedIssuanceResponse preAuthorizedIssuanceResponse = preAuthorizedIssuanceService.startIssuerTransaction(preAuthorizedIssuanceRequest, accessToken);
+        PreAuthorizedIssuanceResponse preAuthorizedIssuanceResponse = preAuthorizedIssuanceService.startIssuerTransaction(credentialIssuerTenant, preAuthorizedIssuanceRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
                 .body(preAuthorizedIssuanceResponse);

@@ -1,8 +1,8 @@
 package no.idporten.eudiw.issuer.issuance.status;
 
 import com.nimbusds.jwt.JWT;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
@@ -22,16 +22,12 @@ public class CredentialIssuanceStatusService {
     private final static Logger log = LoggerFactory.getLogger(CredentialIssuanceStatusService.class);
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
-    private final CredentialConfigurationService credentialConfigurationService;
     private final CredentialIssuanceStatusCache credentialIssuanceStatusCache;
     private final AccessTokenValidationService accessTokenValidationService;
     private final AuditService auditService;
 
-    public CredentialIssuanceStatusService(
-            CredentialIssuerServerProperties credentialIssuerServerProperties, CredentialConfigurationService credentialConfigurationService, CredentialIssuanceStatusCache credentialIssuanceStatusCache,
-            AccessTokenValidationService accessTokenValidationService, AuditService auditService) {
+    public CredentialIssuanceStatusService(CredentialIssuerServerProperties credentialIssuerServerProperties, CredentialIssuanceStatusCache credentialIssuanceStatusCache, AccessTokenValidationService accessTokenValidationService, AuditService auditService) {
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
-        this.credentialConfigurationService = credentialConfigurationService;
         this.credentialIssuanceStatusCache = credentialIssuanceStatusCache;
         this.accessTokenValidationService = accessTokenValidationService;
         this.auditService = auditService;
@@ -63,13 +59,13 @@ public class CredentialIssuanceStatusService {
     /**
      * Get issuance status using issuance transaction id.  Status is unknown if is not tracked.
      */
-    public CredentialIssuanceStatus getIssuanceStatus(JWT accessToken, IssuanceTransactionId issuanceTransactionId) {
+    public CredentialIssuanceStatus getIssuanceStatus(JWT accessToken, CredentialIssuerTenant credentialIssuerTenant, IssuanceTransactionId issuanceTransactionId) {
         CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusCache.retrieveStatus(issuanceTransactionId);
         if (issuanceStatus == null) {
             log.info("No issuance status found for issuance_transaction_id {}", issuanceTransactionId);
             return new CredentialIssuanceStatus(issuanceTransactionId, null, "unknown");
         }
-        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
+        ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(issuanceStatus.credentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer(), credentialConfiguration.getScope()));
         return issuanceStatus;
     }

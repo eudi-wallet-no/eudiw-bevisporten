@@ -4,6 +4,8 @@ import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
 import no.idporten.eudiw.issuer.api.Endpoints;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
@@ -27,13 +29,15 @@ import java.util.List;
 @RestController
 public class CredentialEndpointController {
 
+    private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final CredentialIssuerService credentialIssuerService;
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final NonceService nonceService;
     private final ProofService proofService;
 
-    public CredentialEndpointController(CredentialIssuerService credentialIssuerService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, NonceService nonceService, ProofService proofService) {
+    public CredentialEndpointController(CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuerService credentialIssuerService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, NonceService nonceService, ProofService proofService) {
+        this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuerService = credentialIssuerService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
@@ -46,6 +50,7 @@ public class CredentialEndpointController {
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @RequestBody CredentialRequest credentialRequest,
             HttpServletRequest request) {
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forDPoPToken(request, List.of(authorizationServerService.getPrimaryAuthorizationServer())));
         credentialRequest.validate();
         if (credentialRequest.getProofs() == null && credentialRequest.getProof() == null) {
@@ -57,7 +62,7 @@ public class CredentialEndpointController {
         if (credentialRequest.getProofs() != null) {
             proofService.validateProofs(credentialRequest.getProofs());
         }
-        CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialRequest, accessToken);
+        CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialIssuerTenant, credentialRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(credentialResponse);

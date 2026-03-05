@@ -39,19 +39,37 @@ credential-issuer-server:
     - ES256
   credential-signing-algorithms:
     - ES256
-  credentialConfigurationSourcesProperties:
-    - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
-    - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-    - uri: classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
-    - uri: classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
-    - uri: classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
-    - uri: classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
-    - uri: classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
-    - uri: ${byob-service.uri}
-      api-key: ${byob-service.api-key}
-      connect-timeout: 2s
-      read-timeout: 2s
-      cache-ttl: 28s
+  tenants:
+    root:
+      credential-configuration-sources-properties:
+        - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
+        - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+        - uri: classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
+        - uri: classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
+        - uri: classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
+        - uri: classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
+        - uri: classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
+        - uri: ${byob-service.uri}
+          api-key: ${byob-service.api-key}
+          connect-timeout: 2s
+          read-timeout: 2s
+          cache-ttl: 28s
+# TODO midlertidig tenant som brukes under utvikling og testing av multi-tenancy
+    bevisgenerator:
+      display-names:
+        "no": "Bevisgenerator"
+      credential-configuration-sources-properties:
+        - uri: ${byob-service.uri}
+          api-key: ${byob-service.api-key}
+          connect-timeout: 2s
+          read-timeout: 2s
+          cache-ttl: 28s
+    # TODO midlertidig tenant som brukes under utvikling og testing av multi-tenancy
+    pid:
+      display-names:
+        "no": "PID-utsteder"
+      credential-configuration-sources-properties:
+        - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
 
 # Digdir standard logging
 digdir:

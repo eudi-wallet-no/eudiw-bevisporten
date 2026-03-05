@@ -78,7 +78,8 @@ public class AuthorizationServerService implements InitializingBean {
                     .cache(24 * 60 * 60 * 1000, 5000)
                     .build();
             JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(Set.of(JWSAlgorithm.RS256, JWSAlgorithm.ES256), jwkSource);
-            authorizationServer.setAccessTokenValidator(new AccessTokenValidator(new Issuer(authorizationServer.getIssuer()), credentialIssuerServerProperties.getCredentialIssuer(), keySelector));
+            // TODO audience fra tenants
+            authorizationServer.setAccessTokenValidator(new AccessTokenValidator(new Issuer(authorizationServer.getIssuer()), null, keySelector));
         }
     }
 

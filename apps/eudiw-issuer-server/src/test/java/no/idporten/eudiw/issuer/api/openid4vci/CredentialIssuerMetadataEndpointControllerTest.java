@@ -44,7 +44,7 @@ public class CredentialIssuerMetadataEndpointControllerTest {
         mockMvc.perform(get("/.well-known/openid-credential-issuer"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.credential_issuer").value("https://junit.eidas2sandkasse.dev/"))
+                .andExpect(jsonPath("$.credential_issuer").value("https://junit.eidas2sandkasse.dev"))
                 .andExpect(jsonPath("$.authorization_servers.[0]").value("https://junit.idporten.no"))
                 .andExpect(jsonPath("$.credential_endpoint").value("https://junit.eidas2sandkasse.dev/openid4vci/credential"))
                 .andExpect(jsonPath("$.nonce_endpoint").value("https://junit.eidas2sandkasse.dev/openid4vci/nonce"));

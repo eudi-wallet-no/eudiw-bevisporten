@@ -2,6 +2,8 @@ package no.idporten.eudiw.issuer.api.openid4vci;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import no.idporten.eudiw.issuer.api.Endpoints;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.NotificationRequest;
@@ -21,11 +23,13 @@ public class NotificationEndpointController {
 
     final Logger log = LoggerFactory.getLogger(NotificationEndpointController.class);
 
+    private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
 
-    public NotificationEndpointController(CredentialIssuanceStatusService credentialIssuanceStatusService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService) {
+    public NotificationEndpointController(CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuanceStatusService credentialIssuanceStatusService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService) {
+        this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuanceStatusService = credentialIssuanceStatusService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
@@ -39,6 +43,7 @@ public class NotificationEndpointController {
         // TODO JWT accessToken = https://digdir.atlassian.net/browse/EUW-533
         log.info("Received notification request: {}", notificationRequest);
         log.info("Received notification request authorization header: {}", authorizationHeader);
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         notificationRequest.validate();
         credentialIssuanceStatusService.walletStatusUpdated(new NotificationId(notificationRequest.notificationId()), notificationRequest.event());
         return ResponseEntity

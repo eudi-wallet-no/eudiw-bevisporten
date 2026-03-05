@@ -8,7 +8,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
@@ -30,7 +30,6 @@ import java.util.List;
 @Service
 public class CredentialIssuerService {
 
-    private final CredentialConfigurationService credentialConfigurationService;
     private final ClaimsSourceService claimsSourceService;
     private final AccessTokenValidationService accessTokenValidationService;
 
@@ -39,13 +38,13 @@ public class CredentialIssuerService {
     private final AuditService auditService;
 
     @SneakyThrows
-    public CredentialResponse issueCredentials(CredentialRequest credentialRequest, JWT accessToken) {
-        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
+    public CredentialResponse issueCredentials(CredentialIssuerTenant tenant, CredentialRequest credentialRequest, JWT accessToken) {
+        ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
         List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs(), credentialRequest.getProof());
         List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(accessToken, credentialConfiguration.getExtendedCredentialMetadata()));
-        List<Credential> credentials = credentialCreateService.createCredentials(bindingKeys, credentialConfiguration, claims);
+        List<Credential> credentials = credentialCreateService.createCredentials(tenant, bindingKeys, credentialConfiguration, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
 

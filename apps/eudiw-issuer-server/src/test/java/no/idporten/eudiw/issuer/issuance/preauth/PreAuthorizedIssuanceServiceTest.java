@@ -2,14 +2,10 @@ package no.idporten.eudiw.issuer.issuance.preauth;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
-import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
-import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,27 +14,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.net.URI;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("When starting to issuing credentials in the pre-authorized code flow")
 @ExtendWith(MockitoExtension.class)
 public class PreAuthorizedIssuanceServiceTest {
-
-    @Mock
-    private CredentialIssuerServerProperties credentialIssuerServerProperties;
-
-    @Mock
-    private CredentialConfigurationService credentialConfigurationService;
-
-    @Mock
-    private ClaimsSourceService claimsSourceService;
-
-    @Mock
-    private AccessTokenValidationService accessTokenValidationService;
-
-    @Mock
-    private CredentialIssuanceStatusService credentialIssuanceStatusService;
 
     @Mock
     private AuditService auditService;
@@ -49,12 +32,14 @@ public class PreAuthorizedIssuanceServiceTest {
     @DisplayName("then credential configuration must support the pre-authorized code flow")
     @Test
     void testConfigurationMustSupportPreAuthorizedCodeFlow() {
-        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(ExtendedCredentialConfiguration.builder()
+        CredentialIssuerTenant credentialIssuerTenant = spy(CredentialIssuerTenant.builder().credentialIssuer(URI.create("https://junit.eidas2sandkasse.dev/foo")).build());
+        doReturn(ExtendedCredentialConfiguration.builder()
                 .credentialConfigurationId("foo")
-                        .credentialIssuerContext(CredentialIssuerContext.builder().grantType("authorization_code").build())
-                .build());
+                .credentialIssuerContext(CredentialIssuerContext.builder().grantType("authorization_code").build())
+                .build())
+                .when(credentialIssuerTenant).findCredentialConfiguration(eq("foo"));
         PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest = PreAuthorizedIssuanceRequest.builder().credentialConfigurationId("foo").build();
-        IssuerServerException e = assertThrows(IssuerServerException.class, () -> preAuthorizedIssuanceService.startIssuerTransaction(preAuthorizedIssuanceRequest, mock(JWT.class)));
+        IssuerServerException e = assertThrows(IssuerServerException.class, () -> preAuthorizedIssuanceService.startIssuerTransaction(credentialIssuerTenant, preAuthorizedIssuanceRequest, mock(JWT.class)));
         assertAll(
                 () -> assertEquals(HttpStatus.BAD_REQUEST, e.getHttpStatus()),
                 () -> assertEquals("invalid_request", e.getError()),

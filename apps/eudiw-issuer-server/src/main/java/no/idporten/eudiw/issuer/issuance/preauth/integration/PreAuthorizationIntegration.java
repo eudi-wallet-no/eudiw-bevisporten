@@ -1,8 +1,6 @@
 package no.idporten.eudiw.issuer.issuance.preauth.integration;
 
-import lombok.RequiredArgsConstructor;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
@@ -12,20 +10,21 @@ import org.springframework.web.client.RestClient;
 /**
  * Service adding pre-authorizations to auth proxy.
  */
-@RequiredArgsConstructor
 @Service
 public class PreAuthorizationIntegration {
 
     public static final String PRE_AUTHORIZATIONS_ENDPOINT = "/api/v1/pre-authorizations";
 
-    private final CredentialIssuerServerProperties credentialIssuerServerProperties;
-    private final CredentialConfigurationService credentialConfigurationService;
     private final RestClient preAuthorizationRestClient;
 
-    public String preAuthorize(IssuanceTransactionId issuanceTransactionId, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest) {
-        ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
+    public PreAuthorizationIntegration(RestClient preAuthorizationRestClient) {
+        this.preAuthorizationRestClient = preAuthorizationRestClient;
+    }
+
+    public String preAuthorize(CredentialIssuerTenant credentialIssuerTenant, IssuanceTransactionId issuanceTransactionId, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest) {
+        ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         PreAuthorizationRequest preAuthorizationRequest = PreAuthorizationRequest.builder()
-                .aud(credentialIssuerServerProperties.getCredentialIssuer().toString())
+                .aud(credentialIssuerTenant.getCredentialIssuer().toString())
                 .sub(preAuthorizedIssuanceRequest.getSubject().getIdentifier())
                 .scope(credentialConfiguration.getScope())
                 .txId(issuanceTransactionId.getValue())

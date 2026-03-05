@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.api.openid4vci;
 
 
 import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidator;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
@@ -38,6 +39,9 @@ public class CredentialEndpointControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private CredentialIssuerTenantService credentialIssuerTenantService;
+
     @MockitoBean
     private AuthorizationServerService authorizationServerService;
 
@@ -71,7 +75,7 @@ public class CredentialEndpointControllerTest {
     @Test
     void testPostCredentialRequest() throws Exception {
         setUpAccessTokenValidation();
-        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
+        when(credentialIssuerService.issueCredentials(any(), any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
         mockMvc.perform(post("/openid4vci/credential")
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -95,7 +99,7 @@ public class CredentialEndpointControllerTest {
     @Test
     void testPostCredentialRequestWithMultipleProofs() throws Exception {
         setUpAccessTokenValidation();
-        when(credentialIssuerService.issueCredentials(any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
+        when(credentialIssuerService.issueCredentials(any(), any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
         mockMvc.perform(post("/openid4vci/credential")
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE)

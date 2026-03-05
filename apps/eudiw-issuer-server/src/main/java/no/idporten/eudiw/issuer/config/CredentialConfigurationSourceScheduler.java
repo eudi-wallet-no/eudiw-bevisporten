@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Schedule continuous updates of credential configurations from HTTP sources.
  */
@@ -25,7 +28,8 @@ public class CredentialConfigurationSourceScheduler implements InitializingBean 
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        for (CredentialConfigurationSource credentialConfigurationSource : credentialIssuerServerProperties.getCredentialConfigurationSources()) {
+        List<CredentialConfigurationSource> configurationSources = credentialIssuerServerProperties.getTenants().values().stream().map(CredentialIssuerTenant::getCredentialConfigurationSources).flatMap(Collection::stream).toList();
+        for (CredentialConfigurationSource credentialConfigurationSource : configurationSources) {
             if (credentialConfigurationSource instanceof HttpCredentialConfigurationSource) {
                 scheduleUpdate("*/30 * * * * *", credentialConfigurationSource);
             }
