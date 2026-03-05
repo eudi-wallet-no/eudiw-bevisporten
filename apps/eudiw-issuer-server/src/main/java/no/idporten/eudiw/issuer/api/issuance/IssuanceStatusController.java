@@ -64,7 +64,7 @@ public class IssuanceStatusController {
             @PathVariable(name = "issuance_transaction_id") String issuanceTransactionId,
             HttpServletRequest request) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
-        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers()));
+        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers(), credentialIssuerTenant.getCredentialIssuer()));
         CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, credentialIssuerTenant, new IssuanceTransactionId(issuanceTransactionId));
         return ResponseEntity.ok(CredentialIssuanceStatusResponse.builder()
                 .issuanceTransactionId(issuanceStatus.issuanceTransactionId())

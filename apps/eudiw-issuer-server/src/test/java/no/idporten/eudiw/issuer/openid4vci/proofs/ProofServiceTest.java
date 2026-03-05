@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.openid4vci.proofs;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,10 @@ public class ProofServiceTest {
     void testValidProofFromAndroidWallet() throws Exception {
        String jwt = "eyJhbGciOiJFUzI1NiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiandrIjp7Imt0eSI6IkVDIiwiY3J2IjoiUC0yNTYiLCJ4IjoiOWRvODhIMGdTQWhfd1YxQzRFbF90dHlBejBQSVlXR2dOclVjbFVSMUNuNCIsInkiOiJwRUNocDhVaWVZZm5mSXQ4cWlQUmNLbVRVRDZGdTBkaXgySFVXX2xBVXk4In19.eyJhdWQiOiJodHRwczovL3V0c3RlZGVyLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldCIsImlhdCI6MTc2Mjk1MTI4NSwiaXNzIjoid2FsbGV0LWRldiIsIm5vbmNlIjoiZzVsSERxVVdId1hlOGNpQlF2ZU8yMjQ4YzVQS3JSZDZranRfZ3NvR1dvSSJ9.5RL_YVDljEoWCZxyxWA2y5t0yBpSyOl91Om8huBuyPEOtfrAqULD2rvy79K7XCU65ZeuB2ySLynd03u0xAJq8Q";
        Proofs proofs = createJWTProofs(jwt);
-       proofService.validateProofs(proofs);
+        CredentialIssuerTenant credentialIssuerTenant = CredentialIssuerTenant.builder()
+                .credentialIssuer(URI.create("https://utsteder.test.eidas2sandkasse.net"))
+                .build();
+       proofService.validateProofs(credentialIssuerTenant, proofs);
        assertEquals(1, proofs.getBindingKeys().size());
     }
 

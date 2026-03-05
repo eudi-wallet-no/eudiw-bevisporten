@@ -67,7 +67,7 @@ public class PreAuthorizedCredentialIssuanceController {
             @RequestBody @Valid PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest,
             HttpServletRequest request) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
-        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers()));
+        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers(), credentialIssuerTenant.getCredentialIssuer()));
         accessTokenValidationService.validateAccessTokenBoundToSubject(accessToken, preAuthorizedIssuanceRequest.getSubject().getIdentifier());
         PreAuthorizedIssuanceResponse preAuthorizedIssuanceResponse = preAuthorizedIssuanceService.startIssuerTransaction(credentialIssuerTenant, preAuthorizedIssuanceRequest, accessToken);
         return ResponseEntity

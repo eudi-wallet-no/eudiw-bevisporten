@@ -22,15 +22,12 @@ import java.util.Set;
 
 public class AccessTokenValidator extends AbstractJWTValidator {
 
-    private final Set<String> acceptedAudience;
-
-    public AccessTokenValidator(Issuer expectedIssuer, URI acceptedAudience, JWSKeySelector jwsKeySelector) {
+    public AccessTokenValidator(Issuer expectedIssuer, JWSKeySelector jwsKeySelector) {
         super(JOSEObjectType.JWT, expectedIssuer, new ClientID("IGNORE"), jwsKeySelector, null);
-        this.acceptedAudience = null;
     }
 
     @SuppressWarnings("unchecked")
-    public JWT validate(JWT accessToken) { // TODO koble inn audience fra tenant
+    public JWT validate(JWT accessToken, URI acceptedAudience) {
         if (accessToken == null) {
             throw new IssuerServerException("invalid_request", "Missing access token", HttpStatus.UNAUTHORIZED);
         }
@@ -41,7 +38,8 @@ public class AccessTokenValidator extends AbstractJWTValidator {
             SignedJWT signedJWT = (SignedJWT) accessToken;
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
             jwtProcessor.setJWSKeySelector((JWSKeySelector<SecurityContext>) this.getJWSKeySelector());
-            jwtProcessor.setJWTClaimsSetVerifier(new AccessTokenClaimsVerifier<>(acceptedAudience,
+            jwtProcessor.setJWTClaimsSetVerifier(new AccessTokenClaimsVerifier<>(
+                    Set.of(String.valueOf(acceptedAudience)),
                     Set.of("iss", "aud", "scope", "iat", "exp")));
             jwtProcessor.setJWSTypeVerifier(createJWSTypeVerifier());
             jwtProcessor.process(accessToken, (SecurityContext) null);

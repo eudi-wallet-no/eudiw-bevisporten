@@ -17,6 +17,7 @@ import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proof;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
@@ -34,21 +35,21 @@ public class ProofService {
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
     @Deprecated
-    public void validateProof(Proof proof) {
+    public void validateProof(CredentialIssuerTenant credentialIssuerTenant, Proof proof) {
             if (PROOF_TYPE_JWT.equals(proof.getProofType())) {
-                validateJwtProof(proof.getJwt());
+                validateJwtProof(credentialIssuerTenant, proof.getJwt());
             } else {
                 throw new InvalidProof(null, "Unsupported proof type.");
         }
     }
 
-    public void validateProofs(Proofs proofs) {
+    public void validateProofs(CredentialIssuerTenant credentialIssuerTenant, Proofs proofs) {
         for (String jwtProof : proofs.getJwt()) {
-            validateJwtProof(jwtProof);
+            validateJwtProof(credentialIssuerTenant, jwtProof);
         }
     }
 
-    public void validateJwtProof(String jwtProof) {
+    public void validateJwtProof(CredentialIssuerTenant credentialIssuerTenant, String jwtProof) {
         try {
             SignedJWT jwt = SignedJWT.parse(jwtProof);
             JWSHeader jwsHeader = jwt.getHeader();
@@ -66,7 +67,7 @@ public class ProofService {
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
             jwtProcessor.setJWSKeySelector(new SingleKeyJWSKeySelector<>(JWSAlgorithm.ES256, ecKey.toPublicKey()));
             jwtProcessor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier<>(
-                    null, // TODO audience from tenant Collections.singleton(credentialIssuerServerProperties.getCredentialIssuer().toString()),
+                    Collections.singleton(credentialIssuerTenant.getCredentialIssuer().toString()),
                     null,
                     Set.of("nonce", "iat"),
                     null

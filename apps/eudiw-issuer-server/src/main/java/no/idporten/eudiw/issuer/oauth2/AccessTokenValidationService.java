@@ -43,7 +43,7 @@ public class AccessTokenValidationService {
             if (authorizationServer == null) {
                 throw new IssuerServerException("invalid_token", "Unknown authorization server.", HttpStatus.UNAUTHORIZED);
             }
-            JWT validAccessToken = authorizationServer.getAccessTokenValidator().validate(jwtAccessToken);
+            JWT validAccessToken = authorizationServer.getAccessTokenValidator().validate(jwtAccessToken, context.audience());
             if (AccessTokenType.DPOP.equals(accessToken.getType())) {
                 validateDPopAccessToken(authorizationServer, context);
             }
