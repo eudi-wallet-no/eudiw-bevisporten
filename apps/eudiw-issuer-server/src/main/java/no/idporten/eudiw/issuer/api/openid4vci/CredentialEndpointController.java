@@ -51,16 +51,16 @@ public class CredentialEndpointController {
             @RequestBody CredentialRequest credentialRequest,
             HttpServletRequest request) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
-        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forDPoPToken(request, List.of(authorizationServerService.getPrimaryAuthorizationServer())));
+        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forDPoPToken(request, List.of(authorizationServerService.getPrimaryAuthorizationServer()), credentialIssuerTenant.getCredentialIssuer()));
         credentialRequest.validate();
         if (credentialRequest.getProofs() == null && credentialRequest.getProof() == null) {
             throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
         }
         if (credentialRequest.getProof() != null) {
-            proofService.validateProof(credentialRequest.getProof());
+            proofService.validateProof(credentialIssuerTenant, credentialRequest.getProof());
         }
         if (credentialRequest.getProofs() != null) {
-            proofService.validateProofs(credentialRequest.getProofs());
+            proofService.validateProofs(credentialIssuerTenant, credentialRequest.getProofs());
         }
         CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialIssuerTenant, credentialRequest, accessToken);
         return ResponseEntity

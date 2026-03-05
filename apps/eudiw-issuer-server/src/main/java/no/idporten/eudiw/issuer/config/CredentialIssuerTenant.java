@@ -57,4 +57,8 @@ public class CredentialIssuerTenant {
                 .orElseThrow(() -> new IssuerServerException("unknown_credential_identifier", "Unknown credential identifier.", HttpStatus.BAD_REQUEST));
     }
 
+    public boolean isRootCredentialIssuer() {
+        return CredentialIssuerTenantService.ROOT_TENANT_ID.equals(id);
+    }
+
 }

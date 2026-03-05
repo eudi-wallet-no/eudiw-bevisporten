@@ -60,7 +60,7 @@ public class CredentialIssuanceStatusControllerTest {
 
     private void setUpAccessTokenValidation() {
         AccessTokenValidator accessTokenValidator = mock(AccessTokenValidator.class);
-        when(accessTokenValidator.validate(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+        when(accessTokenValidator.validate(any(), any())).thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
         AuthorizationServer authorizationServer = mock(AuthorizationServer.class);
         when(authorizationServer.getIssuer()).thenReturn(URI.create("https://idporten.dev"));
         when(authorizationServer.getAccessTokenValidator()).thenReturn(accessTokenValidator);
