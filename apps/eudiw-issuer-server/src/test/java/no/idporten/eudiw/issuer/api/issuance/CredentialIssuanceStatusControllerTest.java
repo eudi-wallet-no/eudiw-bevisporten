@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.api.issuance;
 
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidator;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
@@ -37,6 +38,9 @@ public class CredentialIssuanceStatusControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private CredentialIssuerTenantService credentialIssuerTenantService;
 
     @MockitoBean
     private CredentialIssuanceStatusService credentialIssuanceStatusService;
@@ -80,8 +84,8 @@ public class CredentialIssuanceStatusControllerTest {
     void testReturnCredentialIssuanceStatus() throws Exception {
         setUpAccessTokenValidation();
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
-        when(credentialIssuanceStatusService.getIssuanceStatus(any(), eq(issuanceTransactionId))).thenReturn(new CredentialIssuanceStatus(issuanceTransactionId, "foo", "credential_issued"));
-        mockMvc.perform(get("/api/v1/credential/issuance-transaction/{}}", issuanceTransactionId)
+        when(credentialIssuanceStatusService.getIssuanceStatus(any(), any(), eq(issuanceTransactionId))).thenReturn(new CredentialIssuanceStatus(issuanceTransactionId, "foo", "credential_issued"));
+        mockMvc.perform(get("/api/v1/credential/issuance-transaction/{issuanceTransactionId}", issuanceTransactionId)
                         .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())

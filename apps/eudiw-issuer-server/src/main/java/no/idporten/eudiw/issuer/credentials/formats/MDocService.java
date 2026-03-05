@@ -11,6 +11,7 @@ import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.ValidityInfo;
 import kotlin.time.Instant;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
@@ -37,7 +38,7 @@ public class MDocService {
         this.keystoreManager = keystoreManager;
     }
 
-    public Credential issueCredential(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
         String mDoc = encode(createMDoc(jwk, credentialConfiguration, claims));
         //System.out.println("Issuing credential " + mDoc);
         return Credential.builder().credential(mDoc).build();

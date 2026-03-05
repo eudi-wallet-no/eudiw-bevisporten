@@ -29,16 +29,18 @@ public class Endpoints {
     public final static String OPENAPI_ENDPOINT = "/swagger-ui/index.html";
     // Tenant variable
     public final static String TENANT_PATH_VARIABLE = "tenant";
+    // The root tenant is special
+    public static final String ROOT_TENANT_ID = "root";
 
-    // TODO root handling når konfigurasjon for tenants innføres
+
     /**
-     * Calculate endpoint uri from credential issuer uri, path and tenant.  Specially handles root...
+     * Calculate endpoint uri from credential issuer uri, path and tenant.  Specially handles root as the root uri / .
      */
     public static URI endpointURI(URI issuerUri, String path, String tenant) {
         return UriComponentsBuilder.fromUri(
                         UriComponentsBuilder.fromUri(issuerUri)
                                 .pathSegment(path.split("/"))
-                                .uriVariables(Map.of(TENANT_PATH_VARIABLE, tenant == null ||"root".equals(tenant) ? "" : tenant))
+                                .uriVariables(Map.of(TENANT_PATH_VARIABLE, tenant == null || ROOT_TENANT_ID.equals(tenant) ? "" : tenant))
                                 .build()
                                 .toUri())
                 .build()

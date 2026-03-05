@@ -4,6 +4,8 @@ import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
@@ -29,24 +31,25 @@ public class CredentialIssuerMetadataService {
     private final Logger log = LoggerFactory.getLogger(CredentialIssuerMetadataService.class);
 
     private final ClaimsSourceService claimsSourceService;
+    private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
-    private Map<String, CredentialIssuerMetadata> credentialIssuerMetadataCache = new ConcurrentHashMap<>();
+    private final Map<String, CredentialIssuerMetadata> credentialIssuerMetadataCache = new ConcurrentHashMap<>();
 
 
     @Autowired
-    public CredentialIssuerMetadataService(ClaimsSourceService claimsSourceService, CredentialIssuerServerProperties credentialIssuerServerProperties) {
+    public CredentialIssuerMetadataService(ClaimsSourceService claimsSourceService, CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuerServerProperties credentialIssuerServerProperties) {
         this.claimsSourceService = claimsSourceService;
+        this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
     }
 
     public CredentialIssuerMetadata getCredentialIssuerMetadata(String tenant) {
-        // TODO temp hack to support multiple tenants until we have a proper multi-tenant implementation. For now, we just return the same metadata for all tenants.
-        String hackTempTenant = tenant == null ? "root" : tenant;
-        CredentialIssuerMetadata credentialIssuerMetadata = credentialIssuerMetadataCache.get(hackTempTenant);
+        final String normalizedTenant = credentialIssuerTenantService.normalizeTenant(tenant);
+        CredentialIssuerMetadata credentialIssuerMetadata = credentialIssuerMetadataCache.get(normalizedTenant);
         if (credentialIssuerMetadata == null) {
-            credentialIssuerMetadata = credentialIssuerMetadata(credentialIssuerServerProperties, hackTempTenant);
-            credentialIssuerMetadataCache.put(hackTempTenant, credentialIssuerMetadata);
+            credentialIssuerMetadata = credentialIssuerMetadata(credentialIssuerServerProperties, credentialIssuerTenantService.findTenantById(normalizedTenant));
+            credentialIssuerMetadataCache.put(normalizedTenant, credentialIssuerMetadata);
         }
         return credentialIssuerMetadata;
     }
@@ -54,25 +57,28 @@ public class CredentialIssuerMetadataService {
     @Scheduled(initialDelay = 10 * 1000L, fixedRate = 30 * 1000L)
     public void refreshCredentialIssuerMetadata() {
         log.info("Refreshing credential issuer metadata for all credential issuers");
-        credentialIssuerMetadataCache.put("root", credentialIssuerMetadata(credentialIssuerServerProperties, "root"));
+        for (CredentialIssuerTenant tenant : credentialIssuerTenantService.findAllTenants()) {
+            credentialIssuerMetadataCache.put(tenant.getId(), credentialIssuerMetadata(credentialIssuerServerProperties, tenant));
+            log.info("Refreshed credential issuer metadata for tenant {}", tenant.getId());
+        }
     }
 
-    public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties credentialIssuerProperties, String tenant) {
+    public CredentialIssuerMetadata credentialIssuerMetadata(CredentialIssuerServerProperties credentialIssuerProperties, CredentialIssuerTenant tenant) {
         CredentialIssuerMetadata.CredentialIssuerMetadataBuilder builder = CredentialIssuerMetadata.builder()
-                .credentialIssuer(credentialIssuerProperties.getCredentialIssuer())
+                .credentialIssuer(tenant.getCredentialIssuer())
                 .authorizationServers(credentialIssuerProperties.getAuthorizationServers().stream().map(AuthorizationServer::getIssuer).toList())
-                .credentialEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT_TENANT, tenant))
-                .nonceEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT_TENANT, tenant))
-                .notificationEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT_TENANT, tenant))
-                .displays(credentialIssuerProperties.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(credentialIssuerProperties.getDisplayNames().get(locale)).build()).toList());
-        CredentialConfigurations credentialConfigurations = findCredentialConfigurations(credentialIssuerProperties);
+                .credentialEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.CREDENTIAL_ENDPOINT_TENANT, tenant.getId()))
+                .nonceEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT_TENANT, tenant.getId()))
+                .notificationEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT_TENANT, tenant.getId()))
+                .displays(tenant.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(tenant.getDisplayNames().get(locale)).build()).toList());
+        CredentialConfigurations credentialConfigurations = findCredentialConfigurations(credentialIssuerServerProperties, tenant);
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
     }
 
-    public CredentialConfigurations findCredentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties) {
+    private CredentialConfigurations findCredentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties, CredentialIssuerTenant tenant) {
         List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = new ArrayList<>();
-        for (CredentialConfigurationSource credentialConfigurationSource : credentialIssuerProperties.getCredentialConfigurationSources()) {
+        for (CredentialConfigurationSource credentialConfigurationSource : tenant.getCredentialConfigurationSources()) {
             extendedCredentialConfigurations.addAll(credentialConfigurationSource.retrieve());
         }
         CredentialConfigurations credentialConfigurations = new CredentialConfigurations();

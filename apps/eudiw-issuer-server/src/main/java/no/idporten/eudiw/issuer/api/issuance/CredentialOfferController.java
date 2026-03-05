@@ -75,7 +75,7 @@ public class CredentialOfferController {
             @RequestParam(name = "credential_configuration_id", required = false) String credentialConfigurationId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(credentialOfferService.createCredentialOffer(credentialConfigurationId));
+                .body(credentialOfferService.createCredentialOffer(tenant, credentialConfigurationId));
     }
 
     @CrossOrigin(origins = "*", maxAge = 3600, methods = {RequestMethod.POST, RequestMethod.OPTIONS})
@@ -106,7 +106,7 @@ public class CredentialOfferController {
             @Valid @RequestBody CredentialOfferRequest credentialOfferRequest) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(credentialOfferService.createCredentialOffer(new TreeSet<>(credentialOfferRequest.credentialConfigurationIds())));
+                .body(credentialOfferService.createCredentialOffer(tenant, new TreeSet<>(credentialOfferRequest.credentialConfigurationIds())));
     }
 
 }

@@ -66,7 +66,7 @@ public class ProofService {
             ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
             jwtProcessor.setJWSKeySelector(new SingleKeyJWSKeySelector<>(JWSAlgorithm.ES256, ecKey.toPublicKey()));
             jwtProcessor.setJWTClaimsSetVerifier(new DefaultJWTClaimsVerifier<>(
-                    Collections.singleton(credentialIssuerServerProperties.getCredentialIssuer().toString()),
+                    null, // TODO audience from tenant Collections.singleton(credentialIssuerServerProperties.getCredentialIssuer().toString()),
                     null,
                     Set.of("nonce", "iat"),
                     null

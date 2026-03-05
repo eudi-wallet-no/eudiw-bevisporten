@@ -1,69 +1,50 @@
 package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @DisplayName("When creating credential offers for the authorization code flow")
-@ExtendWith(MockitoExtension.class)
+@ActiveProfiles("junit")
+@SpringBootTest
 public class CredentialOfferServiceTest {
 
-    @Mock
-    private CredentialIssuerServerProperties credentialIssuerServerProperties;
-
-    @Mock
-    private CredentialConfigurationService credentialConfigurationService;
-
-    @Mock
+    @MockitoBean
     private AuditService auditService;
 
-    @InjectMocks
+    @Autowired
     private CredentialOfferService credentialOfferService;
 
     @DisplayName("then a credential offer is generated for a credential configuration supporting the authorization code flow")
     @Test
     void testCreateCredentialOfferForAuthorizationCodeFlow() {
-        when(credentialIssuerServerProperties.getCredentialIssuer()).thenReturn(URI.create("https://junit.issuer.idporten.no"));
-        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(ExtendedCredentialConfiguration.builder()
-                .credentialConfigurationId("foo")
-                .credentialIssuerContext(CredentialIssuerContext.builder().grantType("authorization_code").build())
-                .build());
-        CredentialOffer credentialOffer = credentialOfferService.createCredentialOffer("foo");
+        CredentialOffer credentialOffer = credentialOfferService.createCredentialOffer("root", "junitdoc_mso_mdoc");
         assertAll(
-                () -> assertEquals("https://junit.issuer.idporten.no", credentialOffer.getCredentialIssuer()),
+                () -> assertEquals("https://junit.eidas2sandkasse.dev", credentialOffer.getCredentialIssuer()),
                 () -> assertEquals(1, credentialOffer.getCredentialConfigurationIds().size()),
-                () -> assertEquals("foo", credentialOffer.getCredentialConfigurationIds().getFirst()),
+                () -> assertEquals("junitdoc_mso_mdoc", credentialOffer.getCredentialConfigurationIds().getFirst()),
                 () -> assertNotNull(credentialOffer.getGrants().getAuthorizedCodeGrant()),
                 () -> assertNull(credentialOffer.getGrants().getPreAuthorizedCodeGrant())
         );
-        verify(auditService).logCreateCredentialOffer(eq("https://junit.issuer.idporten.no"), eq(List.of("foo")));
+        verify(auditService).logCreateCredentialOffer(eq("https://junit.eidas2sandkasse.dev"), eq(List.of("junitdoc_mso_mdoc")));
     }
 
     @DisplayName("then an error is returned for credential configurations supporting only the pre-authorized code flow")
     @Test
     void testDenyCredentialOfferForPreAuthorizedCodeFlow() {
-        when(credentialConfigurationService.findCredentialConfiguration(eq("foo"))).thenReturn(ExtendedCredentialConfiguration.builder()
-                .credentialConfigurationId("foo")
-                .credentialIssuerContext(CredentialIssuerContext.builder().grantType("urn:ietf:params:oauth:grant-type:pre-authorized_code").build())
-                .build());
-        IssuerServerException e = assertThrows(IssuerServerException.class, () -> credentialOfferService.createCredentialOffer("foo"));
+        IssuerServerException e = assertThrows(IssuerServerException.class, () -> credentialOfferService.createCredentialOffer("root", "junitdoc_pre_mso_mdoc"));
         assertAll(
                 () -> assertEquals(HttpStatus.BAD_REQUEST, e.getHttpStatus()),
                 () -> assertEquals("invalid_request", e.getError()),

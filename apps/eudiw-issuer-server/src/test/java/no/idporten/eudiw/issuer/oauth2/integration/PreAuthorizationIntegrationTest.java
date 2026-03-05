@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.oauth2.integration;
 
-import no.idporten.eudiw.issuer.config.CredentialConfigurationService;
-import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.preauth.PreAuthorizedIssuanceRequest;
@@ -32,10 +32,7 @@ public class PreAuthorizationIntegrationTest {
     private PreAuthorizationIntegration preAuthorizationIntegration;
 
     @Autowired
-    private CredentialIssuerServerProperties credentialIssuerServerProperties;
-
-    @Autowired
-    private CredentialConfigurationService credentialConfigurationService;
+    private CredentialIssuerTenantService credentialIssuerTenantService;
 
     private MockServerRestClientCustomizer customizer;
 
@@ -44,7 +41,7 @@ public class PreAuthorizationIntegrationTest {
         customizer = new MockServerRestClientCustomizer();
         RestClient.Builder builder = RestClient.builder();
         customizer.customize(builder);
-        preAuthorizationIntegration = new PreAuthorizationIntegration(credentialIssuerServerProperties, credentialConfigurationService, builder.build());
+        preAuthorizationIntegration = new PreAuthorizationIntegration(builder.build());
     }
 
     @DisplayName("then a pre-authorization request containing user and transaction information is sent")
@@ -52,13 +49,14 @@ public class PreAuthorizationIntegrationTest {
     void testCreatePreAuthorization() {
         final String subjectIdentifier = "11111111111";
         final String credentialConfigurationId = "junitdoc_pre_mso_mdoc";
-        final ExtendedCredentialConfiguration credentialConfiguration = credentialConfigurationService.findCredentialConfiguration(credentialConfigurationId);
+        final CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById("root");
+        final ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(credentialConfigurationId);
         credentialConfiguration.getCredentialIssuerContext().setPreAuthorizationLifetime(Duration.ofMinutes(3));
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest = PreAuthorizedIssuanceRequest.builder()
                 .credentialConfigurationId(credentialConfigurationId)
                 .credentialConfigurationId(credentialConfigurationId)
-                .credentialIssuer("https://junit.eidas2sandkasse.dev/")
+                .credentialIssuer("https://junit.eidas2sandkasse.dev/foo")
                 .subject(new Subject(subjectIdentifier))
                 .build();
         final String validResponse = """
@@ -69,13 +67,13 @@ public class PreAuthorizationIntegrationTest {
         customizer.getServer()
                 .expect(requestTo("/api/v1/pre-authorizations"))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(jsonPath("$.aud").value("https://junit.eidas2sandkasse.dev/"))
+                .andExpect(jsonPath("$.aud").value("https://junit.eidas2sandkasse.dev"))
                 .andExpect(jsonPath("$.scope[0]").value("eudiw:junit"))
                 .andExpect(jsonPath("$.sub").value(subjectIdentifier))
                 .andExpect(jsonPath("$.tx_id").value(issuanceTransactionId.getValue()))
                 .andExpect(jsonPath("$.authorization_lifetime").value(60 * 3))
                 .andRespond(withSuccess(validResponse, MediaType.APPLICATION_JSON));
-        String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(issuanceTransactionId, preAuthorizedIssuanceRequest);
+        String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(credentialIssuerTenant, issuanceTransactionId, preAuthorizedIssuanceRequest);
         customizer.getServer().verify();
         assertEquals("pac", preAuthorizedCode);
     }

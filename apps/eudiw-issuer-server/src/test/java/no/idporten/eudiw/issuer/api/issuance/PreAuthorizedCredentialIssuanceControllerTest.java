@@ -76,7 +76,7 @@ public class PreAuthorizedCredentialIssuanceControllerTest {
     void testValidRequestResponse() throws Exception {
         JWT accessToken = accessToken("16903349844");
         doReturn(accessToken).when(accessTokenValidationService).validateAccessToken(any());
-        when(preAuthorizedIssuanceService.startIssuerTransaction(any(), eq(accessToken))).thenReturn(PreAuthorizedIssuanceResponse
+        when(preAuthorizedIssuanceService.startIssuerTransaction(any(), any(), eq(accessToken))).thenReturn(PreAuthorizedIssuanceResponse
                 .builder()
                 .credentialOffer(CredentialOffer.builder().build())
                 .issuanceTransactionId(new IssuanceTransactionId("txid"))

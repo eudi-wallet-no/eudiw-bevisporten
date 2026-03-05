@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.api.SwaggerConfiguration;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusResponse;
@@ -33,11 +35,13 @@ public class IssuanceStatusController {
 
     final Logger log = LoggerFactory.getLogger(IssuanceStatusController.class);
 
+    private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
 
-    public IssuanceStatusController(CredentialIssuanceStatusService credentialIssuanceStatusService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService) {
+    public IssuanceStatusController(CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuanceStatusService credentialIssuanceStatusService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService) {
+        this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuanceStatusService = credentialIssuanceStatusService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
@@ -59,8 +63,9 @@ public class IssuanceStatusController {
             @Parameter(description = "Issuance transaction id", example = "xyz123...")
             @PathVariable(name = "issuance_transaction_id") String issuanceTransactionId,
             HttpServletRequest request) {
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers()));
-        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, new IssuanceTransactionId(issuanceTransactionId));
+        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, credentialIssuerTenant, new IssuanceTransactionId(issuanceTransactionId));
         return ResponseEntity.ok(CredentialIssuanceStatusResponse.builder()
                 .issuanceTransactionId(issuanceStatus.issuanceTransactionId())
                 .status(issuanceStatus.status())

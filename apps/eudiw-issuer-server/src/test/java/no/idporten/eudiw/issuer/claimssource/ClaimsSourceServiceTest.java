@@ -3,19 +3,18 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.net.URI;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("When looking up claims sources")
 @ActiveProfiles("junit")
@@ -31,29 +30,16 @@ public class ClaimsSourceServiceTest {
     @MockitoBean
     AuditLogger auditLogger;
 
-    private ClaimsSource findClaimsSourceByCredentialType(String credentialType) {
-        ExtendedCredentialConfiguration ccp = credentialIssuerServerProperties.getCredentialConfigurations().stream()
-                .filter(credentialConfiguration -> credentialConfiguration.getCredentialType().equals(credentialType))
-                .findFirst()
-                .orElseThrow(() -> new IssuerServerException("server_error", "Unknown credential type [%s]".formatted(credentialType), HttpStatus.INTERNAL_SERVER_ERROR));
-        return claimsSourceService.findClaimsSource(ccp.getCredentialIssuerContext().getCredentialDataSourceUri());
-    }
-
-    @DisplayName("then the same claims source can be used for several credential configurations")
+    @DisplayName("then a claims source can be looked up by a class:// uri")
     @Test
-    void testClaimsSourceSupportsMultipleCredentialTypes() {
-        ClaimsSource claimsSourceForSdJWT = findClaimsSourceByCredentialType("urn:junitdoc-pre");
-        ClaimsSource claimsSourceForMdoc = findClaimsSourceByCredentialType("junitdoc-pre");
-        assertAll(
-                () -> assertNotNull(claimsSourceForSdJWT),
-                () -> assertSame(claimsSourceForSdJWT, claimsSourceForMdoc)
-        );
+    void testFindClaimsSource() {
+        assertNotNull(claimsSourceService.findClaimsSource(URI.create("class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource")));
     }
 
-        @DisplayName("then an exception is thrown when looking up an unknown claims source")
-        @Test
-        void testGetMetadataNonExistingClaimsSource() {
-            assertThrows(IssuerServerException.class, () -> claimsSourceService.findClaimsSource(URI.create("class://non-existing-claims-source")));
-        }
+    @DisplayName("then an exception is thrown when looking up an unknown claims source")
+    @Test
+    void testFindNonExistingClaimsSource() {
+        assertThrows(IssuerServerException.class, () -> claimsSourceService.findClaimsSource(URI.create("class://non-existing-claims-source")));
+    }
 
 }
