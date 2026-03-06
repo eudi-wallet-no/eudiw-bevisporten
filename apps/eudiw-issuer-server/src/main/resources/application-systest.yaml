@@ -24,6 +24,23 @@ credential-issuer-server:
     - id: maskinporten
       issuer: https://test.maskinporten.no/
       jwks-uri: https://test.maskinporten.no/jwk
+  # midlertidige tenants som brukes under utvikling og testing av multi-tenancy
+  tenants:
+    bevisgenerator:
+      display-names:
+        "no": "Bevisgenerator"
+      credential-configuration-sources-properties:
+        - uri: ${byob-service.uri}
+          api-key: ${byob-service.api-key}
+          connect-timeout: 2s
+          read-timeout: 2s
+          cache-ttl: 28s
+    pid:
+      display-names:
+        "no": "PID-utsteder"
+      credential-configuration-sources-properties:
+        - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
+        - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
 
 maskinporten:
   lib:
