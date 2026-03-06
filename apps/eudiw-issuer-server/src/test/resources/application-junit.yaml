@@ -18,10 +18,17 @@ credential-issuer-server:
     - jwk
   tenants:
     root:
+      display-names:
+        "no": Root Tenant
       credential-configuration-sources-properties:
         - uri: classpath:credential-configurations/junit_mso_mdoc.json
         - uri: classpath:credential-configurations/junit_sd_jwt_vc.json
         - uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
+        - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+    junit:
+      display-names:
+        "no": Junit Tenant
+      credential-configuration-sources-properties:
         - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
 
 maskinporten:
