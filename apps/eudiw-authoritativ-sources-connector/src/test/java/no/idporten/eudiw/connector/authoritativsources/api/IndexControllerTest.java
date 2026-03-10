@@ -9,8 +9,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc
 @SpringBootTest
@@ -22,8 +21,8 @@ class IndexControllerTest {
     @Test
     void index() throws Exception {
         MvcResult mvcResult = mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("text/plain;charset=UTF-8"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/swagger-ui/index.html"))
                 .andReturn();
         String content = mvcResult.getResponse().getContentAsString();
         assertNotNull(content);
