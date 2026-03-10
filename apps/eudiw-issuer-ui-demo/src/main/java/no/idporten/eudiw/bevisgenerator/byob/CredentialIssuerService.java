@@ -5,6 +5,7 @@ import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Credential
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceCredentialData;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceDefinition;
 import org.slf4j.Logger;
@@ -19,12 +20,14 @@ import java.util.List;
 @Service
 public class CredentialIssuerService {
     private final ByobService byobService;
+    private final IssuerServerProperties issuerServerProperties;
     private final ObjectMapper objectMapper;
     private final Logger log = LoggerFactory.getLogger(CredentialIssuerService.class);
 
     @Autowired
-    public CredentialIssuerService(ByobService byobService, ObjectMapper objectMapper) {
+    public CredentialIssuerService(ByobService byobService, IssuerServerProperties issuerServerProperties, ObjectMapper objectMapper) {
         this.byobService = byobService;
+        this.issuerServerProperties = issuerServerProperties;
         this.objectMapper = objectMapper;
     }
 
@@ -80,7 +83,7 @@ public class CredentialIssuerService {
             throw new IssuerUiException("CredentialDefinition is null");
 
         }
-        return new IssuanceDefinition(cd.getCredentialConfigurationId(), personId, convertFromExampleDataToIssuanceCredentialData(cd));
+        return new IssuanceDefinition(issuerServerProperties.credentialIssuer(), cd.getCredentialConfigurationId(), personId, convertFromExampleDataToIssuanceCredentialData(cd));
     }
 
     private IssuanceCredentialData convertFromExampleDataToIssuanceCredentialData(CredentialDefinition cd) {

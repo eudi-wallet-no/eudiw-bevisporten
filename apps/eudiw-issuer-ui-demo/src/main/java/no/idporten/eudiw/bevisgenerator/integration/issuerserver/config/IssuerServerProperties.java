@@ -8,18 +8,14 @@ import java.util.Objects;
 
 @EnableConfigurationProperties(IssuerServerProperties.class)
 @ConfigurationProperties(prefix = "bevisgenerator.issuer-server")
-public record IssuerServerProperties (String baseUrl, String issuanceEndpoint, List<CredentialConfiguration> credentialConfigurations) {
-
-    public String credentialIssuer() {
-        return baseUrl();
-    }
+public record IssuerServerProperties (String credentialIssuer, String issuanceEndpoint, List<CredentialConfiguration> credentialConfigurations) {
 
     public String getIssuanceEndpoint() {
         return issuanceEndpoint();
     }
 
     public String getIssuanceUrl() {
-        return baseUrl() + issuanceEndpoint();
+        return credentialIssuer() + issuanceEndpoint();
     }
 
     public CredentialConfiguration findCredentialConfiguration(String credentialConfigurationId) {
