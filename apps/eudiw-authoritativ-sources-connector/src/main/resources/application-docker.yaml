@@ -1,0 +1,11 @@
+---
+server:
+  port: 9298
+
+management:
+  server:
+    port: 9298
+
+spring:
+  application:
+    environment: docker
