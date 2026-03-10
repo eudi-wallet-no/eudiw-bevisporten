@@ -46,6 +46,7 @@ bevisgenerator:
         person-identifier: 16903349844
         json-request: |
           {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer}",
             "credential_configuration_id": "no.advokattilsynet.advokatregisteret_mso_mdoc",
             "subject": {
               "identifier": "16903349844"
@@ -57,6 +58,7 @@ bevisgenerator:
         person-identifier: 16903349844
         json-request: |
           {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer}",
             "credential_configuration_id": "no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc",
             "subject": {
               "identifier": "16903349844"
@@ -68,6 +70,7 @@ bevisgenerator:
         person-identifier: 16903349844
         json-request: |
           {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer}",
             "credential_configuration_id": "org.iso.18013.5.1.mDL_mso_mdoc",
             "subject": {
               "identifier": "16903349844"
@@ -93,7 +96,7 @@ maskinporten:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
         scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:eidas2sandkasse:dynamicvc
-        resource: ${bevisgenerator.issuer-server.base-url}
+        resource: ${bevisgenerator.issuer-server.credential-issuer}
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: default
