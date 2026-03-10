@@ -75,7 +75,7 @@ public class ExceptionControllerAdvice {
 
     @ExceptionHandler(IssuerServerException.class)
     public ResponseEntity<ErrorResponse> issuerServerException(IssuerServerException issuerServerException) {
-        log.error("Failed to process request", issuerServerException);
+        log.error(issuerServerException.getLogMessage() != null ? issuerServerException.getLogMessage() : "Failed to process request", issuerServerException);
         return ResponseEntity
                 .status(issuerServerException.getHttpStatus())
                 .body(new ErrorResponse(issuerServerException.getError(), issuerServerException.getErrorDescription()));
