@@ -38,7 +38,7 @@ public class PreAuthorizedIssuanceServiceTest {
                 .credentialIssuerContext(CredentialIssuerContext.builder().grantType("authorization_code").build())
                 .build())
                 .when(credentialIssuerTenant).findCredentialConfiguration(eq("foo"));
-        PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest = PreAuthorizedIssuanceRequest.builder().credentialConfigurationId("foo").build();
+        PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest = PreAuthorizedIssuanceRequest.builder().credentialIssuer(credentialIssuerTenant.getCredentialIssuer().toString()).credentialConfigurationId("foo").build();
         IssuerServerException e = assertThrows(IssuerServerException.class, () -> preAuthorizedIssuanceService.startIssuerTransaction(credentialIssuerTenant, preAuthorizedIssuanceRequest, mock(JWT.class)));
         assertAll(
                 () -> assertEquals(HttpStatus.BAD_REQUEST, e.getHttpStatus()),

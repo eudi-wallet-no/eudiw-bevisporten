@@ -38,8 +38,12 @@ public class PreAuthorizedIssuanceService {
 
     public PreAuthorizedIssuanceResponse startIssuerTransaction(CredentialIssuerTenant credentialIssuerTenant, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest, JWT accessToken) {
         ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
-        if (credentialIssuerTenant.getCredentialIssuer().toString().equals(preAuthorizedIssuanceRequest.getCredentialIssuer())) {
-            throw new IssuerServerException("invalid_request", "Invalid credential issuer in request.", HttpStatus.BAD_REQUEST);
+        if (! credentialIssuerTenant.getCredentialIssuer().toString().equals(preAuthorizedIssuanceRequest.getCredentialIssuer())) {
+            throw new IssuerServerException(
+                    "invalid_request",
+                    "Invalid credential issuer in request.",
+                    "Expected issuer %s but client used %s to pre-authorize for %s".formatted(credentialIssuerTenant.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialConfigurationId()),
+                    HttpStatus.BAD_REQUEST);
         }
         if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfiguration.getCredentialIssuerContext().getGrantType())) {
             throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);

@@ -54,7 +54,11 @@ public class CredentialIssuerTenant {
                 .map(ccs -> ccs.findConfiguration(credentialIdentifier))
                 .filter(Objects::nonNull)
                 .findFirst()
-                .orElseThrow(() -> new IssuerServerException("unknown_credential_identifier", "Unknown credential identifier.", HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new IssuerServerException(
+                        "unknown_credential_identifier",
+                        "Unknown credential identifier.",
+                        "Credential issuer %s does not support credential configuration %s".formatted(credentialIssuer, credentialIdentifier),
+                        HttpStatus.BAD_REQUEST));
     }
 
     public boolean isRootCredentialIssuer() {
