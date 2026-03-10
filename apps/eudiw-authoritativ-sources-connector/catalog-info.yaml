@@ -1,0 +1,15 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-authoritativ-sources-connector
+  description: EUDIWs authoritativ-sources-connector
+  annotations:
+    github.com/project-slug: eudi-wallet-no/eudiw-authoritativ-sources-connector
+spec:
+  type: application
+  lifecycle: test
+  owner: team-digital-lommebok
+  system: digital-lommebok-authoritativ-sources-connector
+  dependsOn:
+    - component:digital-lommebok-issuer-server
+

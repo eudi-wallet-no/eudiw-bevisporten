@@ -1,0 +1,47 @@
+---
+server:
+  port: 8080
+
+spring:
+  thread-executor: virtual
+  application:
+    name: digital-lommebok-authoritativ-sources-connector
+    environment: default
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+# Digdir standard logging
+digdir:
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
+  audit:
+    application-name:  ${spring.application.name}    # recommended naming convention is groupId:artifactId
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false                                     # optional - default 'true'
+      bearer-token: false                                    # optional - default 'true'
+      ip-address: true                                    # optional - default 'true'
+    prometheus:
+      counter: false
