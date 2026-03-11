@@ -25,7 +25,7 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 authoritativ-sources-connector
+127.0.0.1 auth-sources-connector
 ```
 
 The application can be started with Maven:
@@ -38,4 +38,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://authoritativ-sources-connector:9298.
+The application will run on http://auth-sources-connector:9298.

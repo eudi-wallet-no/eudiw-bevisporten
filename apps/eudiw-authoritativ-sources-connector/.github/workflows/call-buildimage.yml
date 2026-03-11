@@ -15,7 +15,7 @@ jobs:
   build-publish-image:
     uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
     with:
-      image-name: digital-lommebok-authoritativ-sources-connector
+      image-name: digital-lommebok-auth-sources-connector
       java-version: 25
     secrets: inherit
 
@@ -23,10 +23,10 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     needs: build-publish-image
     with:
-      application-name: digital-lommebok-authoritativ-sources-connector
+      application-name: digital-lommebok-auth-sources-connector
       deployment-environment: systest
       image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
-      image-name: digital-lommebok-authoritativ-sources-connector
+      image-name: digital-lommebok-auth-sources-connector
       image-version: ${{ needs.build-publish-image.outputs.image-version }}
       kubernetes-repo: digital-lommebok-cd
       product-name: digital-lommebok

@@ -5,7 +5,7 @@ server:
 spring:
   thread-executor: virtual
   application:
-    name: digital-lommebok-authoritativ-sources-connector
+    name: digital-lommebok-auth-sources-connector
     environment: default
   data:
     redis:
