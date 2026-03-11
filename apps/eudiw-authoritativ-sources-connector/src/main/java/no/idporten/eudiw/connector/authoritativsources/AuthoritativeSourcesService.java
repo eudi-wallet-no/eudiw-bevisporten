@@ -3,10 +3,10 @@ package no.idporten.eudiw.connector.authoritativsources;
 import no.idporten.eudiw.connector.authoritativsources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativsources.api.CredentialDataResponse;
 import no.idporten.eudiw.connector.authoritativsources.api.Subject;
+import no.idporten.eudiw.connector.authoritativsources.exceptions.UnknownAuthoritativeSourceException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AuthoritativeSourcesService {
@@ -17,17 +17,17 @@ public class AuthoritativeSourcesService {
         this.authoritativeSources = authoritativeSources;
     }
 
-    public CredentialDataResponse retrieveCredentialData(String source, Subject subject) {
+    public CredentialDataResponse retrieveCredentialData(String source, Subject subject) throws UnknownAuthoritativeSourceException {
         CredentialData credentialData = getAuthoritativeSource(source).retrieveCredentialData(subject);
         return new CredentialDataResponse(credentialData);
     }
 
-    private AuthoritativeSource  getAuthoritativeSource(String source) {
+    private AuthoritativeSource  getAuthoritativeSource(String source) throws UnknownAuthoritativeSourceException {
         for (AuthoritativeSource authoritativeSource : authoritativeSources) {
             if (authoritativeSource.getSource().equals(source)) {
                 return authoritativeSource;
             }
         }
-        throw new IllegalArgumentException("No AuthoritativeSource found for source " + source);
+        throw new UnknownAuthoritativeSourceException("No AuthoritativeSource found for given source");
     }
 }
