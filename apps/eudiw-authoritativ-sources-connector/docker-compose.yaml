@@ -8,7 +8,7 @@ networks:
 
 services:
 
-  authoritativ-sources-connector:
+  auth-sources-connector:
     build:
       context: .
       dockerfile: docker/dev.Dockerfile
