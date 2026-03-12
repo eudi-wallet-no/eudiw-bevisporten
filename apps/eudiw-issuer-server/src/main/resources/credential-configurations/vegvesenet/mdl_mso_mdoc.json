@@ -122,7 +122,8 @@
         ],
         "mandatory": true,
         "validation_regex": "^(true|false)$"
-      },      {
+      },
+      {
         "path": [
           "org.iso.18013.5.1",
           "age_over_21"
@@ -140,6 +141,25 @@
         ],
         "mandatory": false,
         "validation_regex": "^(true|false)$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_in_years"
+        ],
+        "type": "number",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age"
+          },
+          {
+            "locale": "no",
+            "name": "År"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^\\d{1,5}$"
       },
       {
         "path": [
