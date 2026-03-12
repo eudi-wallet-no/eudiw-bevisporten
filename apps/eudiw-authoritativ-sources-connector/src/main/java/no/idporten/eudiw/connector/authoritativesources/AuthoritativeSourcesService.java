@@ -28,6 +28,6 @@ public class AuthoritativeSourcesService {
                 return authoritativeSource;
             }
         }
-        throw new UnknownAuthoritativeSourceException("No AuthoritativeSource found for given source");
+        throw new UnknownAuthoritativeSourceException("Authoritative source not found");
     }
 }

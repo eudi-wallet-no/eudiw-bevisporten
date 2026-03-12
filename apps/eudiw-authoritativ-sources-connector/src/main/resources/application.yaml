@@ -45,3 +45,8 @@ digdir:
       ip-address: true                                    # optional - default 'true'
     prometheus:
       counter: false
+
+authoritative-sources-connector:
+  features:
+    allow-synthetic-pid: true
+    allow-real-pid: false
