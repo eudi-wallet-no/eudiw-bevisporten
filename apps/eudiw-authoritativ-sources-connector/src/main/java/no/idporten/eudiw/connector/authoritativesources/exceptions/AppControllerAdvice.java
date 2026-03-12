@@ -7,8 +7,10 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,6 +36,13 @@ public class AppControllerAdvice {
     @ExceptionHandler(AuthoritativeSourceException.class)
     public ResponseEntity<ErrorResponse> handleAuthoritativeSourceException(AuthoritativeSourceException exception) {
         return errorResponseEntity(exception.getStatusCode(), exception.getErrorCode(), exception.getMessage());
+    }
+
+    // Validation
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        log.warn("Failed to process request", exception);
+        return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, getFieldErrorDescription(exception));
     }
 
     // Spring 405
@@ -94,5 +103,12 @@ public class AppControllerAdvice {
                 .status(httpStatus)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(errorResponse);
+    }
+
+    private static String getFieldErrorDescription(MethodArgumentNotValidException exception) {
+        FieldError error = exception.getBindingResult().getFieldError();
+        return (error != null)
+                ? error.getDefaultMessage()
+                : "Invalid request";
     }
 }

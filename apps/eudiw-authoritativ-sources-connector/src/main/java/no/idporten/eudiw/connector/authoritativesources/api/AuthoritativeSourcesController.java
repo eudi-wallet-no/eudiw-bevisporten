@@ -1,5 +1,6 @@
 package no.idporten.eudiw.connector.authoritativesources.api;
 
+import jakarta.validation.Valid;
 import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSourcesService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class AuthoritativeSourcesController {
     )
     public ResponseEntity<CredentialDataResponse> retrieveCredentialData(
             @PathVariable("source") String source,
-            @RequestBody RetrieveRequest retrieveRequest
+            @RequestBody @Valid RetrieveRequest retrieveRequest
     ) {
         CredentialDataResponse responseData = authoritativeSourcesService.retrieveCredentialData(source, retrieveRequest.subject());
         return ResponseEntity.ok(responseData);
