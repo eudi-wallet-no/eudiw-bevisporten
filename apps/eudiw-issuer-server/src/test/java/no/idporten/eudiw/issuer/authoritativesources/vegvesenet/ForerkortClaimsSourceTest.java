@@ -32,6 +32,8 @@ class ForerkortClaimsSourceTest {
         inputClaims.put("given_name", "Test");
         inputClaims.put("birth_date", "1990-01-01");
         inputClaims.put("portrait", "0");
+        inputClaims.put("age_over_16", "true");
+        inputClaims.put("age_over_18", "true");
 
         JWT jwt = mock(JWT.class);
         IssuanceTransactionId txId = new IssuanceTransactionId("tx-123");

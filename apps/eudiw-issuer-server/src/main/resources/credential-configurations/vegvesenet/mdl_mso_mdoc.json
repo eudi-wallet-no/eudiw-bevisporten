@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "org.iso.18013.5.1.mDL_mso_mdoc",
   "credential_issuer_context": {
-    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.vegvesenet.ForerkortClaimsSource",
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource",
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "pre_authorization_server": "maskinporten",
@@ -84,6 +84,44 @@
         ],
         "mandatory": true,
         "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_over_18"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age over 18"
+          },
+          {
+            "locale": "no",
+            "name": "Over 18 år"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^(true|false)$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_over_16"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age over 16"
+          },
+          {
+            "locale": "no",
+            "name": "Over 16 år"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^(true|false)$"
       },
       {
         "path": [
