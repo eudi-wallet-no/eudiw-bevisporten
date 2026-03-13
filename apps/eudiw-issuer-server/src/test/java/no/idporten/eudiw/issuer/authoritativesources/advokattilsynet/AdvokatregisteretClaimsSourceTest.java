@@ -22,6 +22,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.Collections;
 import java.util.Map;
 
+import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -69,7 +70,7 @@ public class AdvokatregisteretClaimsSourceTest {
                 }""";
         PersonPrivate personPrivate = new JsonMapper().readValue(response, PersonPrivate.class);
         when(advokatregisteretIntegration.retrieve(eq(personIdentifier))).thenReturn(personPrivate);
-        CredentialData credentialData = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), accessToken));
+        CredentialData credentialData = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), junitIssuerTenant(), accessToken));
         Map<String, Object> claims = credentialData.claims();
                 assertAll(
                 () -> assertNotNull(claims),

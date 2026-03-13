@@ -53,7 +53,7 @@ public class PreAuthorizedIssuanceService {
         ExtendedCredentialMetadata metadata = credentialConfiguration.getExtendedCredentialMetadata();
         final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         final String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(credentialIssuerTenant, issuanceTransactionId, preAuthorizedIssuanceRequest);
-        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, credentialConfiguration.getExtendedCredentialMetadata(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
+        claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(issuanceTransactionId, credentialIssuerTenant, credentialConfiguration.getExtendedCredentialMetadata(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), accessToken, credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerTenant.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfiguration.getCredentialConfigurationId())

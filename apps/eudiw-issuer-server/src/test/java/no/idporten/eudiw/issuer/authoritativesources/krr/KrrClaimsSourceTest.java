@@ -19,6 +19,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.Collections;
 import java.util.Map;
 
+import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -61,7 +62,7 @@ public class KrrClaimsSourceTest {
 
         PersonKrr personKrr = new JsonMapper().readValue(response, PersonKrr.class);
         when(krrIntegration.retrieve(eq(personIdentifier))).thenReturn(personKrr);
-        CredentialData data = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), accessToken));
+        CredentialData data = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), junitIssuerTenant(), accessToken));
         assertNotNull(data);
         Map<String, Object> claims = data.claims();
         assertAll(

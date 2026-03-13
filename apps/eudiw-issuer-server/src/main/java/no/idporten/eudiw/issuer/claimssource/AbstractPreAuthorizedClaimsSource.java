@@ -58,9 +58,9 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
     }
 
     @Override
-    public IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, final Map<String, Object> claims, Duration lifetime) {
-        cache.storeClaims(issuanceTransactionId, claims, lifetime);
-        return issuanceTransactionId;
+    public IssuanceTransactionId store(PreAuthorizedIssuanceContext issuanceContext, final Map<String, Object> claims, Duration lifetime) {
+        cache.storeClaims(issuanceContext.credentialIssuerTenant(), issuanceContext.issuanceTransactionId(), claims, lifetime);
+        return issuanceContext.issuanceTransactionId();
     }
 
     @Override
@@ -71,7 +71,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
         } catch (ParseException e) {
             throw new IssuerServerException("internal_server_error", "Missing claim in internal access token %s".formatted("tx_id"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        Map<String, Object> storedClaims = cache.retrieveClaims(new IssuanceTransactionId(transactionId));
+        Map<String, Object> storedClaims = cache.retrieveClaims(credentialIssueContext.credentialIssuerTenant(), new IssuanceTransactionId(transactionId));
         ExtendedCredentialMetadata extendedCredentialMetadata = credentialIssueContext.credentialMetadata();
         try {
             return storedClaims.keySet().stream()
