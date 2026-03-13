@@ -5,9 +5,12 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.TestData;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
-import no.idporten.eudiw.issuer.credentials.types.*;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
+import no.idporten.eudiw.issuer.credentials.types.StringValue;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +21,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,7 +70,7 @@ public class PreAuthorizedClaimsSourceTest {
         void pushNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PullClaimsSource();
             IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
-                    new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), maskinportenToken()),
+                    new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), junitIssuerTenant(), maskinportenToken()),
                     new CredentialData(Map.of("some", "data"), "ccid"))
             );
             assertTrue(e.getMessage().contains("does not support push"));
@@ -77,10 +81,11 @@ public class PreAuthorizedClaimsSourceTest {
         public void testPullClaimsSourceLifecycle() {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
             PreAuthorizedClaimsSource claimsSource = spy(new PullClaimsSource());
+            PreAuthorizedIssuanceContext preAuthorizedIssuanceContext = new PreAuthorizedIssuanceContext(issuanceTransactionId, TestData.credentialIssuerTenant("junit"), extendedCredentialMetadata(), "ccid", maskinportenToken(), Duration.ofMinutes(9));
             claimsSource.preAuthorize(
-                    new PreAuthorizedIssuanceContext(issuanceTransactionId, extendedCredentialMetadata(), "ccid", maskinportenToken(), Duration.ofMinutes(9)),
+                    preAuthorizedIssuanceContext,
                     null);
-            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), extendedCredentialMetadata()));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), junitIssuerTenant(), extendedCredentialMetadata()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -88,7 +93,7 @@ public class PreAuthorizedClaimsSourceTest {
             );
             verify(claimsSource).pull(any());
             verify(claimsSource).validate(any(), any(CredentialData.class));
-            verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(9)));
+            verify(claimsSource).store(eq(preAuthorizedIssuanceContext), any(), eq(Duration.ofMinutes(9)));
             verify(claimsSource, never()).push(any(), any());
         }
 
@@ -111,7 +116,7 @@ public class PreAuthorizedClaimsSourceTest {
         void pullNotSupported() {
             PreAuthorizedClaimsSource claimsSource = new PushClaimsSource();
             IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
-                    new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), maskinportenToken()), null));
+                    new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), junitIssuerTenant(), maskinportenToken()), null));
             assertTrue(e.getMessage().contains("does not support pull"));
         }
 
@@ -119,11 +124,12 @@ public class PreAuthorizedClaimsSourceTest {
         @Test
         public void testPushClaimsSourceLifecycle() {
             final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+            final PreAuthorizedIssuanceContext issuanceContext = new PreAuthorizedIssuanceContext(issuanceTransactionId, junitIssuerTenant(), extendedCredentialMetadata(), "ccid", maskinportenToken(), Duration.ofMinutes(5));
             PreAuthorizedClaimsSource claimsSource = spy(new PushClaimsSource());
             claimsSource.preAuthorize(
-                    new PreAuthorizedIssuanceContext(issuanceTransactionId, extendedCredentialMetadata(), "ccid", maskinportenToken(), Duration.ofMinutes(5)),
+                    issuanceContext,
                     new CredentialData(Map.of("c", "v"), "ccid"));
-            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), extendedCredentialMetadata()));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), TestData.credentialIssuerTenant("junit"), extendedCredentialMetadata()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -131,7 +137,7 @@ public class PreAuthorizedClaimsSourceTest {
             );
             verify(claimsSource).push(any(), any());
             verify(claimsSource).validate(any(), any(CredentialData.class));
-            verify(claimsSource).store(eq(issuanceTransactionId), any(), eq(Duration.ofMinutes(5)));
+            verify(claimsSource).store(eq(issuanceContext), any(), eq(Duration.ofMinutes(5)));
             verify(claimsSource, never()).pull(any());
         }
 

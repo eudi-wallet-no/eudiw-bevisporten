@@ -30,7 +30,7 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
         } else {
             credentialData = validate(extendedCredentialMetadata, pull(issuanceContext));
         }
-        store(issuanceContext.issuanceTransactionId(), credentialData.claims(), issuanceContext.authorizationLifetime());
+        store(issuanceContext, credentialData.claims(), issuanceContext.authorizationLifetime());
     }
 
     /**
@@ -55,6 +55,6 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
     /**
      * Store claims data in cache for a given lifetime.
      */
-    IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, Map<String, Object> claims, Duration lifetime);
+    IssuanceTransactionId store(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext, Map<String, Object> claims, Duration lifetime);
 
 }

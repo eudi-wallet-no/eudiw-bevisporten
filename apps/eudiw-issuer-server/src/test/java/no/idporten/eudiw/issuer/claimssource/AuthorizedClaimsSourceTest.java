@@ -5,14 +5,15 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.credentials.types.*;
+import no.idporten.eudiw.issuer.TestData;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.credentials.types.StringValue;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +35,7 @@ public class AuthorizedClaimsSourceTest {
     public void testIssueClaimsSource() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
         String fnr = "12345678910";
-        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(fnr), null));
+        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(fnr), TestData.credentialIssuerTenant("junit"),null));
         assertAll(
                 () -> assertEquals(1, claims.size()),
                 () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -47,8 +48,8 @@ public class AuthorizedClaimsSourceTest {
     @Test
     public void testIssueClaimsSourceWithInvalidToken() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
-        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(null), null)));
-        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(" "), null)));
+        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(null), TestData.credentialIssuerTenant("junit"),null)));
+        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(" "), TestData.credentialIssuerTenant("junit"),null)));
     }
 
     @NotNull

@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.cache;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.cache.RedisCache;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,19 +19,15 @@ public class RedisClaimsSourceCache implements ClaimsSourceCache {
 
     private final RedisCache cache;
 
-    protected String cacheKey(String key) {
-        return applicationName + ":issuance:data:" + key;
-    }
-
     @Override
-    public void storeClaims(IssuanceTransactionId transactionId, Map<String, Object> claims, Duration lifetime) {
-        cache.put(cacheKey(transactionId.getValue()), claims, lifetime);
+    public void storeClaims(CredentialIssuerTenant credentialIssuer, IssuanceTransactionId transactionId, Map<String, Object> claims, Duration lifetime) {
+        cache.put(cacheKey(applicationName, credentialIssuer, transactionId), claims, lifetime);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> retrieveClaims(IssuanceTransactionId transactionId) {
-        return (Map<String, Object>) cache.remove(cacheKey(transactionId.getValue()));
+    public Map<String, Object> retrieveClaims(CredentialIssuerTenant credentialIssuer, IssuanceTransactionId transactionId) {
+        return (Map<String, Object>) cache.remove(cacheKey(applicationName, credentialIssuer, transactionId));
     }
 
 }

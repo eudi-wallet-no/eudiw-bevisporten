@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 
@@ -16,13 +17,14 @@ import java.time.Duration;
  */
 public record PreAuthorizedIssuanceContext(
         IssuanceTransactionId issuanceTransactionId,
+        CredentialIssuerTenant credentialIssuerTenant,
         ExtendedCredentialMetadata credentialMetadata,
         String credentialConfigurationId,
         JWT accessToken,
         Duration authorizationLifetime) {
 
-    public PreAuthorizedIssuanceContext(IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
-        this(issuanceTransactionId, null, null, accessToken, null);
+    public PreAuthorizedIssuanceContext(IssuanceTransactionId issuanceTransactionId, CredentialIssuerTenant credentialIssuerTenant, JWT accessToken) {
+        this(issuanceTransactionId, credentialIssuerTenant, null, null, accessToken, null);
     }
 
 }

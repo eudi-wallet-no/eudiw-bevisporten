@@ -29,9 +29,9 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
         "NOTE: this is not a real driver's license tied to the test license register. All test users are granted class B license.";
 
     @Override
-    public final IssuanceTransactionId store(IssuanceTransactionId issuanceTransactionId, final Map<String, Object> claims, Duration lifetime) {
+    public final IssuanceTransactionId store(PreAuthorizedIssuanceContext issuanceContext, final Map<String, Object> claims, Duration lifetime) {
         Map<String, Object> claimsMapStringified = new HashMap<>(claims);
-        return super.store(issuanceTransactionId, claimsMapStringified, lifetime);
+        return super.store(issuanceContext, claimsMapStringified, lifetime);
     }
 
 
