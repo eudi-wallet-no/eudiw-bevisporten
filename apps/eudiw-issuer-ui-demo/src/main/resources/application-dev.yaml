@@ -15,6 +15,7 @@ bevisgenerator:
     base-url: http://byob-service:9296
   issuer-server:
     credential-issuer: http://issuer-server:9240
+    demo-pid-credential-issuer: http://issuer-server:9240/demo-pid-issuer
 maskinporten:
   lib:
     issuer: https://maskinporten.dev/
