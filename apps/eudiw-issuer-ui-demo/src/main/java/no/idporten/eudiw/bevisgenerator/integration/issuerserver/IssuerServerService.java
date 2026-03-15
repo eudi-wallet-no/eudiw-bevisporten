@@ -7,6 +7,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.Credenti
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
+import no.idporten.lib.maskinporten.client.AccessTokenRequestOverrides;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -65,18 +67,21 @@ public class IssuerServerService {
 
     private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
         return maskinportenClient.getAccessToken(
-                        StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null,
-                        List.of(credentialConfiguration.scope()))
+                AccessTokenRequestOverrides.builder()
+                        .personIdentifier(StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null)
+                        .scopes(List.of(credentialConfiguration.scope()))
+                        .resources(Collections.singletonList(credentialConfiguration.credentialIssuer()))
+                        .build())
                 .getValue();
     }
 
     public IssuanceResponse startIssuance(CredentialConfiguration credentialConfiguration, StartIssuanceForm json) {
-        String issuanceEndpoint = issuerServerProperties.getIssuanceEndpoint();
+        String issuanceEndpoint = credentialConfiguration.credentialIssuer() + issuerServerProperties.issuanceEndpoint();
         String accessToken = createAccessToken(credentialConfiguration, json);
         IssuanceResponse result;
         try {
-            result = restClient.post().uri(
-                            issuanceEndpoint)
+            result = restClient.post()
+                    .uri(issuanceEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
