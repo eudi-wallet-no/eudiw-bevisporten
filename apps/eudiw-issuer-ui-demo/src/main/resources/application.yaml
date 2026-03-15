@@ -41,6 +41,7 @@ bevisgenerator:
     issuance-endpoint: /api/v1/credential/issuance-transaction
     credential-configurations:
       - credential-configuration-id: no.advokattilsynet.advokatregisteret_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: Advokatbevilling
         scope: eudiw:no:advokattilsynet:advokatregisteret
         person-identifier: 16903349844
@@ -53,6 +54,7 @@ bevisgenerator:
             }
           }
       - credential-configuration-id: no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: Digital kontaktinformasjon
         scope: eudiw:no:kontaktregisteret:kontaktinformasjon
         person-identifier: 16903349844
@@ -64,7 +66,32 @@ bevisgenerator:
               "identifier": "16903349844"
             }
           }
+      - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.demo-pid-credential-issuer}
+        description: Norsk ID-bevis (mdoc push)
+        scope: eudiw:eidas2sandkasse:dynamicvc
+        person-identifier: 05821098825
+        json-request: |
+          {
+            "credential_issuer": "${bevisgenerator.issuer-server.demo-pid-credential-issuer}",
+            "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
+            "subject": {
+              "identifier": "05821098825"
+            },
+            "credential_data": {
+              "personal_administrative_number": "05821098825",
+              "birth_date": "2010-02-05",
+              "given_name": "Fornavn",
+              "family_name": "Etternavn",
+              "place_of_birth": {"country": "NO"},
+              "nationality": ["NO"],
+              "issuing_country": "NO",
+              "issuing_authority": "Digdir",
+              "expiry_date": "2027-03-12"
+            }
+          }
       - credential-configuration-id: org.iso.18013.5.1.mDL_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: Førerkort
         scope: eudiw:no:vegvesen:mdl
         person-identifier: 16903349844
@@ -110,7 +137,6 @@ maskinporten:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
         scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:eidas2sandkasse:dynamicvc
-        resource: ${bevisgenerator.issuer-server.credential-issuer}
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: default
