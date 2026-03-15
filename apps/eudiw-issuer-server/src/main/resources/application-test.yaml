@@ -24,6 +24,12 @@ credential-issuer-server:
     - id: maskinporten
       issuer: https://test.maskinporten.no/
       jwks-uri: https://test.maskinporten.no/jwk
+  tenants:
+    demo-pid-issuer:
+      display-names:
+        "no": "Demo PID-utsteder"
+      credential-configuration-sources-properties:
+        - uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
 
 maskinporten:
   lib:

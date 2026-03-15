@@ -43,7 +43,11 @@ credential-issuer-server:
       credential-configuration-sources-properties:
         - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
         - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-
+    demo-pid-issuer:
+      display-names:
+        "no": "Demo PID-utsteder"
+      credential-configuration-sources-properties:
+        - uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
 
 advoktatregisteret:
   subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f
