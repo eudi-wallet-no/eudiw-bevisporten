@@ -1,9 +1,9 @@
 package no.idporten.eudiw.bevisgenerator.byob;
 
+import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.ByobService;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
-import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceCredentialData;
@@ -60,6 +60,7 @@ public class CredentialIssuerService {
         String scope = cd.getScope();
 
         return new CredentialConfiguration(
+                issuerServerProperties.credentialIssuer(),
                 cd.getCredentialConfigurationId(),
                 scope,
                 personIdentifier,
