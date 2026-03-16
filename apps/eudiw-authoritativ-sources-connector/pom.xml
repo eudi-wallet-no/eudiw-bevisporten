@@ -24,6 +24,7 @@
         <opentelemetry-api.version>1.60.1</opentelemetry-api.version>
         <idporten-log-audit.version>3.0.0</idporten-log-audit.version>
         <springdoc.version>3.0.2</springdoc.version>
+        <maskinporten.client.version>6.0.0</maskinporten.client.version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
     </properties>
 
@@ -36,6 +37,12 @@
             <groupId>no.idporten.validators</groupId>
             <artifactId>idporten-validators</artifactId>
             <version>${idporten-validators.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>no.idporten</groupId>
+            <artifactId>lib-maskinporten-client-spring-boot-4</artifactId>
+            <version>${maskinporten.client.version}</version>
         </dependency>
 
         <dependency>
@@ -59,19 +66,23 @@
             <version>${idporten-log-audit.version}</version>
         </dependency>
 
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
+
 
     </dependencies>
 

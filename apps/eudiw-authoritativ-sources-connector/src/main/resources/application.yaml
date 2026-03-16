@@ -50,3 +50,36 @@ authoritative-sources-connector:
   features:
     allow-synthetic-pid: true
     allow-real-pid: false
+  connectors:
+    krr:
+      uri: https://test.kontaktregisteret.no/
+      scope: krr:global/kontaktinformasjon.read
+      connect-timeout: 2s
+      read-timeout: 2s
+
+# Maskinporten
+maskinporten:
+  lib:
+    enabled: true
+    issuer: dummy
+    clients:
+      krr:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+        issuer: ${maskinporten.lib.issuer}
+        audience:
+          - ${maskinporten.lib.issuer}
+        token-endpoint: ${maskinporten.lib.issuer}token
+        scope: krr:global/kontaktinformasjon.read krr:global/digitalpost.read
+        connect-timeout-ms: 5000
+        read-timeout-ms: 2000
+        key-store-name: maskinporten-krr
+
+idporten-key-manager:
+  keystores:
+    maskinporten-krr:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
