@@ -40,4 +40,12 @@ public class AuthoritativeSourceException extends RuntimeException {
     public String getErrorCode() {
         return errorCode;
     }
+
+    public String getLogMessage() {
+        return logMessage;
+    }
+
+    public String getErrorDescription() {
+        return super.getMessage();
+    }
 }

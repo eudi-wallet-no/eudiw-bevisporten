@@ -56,6 +56,12 @@ authoritative-sources-connector:
       scope: krr:global/kontaktinformasjon.read
       connect-timeout: 2s
       read-timeout: 2s
+    advoktatregisteret:
+      uri: https://test-api.data.altinn.no/v1/directharvest/AdvRegPersonPrivat/
+      subscription-key: ${ADVOKATREGISTERET_SUBSCRIPTION_KEY}
+      scope: altinn:dataaltinnno/advregpersonprivat
+      connect-timeout: 5s
+      read-timeout: 5s
 
 # Maskinporten
 maskinporten:
@@ -74,10 +80,27 @@ maskinporten:
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: maskinporten-krr
+      advokatregisteret:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+        issuer: ${maskinporten.lib.issuer}
+        audience:
+          - ${maskinporten.lib.issuer}
+        token-endpoint: ${maskinporten.lib.issuer}token
+        scope: altinn:dataaltinnno/advregpersonprivat
+        connect-timeout-ms: 5000
+        read-timeout-ms: 2000
+        key-store-name: maskinporten-advokatregisteret
 
 idporten-key-manager:
   keystores:
     maskinporten-krr:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
+    maskinporten-advokatregisteret:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
