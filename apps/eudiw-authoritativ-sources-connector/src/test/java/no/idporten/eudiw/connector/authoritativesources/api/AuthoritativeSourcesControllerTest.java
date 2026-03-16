@@ -2,25 +2,42 @@ package no.idporten.eudiw.connector.authoritativesources.api;
 
 import no.idporten.eudiw.connector.authoritativesources.TestData;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes;
+import no.idporten.eudiw.connector.authoritativesources.krr.KrrIntegration;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest()
+@ActiveProfiles("junit")
 @AutoConfigureMockMvc
 @DisplayName("When retrieving credential data from a source ")
 public class AuthoritativeSourcesControllerTest {
+
+    @MockitoBean
+    KrrIntegration krrIntegration = Mockito.mock(KrrIntegration.class);
+
     @Autowired
     private MockMvc mockMvc;
+
+    @BeforeEach
+    public void setup() {
+        when(krrIntegration.retrieve(TestData.getValidSyntheticPersonIdentifier()))
+                .thenReturn(TestData.getValidPersonKrr());
+    }
 
     @Test
     @DisplayName("then credential data for given source is returned")
@@ -35,7 +52,7 @@ public class AuthoritativeSourcesControllerTest {
                                 """.formatted(TestData.getValidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.credential_data.identifier").value("50917500484"));
+                .andExpect(jsonPath("$.credential_data.identifier").value(TestData.getValidSyntheticPersonIdentifier()));
     }
 
     @Test

@@ -1,23 +1,16 @@
 ---
-server:
-  port: 9298
-
-management:
-  server:
-    port: 9298
-
 spring:
   application:
-    environment: dev
+    environment: junit
 
-
+# MaskinPorten
 maskinporten:
   lib:
-    issuer: https://test.maskinporten.no/
+    issuer: https://dummy-maskinporten.no/
     clients:
       krr:
-        client-id: freg-eudiw-maskinporten-test
-        kid: acf70768-fd86-4358-b80f-a25bf496a9ad
+        client-id: client-id
+        kid: my-kid
 
 idporten-key-manager:
   keystores:
@@ -27,3 +20,4 @@ idporten-key-manager:
       key-store-password: idFoMz[nt{|0,2^@etJr
       key-alias: freg-eudiw-maskinporten-test
       key-password: idFoMz[nt{|0,2^@etJr
+
