@@ -84,7 +84,7 @@ public class StartIssuanceController {
         String normalizedJson = startIssuanceForm.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
 
-        model.addAttribute("request", createRequestTraceing(startIssuanceForm));
+        model.addAttribute("request", createRequestTrace(credentialConfiguration, startIssuanceForm));
 
         IssuanceResponse response = issuerServerService.startIssuance(credentialConfiguration, startIssuanceForm);
 
@@ -103,10 +103,10 @@ public class StartIssuanceController {
     }
 
 
-    private IssuanceRequest createRequestTraceing(StartIssuanceForm startIssuanceForm) {
+    private IssuanceRequest createRequestTrace(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
         String contentType = "Content-Type: " + MediaType.APPLICATION_JSON;
         String authorization = "Authorization: Bearer [Maskinporten-token]";
-        return new IssuanceRequest(startIssuanceForm.json(), properties.getIssuanceUrl(), authorization, contentType);
+        return new IssuanceRequest(startIssuanceForm.json(), credentialConfiguration.credentialIssuer() + properties.issuanceEndpoint(), authorization, contentType);
     }
 
     private String convertToCredentialOfferUri(IssuanceResponse response) {
