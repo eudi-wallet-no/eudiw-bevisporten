@@ -10,10 +10,10 @@ public class AgeVerificationAuthoritativeSource implements AuthoritativeSource {
 
     @Override
     public CredentialData retrieveCredentialData(Subject subject) {
-        return CredentialData.of(
-                "age_over_15", "true",
-                "age_over_18", "false"
-        );
+        CredentialData credentialData = new CredentialData();
+        credentialData.addBoolean("age_over_15", true);
+        credentialData.addBoolean("age_over_18", false);
+        return credentialData;
     }
 
     @Override
