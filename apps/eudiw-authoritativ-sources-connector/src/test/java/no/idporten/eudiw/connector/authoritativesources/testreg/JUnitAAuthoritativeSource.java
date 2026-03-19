@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
 public class JUnitAAuthoritativeSource implements AuthoritativeSource {
     @Override
     public CredentialData retrieveCredentialData(Subject subject) {
-        return CredentialData.of(
-                "identifier", subject.identifier()
-        );
+        CredentialData credentialData = new CredentialData();
+        credentialData.addString("identifier", subject.identifier());
+        return credentialData;
     }
 
     @Override
