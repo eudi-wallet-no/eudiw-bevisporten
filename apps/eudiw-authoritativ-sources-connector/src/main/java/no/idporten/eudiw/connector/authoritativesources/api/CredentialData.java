@@ -1,10 +1,10 @@
 package no.idporten.eudiw.connector.authoritativesources.api;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
-public class CredentialData extends HashMap<String, Object> {
+public class CredentialData extends TreeMap<String, Object> {
     public <T extends Number> void addNumberList(String key, List<T> list) {
         put(key, list);
     }

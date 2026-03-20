@@ -1,8 +1,12 @@
 package no.idporten.eudiw.connector.authoritativesources;
 
+import no.digdir.freg.domain.PersonResource;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
 import no.idporten.eudiw.connector.authoritativesources.krr.model.Kontaktinformasjon;
 import no.idporten.eudiw.connector.authoritativesources.krr.model.PersonKrr;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class TestData {
     public static String getValidSyntheticPersonIdentifier() {
@@ -51,6 +55,15 @@ public class TestData {
     public static Subject getValidSubject() {
         return new Subject(getValidSyntheticPersonIdentifier());
     }
+
+    public static PersonResource getAgeYearOldPerson(Integer age) {
+        PersonResource p = new PersonResource();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String date = LocalDate.now().minusYears(age).format(formatter);
+        p.setFoedselsdato(date);
+        return p;
+    }
+
 
     public static String inntektsApiResponse = """
                 {

@@ -25,6 +25,8 @@
         <idporten-log-audit.version>3.0.0</idporten-log-audit.version>
         <springdoc.version>3.0.2</springdoc.version>
         <maskinporten.client.version>6.0.0</maskinporten.client.version>
+        <log-event.version>2.0.0</log-event.version>
+        <freg-integration-lib.version>2.0.0</freg-integration-lib.version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
     </properties>
 
@@ -38,6 +40,7 @@
             <artifactId>idporten-validators</artifactId>
             <version>${idporten-validators.version}</version>
         </dependency>
+
 
         <dependency>
             <groupId>no.idporten</groupId>
@@ -64,6 +67,16 @@
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-log-audit-spring-boot-4-starter</artifactId>
             <version>${idporten-log-audit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.digdir.logging</groupId>
+            <artifactId>log-event-spring-boot4-starter</artifactId>
+            <version>${log-event.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.digdir.freg</groupId>
+            <artifactId>freg-integration-lib</artifactId>
+            <version>${freg-integration-lib.version}</version>
         </dependency>
 
         <dependency>
