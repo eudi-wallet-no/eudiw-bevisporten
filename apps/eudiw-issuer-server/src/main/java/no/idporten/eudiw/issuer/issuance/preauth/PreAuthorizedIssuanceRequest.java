@@ -79,9 +79,9 @@ public class PreAuthorizedIssuanceRequest {
     @JsonIgnore
     public CredentialData getCredentialData() {
         if (credentialData != null) {
-            return new CredentialData(Collections.unmodifiableMap(credentialData), credentialConfigurationId);
+            return new CredentialData(Collections.unmodifiableMap(credentialData));
         }
-        return new CredentialData(Collections.unmodifiableMap(getClaimsMap()), getCredentialConfigurationId());
+        return new CredentialData(Collections.unmodifiableMap(getClaimsMap()));
     }
 
 }

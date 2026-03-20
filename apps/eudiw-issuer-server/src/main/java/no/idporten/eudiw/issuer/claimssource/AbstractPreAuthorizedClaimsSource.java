@@ -47,7 +47,7 @@ public abstract non-sealed class AbstractPreAuthorizedClaimsSource implements Pr
                 throw new IssuerServerException("invalid_request", "Unsupported claims in request.", HttpStatus.BAD_REQUEST);
             }
         }
-        return new CredentialData(Collections.unmodifiableMap(claims), credentialData.credentialConfigurationId());
+        return new CredentialData(Collections.unmodifiableMap(claims));
     }
 
     protected final void validateClaim(ExtendedClaimsDescription extendedClaimsDescription, Map<String, Object> claims) {

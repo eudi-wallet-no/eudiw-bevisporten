@@ -22,7 +22,7 @@ class PushPreAuthorizedClaimsSourceTest {
     @DisplayName("when pushing credential data then the same data is returned")
     @Test
     void testPush() {
-        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"), "net.eidas2sandkasse:credential-payload");
+        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"));
         CredentialData result = claimsSource.push(null, credentialData);
         assertEquals(credentialData, result);
     }

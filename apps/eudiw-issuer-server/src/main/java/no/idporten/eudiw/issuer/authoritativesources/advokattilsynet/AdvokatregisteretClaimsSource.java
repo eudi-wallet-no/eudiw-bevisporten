@@ -37,7 +37,7 @@ public class AdvokatregisteretClaimsSource extends AbstractPreAuthorizedClaimsSo
         claims.put("mellomnavn", personPrivate.mellomnavn());
         claims.put("regnr", personPrivate.regnr());
         claims.values().removeIf(Objects::isNull);
-        return new CredentialData(claims, null);
+        return new CredentialData(claims);
     }
 
     @Override

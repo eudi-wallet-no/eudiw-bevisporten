@@ -1,8 +1,6 @@
 package no.idporten.eudiw.issuer.authoritativesources.krr;
 
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.authoritativesources.krr.model.PersonKrr;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
@@ -19,6 +17,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.Collections;
 import java.util.Map;
 
+import static no.idporten.eudiw.issuer.TestData.accessToken;
 import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,14 +37,14 @@ public class KrrClaimsSourceTest {
     @DisplayName("then push is not supported")
     @Test
     void testPushNotSupported() {
-        assertThrows(IssuerServerException.class, () -> claimsSource.push(null, new CredentialData(Collections.emptyMap(), null)));
+        assertThrows(IssuerServerException.class, () -> claimsSource.push(null, new CredentialData(Collections.emptyMap())));
     }
 
     @DisplayName("then data can be pulled from authoritative source")
     @Test
     void testPullFromAuthoritativeSource() throws Exception {
         String personIdentifier = "12345678901";
-        JWT accessToken = new PlainJWT(new JWTClaimsSet.Builder().claim("pid", personIdentifier).build());
+        JWT accessToken = accessToken(personIdentifier);
         String response = """
                 {
                     "personidentifikator": "12345678901",
@@ -62,7 +61,7 @@ public class KrrClaimsSourceTest {
 
         PersonKrr personKrr = new JsonMapper().readValue(response, PersonKrr.class);
         when(krrIntegration.retrieve(eq(personIdentifier))).thenReturn(personKrr);
-        CredentialData data = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), junitIssuerTenant(), accessToken));
+        CredentialData data = claimsSource.pull(new PreAuthorizedIssuanceContext(junitIssuerTenant(), null, new IssuanceTransactionId(), accessToken));
         assertNotNull(data);
         Map<String, Object> claims = data.claims();
         assertAll(
