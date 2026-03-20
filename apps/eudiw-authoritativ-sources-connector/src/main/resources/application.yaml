@@ -45,6 +45,10 @@ digdir:
       ip-address: true                                    # optional - default 'true'
     prometheus:
       counter: false
+  ## Eventlogging
+  event:
+    logging:
+      feature-enabled: false
 
 authoritative-sources-connector:
   features:
@@ -67,6 +71,11 @@ authoritative-sources-connector:
       scope: skatteetaten:inntekt
       connect-timeout: 2s
       read-timeout: 2s
+    freg:
+      uri: https://folkeregisteret-api-konsument.sits.no/folkeregisteret/offentlig-med-hjemmel/api/
+      #uri: https://folkeregisteret.api.skatteetaten.no/folkeregisteret/offentlig-med-hjemmel/api # Prod
+      connect-timeout: 5s
+      read-timeout: 5s
 
 # Maskinporten
 maskinporten:
@@ -107,6 +116,17 @@ maskinporten:
         connect-timeout-ms: 2000
         read-timeout-ms: 2000
         key-store-name: maskinporten-inntektsapi
+      freg:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+        issuer: ${maskinporten.lib.issuer}
+        audience:
+          - ${maskinporten.lib.issuer}
+        token-endpoint: ${maskinporten.lib.issuer}token
+        scope: folkeregister:deling/offentligmedhjemmel
+        connect-timeout-ms: 5000
+        read-timeout-ms: 2000
+        key-store-name: maskinporten-freg
 
 idporten-key-manager:
   keystores:
@@ -123,6 +143,12 @@ idporten-key-manager:
       key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
       key-password: ${MASKINPORTEN_KEY_PASSWORD}
     maskinporten-inntektsapi:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
+    maskinporten-freg:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
