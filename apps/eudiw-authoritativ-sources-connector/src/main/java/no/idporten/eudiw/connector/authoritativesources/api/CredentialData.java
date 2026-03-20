@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Map;
 
 public class CredentialData extends HashMap<String, Object> {
-    public void addNumberList(String key, List<Number> list) {
+    public <T extends Number> void addNumberList(String key, List<T> list) {
         put(key, list);
     }
 
-    public void addNumberMap(String key, Map<String, Number> map) {
+    public <T extends  Number> void addNumberMap(String key, Map<String, T> map) {
         put(key, map);
     }
 

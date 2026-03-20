@@ -62,6 +62,11 @@ authoritative-sources-connector:
       scope: altinn:dataaltinnno/advregpersonprivat
       connect-timeout: 5s
       read-timeout: 5s
+    inntektsapi:
+      uri: https://inntekt.api.skatteetaten-test.no/
+      scope: skatteetaten:inntekt
+      connect-timeout: 2s
+      read-timeout: 2s
 
 # Maskinporten
 maskinporten:
@@ -91,6 +96,17 @@ maskinporten:
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: maskinporten-advokatregisteret
+      inntektsapi:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+        issuer: ${maskinporten.lib.issuer}
+        audience:
+          - ${maskinporten.lib.issuer}
+        token-endpoint: ${maskinporten.lib.issuer}token
+        scope: skatteetaten:inntekt
+        connect-timeout-ms: 2000
+        read-timeout-ms: 2000
+        key-store-name: maskinporten-inntektsapi
 
 idporten-key-manager:
   keystores:
@@ -101,6 +117,12 @@ idporten-key-manager:
       key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
       key-password: ${MASKINPORTEN_KEY_PASSWORD}
     maskinporten-advokatregisteret:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
+    maskinporten-inntektsapi:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
