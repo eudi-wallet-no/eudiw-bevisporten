@@ -88,7 +88,7 @@
         <dependency>
             <groupId>id.walt.mdoc-credentials</groupId>
             <artifactId>waltid-mdoc-credentials-jvm</artifactId>
-            <version>0.17.1</version>
+            <version>0.18.0</version>
         </dependency>
         <dependency>
             <groupId>id.walt.sdjwt</groupId>
