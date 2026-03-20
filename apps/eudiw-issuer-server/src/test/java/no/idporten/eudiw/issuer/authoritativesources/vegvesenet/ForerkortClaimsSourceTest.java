@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static no.idporten.eudiw.issuer.TestData.junitCredentialConfiguration;
 import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -41,7 +42,7 @@ class ForerkortClaimsSourceTest {
         JWT jwt = mock(JWT.class);
         IssuanceTransactionId txId = new IssuanceTransactionId("tx-123");
 
-        CredentialData credentialData = source.push(new PreAuthorizedIssuanceContext(txId, junitIssuerTenant(), jwt), new CredentialData(Collections.unmodifiableMap(inputClaims), null));
+        CredentialData credentialData = source.push(new PreAuthorizedIssuanceContext(junitIssuerTenant(), junitCredentialConfiguration(), txId, jwt), new CredentialData(Collections.unmodifiableMap(inputClaims)));
         Map<String, Object> result = credentialData.claims();
         CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties("classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json", null,null, null, null));
         credentialConfigurationSource.init();

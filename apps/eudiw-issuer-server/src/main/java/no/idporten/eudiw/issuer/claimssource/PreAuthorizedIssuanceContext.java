@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 
 import java.time.Duration;
@@ -10,21 +10,21 @@ import java.time.Duration;
 /**
  * Context for pre-authorized credential issuance.
  *
+ * @param credentialIssuerTenant
+ * @param credentialConfiguration
  * @param issuanceTransactionId issuance transaction id
- * @param credentialConfigurationId the credential configuration id
  * @param accessToken access token for issuance transaction
  * @param authorizationLifetime lifetime for pre-authorization
  */
 public record PreAuthorizedIssuanceContext(
-        IssuanceTransactionId issuanceTransactionId,
         CredentialIssuerTenant credentialIssuerTenant,
-        ExtendedCredentialMetadata credentialMetadata,
-        String credentialConfigurationId,
+        ExtendedCredentialConfiguration credentialConfiguration,
+        IssuanceTransactionId issuanceTransactionId,
         JWT accessToken,
         Duration authorizationLifetime) {
 
-    public PreAuthorizedIssuanceContext(IssuanceTransactionId issuanceTransactionId, CredentialIssuerTenant credentialIssuerTenant, JWT accessToken) {
-        this(issuanceTransactionId, credentialIssuerTenant, null, null, accessToken, null);
+    public PreAuthorizedIssuanceContext(CredentialIssuerTenant credentialIssuerTenant, ExtendedCredentialConfiguration credentialConfiguration, IssuanceTransactionId issuanceTransactionId, JWT accessToken) {
+        this(credentialIssuerTenant, credentialConfiguration, issuanceTransactionId, accessToken, Duration.ofMinutes(10));
     }
 
 }

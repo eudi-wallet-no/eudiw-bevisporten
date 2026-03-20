@@ -31,7 +31,7 @@ public class KrrClaimsSource extends AbstractPreAuthorizedClaimsSource {
         claims.put("epostadresse", personPrivate.kontaktinformasjon().epostadresse());
         claims.put("mobiltelefonnummer", personPrivate.kontaktinformasjon().mobiltelefonnummer());
         claims.values().removeIf(Objects::isNull);
-        return new CredentialData(claims, null);
+        return new CredentialData(claims);
     }
 
     @Override

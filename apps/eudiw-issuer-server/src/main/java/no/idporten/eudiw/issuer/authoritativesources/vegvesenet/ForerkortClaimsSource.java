@@ -61,7 +61,7 @@ public class ForerkortClaimsSource extends AbstractPreAuthorizedClaimsSource {
         completeClaims.put("driving_privileges", drivingPrivilege);
         completeClaims.put("un_distinguishing_sign", "N");
 
-        return new CredentialData(completeClaims, issuanceContext.credentialConfigurationId());
+        return new CredentialData(completeClaims);
     }
 
     @Override

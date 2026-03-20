@@ -2,8 +2,6 @@ package no.idporten.eudiw.issuer.authoritativesources.advokattilsynet;
 
 
 import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
@@ -19,9 +17,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
+import static no.idporten.eudiw.issuer.TestData.accessToken;
 import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,14 +46,14 @@ public class AdvokatregisteretClaimsSourceTest {
     @DisplayName("then push is not supported")
     @Test
     void testPushNotSupported() {
-        assertThrows(IssuerServerException.class, () -> claimsSource.push(null, new CredentialData(Collections.emptyMap(), null)));
+        assertThrows(IssuerServerException.class, () -> claimsSource.push(null, new CredentialData(Collections.emptyMap())));
     }
 
     @DisplayName("then data can be pulled from authoritative source")
     @Test
     void testPullFromAuthoritativeSource() throws Exception {
         String personIdentifier = "12345678901";
-        JWT accessToken = new PlainJWT(new JWTClaimsSet.Builder().claim("pid", personIdentifier).build());
+        JWT accessToken = accessToken(personIdentifier);
         String response = """
                 {
                     "regnr": "47756",
@@ -70,7 +70,7 @@ public class AdvokatregisteretClaimsSourceTest {
                 }""";
         PersonPrivate personPrivate = new JsonMapper().readValue(response, PersonPrivate.class);
         when(advokatregisteretIntegration.retrieve(eq(personIdentifier))).thenReturn(personPrivate);
-        CredentialData credentialData = claimsSource.pull(new PreAuthorizedIssuanceContext(new IssuanceTransactionId(), junitIssuerTenant(), accessToken));
+        CredentialData credentialData = claimsSource.pull(new PreAuthorizedIssuanceContext(junitIssuerTenant(), null, new IssuanceTransactionId(), accessToken, Duration.ofMinutes(2)));
         Map<String, Object> claims = credentialData.claims();
                 assertAll(
                 () -> assertNotNull(claims),

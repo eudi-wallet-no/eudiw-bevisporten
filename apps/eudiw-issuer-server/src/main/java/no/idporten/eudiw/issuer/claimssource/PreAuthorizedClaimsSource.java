@@ -24,7 +24,7 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * @param credentialData pushed credential data
      */
     default void preAuthorize(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
-        final ExtendedCredentialMetadata extendedCredentialMetadata = issuanceContext.credentialMetadata();
+        final ExtendedCredentialMetadata extendedCredentialMetadata = issuanceContext.credentialConfiguration().getExtendedCredentialMetadata();
         if (credentialData != null && !CollectionUtils.isEmpty(credentialData.claims())) {
             credentialData = validate(extendedCredentialMetadata, push(issuanceContext, credentialData));
         } else {
