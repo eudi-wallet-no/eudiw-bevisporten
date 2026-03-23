@@ -56,6 +56,14 @@ public class TestData {
         return new Subject(getValidSyntheticPersonIdentifier());
     }
 
+    public static String getValidCredentialType() {
+        return "eu.europa.ec.eudi.pid.1";
+    }
+
+    public static String getInvalidCredentialType() {
+        return "eu.europa.ec.eudi.pid_1";
+    }
+
     public static PersonResource getAgeYearOldPerson(Integer age) {
         PersonResource p = new PersonResource();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
