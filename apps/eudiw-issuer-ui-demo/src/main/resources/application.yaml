@@ -105,6 +105,7 @@ bevisgenerator:
             "credential_data": {
               "birth_date": "1986-11-14",
               "age_over_16": true,
+              "age_in_years": 40,
               "age_over_18": true,
               "given_name": "AKTPÅGIVENDE",
               "family_name": "BUSSJÅFØR",
