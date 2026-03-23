@@ -1,6 +1,5 @@
 package no.idporten.eudiw.connector.authoritativesources.api;
 
-import no.idporten.eudiw.connector.authoritativesources.TestData;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes;
 import no.idporten.eudiw.connector.authoritativesources.krr.KrrIntegration;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static no.idporten.eudiw.connector.authoritativesources.TestData.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,8 +35,8 @@ public class AuthoritativeSourcesControllerTest {
 
     @BeforeEach
     public void setup() {
-        when(krrIntegration.retrieve(TestData.getValidSyntheticPersonIdentifier()))
-                .thenReturn(TestData.getValidPersonKrr());
+        when(krrIntegration.retrieve(getValidSyntheticPersonIdentifier()))
+                .thenReturn(getValidPersonKrr());
     }
 
     @Test
@@ -47,26 +47,30 @@ public class AuthoritativeSourcesControllerTest {
                                 {
                                   "subject" : {
                                     "identifier" : "%s"
-                                  }
+                                  },
+                                  "credential_type" : "%s"
                                 }
-                                """.formatted(TestData.getValidSyntheticPersonIdentifier()))
+                                """.formatted(
+                                getValidSyntheticPersonIdentifier(),
+                                getValidCredentialType()
+                        ))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.credential_data.identifier").value(TestData.getValidSyntheticPersonIdentifier()));
+                .andExpect(jsonPath("$.credential_data.identifier").value(getValidSyntheticPersonIdentifier()));
     }
 
     @Test
     @DisplayName("then 'invalid_request' and description should be returned for unknown source")
     void invalidSourceTest() throws Exception {
-        String source = "unknown";
-        mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", source)
+        mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "unknown")
                         .content("""
                                 {
                                   "subject" : {
                                     "identifier" : "%s"
-                                  }
+                                    },
+                                 "credential_type" : "%s"
                                 }
-                                """.formatted(TestData.getValidSyntheticPersonIdentifier()))
+                                """.formatted(getValidSyntheticPersonIdentifier(), getValidCredentialType()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
@@ -75,20 +79,40 @@ public class AuthoritativeSourcesControllerTest {
     }
 
     @Test
-    @DisplayName("then 'invlaid_request' and description should be returned for invalid body")
+    @DisplayName("then 'invalid_request' and description should be returned for invalid subject")
     void invalidRequestDataTest() throws Exception {
         mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "junit")
                         .content("""
                                 {
                                   "subject" : {
                                     "identifier" : "%s"
-                                  }
+                                  },
+                                  "credential_type": "%s"
                                 }
-                                """.formatted(TestData.getInvalidSyntheticPersonIdentifier()))
+                                """.formatted(getInvalidSyntheticPersonIdentifier(), getValidCredentialType()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
                 .andExpect(jsonPath("$.error_description").value(containsString("Invalid person identifier")))
+                .andExpect(jsonPath("$.error_description").value(containsString("trace_id")));
+    }
+
+    @Test
+    @DisplayName("then 'invalid_request' and description should be returned for invalid credential_type")
+    void invalidRequestData2Test() throws Exception {
+        mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "junit")
+                        .content("""
+                                {
+                                  "subject" : {
+                                    "identifier" : "%s"
+                                  },
+                                  "credential_type": "%s"
+                                }
+                                """.formatted(getValidSyntheticPersonIdentifier(), ""))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
+                .andExpect(jsonPath("$.error_description").value(containsString("Credential type is required")))
                 .andExpect(jsonPath("$.error_description").value(containsString("trace_id")));
     }
 }
