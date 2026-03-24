@@ -48,12 +48,9 @@ public class AuthoritativeSourcesControllerTest {
                                   "subject" : {
                                     "identifier" : "%s"
                                   },
-                                  "credential_type" : "%s"
+                                  "credential_type" : "junit"
                                 }
-                                """.formatted(
-                                getValidSyntheticPersonIdentifier(),
-                                getValidCredentialType()
-                        ))
+                                """.formatted(getValidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.credential_data.identifier").value(getValidSyntheticPersonIdentifier()));
@@ -68,9 +65,9 @@ public class AuthoritativeSourcesControllerTest {
                                   "subject" : {
                                     "identifier" : "%s"
                                     },
-                                 "credential_type" : "%s"
+                                 "credential_type" : "junit"
                                 }
-                                """.formatted(getValidSyntheticPersonIdentifier(), getValidCredentialType()))
+                                """.formatted(getValidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
@@ -87,9 +84,9 @@ public class AuthoritativeSourcesControllerTest {
                                   "subject" : {
                                     "identifier" : "%s"
                                   },
-                                  "credential_type": "%s"
+                                  "credential_type": "junit"
                                 }
-                                """.formatted(getInvalidSyntheticPersonIdentifier(), getValidCredentialType()))
+                                """.formatted(getInvalidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
@@ -106,9 +103,9 @@ public class AuthoritativeSourcesControllerTest {
                                   "subject" : {
                                     "identifier" : "%s"
                                   },
-                                  "credential_type": "%s"
+                                  "credential_type": ""
                                 }
-                                """.formatted(getValidSyntheticPersonIdentifier(), ""))
+                                """.formatted(getValidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))

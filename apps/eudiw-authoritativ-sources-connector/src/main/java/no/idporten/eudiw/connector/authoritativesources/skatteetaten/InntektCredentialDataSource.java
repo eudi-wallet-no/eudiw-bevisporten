@@ -1,7 +1,7 @@
 package no.idporten.eudiw.connector.authoritativesources.skatteetaten;
 
 
-import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSource;
+import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
@@ -15,18 +15,15 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.INNTEKTSAPI;
+import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.SKATTEETATEN;
 
 
-/**
- * Claims source for Skatteetaten inntektsbevis.
- */
 @Service
-public class InntektClaimsSource implements AuthoritativeSource {
-
+public class InntektCredentialDataSource implements CredentialDataSource {
+    static final String CREDENTIAL_TYPE = "no.skatteetaten.inntekt.1";
     private final InntektsApiIntegration inntektsApiIntegration;
 
-    public InntektClaimsSource(InntektsApiIntegration inntektsApiIntegration) {
+    public InntektCredentialDataSource(InntektsApiIntegration inntektsApiIntegration) {
         this.inntektsApiIntegration = inntektsApiIntegration;
     }
 
@@ -42,15 +39,10 @@ public class InntektClaimsSource implements AuthoritativeSource {
         return credentialData;
     }
 
-    @Override
-    public String getSource() {
-        return "inntektsbevis";
-    }
-
     private Respons getResponsForLast6Months(Subject subject) {
         LocalDate to = LocalDate.now();
         LocalDate from = to.minusMonths(6);
-        return inntektsApiIntegration.retrieve(subject.identifier(),  from, to);
+        return inntektsApiIntegration.retrieve(subject.identifier(), from, to);
     }
 
     private Map<String, Long> buildFastlonnMap(Respons respons) {
@@ -67,10 +59,10 @@ public class InntektClaimsSource implements AuthoritativeSource {
 
     private void validate(Respons respons) {
         if (respons == null) {
-            throw new ClaimsSourceDataNotFoundException(INNTEKTSAPI, "No data available", "Failed to map response");
+            throw new ClaimsSourceDataNotFoundException(SKATTEETATEN, "No data available", "Failed to map response");
         }
         if (CollectionUtils.isEmpty(respons.oppgaveInntektsmottaker())) {
-            throw new ClaimsSourceDataNotFoundException(INNTEKTSAPI, "No data available", "No data in response");
+            throw new ClaimsSourceDataNotFoundException(SKATTEETATEN, "No data available", "No data in response");
         }
     }
 }

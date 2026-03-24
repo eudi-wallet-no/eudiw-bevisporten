@@ -1,4 +1,5 @@
-package no.idporten.eudiw.connector.authoritativesources.krr;
+package no.idporten.eudiw.connector.authoritativesources.skatteetaten;
+
 
 import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSource;
 import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
@@ -8,15 +9,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.KRR;
+import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.SKATTEETATEN;
+
 
 @Service
-public class KrrAuthoritativeSource implements AuthoritativeSource {
+public class InntektAuthoritativeSource implements AuthoritativeSource {
     private final Map<String, CredentialDataSource> credentialDataSources;
 
-    public KrrAuthoritativeSource(KrrCredentialDataSource krrCredentialDataSource) {
-        credentialDataSources = Map.of(
-                KrrCredentialDataSource.CREDENTIAL_TYPE, krrCredentialDataSource
+    public InntektAuthoritativeSource(InntektCredentialDataSource inntektCredentialDataSource) {
+        this.credentialDataSources = Map.of(
+                InntektCredentialDataSource.CREDENTIAL_TYPE, inntektCredentialDataSource
         );
     }
 
@@ -27,7 +29,7 @@ public class KrrAuthoritativeSource implements AuthoritativeSource {
 
     @Override
     public boolean isSource(String source) {
-        return KRR.externalName().equals(source);
+        return SKATTEETATEN.externalName().equals(source);
     }
 
     @Override

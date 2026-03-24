@@ -32,9 +32,8 @@ public class InntekstApiConfiguration {
                 .build();
     }
 
-    @Bean(value="inntektsApiMaskinportenClient")
+    @Bean(value = "inntektsApiMaskinportenClient")
     public MaskinportenClient inntektsApiMaskinportenClient(MaskinportenClients maskinportenClients) {
         return maskinportenClients.getClient("inntektsapi");
     }
-
 }
