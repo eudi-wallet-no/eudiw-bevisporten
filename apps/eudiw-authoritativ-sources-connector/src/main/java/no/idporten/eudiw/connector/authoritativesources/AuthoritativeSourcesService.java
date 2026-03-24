@@ -2,7 +2,7 @@ package no.idporten.eudiw.connector.authoritativesources;
 
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialDataResponse;
-import no.idporten.eudiw.connector.authoritativesources.api.Subject;
+import no.idporten.eudiw.connector.authoritativesources.api.RetrieveRequest;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.UnknownAuthoritativeSourceException;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +17,14 @@ public class AuthoritativeSourcesService {
         this.authoritativeSources = authoritativeSources;
     }
 
-    public CredentialDataResponse retrieveCredentialData(String source, Subject subject) throws UnknownAuthoritativeSourceException {
-        CredentialData credentialData = getAuthoritativeSource(source).retrieveCredentialData(subject);
+    public CredentialDataResponse retrieveCredentialData(String source, RetrieveRequest request) throws UnknownAuthoritativeSourceException {
+        CredentialData credentialData = getAuthoritativeSource(source, request.credentialType()).retrieveCredentialData(request.subject(),  request.credentialType());
         return new CredentialDataResponse(credentialData);
     }
 
-    private AuthoritativeSource  getAuthoritativeSource(String source) throws UnknownAuthoritativeSourceException {
+    private AuthoritativeSource getAuthoritativeSource(String source, String credentialType) throws UnknownAuthoritativeSourceException {
         for (AuthoritativeSource authoritativeSource : authoritativeSources) {
-            if (authoritativeSource.getSource().equals(source)) {
+            if (authoritativeSource.supports(source, credentialType)) {
                 return authoritativeSource;
             }
         }

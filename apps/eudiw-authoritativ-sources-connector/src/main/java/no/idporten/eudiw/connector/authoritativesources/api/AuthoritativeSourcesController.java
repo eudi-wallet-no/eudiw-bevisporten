@@ -27,7 +27,7 @@ public class AuthoritativeSourcesController {
             @PathVariable("source") String source,
             @RequestBody @Valid RetrieveRequest retrieveRequest
     ) {
-        CredentialDataResponse responseData = authoritativeSourcesService.retrieveCredentialData(source, retrieveRequest.subject());
+        CredentialDataResponse responseData = authoritativeSourcesService.retrieveCredentialData(source, retrieveRequest);
         return ResponseEntity.ok(responseData);
     }
 }

@@ -4,7 +4,11 @@ public enum AuthoritativeSources {
     FREG,
     ADVOKATREGISTERET,
     KRR,
-    INNTEKTSAPI,
+    SKATTEETATEN,
     BYOB,
-    UNKNOWN
+    UNKNOWN;
+
+    public String externalName() {
+        return this.name().toLowerCase();
+    }
 }

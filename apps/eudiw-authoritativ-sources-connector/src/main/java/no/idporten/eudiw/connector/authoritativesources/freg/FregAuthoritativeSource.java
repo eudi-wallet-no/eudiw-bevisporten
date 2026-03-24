@@ -1,4 +1,4 @@
-package no.idporten.eudiw.connector.authoritativesources.krr;
+package no.idporten.eudiw.connector.authoritativesources.freg;
 
 import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSource;
 import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
@@ -8,17 +8,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.KRR;
+import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.FREG;
 
 @Service
-public class KrrAuthoritativeSource implements AuthoritativeSource {
+public class FregAuthoritativeSource implements AuthoritativeSource {
     private final Map<String, CredentialDataSource> credentialDataSources;
 
-    public KrrAuthoritativeSource(KrrCredentialDataSource krrCredentialDataSource) {
+    public FregAuthoritativeSource(AgeVerificationCredentialDataSource ageVerificationCredentialDataSource, PidCredentialDataSource pidCredentialDataSource) {
         credentialDataSources = Map.of(
-                KrrCredentialDataSource.CREDENTIAL_TYPE, krrCredentialDataSource
+                AgeVerificationCredentialDataSource.CREDENTIAL_TYPE, ageVerificationCredentialDataSource,
+                PidCredentialDataSource.CREDENTIAL_TYPE, pidCredentialDataSource
         );
     }
+
 
     @Override
     public CredentialData retrieveCredentialData(Subject subject, String credentialType) {
@@ -27,7 +29,7 @@ public class KrrAuthoritativeSource implements AuthoritativeSource {
 
     @Override
     public boolean isSource(String source) {
-        return KRR.externalName().equals(source);
+        return FREG.externalName().equals(source);
     }
 
     @Override

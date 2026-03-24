@@ -25,7 +25,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.INNTEKTSAPI;
+import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.SKATTEETATEN;
 
 
 /**
@@ -57,9 +57,9 @@ public class InntektsApiIntegration {
         try {
             return getRespons(personIdentifier, startDate, endDate);
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException(INNTEKTSAPI, "IO error when calling Inntekts-api", e);
+            throw new ClaimsSourceIOException(SKATTEETATEN, "IO error when calling Inntekts-api", e);
         } catch (RestClientException e) {
-            throw new AuthoritativeSourceException(INNTEKTSAPI, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new AuthoritativeSourceException(SKATTEETATEN, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -81,7 +81,7 @@ public class InntektsApiIntegration {
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to get data fra authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
-        throw new AuthoritativeSourceException(INNTEKTSAPI, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+        throw new AuthoritativeSourceException(SKATTEETATEN, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
     }
 
 }

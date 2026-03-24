@@ -21,12 +21,12 @@ import static org.mockito.Mockito.when;
 
 @DisplayName("When issuing documents for Advokatregisteret")
 @ExtendWith(MockitoExtension.class)
-public class AdvokatregisteretAuthoritativeSourceTest {
+public class AdvokatregisteretCredentialDataSourceTest {
     @Mock
     AdvokatregisteretIntegration advokatregisteretIntegration;
 
     @InjectMocks
-    AdvokatregisteretAuthoritativeSource claimsSource;
+    AdvokatregisteretCredentialDataSource advokatregisteretCredentialDataSource;
 
 
     @DisplayName("then data can be pulled from authoritative source")
@@ -49,7 +49,7 @@ public class AdvokatregisteretAuthoritativeSourceTest {
                 }""";
         PersonPrivate personPrivate = new JsonMapper().readValue(response, PersonPrivate.class);
         when(advokatregisteretIntegration.retrieve(eq(subject.identifier()))).thenReturn(personPrivate);
-        CredentialData credentialData = claimsSource.retrieveCredentialData(subject);
+        CredentialData credentialData = advokatregisteretCredentialDataSource.retrieveCredentialData(subject);
                 assertAll(
                 () -> assertNotNull(credentialData),
                 () -> assertEquals(5, credentialData.size()),
@@ -70,7 +70,7 @@ public class AdvokatregisteretAuthoritativeSourceTest {
 
         ClaimsSourceDataNotFoundException e = assertThrows(
                 ClaimsSourceDataNotFoundException.class,
-                () -> claimsSource.retrieveCredentialData(subject)
+                () -> advokatregisteretCredentialDataSource.retrieveCredentialData(subject)
         );
 
         assertAll(

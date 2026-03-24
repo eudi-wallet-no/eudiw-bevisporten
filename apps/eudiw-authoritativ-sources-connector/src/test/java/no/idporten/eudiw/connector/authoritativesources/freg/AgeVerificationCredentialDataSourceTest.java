@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("When getting AgeVerificationAuthoritativeSource")
-public class AgeVerificationAuthoritativeSourceTest {
+@DisplayName("When getting AgeVerificationCredentialDataSource")
+public class AgeVerificationCredentialDataSourceTest {
     @Mock
     private FregService fregService = Mockito.mock(FregService.class);
 
@@ -28,7 +28,7 @@ public class AgeVerificationAuthoritativeSourceTest {
     private PersonConverterService personConverterService = Mockito.spy(PersonConverterService.class);
 
     @InjectMocks
-    private AgeVerificationAuthoritativeSource ageVerificationAuthoritativeSource;
+    private AgeVerificationCredentialDataSource ageVerificationCredentialDataSource;
 
 
 
@@ -39,7 +39,7 @@ public class AgeVerificationAuthoritativeSourceTest {
 
         when(fregService.getEidasPerson(subject.identifier(),"EUDIW-ISSUER")).thenReturn(getAgeYearOldPerson(18));
 
-        CredentialData credentialData = ageVerificationAuthoritativeSource.retrieveCredentialData(subject);
+        CredentialData credentialData = ageVerificationCredentialDataSource.retrieveCredentialData(subject);
 
         assertTrue((Boolean)credentialData.get("age_over_15"));
         assertTrue((Boolean)credentialData.get("age_over_18"));
@@ -52,7 +52,7 @@ public class AgeVerificationAuthoritativeSourceTest {
 
         when(fregService.getEidasPerson(subject.identifier(),"EUDIW-ISSUER")).thenReturn(getAgeYearOldPerson(15));
 
-        CredentialData credentialData = ageVerificationAuthoritativeSource.retrieveCredentialData(subject);
+        CredentialData credentialData = ageVerificationCredentialDataSource.retrieveCredentialData(subject);
 
         assertTrue((Boolean)credentialData.get("age_over_15"));
         assertFalse((Boolean)credentialData.get("age_over_18"));
@@ -65,7 +65,7 @@ public class AgeVerificationAuthoritativeSourceTest {
 
         when(fregService.getEidasPerson(subject.identifier(),"EUDIW-ISSUER")).thenReturn(getAgeYearOldPerson(14));
 
-        CredentialData credentialData = ageVerificationAuthoritativeSource.retrieveCredentialData(subject);
+        CredentialData credentialData = ageVerificationCredentialDataSource.retrieveCredentialData(subject);
 
         assertFalse((Boolean)credentialData.get("age_over_15"));
         assertFalse((Boolean)credentialData.get("age_over_18"));

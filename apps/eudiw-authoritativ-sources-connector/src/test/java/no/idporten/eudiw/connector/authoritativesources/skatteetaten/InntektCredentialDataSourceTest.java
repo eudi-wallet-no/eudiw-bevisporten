@@ -25,12 +25,12 @@ import static org.mockito.Mockito.when;
 
 @DisplayName("When issuing documents for inntekt")
 @ExtendWith(MockitoExtension.class)
-public class InntektClaimsSourceTest {
+public class InntektCredentialDataSourceTest {
     @Mock
     InntektsApiIntegration inntektsApiIntegration;
 
     @InjectMocks
-    InntektClaimsSource claimsSource;
+    InntektCredentialDataSource inntektCredentialDataSource;
 
     @DisplayName("then data can be retrieved from authoritative source and calculated for each month")
     @Test
@@ -38,7 +38,7 @@ public class InntektClaimsSourceTest {
         Subject subject = getValidSubject();
         Respons respons = new JsonMapper().readValue(inntektsApiResponse, Respons.class);
         when(inntektsApiIntegration.retrieve(eq(subject.identifier()), any(), any())).thenReturn(respons);
-        CredentialData credentialData = claimsSource.retrieveCredentialData(subject);
+        CredentialData credentialData = inntektCredentialDataSource.retrieveCredentialData(subject);
 
         assertEquals(1, credentialData.size());
 

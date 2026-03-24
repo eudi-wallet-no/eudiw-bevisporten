@@ -21,13 +21,13 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("When getting a KrrAuthoritativeSource")
-public class KrrAuthoritativeSourceTest {
+public class KrrCredentialDataSourceTest {
 
     @Mock
     KrrIntegration krrIntegration;
 
     @InjectMocks
-    private KrrAuthoritativeSource krrAuthoritativeSource;
+    private KrrCredentialDataSource krrAuthoritativeSource;
 
 
     @Test
@@ -35,6 +35,7 @@ public class KrrAuthoritativeSourceTest {
     void testPullFromAuthoritativeSource() {
         PersonKrr personKrr = getValidPersonKrr();
         when(krrIntegration.retrieve(any())).thenReturn(personKrr);
+
         Subject subject = getValidSubject();
         String personIdentifier = subject.identifier();
 
