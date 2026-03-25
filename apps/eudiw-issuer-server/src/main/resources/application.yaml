@@ -39,6 +39,15 @@ credential-issuer-server:
     - ES256
   credential-signing-algorithms:
     - ES256
+  authoritative-sources:
+    krr:
+      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/krr/credentialdata/retrieve
+    freg:
+      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/freg/credentialdata/retrieve
+    skatteetaten:
+      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/skatteetaten/credentialdata/retrieve
+    advokatregisteret:
+      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/advokatregisteret/credentialdata/retrieve
   tenants:
     root:
       credential-configuration-sources-properties:

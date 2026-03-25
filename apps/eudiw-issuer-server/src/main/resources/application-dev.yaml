@@ -27,6 +27,15 @@ credential-issuer-server:
     - id: maskinporten
       issuer: https://maskinporten.dev/
       jwks-uri: https://maskinporten.dev/jwk
+  authoritative-sources:
+    krr:
+      uri: http://authoritative-sources-connector:9298/api/v1/krr/credentialdata/retrieve
+    freg:
+      uri: http://authoritative-sources-connector:9298/api/v1/freg/credentialdata/retrieve
+    skatteetaten:
+      uri: http://authoritative-sources-connector:9298/api/v1/skatteetaten/credentialdata/retrieve
+    advokatregisteret:
+      uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
   tenants:
     bevisgenerator:
       display-names:
