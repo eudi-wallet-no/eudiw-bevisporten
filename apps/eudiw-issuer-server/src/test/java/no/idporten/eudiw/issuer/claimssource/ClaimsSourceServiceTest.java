@@ -5,8 +5,6 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -33,11 +31,10 @@ public class ClaimsSourceServiceTest {
         assertNotNull(claimsSourceService.findClaimsSource(URI.create("class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource")));
     }
 
-    @DisplayName("then the HTTP pull claims source can be looked up by a http(s):// uri")
-    @ValueSource(strings = {"http://junit.eidas2sandkasse.dev/authsource", "https://junit.eidas2sandkasse.dev/authsource"})
-    @ParameterizedTest
-    void testFindClaimsSourceForHttpUri(String uri) {
-        assertSame(HttpPullPreAuthorizedClaimsSource.class, claimsSourceService.findClaimsSource(URI.create(uri)).getClass());
+    @DisplayName("then the authoritative-source claims source can be looked up by an authoritative-source:// uri")
+    @Test
+    void testFindClaimsSourceForAuthoritativeSourceUri() {
+        assertSame(AuthoritativeSourcePullPreAuthorizedClaimsSource.class, claimsSourceService.findClaimsSource(URI.create("authoritative-source://junit")).getClass());
     }
 
     @DisplayName("then an exception is thrown when looking up an unknown claims source")

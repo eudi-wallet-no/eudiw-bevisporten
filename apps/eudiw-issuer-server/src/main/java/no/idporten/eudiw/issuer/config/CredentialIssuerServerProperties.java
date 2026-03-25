@@ -38,7 +38,7 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     @NotEmpty
     private List<@Valid AuthorizationServer> authorizationServers;
     private List<@Valid AuthorizationServer> preAuthorizationServers = new ArrayList<>();
-
+    private Map<String, @Valid AuthoritativeSourceProperties> authoritativeSources = new HashMap<>();
     private Map<String, CredentialIssuerTenant> tenants = new HashMap<>();
 
     @NotNull

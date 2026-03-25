@@ -18,14 +18,14 @@ public class ClaimsSourceService implements InitializingBean {
 
     private final List<ClaimsSource> claimsSources;
 
-    private static final List<String> SUPPORTED_SCHEMES = List.of("class", "http", "https");
+    private static final List<String> SUPPORTED_SCHEMES = List.of("class", "authoritative-source");
 
     public ClaimsSource findClaimsSource(URI uri) {
         if (! SUPPORTED_SCHEMES.contains(uri.getScheme())) {
             throw new IssuerServerException("server_error", "Unsupported claims source URI scheme for uri [%s]".formatted(uri), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        if (uri.getScheme().startsWith("http")) {
-            return findClaimsSourceByClassName(HttpPullPreAuthorizedClaimsSource.class.getName())
+        if (uri.getScheme().startsWith("authoritative-source")) {
+            return findClaimsSourceByClassName(AuthoritativeSourcePullPreAuthorizedClaimsSource.class.getName())
                     .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for uri [%s]".formatted(uri), HttpStatus.INTERNAL_SERVER_ERROR));
         }
         return findClaimsSourceByClassName(uri.getAuthority())
