@@ -17,7 +17,6 @@ authoritative-sources-connector:
 
 maskinporten:
   lib:
-    issuer: https://test.maskinporten.no/
     clients:
       krr:
         client-id: freg-eudiw-maskinporten-test

@@ -81,7 +81,7 @@ authoritative-sources-connector:
 maskinporten:
   lib:
     enabled: true
-    issuer: dummy
+    issuer: https://test.maskinporten.no/
     clients:
       krr:
         client-id: ${MASKINPORTEN_CLIENT_ID}
