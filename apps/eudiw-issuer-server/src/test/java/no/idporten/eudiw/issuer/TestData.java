@@ -3,11 +3,15 @@ package no.idporten.eudiw.issuer;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import no.idporten.eudiw.issuer.config.ClasspathSingleCredentialConfigurationSource;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 
 import java.net.URI;
@@ -45,11 +49,31 @@ public class TestData {
                 .build();
     }
 
+    public static ExtendedCredentialConfiguration credentialConfigurationFromClasspath(String uri) {
+        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(uri, null, null, null, null));
+        credentialConfigurationSource.init();
+        return credentialConfigurationSource.retrieve().getFirst();
+    }
+
     /**
      * A plain access_token with pid claim
      */
     public static JWT accessToken(String personIdentifier) {
         return new PlainJWT(new JWTClaimsSet.Builder().claim("pid", personIdentifier).build());
+    }
+
+    /**
+     * A plain access_token with pid and tx_id claim
+     */
+    public static JWT accessToken(String personIdentifier, IssuanceTransactionId txId) {
+        return new PlainJWT(new JWTClaimsSet.Builder()
+                .claim("pid", personIdentifier)
+                .claim("tx_id", txId.getValue())
+                .build());
+    }
+
+    public static String syntheticPersonIdentifier() {
+        return "03866599717";
     }
 
 }
