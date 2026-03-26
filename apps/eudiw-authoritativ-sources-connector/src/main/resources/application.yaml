@@ -60,7 +60,7 @@ authoritative-sources-connector:
       scope: krr:global/kontaktinformasjon.read
       connect-timeout: 2s
       read-timeout: 2s
-    advoktatregisteret:
+    advokatregisteret:
       uri: https://test-api.data.altinn.no/v1/directharvest/AdvRegPersonPrivat/
       subscription-key: ${ADVOKATREGISTERET_SUBSCRIPTION_KEY}
       scope: altinn:dataaltinnno/advregpersonprivat

@@ -13,7 +13,7 @@ spring:
 
 authoritative-sources-connector:
   connectors:
-    advoktatregisteret:
+    advokatregisteret:
       subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f
 
 maskinporten:
