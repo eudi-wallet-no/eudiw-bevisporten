@@ -5,9 +5,9 @@ import no.idporten.eudiw.connector.authoritativesources.advokattilsynet.model.Pe
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceIOException;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,12 +37,11 @@ public class AdvokatregisteretIntegration {
     private final MaskinportenClient maskinportenClient;
     private final RestClient advokatregisterRestClient;
 
-    @Autowired
     public AdvokatregisteretIntegration(AdvokatregisteretProperties advokatregisteretProperties,
-                                        @Qualifier("advokatregisteretMaskinportenClient") MaskinportenClient maskinportenClient,
+                                        MaskinportenClients maskinportenClients,
                                         @Qualifier("advokatregisteretRestClient") RestClient advokatregisterRestClient) {
         this.advokatregisteretProperties = advokatregisteretProperties;
-        this.maskinportenClient = maskinportenClient;
+        this.maskinportenClient = maskinportenClients.getClient(advokatregisteretProperties.maskinportenClient());
         this.advokatregisterRestClient = advokatregisterRestClient;
     }
 

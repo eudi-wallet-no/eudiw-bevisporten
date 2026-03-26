@@ -3,9 +3,12 @@ package no.idporten.eudiw.connector.authoritativesources.advokattilsynet;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import no.idporten.eudiw.connector.authoritativesources.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
+import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.restclient.test.MockServerRestClientCustomizer;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,8 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestToUriTemplate;
@@ -27,12 +29,17 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @SpringBootTest
 public class AdvokatregisteretIntegrationTest {
 
-    @MockitoBean(name="advokatregisteretMaskinportenClient")
+    @MockitoBean
+    private MaskinportenClients maskinportenClients;
+
+    @MockitoBean
     private MaskinportenClient maskinportenClient;
+
+    @MockitoBean
+    private JwtGrantTokenInterceptor jwtGrantTokenInterceptor;
 
     @Autowired
     private AdvokatregisteretProperties advokatregisteretProperties;
-
 
     private AdvokatregisteretIntegration advokatregisteretIntegration;
 
@@ -40,11 +47,12 @@ public class AdvokatregisteretIntegrationTest {
 
     @BeforeEach
     public void setUp() {
+        when(maskinportenClients.getClient(any())).thenReturn(maskinportenClient);
         when(maskinportenClient.getAccessToken(anyString(), anyList())).thenReturn(mock(AccessToken.class));
         customizer = new MockServerRestClientCustomizer();
         RestClient.Builder builder = RestClient.builder();
         customizer.customize(builder);
-        advokatregisteretIntegration = new AdvokatregisteretIntegration(advokatregisteretProperties, maskinportenClient, builder.build());
+        advokatregisteretIntegration = new AdvokatregisteretIntegration(advokatregisteretProperties, maskinportenClients, builder.build());
     }
 
     @Test
@@ -62,7 +70,7 @@ public class AdvokatregisteretIntegrationTest {
                             "hovedpraksis": true
                         }
                     ]
-                    }""";
+                }""";
         final String personIdentifier = "123456789101";
         customizer.getServer()
                 .expect(requestToUriTemplate("?subject={personIdentifier}&envelope=false", personIdentifier))

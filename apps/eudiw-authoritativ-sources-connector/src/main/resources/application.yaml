@@ -83,72 +83,22 @@ maskinporten:
     enabled: true
     issuer: https://test.maskinporten.no/
     clients:
-      krr:
+      default:
         client-id: ${MASKINPORTEN_CLIENT_ID}
         kid: ${MASKINPORTEN_CLIENT_KID}
         issuer: ${maskinporten.lib.issuer}
         audience:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
-        scope: krr:global/kontaktinformasjon.read krr:global/digitalpost.read
-        connect-timeout-ms: 5000
-        read-timeout-ms: 2000
-        key-store-name: maskinporten-krr
-      advokatregisteret:
-        client-id: ${MASKINPORTEN_CLIENT_ID}
-        kid: ${MASKINPORTEN_CLIENT_KID}
-        issuer: ${maskinporten.lib.issuer}
-        audience:
-          - ${maskinporten.lib.issuer}
-        token-endpoint: ${maskinporten.lib.issuer}token
-        scope: altinn:dataaltinnno/advregpersonprivat
-        connect-timeout-ms: 5000
-        read-timeout-ms: 2000
-        key-store-name: maskinporten-advokatregisteret
-      inntektsapi:
-        client-id: ${MASKINPORTEN_CLIENT_ID}
-        kid: ${MASKINPORTEN_CLIENT_KID}
-        issuer: ${maskinporten.lib.issuer}
-        audience:
-          - ${maskinporten.lib.issuer}
-        token-endpoint: ${maskinporten.lib.issuer}token
-        scope: skatteetaten:inntekt
+        scope: krr:global/kontaktinformasjon.read altinn:dataaltinnno/advregpersonprivat folkeregister:deling/offentligmedhjemmel skatteetaten:inntekt
         connect-timeout-ms: 2000
         read-timeout-ms: 2000
-        key-store-name: maskinporten-inntektsapi
-      freg:
-        client-id: ${MASKINPORTEN_CLIENT_ID}
-        kid: ${MASKINPORTEN_CLIENT_KID}
-        issuer: ${maskinporten.lib.issuer}
-        audience:
-          - ${maskinporten.lib.issuer}
-        token-endpoint: ${maskinporten.lib.issuer}token
-        scope: folkeregister:deling/offentligmedhjemmel
-        connect-timeout-ms: 5000
-        read-timeout-ms: 2000
-        key-store-name: maskinporten-freg
+        key-store-name: maskinporten-default
+
 
 idporten-key-manager:
   keystores:
-    maskinporten-krr:
-      key-store-type: JKS
-      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
-      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
-      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
-      key-password: ${MASKINPORTEN_KEY_PASSWORD}
-    maskinporten-advokatregisteret:
-      key-store-type: JKS
-      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
-      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
-      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
-      key-password: ${MASKINPORTEN_KEY_PASSWORD}
-    maskinporten-inntektsapi:
-      key-store-type: JKS
-      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
-      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
-      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
-      key-password: ${MASKINPORTEN_KEY_PASSWORD}
-    maskinporten-freg:
+    maskinporten-default:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}

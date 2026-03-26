@@ -45,7 +45,7 @@ public class FregConfiguration {
 
     @Bean
     public JwtGrantTokenInterceptor jwtGrantTokenInterceptor(MaskinportenClients maskinportenClients) {
-        return new JwtGrantTokenInterceptor(maskinportenClients.getClient("freg"));
+        return new JwtGrantTokenInterceptor(maskinportenClients.getClient(fregProperties.maskinportenClient()));
     }
 
     @Bean
