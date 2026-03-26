@@ -12,7 +12,7 @@ import java.time.Duration;
 import static no.idporten.eudiw.connector.authoritativesources.config.MaskinportenConfiguration.DEFAULT_MASKINPORTEN_CLIENT;
 
 @Validated
-@ConfigurationProperties("authoritative-sources-connector.connectors.advoktatregisteret")
+@ConfigurationProperties("authoritative-sources-connector.connectors.advokatregisteret")
 public record AdvokatregisteretProperties(
         @NotNull URI uri,
         @NotEmpty String subscriptionKey,

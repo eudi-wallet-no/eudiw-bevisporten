@@ -5,8 +5,9 @@ spring:
 
 authoritative-sources-connector:
   connectors:
-    advoktatregisteret:
+    advokatregisteret:
       subscription-key: 12345
+
 # MaskinPorten
 maskinporten:
   lib:
