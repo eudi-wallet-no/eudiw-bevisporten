@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "no.advokattilsynet.advokatregisteret_mso_mdoc",
   "credential_issuer_context": {
-    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.advokattilsynet.AdvokatregisteretClaimsSource",
+    "credential_datasource_uri": "authoritative-source://advokatregisteret",
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "pre_authorization_server": "maskinporten",

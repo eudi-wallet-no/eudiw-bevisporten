@@ -92,14 +92,6 @@ freg:
   connect-timeout: 5s
   read-timeout: 5s
 
-## Data.altinn.no for advokatbevis
-advoktatregisteret:
-  uri: https://test-api.data.altinn.no/v1/directharvest/AdvRegPersonPrivat/
-  subscription-key: ${ADVOKATREGISTERET_SUBSCRIPTION_KEY}
-  scope: altinn:dataaltinnno/advregpersonprivat
-  connect-timeout: 5s
-  read-timeout: 5s
-
 ## Inntektsapi fra Skatteetaten
 inntektsapi:
   uri: https://inntekt.api.skatteetaten-test.no/
@@ -132,17 +124,6 @@ maskinporten:
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: maskinporten-freg
-      advokatregisteret:
-        client-id: ${MASKINPORTEN_CLIENT_ID}
-        kid: ${MASKINPORTEN_CLIENT_KID}
-        issuer: ${maskinporten.lib.issuer}
-        audience:
-          - ${maskinporten.lib.issuer}
-        token-endpoint: ${maskinporten.lib.issuer}token
-        scope: altinn:dataaltinnno/advregpersonprivat
-        connect-timeout-ms: 5000
-        read-timeout-ms: 2000
-        key-store-name: maskinporten-advokatregisteret
       inntektsapi:
         client-id: ${MASKINPORTEN_CLIENT_ID}
         kid: ${MASKINPORTEN_CLIENT_KID}
@@ -169,12 +150,6 @@ idporten-key-manager:
       key-alias: ${EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
     maskinporten-freg:
-      key-store-type: JKS
-      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
-      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
-      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
-      key-password: ${MASKINPORTEN_KEY_PASSWORD}
-    maskinporten-advokatregisteret:
       key-store-type: JKS
       key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
