@@ -37,7 +37,8 @@ public class KrrPropertiesTest {
         KrrProperties properties = new KrrProperties(krrProperties.uri(),
                 "test:scope test:scope2",
                 Duration.ofSeconds(2),
-                Duration.ofSeconds(2));
+                Duration.ofSeconds(2),
+                "default");
 
         assertAll(
                 () -> assertEquals(2, properties.scopeAsList().size()),
@@ -52,7 +53,7 @@ public class KrrPropertiesTest {
     @DisplayName("When having one scope")
     void testOneScope() {
         KrrProperties properties = new KrrProperties(krrProperties.uri(),
-                "one:scope", Duration.ofSeconds(2), Duration.ofSeconds(2));
+                "one:scope", Duration.ofSeconds(2), Duration.ofSeconds(2), "default");
         assertAll(
                 () -> assertEquals("one:scope", properties.scope()),
                 () -> assertThrows(IndexOutOfBoundsException.class, () -> properties.scopeAsList().get(1)),

@@ -1,7 +1,5 @@
 package no.idporten.eudiw.connector.authoritativesources.krr;
 
-import no.idporten.lib.maskinporten.client.MaskinportenClient;
-import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,10 +29,4 @@ public class KrrConfiguration {
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
-
-    @Bean(value="krrMaskinportenClient")
-    public MaskinportenClient krrMaskinportenClient(MaskinportenClients maskinportenClients) {
-        return maskinportenClients.getClient("krr");
-    }
-
 }

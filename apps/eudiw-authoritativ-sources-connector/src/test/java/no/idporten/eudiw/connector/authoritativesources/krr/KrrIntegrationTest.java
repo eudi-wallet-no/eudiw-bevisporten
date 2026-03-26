@@ -2,7 +2,9 @@ package no.idporten.eudiw.connector.authoritativesources.krr;
 
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import no.idporten.eudiw.connector.authoritativesources.krr.model.PersonKrr;
+import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,19 +34,26 @@ public class KrrIntegrationTest {
     @Autowired
     private KrrProperties krrProperties;
 
-    @MockitoBean(name = "krrMaskinportenClient")
+    @MockitoBean
+    private MaskinportenClients maskinportenClients;
+
+    @MockitoBean
     private MaskinportenClient maskinportenClient;
+
+    @MockitoBean
+    private JwtGrantTokenInterceptor jwtGrantTokenInterceptor;
 
     @MockitoBean
     private MockServerRestClientCustomizer customizer;
 
     @BeforeEach
     public void setUp() {
+        when(maskinportenClients.getClient(anyString())).thenReturn(maskinportenClient);
         when(maskinportenClient.getAccessToken(anyString(), anyList())).thenReturn(mock(AccessToken.class));
         customizer = new MockServerRestClientCustomizer();
         RestClient.Builder builder = RestClient.builder();
         customizer.customize(builder);
-        krrIntegration = spy(new KrrIntegration(krrProperties, maskinportenClient, builder.build()));
+        krrIntegration = spy(new KrrIntegration(krrProperties, maskinportenClients, builder.build()));
     }
 
 

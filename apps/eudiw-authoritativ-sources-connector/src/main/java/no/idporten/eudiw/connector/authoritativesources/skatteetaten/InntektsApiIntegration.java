@@ -5,9 +5,9 @@ import no.idporten.eudiw.connector.authoritativesources.exceptions.Authoritative
 import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceIOException;
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.Respons;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -40,12 +40,11 @@ public class InntektsApiIntegration {
     private final MaskinportenClient maskinportenClient;
     private final RestClient inntekstApiRestClient;
 
-    @Autowired
     public InntektsApiIntegration(InntekstsApiProperties inntekstsApiProperties,
-                                  @Qualifier("inntektsApiMaskinportenClient") MaskinportenClient maskinportenClient,
+                                  MaskinportenClients maskinportenClients,
                                   @Qualifier("inntekstApiRestClient") RestClient inntekstApiRestClient) {
         this.inntekstsApiProperties = inntekstsApiProperties;
-        this.maskinportenClient = maskinportenClient;
+        this.maskinportenClient = maskinportenClients.getClient(inntekstsApiProperties.maskinportenClient());
         this.inntekstApiRestClient = inntekstApiRestClient;
     }
 

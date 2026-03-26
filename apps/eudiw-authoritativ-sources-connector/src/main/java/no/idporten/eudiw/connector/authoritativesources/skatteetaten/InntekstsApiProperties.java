@@ -9,13 +9,15 @@ import org.springframework.validation.annotation.Validated;
 import java.net.URI;
 import java.time.Duration;
 
+import static no.idporten.eudiw.connector.authoritativesources.config.MaskinportenConfiguration.DEFAULT_MASKINPORTEN_CLIENT;
+
 @Validated
 @ConfigurationProperties("authoritative-sources-connector.connectors.inntektsapi")
 public record InntekstsApiProperties(
         @NotNull URI uri,
         @NotEmpty String scope,
         @DefaultValue("3s") Duration connectTimeout,
-        @DefaultValue("3s") Duration readTimeout
+        @DefaultValue("3s") Duration readTimeout,
+        @DefaultValue(DEFAULT_MASKINPORTEN_CLIENT) String maskinportenClient
 ) {
-
-}
+ }
