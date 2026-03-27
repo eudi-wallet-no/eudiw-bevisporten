@@ -73,7 +73,7 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.preAuthorize(
                     preAuthorizedIssuanceContext,
                     null);
-            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), junitIssuerTenant(), junitCredentialConfiguration().getExtendedCredentialMetadata()));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), junitIssuerTenant(), junitCredentialConfiguration()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -117,7 +117,7 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.preAuthorize(
                     issuanceContext,
                     new CredentialData(Map.of("c", "v")));
-            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), credentialIssuerTenant("junit"), junitCredentialConfiguration().getExtendedCredentialMetadata()));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), credentialIssuerTenant("junit"), junitCredentialConfiguration()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),

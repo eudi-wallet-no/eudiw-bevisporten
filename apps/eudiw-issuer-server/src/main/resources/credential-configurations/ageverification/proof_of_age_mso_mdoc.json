@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "proof_of_age",
   "credential_issuer_context": {
-    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.ageverification.AgeVerificationClaimsSource",
+    "credential_datasource_uri": "authoritative-source://freg",
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "grant_type": "authorization_code",

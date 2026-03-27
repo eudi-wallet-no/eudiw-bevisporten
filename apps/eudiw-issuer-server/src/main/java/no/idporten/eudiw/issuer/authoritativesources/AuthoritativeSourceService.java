@@ -83,7 +83,7 @@ public class AuthoritativeSourceService implements InitializingBean {
 
     void handleErrorResponse(String source, ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
-        String logMessage = "Failed to get data fra authoritative source [{%s}]: status: [%s], message: [%s]".formatted(source, response.getStatusCode(), body);
+        String logMessage = "Failed to get data fra authoritative source [%s]: status: [%s], message: [%s]".formatted(source, response.getStatusCode(), body);
         AuthoritativeSourceErrorResponse errorResponse;
         try {
             errorResponse = jsonMapper.readValue(body, AuthoritativeSourceErrorResponse.class);

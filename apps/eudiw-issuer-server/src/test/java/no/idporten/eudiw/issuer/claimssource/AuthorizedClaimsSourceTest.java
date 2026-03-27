@@ -1,31 +1,27 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.PlainJWT;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.TestData;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.StringValue;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
+import static no.idporten.eudiw.issuer.TestData.credentialIssuerTenant;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 @DisplayName("When using authorized claims sources")
 public class AuthorizedClaimsSourceTest {
 
     static class AuthorizedJUnitClaimsSource extends AbstractAuthorizedClaimsSource {
+
         @Override
-        public List<Claim> pull(String pid) {
+        public List<Claim> issueClaims(CredentialIssueContext credentialIssueContext) {
             return Collections.singletonList(new Claim(Collections.singletonList("c"), new StringValue("v")));
         }
     }
@@ -35,27 +31,12 @@ public class AuthorizedClaimsSourceTest {
     public void testIssueClaimsSource() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
         String fnr = "12345678910";
-        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(fnr), TestData.credentialIssuerTenant("junit"),null));
+        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(TestData.accessToken(fnr), credentialIssuerTenant("junit"),null));
         assertAll(
                 () -> assertEquals(1, claims.size()),
                 () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
                 () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
         );
-        verify(claimsSource).pull(eq(fnr));
-    }
-
-    @DisplayName("then authorized claims are not issued when fnr is not in token")
-    @Test
-    public void testIssueClaimsSourceWithInvalidToken() {
-        AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
-        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(null), TestData.credentialIssuerTenant("junit"),null)));
-        assertThrows(IssuerServerException.class, () -> claimsSource.issueClaims(new CredentialIssueContext(createAccessToken(" "), TestData.credentialIssuerTenant("junit"),null)));
-    }
-
-    @NotNull
-    public static JWT createAccessToken(String fnr) {
-        JWTClaimsSet claimSet = new JWTClaimsSet.Builder().subject(fnr).build();
-        return new PlainJWT(claimSet);
     }
 
 }

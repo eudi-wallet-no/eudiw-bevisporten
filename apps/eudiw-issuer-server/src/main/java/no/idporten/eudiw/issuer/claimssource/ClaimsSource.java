@@ -5,7 +5,7 @@ import no.idporten.eudiw.issuer.credentials.types.Claim;
 
 import java.util.List;
 
-public interface ClaimsSource {
+public sealed interface ClaimsSource permits AuthorizedClaimsSource, PreAuthorizedClaimsSource{
 
     /**
      * Issue claims (credentials).

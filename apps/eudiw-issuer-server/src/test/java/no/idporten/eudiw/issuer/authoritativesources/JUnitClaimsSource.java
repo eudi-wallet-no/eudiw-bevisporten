@@ -1,11 +1,11 @@
 package no.idporten.eudiw.issuer.authoritativesources;
 
-import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
-import no.idporten.eudiw.issuer.credentials.types.Claim;
-import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class JUnitClaimsSource implements ClaimsSource {
+public class JUnitClaimsSource extends AbstractAuthorizedClaimsSource {
 
     private final ExtendedCredentialMetadata extendedCredentialMetadata;
 

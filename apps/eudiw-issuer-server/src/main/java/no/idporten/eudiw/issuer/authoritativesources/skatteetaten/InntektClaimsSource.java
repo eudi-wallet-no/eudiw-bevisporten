@@ -1,16 +1,20 @@
 package no.idporten.eudiw.issuer.authoritativesources.skatteetaten;
 
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource;
 import no.idporten.eudiw.issuer.authoritativesources.skatteetaten.domain.Inntekt;
 import no.idporten.eudiw.issuer.authoritativesources.skatteetaten.domain.InntektsOpplysninger;
 import no.idporten.eudiw.issuer.authoritativesources.skatteetaten.domain.Respons;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.MapValue;
 import no.idporten.eudiw.issuer.credentials.types.NumberValue;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +34,8 @@ public class InntektClaimsSource extends AbstractAuthorizedClaimsSource {
         this.inntektsApiIntegration = inntektsApiIntegration;
     }
 
-    @Override
-    public List<Claim> pull(String personIdentifier) {
-
+    public List<Claim> issueClaims(CredentialIssueContext credentialIssueContext){
+        String personIdentifier = credentialIssueContext.personIdentifier();
         Respons respons = inntektsApiIntegration.retrieve(personIdentifier);
 
         Map<String, Double> fastlonnMap = new HashMap<>();

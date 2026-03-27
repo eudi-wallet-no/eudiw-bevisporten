@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.openid4vci;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
@@ -81,7 +82,7 @@ public class CredentialIssuerServiceTest {
                     .build();
             PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
             CredentialRequest credentialRequest = CredentialRequest.builder().credentialConfigurationId("cid").build();
-            ClaimsSource claimsSource = mock(ClaimsSource.class);
+            ClaimsSource claimsSource = mock(JUnitClaimsSource.class);
             ExtendedCredentialConfiguration credentialConfiguration = ExtendedCredentialConfiguration.builder()
                     .scope("foo:bar")
                     .format(CredentialFormat.SD_JWT_VC)

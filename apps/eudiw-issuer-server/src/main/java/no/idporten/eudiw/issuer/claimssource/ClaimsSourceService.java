@@ -25,7 +25,7 @@ public class ClaimsSourceService implements InitializingBean {
             throw new IssuerServerException("server_error", "Unsupported claims source URI scheme for uri [%s]".formatted(uri), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (uri.getScheme().startsWith("authoritative-source")) {
-            return findClaimsSourceByClassName(AuthoritativeSourcePullPreAuthorizedClaimsSource.class.getName())
+            return findClaimsSourceByClassName(AuthoritativeSourcePullClaimsSource.class.getName())
                     .orElseThrow(() -> new IssuerServerException("server_error", "Unknown claims source for uri [%s]".formatted(uri), HttpStatus.INTERNAL_SERVER_ERROR));
         }
         return findClaimsSourceByClassName(uri.getAuthority())
