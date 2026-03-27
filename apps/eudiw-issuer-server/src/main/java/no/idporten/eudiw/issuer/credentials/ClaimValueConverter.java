@@ -128,23 +128,41 @@ public class ClaimValueConverter {
     }
 
     // Only support Map of values of type StringValue for now
-    public Claim getMapClaim(String key, Map<String, String> value) {
+    public Claim getMapClaim(String key, Map<String, Object> value) {
         Map<String, ClaimValue> map = new HashMap<>();
         for (String k : value.keySet()) {
-            map.put(k, new StringValue(value.get(k)));
+            map.put(k, claimValue(value.get(k)));
         }
         return buildClaim(key, new MapValue(map));
     }
 
     // Only support Map of values of type StringValue for now
-    public Claim getMapClaim(List<String> path, Map<String, String> value) {
+    public Claim getMapClaim(List<String> path, Map<String, Object> value) {
         Map<String, ClaimValue> map = new HashMap<>();
         for (String k : value.keySet()) {
-            map.put(k, new StringValue(value.get(k)));
+            map.put(k, claimValue(value.get(k)));
         }
         return buildClaim(path, new MapValue(map));
     }
 
+    // experiment for map value types
+    ClaimValue claimValue(Object value) {
+        switch(value) {
+            case String s -> {
+                return new StringValue(s);
+            }
+            case Long l -> {
+                return new NumberValue(l);
+            }
+            case Integer i -> {
+                return new NumberValue(i);
+            }
+            case Boolean b -> {
+                return new BooleanValue(b);
+            }
+            default -> throw new IllegalStateException("Map type %s not implemented yet".formatted(value));
+        }
+    }
 
     public Claim getBinaryClaim(String name, String base64Image, String mimeType) {
         return buildClaim(name, new BinaryValue(base64Image, mimeType));
@@ -180,7 +198,7 @@ public class ClaimValueConverter {
             case ClaimDataType.BINARY ->
                     getBinaryClaim(claim.path(), (String) storedClaims.get(claim.name()), claim.mimeType());
             case ClaimDataType.MAP ->
-                    getMapClaim(claim.path(), (Map<String, String>) storedClaims.get(claim.name())); // TODO handle errors better
+                    getMapClaim(claim.path(), (Map<String, Object>) storedClaims.get(claim.name())); // TODO handle errors better
             case ClaimDataType.LIST -> getListClaim(claim.path(), (List<String>) storedClaims.get(claim.name()));
         };
     }

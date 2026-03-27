@@ -89,7 +89,7 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
         return personConverterService.getNationalitiesAlpha2(person.getStatsborgerskap());
     }
 
-    private Map<String, String> convertBirthPlace(PersonResource person) {
+    private Map<String, Object> convertBirthPlace(PersonResource person) {
         String country = personConverterService.getNationalityAlpha2(person.getFoedested());
         return Collections.singletonMap("country", country);
     }

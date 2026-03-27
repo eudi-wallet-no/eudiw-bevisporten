@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "no.skatteetaten.inntekt_sd_jwt_vc",
   "credential_issuer_context": {
-    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.skatteetaten.InntektClaimsSource",
+    "credential_datasource_uri": "authoritative-source://skatteetaten",
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "grant_type": "authorization_code",

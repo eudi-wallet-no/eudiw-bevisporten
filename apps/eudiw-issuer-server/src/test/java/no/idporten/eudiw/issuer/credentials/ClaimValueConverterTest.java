@@ -139,15 +139,15 @@ class ClaimValueConverterTest {
     @DisplayName("when call getMapClaim with populated map then returns MapValue Claim")
     @Test
     void getMapClaim_populated() {
-        Map<String, String> src = Map.of("given_name", "Alice", "family_name", "Doe");
+        Map<String, Object> src = Map.of("given_name", "Alice", "family_name", "Doe", "age", 42);
         Claim claim = converter.getMapClaim("name_map", src);
         assertEquals("name_map", claim.getPath().getFirst());
         assertInstanceOf(MapValue.class, claim.getValue());
         MapValue mv = (MapValue) claim.getValue();
-        assertEquals(2, mv.value().size());
-        assertTrue(mv.value().values().stream().allMatch(v -> v instanceof StringValue));
+        assertEquals(3, mv.value().size());
         assertEquals("Alice", ((StringValue) mv.value().get("given_name")).value());
         assertEquals("Doe", ((StringValue) mv.value().get("family_name")).value());
+        assertEquals(42, ((NumberValue) mv.value().get("age")).value());
     }
 
     @DisplayName("when call getMapClaim with empty map then returns MapValue Claim with empty value")

@@ -4,6 +4,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
+import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.config.AuthoritativeSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
@@ -20,7 +21,9 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
@@ -64,21 +67,27 @@ public class AuthoritativeSourceService implements InitializingBean {
     }
 
     public CredentialData retrieveCredentialData(final String source, final String credentialType, final String personIdentifier) {
-        Subject subject = new Subject(personIdentifier);
-        AuthoritativeSourceRequest authoritativeSourceRequest = new AuthoritativeSourceRequest(subject, credentialType);
-        AuthoritativeSourceProperties authoritativeSourceProperties = findAuthoritativeSourceProperties(source);
-        AuthoritativeSourceResponse authoritativeSourceResponse = restClients.get(source)
-                .post()
-                .uri(authoritativeSourceProperties.uri())
-                .body(authoritativeSourceRequest)
-                .retrieve()
-                .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(source, response))
-                .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleErrorResponse(source, response))
-                .body(AuthoritativeSourceResponse.class);
-        if  (authoritativeSourceResponse == null || CollectionUtils.isEmpty(authoritativeSourceResponse.credentialData())) {
-            throw new ClaimsSourceDataNotFoundException(source, "No data available", "Authoritative source returned no data");
+        try {
+            Subject subject = new Subject(personIdentifier);
+            AuthoritativeSourceRequest authoritativeSourceRequest = new AuthoritativeSourceRequest(subject, credentialType);
+            AuthoritativeSourceProperties authoritativeSourceProperties = findAuthoritativeSourceProperties(source);
+            AuthoritativeSourceResponse authoritativeSourceResponse = restClients.get(source)
+                    .post()
+                    .uri(authoritativeSourceProperties.uri())
+                    .body(authoritativeSourceRequest)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(source, response))
+                    .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleErrorResponse(source, response))
+                    .body(AuthoritativeSourceResponse.class);
+            if (authoritativeSourceResponse == null || CollectionUtils.isEmpty(authoritativeSourceResponse.credentialData())) {
+                throw new ClaimsSourceDataNotFoundException(source, "No data available", "Authoritative source returned no data");
+            }
+            return new CredentialData(authoritativeSourceResponse.credentialData());
+        } catch (ResourceAccessException e) {
+            throw new ClaimsSourceIOException(source, "IO error when calling source %s".formatted(source), e);
+        } catch (RestClientException e) {
+            throw new ClaimsSourceException(source, "server_error", "Failed to get information from source %s".formatted(source), HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
-        return new CredentialData(authoritativeSourceResponse.credentialData());
     }
 
     void handleErrorResponse(String source, ClientHttpResponse response) throws IOException {
@@ -91,7 +100,7 @@ public class AuthoritativeSourceService implements InitializingBean {
             log.warn("Failed to parse error response body from authoritative source [{}]", source, e);
             throw new ClaimsSourceException(source, SERVER_ERROR, "Failed to retrieve credential data from authoritative source", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
         }
-        switch(errorResponse.error()) {
+        switch (errorResponse.error()) {
             case SERVER_ERROR:
                 throw new ClaimsSourceException(source, "server_error", errorResponse.errorDescription(), HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
             case INVALID_REQUEST:
