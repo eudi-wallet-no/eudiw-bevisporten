@@ -4,6 +4,7 @@ import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.issuer.claimssource.AbstractAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
 import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
@@ -34,9 +35,8 @@ class PIDClaimsSource extends AbstractAuthorizedClaimsSource {
         this.personConverterService = personConverterService;
     }
 
-    @Override
-    public List<Claim> pull(String personIdentifier) {
-
+    public List<Claim> issueClaims(CredentialIssueContext credentialIssueContext){
+        String personIdentifier = credentialIssueContext.personIdentifier();
         PersonResource person = fregService.getEidasPerson(personIdentifier, "EUDIW-ISSUER");
 
         if (person == null || person.getNavn() == null) {

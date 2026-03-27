@@ -34,7 +34,7 @@ public class ClaimsSourceServiceTest {
     @DisplayName("then the authoritative-source claims source can be looked up by an authoritative-source:// uri")
     @Test
     void testFindClaimsSourceForAuthoritativeSourceUri() {
-        assertSame(AuthoritativeSourcePullPreAuthorizedClaimsSource.class, claimsSourceService.findClaimsSource(URI.create("authoritative-source://junit")).getClass());
+        assertSame(AuthoritativeSourcePullClaimsSource.class, claimsSourceService.findClaimsSource(URI.create("authoritative-source://junit")).getClass());
     }
 
     @DisplayName("then an exception is thrown when looking up an unknown claims source")

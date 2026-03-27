@@ -56,16 +56,16 @@ public class TestData {
     }
 
     /**
-     * A plain access_token with pid claim
+     * A plain access_token with subject claim
      */
-    public static JWT accessToken(String personIdentifier) {
-        return new PlainJWT(new JWTClaimsSet.Builder().claim("pid", personIdentifier).build());
+    public static JWT accessToken(String subject) {
+        return new PlainJWT(new JWTClaimsSet.Builder().subject(subject).build());
     }
 
     /**
-     * A plain access_token with pid and tx_id claim
+     * A plain access_token for pre-authorization with pid and tx_id claim
      */
-    public static JWT accessToken(String personIdentifier, IssuanceTransactionId txId) {
+    public static JWT preAuthAccessToken(String personIdentifier, IssuanceTransactionId txId) {
         return new PlainJWT(new JWTClaimsSet.Builder()
                 .claim("pid", personIdentifier)
                 .claim("tx_id", txId.getValue())
