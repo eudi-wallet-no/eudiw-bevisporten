@@ -67,10 +67,10 @@ public class AuthoritativeSourceService implements InitializingBean {
     }
 
     public CredentialData retrieveCredentialData(final String source, final String credentialType, final String personIdentifier) {
+        Subject subject = new Subject(personIdentifier);
+        AuthoritativeSourceRequest authoritativeSourceRequest = new AuthoritativeSourceRequest(subject, credentialType);
+        AuthoritativeSourceProperties authoritativeSourceProperties = findAuthoritativeSourceProperties(source);
         try {
-            Subject subject = new Subject(personIdentifier);
-            AuthoritativeSourceRequest authoritativeSourceRequest = new AuthoritativeSourceRequest(subject, credentialType);
-            AuthoritativeSourceProperties authoritativeSourceProperties = findAuthoritativeSourceProperties(source);
             AuthoritativeSourceResponse authoritativeSourceResponse = restClients.get(source)
                     .post()
                     .uri(authoritativeSourceProperties.uri())

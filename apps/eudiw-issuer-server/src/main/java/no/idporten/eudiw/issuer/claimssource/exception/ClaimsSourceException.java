@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 public class ClaimsSourceException extends IssuerServerException {
 
-    /** The authoritative source that caused the I/O error, e.g. "Advokatregisteret" or FREG */
+    /** The authoritative source that caused the I/O error */
     private final String authoritativeSource;
     private String logMessage;
 

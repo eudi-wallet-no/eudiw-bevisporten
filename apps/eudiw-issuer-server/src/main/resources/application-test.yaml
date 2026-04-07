@@ -30,7 +30,3 @@ credential-issuer-server:
         "no": "Demo PID-utsteder"
       credential-configuration-sources-properties:
         - uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
-
-maskinporten:
-  lib:
-    issuer: https://test.maskinporten.no/
