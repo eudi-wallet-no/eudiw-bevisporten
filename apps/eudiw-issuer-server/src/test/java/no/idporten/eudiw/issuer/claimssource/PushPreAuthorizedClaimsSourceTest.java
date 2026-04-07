@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.claimssource;
 
-import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,4 @@ class PushPreAuthorizedClaimsSourceTest {
         assertEquals(credentialData, result);
     }
 
-    @DisplayName("then the authoritative source name is BYOB")
-    @Test
-    void thenAuthorativeSourceNameIsByob() {
-        assertEquals(AuthoritativeSource.BYOB.name(), claimsSource.getAuthorativeSourceName());
-    }
 }

@@ -12,12 +12,4 @@ public sealed interface ClaimsSource permits AuthorizedClaimsSource, PreAuthoriz
      */
     List<Claim> issueClaims(CredentialIssueContext credentialIssueContext);
 
-    /**
-     * Get the name of the authorative source of data.
-     * @return null if no authorative source.
-     */
-    default String getAuthorativeSourceName(){
-        return null;
-    }
-
 }

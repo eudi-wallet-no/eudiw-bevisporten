@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSource.BYOB;
-
 /**
  * Generic claims source for issuance where the credential data is pulled from a service implementing the
  * authoritative source API.
@@ -46,12 +44,6 @@ public class AuthoritativeSourcePullClaimsSource extends AbstractPreAuthorizedCl
         final String credentialType = context.credentialConfiguration().getCredentialType();
         final String source = context.credentialConfiguration().getCredentialIssuerContext().getCredentialDataSourceUri().getAuthority();
         return authoritativeSourceService.retrieveCredentialData(source, credentialType, personIdentifier);
-    }
-
-    @Override
-    public String getAuthorativeSourceName() {
-        // TODO fjerne dette fra utsteder og exceptions, gir ikke så stor mening når alle er flyttet til ny connector - egen sak!
-        return BYOB.name();
     }
 
 }
