@@ -1,6 +1,5 @@
 package no.idporten.eudiw.connector.authoritativesources.testreg;
 
-import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSource;
 import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;

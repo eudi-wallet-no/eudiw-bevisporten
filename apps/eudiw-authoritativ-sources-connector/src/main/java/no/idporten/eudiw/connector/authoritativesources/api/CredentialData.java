@@ -17,6 +17,10 @@ public class CredentialData extends TreeMap<String, Object> {
         put(key, map);
     }
 
+    public void addStringList(String key, List<String> list) {
+        put(key, list);
+    }
+
     public void addString(String key, String value) {
         put(key, value);
     }

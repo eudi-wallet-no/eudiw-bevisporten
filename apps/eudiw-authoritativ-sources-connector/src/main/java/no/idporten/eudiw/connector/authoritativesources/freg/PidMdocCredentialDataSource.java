@@ -8,19 +8,17 @@ import no.idporten.eudiw.connector.authoritativesources.api.Subject;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceInvalidDataException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.FREG;
 
 @Service
-public class PidCredentialDataSource implements CredentialDataSource {
-    static final String CREDENTIAL_TYPE = "eu.europa.ec.pid.1";
+public class PidMdocCredentialDataSource implements CredentialDataSource {
+    static final String CREDENTIAL_TYPE = "eu.europa.ec.eudi.pid.1";
     private final FregService fregService;
-    private final PersonConverterService personConverterService;
+    private final PidService pidService;
 
-    public PidCredentialDataSource(FregService fregService, PersonConverterService personConverterService) {
+    public PidMdocCredentialDataSource(FregService fregService, PidService pidService) {
         this.fregService = fregService;
-        this.personConverterService = personConverterService;
+        this.pidService = pidService;
     }
 
 
@@ -28,19 +26,7 @@ public class PidCredentialDataSource implements CredentialDataSource {
     public CredentialData retrieveCredentialData(Subject subject) {
         PersonResource person = fregService.getEidasPerson(subject.identifier(), "EUDIW-ISSUER");
         validate(person);
-        return buildAgeVerificationCredentialData(person, List.of(15, 18));
-    }
-
-    private CredentialData buildAgeVerificationCredentialData(PersonResource person, List<Integer> ages) {
-        CredentialData credentialData = new CredentialData();
-
-        for (Integer age : ages) {
-            boolean overAge = personConverterService.calcAgeOver(person.getFoedselsdato(), age);
-            String overAgeKey = "age_over_" + age;
-            credentialData.addBoolean(overAgeKey, overAge);
-        }
-
-        return credentialData;
+        return pidService.createMdocPid(person, subject.identifier());
     }
 
     private void validate(PersonResource person) {
