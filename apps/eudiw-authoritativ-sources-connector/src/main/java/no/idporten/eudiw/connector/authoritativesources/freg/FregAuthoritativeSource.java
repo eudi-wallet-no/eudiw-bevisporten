@@ -14,10 +14,15 @@ import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSour
 public class FregAuthoritativeSource implements AuthoritativeSource {
     private final Map<String, CredentialDataSource> credentialDataSources;
 
-    public FregAuthoritativeSource(AgeVerificationCredentialDataSource ageVerificationCredentialDataSource, PidCredentialDataSource pidCredentialDataSource) {
+    public FregAuthoritativeSource(
+            AgeVerificationCredentialDataSource ageVerificationCredentialDataSource,
+            PidSdJwtCredentialDataSource pidSdJwtCredentialDataSource,
+            PidMdocCredentialDataSource pidMdocCredentialDataSource
+    ) {
         credentialDataSources = Map.of(
                 AgeVerificationCredentialDataSource.CREDENTIAL_TYPE, ageVerificationCredentialDataSource,
-                PidCredentialDataSource.CREDENTIAL_TYPE, pidCredentialDataSource
+                PidSdJwtCredentialDataSource.CREDENTIAL_TYPE, pidSdJwtCredentialDataSource,
+                PidMdocCredentialDataSource.CREDENTIAL_TYPE, pidMdocCredentialDataSource
         );
     }
 
