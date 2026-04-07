@@ -2,8 +2,8 @@ package no.idporten.eudiw.connector.authoritativesources.freg;
 
 import no.digdir.freg.FregClientInterface;
 import no.digdir.freg.domain.json.*;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceIOException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceIOException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -41,12 +41,12 @@ public class FregIntegration implements FregClientInterface {
         try {
             return restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON).retrieve()
                     .onStatus(status -> status.value() == 404, (request, response) -> {
-                        throw new ClaimsSourceDataNotFoundException(FREG, "User not found in FREG");
+                        throw new AuthoritativeSourceDataNotFoundException(FREG, "User not found in FREG");
                     })
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponseAs500(response))
                     .body(Folkeregisterperson.class);
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException(FREG, "IO error when calling FREG getPerson", e);
+            throw new AuthoritativeSourceIOException(FREG, "IO error when calling FREG getPerson", e);
         }
 
     }

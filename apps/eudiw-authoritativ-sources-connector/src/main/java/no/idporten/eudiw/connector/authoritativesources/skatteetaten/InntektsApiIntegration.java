@@ -2,7 +2,7 @@ package no.idporten.eudiw.connector.authoritativesources.skatteetaten;
 
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceIOException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceIOException;
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.Respons;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import no.idporten.lib.maskinporten.client.MaskinportenClients;
@@ -56,7 +56,7 @@ public class InntektsApiIntegration {
         try {
             return getRespons(personIdentifier, startDate, endDate);
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException(SKATTEETATEN, "IO error when calling Inntekts-api", e);
+            throw new AuthoritativeSourceIOException(SKATTEETATEN, "IO error when calling Inntekts-api", e);
         } catch (RestClientException e) {
             throw new AuthoritativeSourceException(SKATTEETATEN, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }

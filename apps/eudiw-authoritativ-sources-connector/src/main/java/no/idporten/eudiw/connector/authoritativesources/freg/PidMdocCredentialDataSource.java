@@ -5,7 +5,7 @@ import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceInvalidDataException;
 import org.springframework.stereotype.Service;
 
 import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.FREG;
@@ -31,7 +31,7 @@ public class PidMdocCredentialDataSource implements CredentialDataSource {
 
     private void validate(PersonResource person) {
         if (person == null || person.getFoedselsdato() == null) {
-            throw new ClaimsSourceInvalidDataException(FREG, "User not found in FREG");
+            throw new AuthoritativeSourceInvalidDataException(FREG, "User not found in FREG");
         }
     }
 }

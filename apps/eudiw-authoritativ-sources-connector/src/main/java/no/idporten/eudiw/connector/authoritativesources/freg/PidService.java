@@ -3,7 +3,7 @@ package no.idporten.eudiw.connector.authoritativesources.freg;
 import no.digdir.freg.domain.PersonResource;
 import no.digdir.freg.domain.PersonnavnResource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceInvalidDataException;
 import no.idporten.eudiw.connector.authoritativesources.freg.pidfields.MdocFieldNames;
 import no.idporten.eudiw.connector.authoritativesources.freg.pidfields.PidFieldNames;
 import no.idporten.eudiw.connector.authoritativesources.freg.pidfields.SdJwtFieldNames;
@@ -63,7 +63,7 @@ public class PidService {
     private static String getBirthDate(PersonResource person) {
         String birthDate = person.getFoedselsdato();
         if (birthDate == null || birthDate.isEmpty()) {
-            throw new ClaimsSourceInvalidDataException(FREG, "Found no 'foedselsdato' in FREG for user");
+            throw new AuthoritativeSourceInvalidDataException(FREG, "Found no 'foedselsdato' in FREG for user");
         }
         return birthDate;
     }
@@ -74,7 +74,7 @@ public class PidService {
 
     private List<String> getNationalities(PersonResource person) {
         if (person.getStatsborgerskap() == null) {
-            throw new ClaimsSourceInvalidDataException(FREG,"Found no 'statsborgerskap' in FREG on user");
+            throw new AuthoritativeSourceInvalidDataException(FREG,"Found no 'statsborgerskap' in FREG on user");
         }
         return personConverterService.getNationalitiesAlpha2(person.getStatsborgerskap());
     }

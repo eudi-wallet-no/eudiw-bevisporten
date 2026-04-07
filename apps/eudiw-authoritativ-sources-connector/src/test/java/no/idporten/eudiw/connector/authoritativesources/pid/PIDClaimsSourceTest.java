@@ -5,7 +5,7 @@ import no.digdir.freg.domain.json.Statsborgerskap;
 import no.idporten.eudiw.connector.authoritativesources.TestData;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceInvalidDataException;
 import no.idporten.eudiw.connector.authoritativesources.freg.FregIntegration;
 import no.idporten.eudiw.connector.authoritativesources.freg.PersonConverterService;
 import no.idporten.eudiw.connector.authoritativesources.freg.PidMdocCredentialDataSource;
@@ -144,7 +144,7 @@ class PIDClaimsSourceTest {
     }
 
     @Test
-    @DisplayName("then data can be pulled from authoritative source and person in FREG without statsborgerskap should give ClaimsSourceInvalidDataException")
+    @DisplayName("then data can be pulled from authoritative source and person in FREG without statsborgerskap should give AuthoritativeSourceInvalidDataException")
     void personUtanStatsborgarskapGirException() {
 
         Subject subject = TestData.getValidSubject();
@@ -152,6 +152,6 @@ class PIDClaimsSourceTest {
         fregPerson.setStatsborgerskap(null);
         when(fregIntegration.getFolkeregisterPerson(eq(subject.identifier()), anyList())).thenReturn(fregPerson);
 
-        assertThrows(ClaimsSourceInvalidDataException.class, () -> pidMdocCredentialDataSource.retrieveCredentialData(subject));
+        assertThrows(AuthoritativeSourceInvalidDataException.class, () -> pidMdocCredentialDataSource.retrieveCredentialData(subject));
     }
 }

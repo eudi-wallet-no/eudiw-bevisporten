@@ -3,8 +3,8 @@ package no.idporten.eudiw.connector.authoritativesources.krr;
 
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceInvalidDataException;
 import no.idporten.eudiw.connector.authoritativesources.krr.model.Kontaktinformasjon;
 import no.idporten.eudiw.connector.authoritativesources.krr.model.PersonKrr;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +55,7 @@ public class KrrCredentialDataSourceTest {
     @DisplayName("When personKrr is null, throws correct exception")
     void testNullPersonKrrThrowsCorrectException() {
         Subject subject = getValidSubject();
-        assertThrows(ClaimsSourceDataNotFoundException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
+        assertThrows(AuthoritativeSourceDataNotFoundException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
     }
 
 
@@ -66,7 +66,7 @@ public class KrrCredentialDataSourceTest {
         PersonKrr personKrr = getCustomPersonKrr(subject.identifier(), "NEI", "AKTIV", "KAN_IKKE_VARSLES", getValidKontaktinformasjon());
         when(krrIntegration.retrieve(subject.identifier())).thenReturn(personKrr);
 
-        assertThrows(ClaimsSourceInvalidDataException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
+        assertThrows(AuthoritativeSourceInvalidDataException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
     }
 
 
@@ -77,7 +77,7 @@ public class KrrCredentialDataSourceTest {
         PersonKrr personKrr = getCustomPersonKrr(subject.identifier(), "JA", "AKTIV", "KAN_VARSLES", getValidKontaktinformasjon());
         when(krrIntegration.retrieve(subject.identifier())).thenReturn(personKrr);
 
-        assertThrows(ClaimsSourceInvalidDataException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
+        assertThrows(AuthoritativeSourceInvalidDataException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
     }
 
 
@@ -88,6 +88,6 @@ public class KrrCredentialDataSourceTest {
         PersonKrr personKrr = getCustomPersonKrr(subject.identifier(), "JA", "AKTIV", "KAN_VARSLES", new Kontaktinformasjon("", ""));
         when(krrIntegration.retrieve(subject.identifier())).thenReturn(personKrr);
 
-        assertThrows(ClaimsSourceInvalidDataException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
+        assertThrows(AuthoritativeSourceInvalidDataException.class, () -> krrAuthoritativeSource.retrieveCredentialData(subject));
     }
 }

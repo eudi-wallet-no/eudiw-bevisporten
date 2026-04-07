@@ -5,7 +5,7 @@ import no.idporten.eudiw.connector.authoritativesources.TestData;
 import no.idporten.eudiw.connector.authoritativesources.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,8 +68,8 @@ public class AdvokatregisteretCredentialDataSourceTest {
 
         when(advokatregisteretIntegration.retrieve(subject.identifier())).thenReturn(null);
 
-        ClaimsSourceDataNotFoundException e = assertThrows(
-                ClaimsSourceDataNotFoundException.class,
+        AuthoritativeSourceDataNotFoundException e = assertThrows(
+                AuthoritativeSourceDataNotFoundException.class,
                 () -> advokatregisteretCredentialDataSource.retrieveCredentialData(subject)
         );
 

@@ -6,7 +6,7 @@ import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 
@@ -41,10 +41,10 @@ public class AdvokatregisteretCredentialDataSource implements CredentialDataSour
 
     private void validate(PersonPrivate personPrivate) throws ResourceAccessException {
         if (personPrivate == null) {
-            throw new ClaimsSourceDataNotFoundException(ADVOKATREGISTERET, "No data available", "Failed to map response");
+            throw new AuthoritativeSourceDataNotFoundException(ADVOKATREGISTERET, "No data available", "Failed to map response");
         }
         if (StringUtils.isEmpty(personPrivate.tittel())) {
-            throw new ClaimsSourceDataNotFoundException(ADVOKATREGISTERET, "No data available", "No value for title, assuming empty response");
+            throw new AuthoritativeSourceDataNotFoundException(ADVOKATREGISTERET, "No data available", "No value for title, assuming empty response");
         }
     }
 }
