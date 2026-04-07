@@ -8,7 +8,7 @@ import no.digdir.freg.domain.json.Statsborgerskap;
 import no.idporten.eudiw.connector.authoritativesources.TestData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
 import no.idporten.eudiw.connector.authoritativesources.freg.FregIntegration;
 import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,7 +106,7 @@ class FregConfigurationTest {
 
         assertNotNull(client);
 
-        assertThrows(ClaimsSourceDataNotFoundException.class, () ->
+        assertThrows(AuthoritativeSourceDataNotFoundException.class, () ->
                 client.getFolkeregisterPerson(subject.identifier(), Collections.singletonList("person-basis"))
         );
 

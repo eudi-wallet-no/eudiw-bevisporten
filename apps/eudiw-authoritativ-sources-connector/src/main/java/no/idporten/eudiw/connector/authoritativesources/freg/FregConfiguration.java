@@ -5,7 +5,7 @@ import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
 import no.digdir.logging.event.EventLogger;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceIOException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceIOException;
 import no.idporten.lib.maskinporten.client.JwtGrantTokenInterceptor;
 import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import no.idporten.logging.audit.AuditLogger;
@@ -69,7 +69,7 @@ public class FregConfiguration {
                         (request, body, execution) -> {
                             ClientHttpResponse response = execution.execute(request, body);
                             if (response.getStatusCode() == HttpStatus.REQUEST_TIMEOUT) {
-                                throw new ClaimsSourceIOException(FREG, "Request timeout against FREG");
+                                throw new AuthoritativeSourceIOException(FREG, "Request timeout against FREG");
                             }
                             if (response.getStatusCode().is5xxServerError()) {
                                 handleErrorResponseAs500(response);

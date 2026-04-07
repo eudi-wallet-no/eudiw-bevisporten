@@ -2,15 +2,15 @@ package no.idporten.eudiw.connector.authoritativesources.exceptions;
 
 import org.springframework.http.HttpStatus;
 
-public class ClaimsSourceFormatException extends AuthoritativeSourceException {
+public class AuthoritativeSourceFormatException extends AuthoritativeSourceException {
 
     private final static HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
 
-    public ClaimsSourceFormatException(String error, String errorDescription) {
+    public AuthoritativeSourceFormatException(String error, String errorDescription) {
         super(error, errorDescription, httpStatus);
     }
 
-    public ClaimsSourceFormatException(String error, String errorDescription, Throwable cause) {
+    public AuthoritativeSourceFormatException(String error, String errorDescription, Throwable cause) {
         super(error, errorDescription, httpStatus, cause);
     }
 }

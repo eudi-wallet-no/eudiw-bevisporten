@@ -4,7 +4,7 @@ package no.idporten.eudiw.connector.authoritativesources.skatteetaten;
 import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.InntektsOpplysninger;
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.Respons;
 import org.springframework.stereotype.Service;
@@ -59,10 +59,10 @@ public class InntektCredentialDataSource implements CredentialDataSource {
 
     private void validate(Respons respons) {
         if (respons == null) {
-            throw new ClaimsSourceDataNotFoundException(SKATTEETATEN, "No data available", "Failed to map response");
+            throw new AuthoritativeSourceDataNotFoundException(SKATTEETATEN, "No data available", "Failed to map response");
         }
         if (CollectionUtils.isEmpty(respons.oppgaveInntektsmottaker())) {
-            throw new ClaimsSourceDataNotFoundException(SKATTEETATEN, "No data available", "No data in response");
+            throw new AuthoritativeSourceDataNotFoundException(SKATTEETATEN, "No data available", "No data in response");
         }
     }
 }

@@ -5,19 +5,19 @@ import org.springframework.http.HttpStatus;
 
 import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.CREDENTIAL_ISSUANCE_DENIED;
 
-public class ClaimsSourceInvalidDataException extends AuthoritativeSourceException {
+public class AuthoritativeSourceInvalidDataException extends AuthoritativeSourceException {
 
     private final static HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
 
-    public ClaimsSourceInvalidDataException(AuthoritativeSources authoritativeSource, String errorDescription) {
+    public AuthoritativeSourceInvalidDataException(AuthoritativeSources authoritativeSource, String errorDescription) {
         super(authoritativeSource, CREDENTIAL_ISSUANCE_DENIED, errorDescription, httpStatus, null, null);
     }
 
-    public ClaimsSourceInvalidDataException(AuthoritativeSources authoritativeSource, String errorDescription, Throwable cause) {
+    public AuthoritativeSourceInvalidDataException(AuthoritativeSources authoritativeSource, String errorDescription, Throwable cause) {
         super(authoritativeSource, CREDENTIAL_ISSUANCE_DENIED, errorDescription, httpStatus, cause);
     }
 
-    public ClaimsSourceInvalidDataException(AuthoritativeSources authoritativeSource, String error, String errorDescription, String logMessage) {
+    public AuthoritativeSourceInvalidDataException(AuthoritativeSources authoritativeSource, String error, String errorDescription, String logMessage) {
         super(authoritativeSource, error, errorDescription, httpStatus, logMessage, null);
     }
 

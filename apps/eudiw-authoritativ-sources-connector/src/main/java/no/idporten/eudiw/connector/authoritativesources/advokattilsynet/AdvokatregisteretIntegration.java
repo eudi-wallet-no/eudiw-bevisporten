@@ -3,7 +3,7 @@ package no.idporten.eudiw.connector.authoritativesources.advokattilsynet;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import no.idporten.eudiw.connector.authoritativesources.advokattilsynet.model.PersonPrivate;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ClaimsSourceIOException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceIOException;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import no.idporten.lib.maskinporten.client.MaskinportenClients;
 import org.slf4j.Logger;
@@ -53,7 +53,7 @@ public class AdvokatregisteretIntegration {
         try {
             return getPersonPrivate(personIdentifier);
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException(ADVOKATREGISTERET, "IO error when calling Advokatregisteret", e);
+            throw new AuthoritativeSourceIOException(ADVOKATREGISTERET, "IO error when calling Advokatregisteret", e);
         } catch (RestClientException e) {
             throw new AuthoritativeSourceException(ADVOKATREGISTERET, "server_error", "Failed to get information from Advokatregisteret", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
