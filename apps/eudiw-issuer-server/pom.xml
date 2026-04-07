@@ -28,7 +28,7 @@
         <springdoc.version>3.0.2</springdoc.version>
         <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
-        <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
+        <nimbus-jose-jwt.version>10.9</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.37</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>0.18.2</waltid-mdoc-credentials-jvm.version>
         <waltid-sdjwt-jvm.version>0.18.0</waltid-sdjwt-jvm.version>
