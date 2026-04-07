@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
   "credential_issuer_context": {
-    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.pid.PIDMdocClaimsSource",
+    "credential_datasource_uri": "authoritative-source://freg",
     "credential_signing_keystore": "pid-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "grant_type": "authorization_code"
@@ -46,8 +46,7 @@
             "name": "Førenamn"
           }
         ],
-        "mandatory": true,
-        "validation_regex": null
+        "mandatory": true
       },
       {
         "path": [
@@ -69,14 +68,14 @@
           "birth_date"
         ],
         "type": "iso_date",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
             "name": "Fødselsdato"
           }
         ],
-        "mandatory": true
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
         "path": [
@@ -84,7 +83,6 @@
           "place_of_birth"
         ],
         "type": "map",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
@@ -99,7 +97,6 @@
           "nationality"
         ],
         "type": "list",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",
@@ -120,7 +117,8 @@
             "name": "Gyldig til dato"
           }
         ],
-        "mandatory": true
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
         "path": [
@@ -128,7 +126,6 @@
           "issuing_authority"
         ],
         "type": "string",
-        "mime_type": null,
         "display": [
           {
             "locale": "no",

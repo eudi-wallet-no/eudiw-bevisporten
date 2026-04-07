@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "no.digdir.eudiw.pid_sd_jwt_vc",
   "credential_issuer_context": {
-    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.pid.PIDSDJwtClaimsSource",
+    "credential_datasource_uri": "authoritative-source://freg",
     "credential_signing_keystore": "pid-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "grant_type": "authorization_code"
@@ -70,7 +70,8 @@
             "name": "Fødselsdato"
           }
         ],
-        "mandatory": true
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
         "path": [
@@ -109,7 +110,8 @@
             "name": "Gyldig til dato"
           }
         ],
-        "mandatory": true
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
       },
       {
         "path": [

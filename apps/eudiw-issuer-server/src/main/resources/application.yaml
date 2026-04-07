@@ -80,17 +80,6 @@ digdir:
       ip-address: true                                    # optional - default 'true'
     prometheus:
       counter: false                                     # optional - default 'true'
-  ## Eventlogging
-  event:
-    logging:
-      feature-enabled: false
-
-## Folkeregister integration
-freg:
-  uri: https://folkeregisteret-api-konsument.sits.no/folkeregisteret/offentlig-med-hjemmel/api/
-  #uri: https://folkeregisteret.api.skatteetaten.no/folkeregisteret/offentlig-med-hjemmel/api # Prod
-  connect-timeout: 5s
-  read-timeout: 5s
 
 ## byob-service: Bring your own bevis service properties
 byob-service:
@@ -100,23 +89,6 @@ byob-service:
   read-timeout: 2s
   cache-ttl: 28s
 
-# Maskinporten
-maskinporten:
-  lib:
-    enabled: true
-    issuer: dummy
-    clients:
-      freg:
-        client-id: ${MASKINPORTEN_CLIENT_ID}
-        kid: ${MASKINPORTEN_CLIENT_KID}
-        issuer: ${maskinporten.lib.issuer}
-        audience:
-          - ${maskinporten.lib.issuer}
-        token-endpoint: ${maskinporten.lib.issuer}token
-        scope: folkeregister:deling/offentligmedhjemmel
-        connect-timeout-ms: 5000
-        read-timeout-ms: 2000
-        key-store-name: maskinporten-freg
 idporten-key-manager:
   keystores:
     pid-provider:
@@ -131,9 +103,3 @@ idporten-key-manager:
       key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
-    maskinporten-freg:
-      key-store-type: JKS
-      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
-      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
-      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
-      key-password: ${MASKINPORTEN_KEY_PASSWORD}

@@ -37,10 +37,8 @@
         <kotlinx-coroutines-core.version>1.10.2</kotlinx-coroutines-core.version>
         <kotlinx-datetime-jvm.version>0.7.1-0.6.x-compat</kotlinx-datetime-jvm.version>
         <kotlinx-serialization-json-jvm.version>1.10.0</kotlinx-serialization-json-jvm.version>
-        <freg-integration-lib.version>2.0.0</freg-integration-lib.version>
-        <maskinporten.client.version>6.0.1</maskinporten.client.version>
-        <log-event.version>2.0.1</log-event.version>
         <idporten-log-audit.version>4.0.0</idporten-log-audit.version>
+        <idporten-lib-keystore-spring-boot-4.version>2.0.1</idporten-lib-keystore-spring-boot-4.version>
     </properties>
 
     <dependencies>
@@ -79,11 +77,6 @@
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-log-audit-spring-boot-4-starter</artifactId>
             <version>${idporten-log-audit.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>no.digdir.logging</groupId>
-            <artifactId>log-event-spring-boot4-starter</artifactId>
-            <version>${log-event.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
@@ -156,19 +149,11 @@
             <version>${kotlinx-coroutines-core.version}</version>
             <type>pom</type>
         </dependency>
-        <!-- Move to claims-source application for PID -->
-        <!-- TODO freg integration lib bruker gammel event og gammel jackson, men har fått det til å fungere likevel -->
-        <dependency>
-            <groupId>no.digdir.freg</groupId>
-            <artifactId>freg-integration-lib</artifactId>
-            <version>${freg-integration-lib.version}</version>
-        </dependency>
         <dependency>
             <groupId>no.idporten</groupId>
-            <artifactId>lib-maskinporten-client-spring-boot-4</artifactId>
-            <version>${maskinporten.client.version}</version>
+            <artifactId>idporten-lib-keystore-spring-boot-4</artifactId>
+            <version>${idporten-lib-keystore-spring-boot-4.version}</version>
         </dependency>
-        <!-- end: Move to claims-source -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

@@ -104,7 +104,7 @@ public class ClaimDataTypeValidator {
         if (!extendedClaimsDescription.mandatory() && !StringUtils.hasLength(value)) {
             return;
         }
-        if (!value.matches(extendedClaimsDescription.validationRegex())) {
+        if (StringUtils.hasLength(extendedClaimsDescription.validationRegex()) && !value.matches(extendedClaimsDescription.validationRegex())) {
             throw new IssuerServerException("invalid_request", "Invalid format for required value for %s claim %s".formatted(dataType, extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
         }
     }
