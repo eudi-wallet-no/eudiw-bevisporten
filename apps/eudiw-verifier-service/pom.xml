@@ -20,8 +20,7 @@
         <idporten.keystore.version>2.0.0-rc1</idporten.keystore.version>
         <idporten-actuator-starter.version>3.0.0</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.0</idporten-access-log.version>
-        <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
-        <oauth2-oidc-sdk.version>11.35</oauth2-oidc-sdk.version>
+        <oauth2-oidc-sdk.version>11.37</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>0.15.1</waltid-mdoc-credentials-jvm.version>
         <waltid-sdjwt-jvm.version>0.18.2</waltid-sdjwt-jvm.version>
         <cose-java.version>1.1.1-WALT-SNAPSHOT</cose-java.version>
@@ -61,11 +60,6 @@
             <version>${idporten.keystore.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>${nimbus-jose-jwt.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>oauth2-oidc-sdk</artifactId>
