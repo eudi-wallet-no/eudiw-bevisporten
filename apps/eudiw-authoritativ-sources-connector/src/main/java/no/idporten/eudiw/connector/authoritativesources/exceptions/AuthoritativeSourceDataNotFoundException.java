@@ -8,15 +8,12 @@ import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorC
 public class AuthoritativeSourceDataNotFoundException extends AuthoritativeSourceException {
     private final static HttpStatus httpStatus = HttpStatus.NOT_FOUND;
 
-    public AuthoritativeSourceDataNotFoundException(AuthoritativeSources authoritativeSource, String errorDescription) {
-        super(authoritativeSource, NOT_FOUND_CREDENTIAL_DATA, errorDescription, httpStatus, null, null);
+    public AuthoritativeSourceDataNotFoundException(AuthoritativeSources authoritativeSource, String message) {
+        super(authoritativeSource, NOT_FOUND_CREDENTIAL_DATA, message, httpStatus, null, null);
     }
 
-    public AuthoritativeSourceDataNotFoundException(AuthoritativeSources authoritativeSource, String errorDescription, String logMessage) {
-        super(authoritativeSource, NOT_FOUND_CREDENTIAL_DATA, errorDescription, httpStatus, logMessage, null);
+    public AuthoritativeSourceDataNotFoundException(AuthoritativeSources authoritativeSource, String message, String logMessage) {
+        super(authoritativeSource, NOT_FOUND_CREDENTIAL_DATA, message, httpStatus, logMessage, null);
     }
 
-    public AuthoritativeSourceDataNotFoundException(AuthoritativeSources authoritativeSource, String errorDescription, Throwable cause) {
-        super(authoritativeSource, NOT_FOUND_CREDENTIAL_DATA, errorDescription, httpStatus, cause);
-    }
 }

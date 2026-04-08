@@ -9,12 +9,8 @@ public class AuthoritativeSourceIOException extends AuthoritativeSourceException
 
     private final static HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
 
-    public AuthoritativeSourceIOException(AuthoritativeSources authoritativeSource, String errorDescription) {
-        super(authoritativeSource, FAILED_CREDENTIAL_REQUEST, errorDescription, httpStatus, null, null);
-    }
-
-    public AuthoritativeSourceIOException(AuthoritativeSources authoritativeSource, String errorDescription, Throwable cause) {
-        super(authoritativeSource, FAILED_CREDENTIAL_REQUEST, errorDescription, httpStatus, cause);
+    public AuthoritativeSourceIOException(AuthoritativeSources authoritativeSource, String message, Throwable cause) {
+        super(authoritativeSource, FAILED_CREDENTIAL_REQUEST, message, httpStatus, cause);
     }
 
 }

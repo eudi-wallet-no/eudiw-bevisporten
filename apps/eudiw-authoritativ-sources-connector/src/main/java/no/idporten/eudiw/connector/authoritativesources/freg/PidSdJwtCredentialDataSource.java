@@ -5,6 +5,7 @@ import no.digdir.freg.service.FregService;
 import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceInvalidDataException;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +31,11 @@ public class PidSdJwtCredentialDataSource implements CredentialDataSource {
     }
 
     private void validate(PersonResource person) {
-        if (person == null || person.getFoedselsdato() == null) {
-            throw new AuthoritativeSourceInvalidDataException(FREG, "User not found in FREG");
+        if (person == null) {
+            throw new AuthoritativeSourceDataNotFoundException(FREG, "User not found in FREG");
+        }
+        if (person.getFoedselsdato() == null) {
+            throw new AuthoritativeSourceInvalidDataException(FREG, "Missing birthdate for user in FREG");
         }
     }
 }

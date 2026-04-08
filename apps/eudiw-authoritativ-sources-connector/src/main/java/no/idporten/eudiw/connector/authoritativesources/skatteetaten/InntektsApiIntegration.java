@@ -6,8 +6,6 @@ import no.idporten.eudiw.connector.authoritativesources.exceptions.Authoritative
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.Respons;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import no.idporten.lib.maskinporten.client.MaskinportenClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.SKATTEETATEN;
+import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.SERVER_ERROR;
 
 
 /**
@@ -33,8 +32,6 @@ import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSour
  */
 @Service
 public class InntektsApiIntegration {
-
-    private static final Logger log = LoggerFactory.getLogger(InntektsApiIntegration.class);
 
     private final InntekstsApiProperties inntekstsApiProperties;
     private final MaskinportenClient maskinportenClient;
@@ -58,7 +55,7 @@ public class InntektsApiIntegration {
         } catch (ResourceAccessException e) {
             throw new AuthoritativeSourceIOException(SKATTEETATEN, "IO error when calling Inntekts-api", e);
         } catch (RestClientException e) {
-            throw new AuthoritativeSourceException(SKATTEETATEN, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new AuthoritativeSourceException(SKATTEETATEN, SERVER_ERROR, "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -80,7 +77,7 @@ public class InntektsApiIntegration {
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to get data fra authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
-        throw new AuthoritativeSourceException(SKATTEETATEN, "server_error", "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+        throw new AuthoritativeSourceException(SKATTEETATEN, SERVER_ERROR, "Failed to get information from Inntekts-api", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
     }
 
 }

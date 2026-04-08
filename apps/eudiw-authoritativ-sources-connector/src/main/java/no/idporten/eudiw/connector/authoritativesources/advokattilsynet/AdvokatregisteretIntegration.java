@@ -6,8 +6,6 @@ import no.idporten.eudiw.connector.authoritativesources.exceptions.Authoritative
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceIOException;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import no.idporten.lib.maskinporten.client.MaskinportenClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,6 +22,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.ADVOKATREGISTERET;
+import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.SERVER_ERROR;
 
 /**
  * Integration with data.altinn.no to retrieve info from Advokatregisteret.
@@ -32,7 +31,6 @@ import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSour
 public class AdvokatregisteretIntegration {
 
     public static final String SUBSCRIPTION_KEY_HEADER = "Ocp-apim-subscription-key";
-    private static final Logger log = LoggerFactory.getLogger(AdvokatregisteretIntegration.class);
     private final AdvokatregisteretProperties advokatregisteretProperties;
     private final MaskinportenClient maskinportenClient;
     private final RestClient advokatregisterRestClient;
@@ -55,7 +53,7 @@ public class AdvokatregisteretIntegration {
         } catch (ResourceAccessException e) {
             throw new AuthoritativeSourceIOException(ADVOKATREGISTERET, "IO error when calling Advokatregisteret", e);
         } catch (RestClientException e) {
-            throw new AuthoritativeSourceException(ADVOKATREGISTERET, "server_error", "Failed to get information from Advokatregisteret", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new AuthoritativeSourceException(ADVOKATREGISTERET, SERVER_ERROR, "Failed to get information from Advokatregisteret", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -73,8 +71,8 @@ public class AdvokatregisteretIntegration {
 
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
-        String logMessage = "Failed to get data fra authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
-        throw new AuthoritativeSourceException(ADVOKATREGISTERET, "server_error", "Failed to get information from Advokatregisteret", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+        String logMessage = "Failed to get data from authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
+        throw new AuthoritativeSourceException(ADVOKATREGISTERET, SERVER_ERROR, "Failed to get information from Advokatregisteret", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
     }
 
 }

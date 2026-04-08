@@ -75,7 +75,7 @@ public class AdvokatregisteretCredentialDataSourceTest {
 
         assertAll(
                 () -> assertEquals("credential_data_not_found", e.getErrorCode()),
-                () -> assertTrue(e.getErrorDescription().contains("No data available"))
+                () -> assertTrue(e.getMessage().contains("No data available"))
         );
     }
 
