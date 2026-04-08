@@ -3,6 +3,8 @@ package no.idporten.eudiw.connector.authoritativesources.exceptions;
 import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources;
 import org.springframework.http.HttpStatusCode;
 
+import java.util.Objects;
+
 public class AuthoritativeSourceException extends RuntimeException {
     private final HttpStatusCode statusCode;
     private final String errorCode;
@@ -42,10 +44,13 @@ public class AuthoritativeSourceException extends RuntimeException {
     }
 
     public String getLogMessage() {
-        return logMessage;
+        String message = Objects.isNull(logMessage) ? super.getMessage() : logMessage;
+
+        if (Objects.isNull(authoritativeSource)) {
+            return message;
+        }
+
+        return "%s: %s".formatted(authoritativeSource, message);
     }
 
-    public String getErrorDescription() {
-        return super.getMessage();
-    }
 }

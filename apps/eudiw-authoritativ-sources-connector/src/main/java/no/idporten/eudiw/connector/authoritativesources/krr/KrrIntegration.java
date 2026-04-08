@@ -6,8 +6,6 @@ import no.idporten.eudiw.connector.authoritativesources.exceptions.Authoritative
 import no.idporten.eudiw.connector.authoritativesources.krr.model.PersonKrr;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import no.idporten.lib.maskinporten.client.MaskinportenClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +21,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.KRR;
+import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.SERVER_ERROR;
 
 
 /**
@@ -30,9 +29,6 @@ import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSour
  */
 @Service
 public class KrrIntegration {
-
-    private static final Logger log = LoggerFactory.getLogger(KrrIntegration.class);
-
 
     private final KrrProperties krrProperties;
     private final MaskinportenClient maskinportenClient;
@@ -56,7 +52,7 @@ public class KrrIntegration {
         } catch (ResourceAccessException e) {
             throw new AuthoritativeSourceIOException(KRR, "IO error when calling KRR", e);
         } catch (RestClientException e) {
-            throw new AuthoritativeSourceException(KRR, "server_error", "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new AuthoritativeSourceException(KRR, SERVER_ERROR, "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
     }
 
@@ -74,7 +70,7 @@ public class KrrIntegration {
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to get data fra authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
-        throw new AuthoritativeSourceException(KRR, "server_error", "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+        throw new AuthoritativeSourceException(KRR, SERVER_ERROR, "Failed to get information from KRR", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
     }
 
 }

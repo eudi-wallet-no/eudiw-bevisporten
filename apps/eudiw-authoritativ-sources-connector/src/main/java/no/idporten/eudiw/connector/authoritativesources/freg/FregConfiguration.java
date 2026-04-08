@@ -3,6 +3,7 @@ package no.idporten.eudiw.connector.authoritativesources.freg;
 import no.digdir.freg.audit.AuditLog;
 import no.digdir.freg.eventlog.EventLog;
 import no.digdir.freg.service.FregResultMapper;
+import no.digdir.freg.service.FregService;
 import no.digdir.logging.event.EventLogger;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceException;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceIOException;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import static no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources.FREG;
+import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.SERVER_ERROR;
 
 
 @Configuration
@@ -49,8 +51,8 @@ public class FregConfiguration {
     }
 
     @Bean
-    public no.digdir.freg.service.FregService fregService(FregIntegration fregIntegration) {
-        return new no.digdir.freg.service.FregService(
+    public FregService fregService(FregIntegration fregIntegration) {
+        return new FregService(
                 new FregResultMapper(),
                 new AuditLog(auditLogger),
                 new EventLog(eventLogger),
@@ -67,14 +69,18 @@ public class FregConfiguration {
                 .requestInterceptor(jwtGrantTokenInterceptor)
                 .requestInterceptor(
                         (request, body, execution) -> {
-                            ClientHttpResponse response = execution.execute(request, body);
-                            if (response.getStatusCode() == HttpStatus.REQUEST_TIMEOUT) {
-                                throw new AuthoritativeSourceIOException(FREG, "Request timeout against FREG");
+                            try {
+                                ClientHttpResponse response = execution.execute(request, body);
+
+                                if (response.getStatusCode().is5xxServerError()) {
+                                    handleErrorResponseAs500(response);
+                                }
+
+                                return response;
+
+                            } catch (IOException e) {
+                                throw new AuthoritativeSourceIOException(FREG, "IO error when calling FREG", e);
                             }
-                            if (response.getStatusCode().is5xxServerError()) {
-                                handleErrorResponseAs500(response);
-                            }
-                            return response;
                         }
                 )
                 .build();
@@ -90,7 +96,7 @@ public class FregConfiguration {
     static void handleErrorResponseAs500(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to get data fra authoritative source.  Status: %s, message: %s".formatted(response.getStatusCode(), body);
-        throw new AuthoritativeSourceException(FREG, "server_error", "Failed to get information from Folkeregisteret", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+        throw new AuthoritativeSourceException(FREG, SERVER_ERROR, "Failed to get information from Folkeregisteret", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
     }
 
 

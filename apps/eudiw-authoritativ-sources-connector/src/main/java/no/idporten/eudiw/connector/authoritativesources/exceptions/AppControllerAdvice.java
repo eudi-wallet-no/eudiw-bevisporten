@@ -34,15 +34,32 @@ public class AppControllerAdvice {
     }
 
     @ExceptionHandler(AuthoritativeSourceException.class)
-    public ResponseEntity<ErrorResponse> handleAuthoritativeSourceException(AuthoritativeSourceException exception) {
-        return errorResponseEntity(exception.getStatusCode(), exception.getErrorCode(), exception.getMessage());
+    public ResponseEntity<ErrorResponse> handleAuthoritativeSourceException(AuthoritativeSourceException e) {
+        log.warn(e.getErrorCode(), e.getLogMessage());
+        return errorResponseEntity(e.getStatusCode(), e.getErrorCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(AuthoritativeSourceDataNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleAuthoritativeSourceDataNotFoundException(AuthoritativeSourceException e) {
+        return errorResponseEntity(e.getStatusCode(), e.getErrorCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(UnknownAuthoritativeSourceException.class)
+    public ResponseEntity<ErrorResponse> handleUnknownAuthoritativeSourceException(AuthoritativeSourceException e) {
+        return errorResponseEntity(e.getStatusCode(), e.getErrorCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(AuthoritativeSourceIOException.class)
+    public ResponseEntity<ErrorResponse> handleAuthoritativeSourceIOException(AuthoritativeSourceException e) {
+        log.warn(e.getErrorCode(), e.getLogMessage(), e.getCause());
+        return errorResponseEntity(e.getStatusCode(), e.getErrorCode(), e.getMessage());
     }
 
     // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        log.warn("Failed to process request", exception);
-        return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, getFieldErrorDescription(exception));
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.warn("Failed to process request", e);
+        return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, getFieldErrorDescription(e));
     }
 
     // Spring 405

@@ -1,6 +1,5 @@
 package no.idporten.eudiw.connector.authoritativesources.api;
 
-import no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes;
 import no.idporten.eudiw.connector.authoritativesources.krr.KrrIntegration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,7 +69,7 @@ public class AuthoritativeSourcesControllerTest {
                                 """.formatted(getValidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(containsString("Authoritative source not found")))
                 .andExpect(jsonPath("$.error_description").value(containsString("trace_id")));
     }
@@ -89,7 +88,7 @@ public class AuthoritativeSourcesControllerTest {
                                 """.formatted(getInvalidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is4xxClientError())
-                .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(containsString("Invalid person identifier")))
                 .andExpect(jsonPath("$.error_description").value(containsString("trace_id")));
     }
@@ -108,7 +107,7 @@ public class AuthoritativeSourcesControllerTest {
                                 """.formatted(getValidSyntheticPersonIdentifier()))
                         .contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(status().is4xxClientError())
-                .andExpect(jsonPath("$.error").value(ErrorCodes.INVALID_REQUEST))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(containsString("Credential type is required")))
                 .andExpect(jsonPath("$.error_description").value(containsString("trace_id")));
     }

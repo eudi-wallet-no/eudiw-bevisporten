@@ -105,7 +105,7 @@ public class AdvokatregisteretIntegrationTest {
                 () -> advokatregisteretIntegration.retrieve(personIdentifier));
         assertAll(
                 () -> assertEquals("server_error", e.getErrorCode()),
-                () -> assertEquals("Failed to get information from Advokatregisteret", e.getErrorDescription())
+                () -> assertEquals("Failed to get information from Advokatregisteret", e.getMessage())
         );
     }
 
