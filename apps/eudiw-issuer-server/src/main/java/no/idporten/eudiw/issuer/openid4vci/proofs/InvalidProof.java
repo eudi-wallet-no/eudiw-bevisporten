@@ -3,18 +3,17 @@ package no.idporten.eudiw.issuer.openid4vci.proofs;
 import com.nimbusds.openid.connect.sdk.Nonce;
 import lombok.Getter;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import org.springframework.http.HttpStatus;
+
+import static no.idporten.eudiw.issuer.claimssource.exception.ErrorCode.INVALID_PROOF;
 
 @Getter
 public class InvalidProof extends IssuerServerException {
 
-    public static final String INVALID_PROOF = "invalid_proof";
-
     private final Nonce nonce;
-    private final long nonceExpiresInSecpnds = 60 * 60 * 24;
+    private final long nonceExpiresInSeconds = 60 * 60 * 24;
 
     public InvalidProof(Nonce nonce, String errorDescription, Throwable cause) {
-        super(INVALID_PROOF, errorDescription, HttpStatus.BAD_REQUEST, cause);
+        super(INVALID_PROOF, errorDescription, cause);
         this.nonce = nonce == null ? new Nonce() : nonce;
     }
 

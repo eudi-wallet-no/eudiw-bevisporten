@@ -29,10 +29,10 @@ public class CredentialRequest {
 
     public void validate() {
         if (StringUtils.hasText(credentialIdentifier) && StringUtils.hasText(credentialConfigurationId)) {
-            throw new InvalidCredentialRequest(InvalidCredentialRequest.INVALID_CREDENTIAL_REQUEST, "credential_identifier and credential_configuration_id can not be used is the same request.");
+            throw new InvalidCredentialRequest("credential_identifier and credential_configuration_id can not be used is the same request.");
         }
         if (! (StringUtils.hasText(credentialIdentifier) || StringUtils.hasText(credentialConfigurationId))) {
-            throw new InvalidCredentialRequest(InvalidCredentialRequest.INVALID_CREDENTIAL_REQUEST, "One of credential_identifier or credential_configuration_id must have a value.");
+            throw new InvalidCredentialRequest("One of credential_identifier or credential_configuration_id must have a value.");
         }
         if (getProof() != null) {
             proof.validate();

@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
@@ -8,7 +9,6 @@ import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.AuthorizedCodeGrant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Grants;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class CredentialOfferService {
         for (String credentialConfigurationId : credentialConfigurationIds) {
             ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialConfigurationId);
             if (!GRANT_TYPE_AUTHORIZATION_CODE.equals(credentialConfiguration.getCredentialIssuerContext().getGrantType())) {
-                throw new IssuerServerException("invalid_request", "Credential configuration cannot be used with the authorization code flow", HttpStatus.BAD_REQUEST);
+                throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Credential configuration cannot be used with the authorization code flow");
             }
             validCredentialConfigurationIds.add(credentialConfiguration.getCredentialConfigurationId());
         }

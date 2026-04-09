@@ -11,6 +11,7 @@ import id.walt.mdoc.mso.DeviceKeyInfo;
 import id.walt.mdoc.mso.ValidityInfo;
 import kotlin.time.Instant;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
@@ -19,7 +20,6 @@ import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.cose.java.CoseException;
 import org.cose.java.OneKey;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.security.cert.X509Certificate;
@@ -92,7 +92,7 @@ public class MDocService {
         try {
             return new OneKey(jwk.toECKey().toECPublicKey(), null).AsCBOR().EncodeToBytes();
         } catch (CoseException | JOSEException e) {
-            throw new IssuerServerException("Failed to convert JWK to COSE key in MDocService", "Failed to create MDoc", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to convert JWK to COSE key, cannot create mdoc", e);
         }
     }
 

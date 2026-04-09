@@ -6,13 +6,13 @@ import com.nimbusds.oauth2.sdk.id.Identifier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -88,7 +88,7 @@ public class AuditService {
 
     protected static String maskJWT(JWT accessToken) {
         if (accessToken == null || accessToken.getParsedParts() == null || accessToken.getParsedParts().length < 2) {
-            throw new IssuerServerException(IssuerServerException.INVALID_CREDENTIAL_REQUEST,"Invalid token", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_CREDENTIAL_REQUEST,"Invalid token");
         }
         Base64URL[] parsedParts = accessToken.getParsedParts();
         return "%s.%s.".formatted(parsedParts[0].toString(), parsedParts[1].toString());

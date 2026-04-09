@@ -1,11 +1,11 @@
 package no.idporten.eudiw.issuer.config;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.http.HttpStatus;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class ClasspathSingleCredentialConfigurationSource implements CredentialC
             log.info("Retrieved credential configuration for {} from uri {}", extendedCredentialConfiguration.getCredentialType(), properties.uri());
             this.credentialConfigurations.add(extendedCredentialConfiguration);
         } catch (IOException e) {
-            throw new IssuerServerException("server_error", "Failed to init credential configuration source.", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to init credential configuration source.", e);
         }
     }
 

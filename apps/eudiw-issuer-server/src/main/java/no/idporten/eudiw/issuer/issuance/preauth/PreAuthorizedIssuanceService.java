@@ -5,6 +5,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
@@ -18,7 +19,6 @@ import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Grants;
 import no.idporten.eudiw.issuer.openid4vci.protocol.PreAuthorizedCodeGrant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.TxCode;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 
@@ -45,13 +45,12 @@ public class PreAuthorizedIssuanceService {
         ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         if (! credentialIssuerTenant.getCredentialIssuer().toString().equals(preAuthorizedIssuanceRequest.getCredentialIssuer())) {
             throw new IssuerServerException(
-                    "invalid_request",
+                    ErrorCode.INVALID_REQUEST,
                     "Invalid credential issuer in request.",
-                    "Expected issuer %s but client used %s to pre-authorize for %s".formatted(credentialIssuerTenant.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialConfigurationId()),
-                    HttpStatus.BAD_REQUEST);
+                    "Expected issuer %s but client used %s to pre-authorize for %s".formatted(credentialIssuerTenant.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialConfigurationId()));
         }
         if (!GRANT_TYPE_PRE_AUTHORIZED_CODE.equals(credentialConfiguration.getCredentialIssuerContext().getGrantType())) {
-            throw new IssuerServerException("invalid_request", "Credential configuration can only be used with the pre-authorized code flow", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Credential configuration can only be used with the pre-authorized code flow");
         }
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer(), credentialConfiguration.getScope()));
         PreAuthorizedClaimsSource claimsSource = (PreAuthorizedClaimsSource) claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());

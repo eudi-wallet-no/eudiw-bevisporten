@@ -1,9 +1,8 @@
 package no.idporten.eudiw.issuer.credentials;
 
-import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
+import no.idporten.eudiw.issuer.claimssource.exception.InvalidCredentialDataException;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
-import org.springframework.http.HttpStatus;
+import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
@@ -16,7 +15,7 @@ public class ClaimDataTypeValidator {
     public void validate(ExtendedClaimsDescription extendedClaimsDescription, Object claim) {
         if (claim == null) {
             if(extendedClaimsDescription.mandatory()){
-                throw new IssuerServerException("invalid_request", "Missing required value for claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+                throw new InvalidCredentialDataException("Missing required value for claim %s".formatted(extendedClaimsDescription.name()));
             }
             return;
         }
@@ -39,7 +38,7 @@ public class ClaimDataTypeValidator {
         }
         final List<Object> value = (List<Object>) list;
         if (extendedClaimsDescription.mandatory() && value.isEmpty()) {
-            throw new IssuerServerException("invalid_request", "Missing required value for list claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Missing required value for list claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
 
@@ -49,7 +48,7 @@ public class ClaimDataTypeValidator {
         }
         final Map<String, Object> value = (Map<String, Object>) map;
         if (extendedClaimsDescription.mandatory() && value.isEmpty()) {
-            throw new IssuerServerException("invalid_request", "Missing required value for map claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Missing required value for map claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
 
@@ -59,10 +58,10 @@ public class ClaimDataTypeValidator {
         }
 
         if (!(claim instanceof String value)) {
-            throw new IssuerServerException("invalid_request", "Invalid type for iso_date_time claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid type for iso_date_time claim %s".formatted(extendedClaimsDescription.name()));
         }
         if (!value.matches(extendedClaimsDescription.validationRegex())) {
-            throw new IssuerServerException("invalid_request", "Invalid format for required value for iso_date_time claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid format for required value for iso_date_time claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
 
@@ -73,39 +72,39 @@ public class ClaimDataTypeValidator {
         }
 
         if (!(claim instanceof String value)) {
-            throw new IssuerServerException("invalid_request", "Invalid type for iso_date claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid type for iso_date claim %s".formatted(extendedClaimsDescription.name()));
         }
         if (!value.matches(extendedClaimsDescription.validationRegex())) {
-            throw new IssuerServerException("invalid_request", "Invalid format for required value for iso_date claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid format for required value for iso_date claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
 
     private void validateBooleanValue(ExtendedClaimsDescription extendedClaimsDescription, Object claim) {
 
         if (!(claim instanceof Boolean)) {
-            throw new IssuerServerException("invalid_request", "Invalid type for boolean claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid type for boolean claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
 
     private void validateNumberValue(ExtendedClaimsDescription extendedClaimsDescription, Object claim) {
 
         if (!(claim instanceof Integer)) {
-            throw new IssuerServerException("invalid_request", "Invalid type for number claim %s".formatted(extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid type for number claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
 
     private static void validateStringInputValue(ExtendedClaimsDescription extendedClaimsDescription, ClaimDataType dataType, Object claim) {
         if (!(claim instanceof String value)) {
-            throw new IssuerServerException("invalid_request", "Invalid type for %s claim %s".formatted(dataType, extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid type for %s claim %s".formatted(dataType, extendedClaimsDescription.name()));
         }
         if (extendedClaimsDescription.mandatory() && !StringUtils.hasLength(value)) {
-            throw new IssuerServerException("invalid_request", "Missing required value for %s claim %s".formatted(dataType, extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Missing required value for %s claim %s".formatted(dataType, extendedClaimsDescription.name()));
         }
         if (!extendedClaimsDescription.mandatory() && !StringUtils.hasLength(value)) {
             return;
         }
         if (StringUtils.hasLength(extendedClaimsDescription.validationRegex()) && !value.matches(extendedClaimsDescription.validationRegex())) {
-            throw new IssuerServerException("invalid_request", "Invalid format for required value for %s claim %s".formatted(dataType, extendedClaimsDescription.name()), HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Invalid format for required value for %s claim %s".formatted(dataType, extendedClaimsDescription.name()));
         }
     }
 }

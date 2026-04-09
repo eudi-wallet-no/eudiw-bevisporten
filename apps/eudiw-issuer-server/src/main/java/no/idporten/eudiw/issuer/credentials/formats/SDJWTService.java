@@ -12,14 +12,13 @@ import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SDPayload;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import net.minidev.json.JSONObject;
-import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.security.cert.CertificateEncodingException;
@@ -48,7 +47,7 @@ public class SDJWTService {
         try {
             return Credential.builder().credential(encode(createSDJwt(credentialIssuer, jwk, credentialConfiguration, claims))).build();
         } catch (JOSEException|CertificateEncodingException e) {
-            throw new IssuerServerException("Failed to issue credentials of SD-JWT format for config=%s".formatted(credentialConfiguration), "Failed to issue credentials of SD-JWT format", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new CredentialRequestDeniedException(credentialConfiguration.getCredentialConfigurationId(), "Failed to issue credentials of SD-JWT format", e);
         }
     }
 

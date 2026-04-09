@@ -4,13 +4,12 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWT;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
@@ -19,7 +18,6 @@ import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -66,7 +64,7 @@ public class CredentialIssuerService {
                 return new IssuanceTransactionId(accessToken.getJWTClaimsSet().getStringClaim("tx_id"));
             }
         } catch (ParseException e) {
-            throw new IssuerServerException(IssuerServerException.INVALID_CREDENTIAL_REQUEST, "Invalid token", HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialRequest("Invalid token");
         }
         return null;
     }

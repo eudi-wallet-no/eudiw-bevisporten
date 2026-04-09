@@ -8,7 +8,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import org.springframework.http.HttpStatus;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 
 import java.text.ParseException;
 
@@ -27,7 +27,7 @@ public class Proof {
     public void validate() {
         JWK jwk = getBindingKey();
         if (jwk == null) {
-            throw new IssuerServerException("invalid_proof", "Missing binding key", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Missing binding key");
         }
     }
 
@@ -37,7 +37,7 @@ public class Proof {
             JWSHeader jwsHeader = (JWSHeader) jwt.getHeader();
             return jwsHeader.getJWK();
         } catch (ParseException e) {
-            throw new IssuerServerException("invalid_proof", "Invalid proof format", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Invalid proof format");
         }
     }
 

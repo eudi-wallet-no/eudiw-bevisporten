@@ -1,9 +1,9 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
-import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
@@ -37,14 +37,14 @@ public sealed interface PreAuthorizedClaimsSource extends ClaimsSource permits A
      * Pull claims data from authoritative source.  Disabled by default.
      */
     default CredentialData pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
-        throw new IssuerServerException("invalid_request", "Credential configuration does not support pull of data", HttpStatus.BAD_REQUEST);
+        throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Credential configuration does not support pull of data");
     }
 
     /**
      * Receive pushed data from the authoritative source.  Disabled by default.
      */
     default CredentialData push(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext, CredentialData credentialData) {
-        throw new IssuerServerException("invalid_request", "Credential configuration does not support push of data", HttpStatus.BAD_REQUEST);
+        throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Credential configuration does not support push of data");
     }
 
     /**

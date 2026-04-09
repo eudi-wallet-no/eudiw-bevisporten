@@ -12,11 +12,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
+import no.idporten.eudiw.issuer.claimssource.exception.InvalidCredentialDataException;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Claim;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Subject;
-import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
@@ -65,9 +64,9 @@ public class PreAuthorizedIssuanceRequest {
                     .filter(claim -> claim.getName() != null)
                     .collect(Collectors.toMap(Claim::getName, Claim::getValue));
         } catch (IllegalStateException e) {
-            throw new IssuerServerException("invalid_request", "Claims must have unique names", HttpStatus.BAD_REQUEST);
+            throw new InvalidCredentialDataException("Claims must have unique names");
         } catch (Exception e) {
-            throw new IssuerServerException("invalid_request", "Invalid claims format", HttpStatus.BAD_REQUEST, e);
+            throw new InvalidCredentialDataException("Invalid claims format", e);
         }
     }
 

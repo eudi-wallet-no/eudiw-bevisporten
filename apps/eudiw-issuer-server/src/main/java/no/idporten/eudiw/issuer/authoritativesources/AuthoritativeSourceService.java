@@ -2,10 +2,8 @@ package no.idporten.eudiw.issuer.authoritativesources;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.config.AuthoritativeSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Subject;
@@ -13,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
@@ -59,10 +56,9 @@ public class AuthoritativeSourceService implements InitializingBean {
     private AuthoritativeSourceProperties findAuthoritativeSourceProperties(String source) {
         return Optional.ofNullable(credentialIssuerServerProperties.getAuthoritativeSources().get(source))
                 .orElseThrow(() -> new IssuerServerException(
-                        "server_error",
+                        ErrorCode.SERVER_ERROR,
                         "Unknown authoritative source",
-                        "Unknown authoritative source [%s]".formatted(source),
-                        HttpStatus.INTERNAL_SERVER_ERROR)
+                        "Unknown authoritative source [%s]".formatted(source))
                 );
     }
 
@@ -80,13 +76,13 @@ public class AuthoritativeSourceService implements InitializingBean {
                     .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleErrorResponse(source, response))
                     .body(AuthoritativeSourceResponse.class);
             if (authoritativeSourceResponse == null || CollectionUtils.isEmpty(authoritativeSourceResponse.credentialData())) {
-                throw new ClaimsSourceDataNotFoundException(source, "No data available", "Authoritative source returned no data");
+                throw new CredentialRequestDeniedException(credentialType, "No data available", "Authoritative source returned no data");
             }
             return new CredentialData(authoritativeSourceResponse.credentialData());
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException(source, "IO error when calling source %s".formatted(source), e);
+            throw new AuthoritativeSourceIOException(source, "IO error when calling source %s".formatted(source), e);
         } catch (RestClientException e) {
-            throw new ClaimsSourceException(source, "server_error", "Failed to get information from source %s".formatted(source), HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new AuthoritativeSourceIOException(source, "Failed to get information from source %s".formatted(source), e);
         }
     }
 
@@ -98,19 +94,18 @@ public class AuthoritativeSourceService implements InitializingBean {
             errorResponse = jsonMapper.readValue(body, AuthoritativeSourceErrorResponse.class);
         } catch (Exception e) {
             log.warn("Failed to parse error response body from authoritative source [{}]", source, e);
-            throw new ClaimsSourceException(source, SERVER_ERROR, "Failed to retrieve credential data from authoritative source", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+            throw new CredentialRequestDeniedException(source, "Failed to retrieve credential data from authoritative source", logMessage);
         }
         switch (errorResponse.error()) {
             case SERVER_ERROR:
-                throw new ClaimsSourceException(source, "server_error", errorResponse.errorDescription(), HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
             case INVALID_REQUEST:
             case CREDENTIAL_ISSUANCE_DENIED:
             case FAILED_CREDENTIAL_REQUEST:
             case NOT_FOUND_CREDENTIAL_DATA:
             case INVALID_CLAIMS_DATA:
-                throw new ClaimsSourceInvalidDataException(source, errorResponse.errorDescription(), logMessage);
+                throw new CredentialRequestDeniedException(source, errorResponse.errorDescription(), logMessage);
         }
-        throw new ClaimsSourceInvalidDataException(source, errorResponse.errorDescription(), logMessage);
+        throw new CredentialRequestDeniedException(source, errorResponse.errorDescription(), logMessage);
     }
 
     private RestClient createRestClient(AuthoritativeSourceProperties properties) {

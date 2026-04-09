@@ -4,7 +4,7 @@ package no.idporten.eudiw.issuer.openid4vci.protocol;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import org.springframework.http.HttpStatus;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import org.springframework.util.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,13 +19,13 @@ public record NotificationRequest(
 
     public void validate() {
         if (!StringUtils.hasText(notificationId())) {
-            throw new IssuerServerException("invalid_notification_id", "Missing notification id.", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Missing notification id.");
         }
         if (!StringUtils.hasText(event())) {
-            throw new IssuerServerException("invalid_notification_request", "Missing event value.", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_REQUEST, "Missing event value.");
         }
         if (!event().matches("credential_accepted|credential_failure|credential_deleted")) {
-            throw new IssuerServerException("invalid_notification_request", "Unknown event value.", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_REQUEST, "Unknown event value.");
         }
         // TODO event description JIRA https://digdir.atlassian.net/browse/EUW-533
     }
