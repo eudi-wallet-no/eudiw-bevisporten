@@ -4,7 +4,7 @@ package no.idporten.eudiw.issuer.openid4vci.protocol;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 import org.springframework.util.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

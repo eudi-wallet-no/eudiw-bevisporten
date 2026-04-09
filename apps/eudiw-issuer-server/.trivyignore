@@ -1,3 +1,2 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-GHSA-72hv-8253-57qq # Jackson number length. Fixed in 3.1.0
-CVE-2026-29062 # Jackson nesting length. Fixed in 3.1.0
+GHSA-2m67-wjpj-xhg9 # Jackson Core: Document length constraint bypass in blocking async. Fixed in 3.1.1

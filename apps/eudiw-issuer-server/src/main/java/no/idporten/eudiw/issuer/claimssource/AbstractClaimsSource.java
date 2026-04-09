@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.claimssource.exception.InvalidCredentialDataException;
 import no.idporten.eudiw.issuer.credentials.ClaimDataTypeValidator;
 import no.idporten.eudiw.issuer.credentials.ClaimValueConverter;

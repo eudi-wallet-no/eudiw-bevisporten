@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.exception;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 
-import static no.idporten.eudiw.issuer.claimssource.exception.ErrorCode.CREDENTIAL_REQUEST_DENIED;
+import static no.idporten.eudiw.issuer.ErrorCode.CREDENTIAL_REQUEST_DENIED;
 
 /**
  * The credential request is denied.  See https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-error-response .

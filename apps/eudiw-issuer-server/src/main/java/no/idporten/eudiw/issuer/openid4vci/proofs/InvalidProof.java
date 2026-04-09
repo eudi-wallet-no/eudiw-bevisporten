@@ -4,7 +4,7 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import lombok.Getter;
 import no.idporten.eudiw.issuer.IssuerServerException;
 
-import static no.idporten.eudiw.issuer.claimssource.exception.ErrorCode.INVALID_PROOF;
+import static no.idporten.eudiw.issuer.ErrorCode.INVALID_PROOF;
 
 @Getter
 public class InvalidProof extends IssuerServerException {

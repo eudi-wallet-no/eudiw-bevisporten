@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.claimssource.exception;
+package no.idporten.eudiw.issuer;
 
 import org.springframework.http.HttpStatus;
 

@@ -1,11 +1,10 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
-import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.oauth2.InvalidAccessTokenException;
 
 /**
  * Context for credential issuance.
@@ -26,11 +25,11 @@ public record CredentialIssueContext(
         try {
             String personIdentifier = accessToken.getJWTClaimsSet().getSubject();
             if(personIdentifier == null || personIdentifier.isBlank()){
-                throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Access token is missing subject");
+                throw new InvalidAccessTokenException("Access token is missing subject");
             }
             return  personIdentifier;
         } catch (Exception e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Failed to extract subject from access token", e);
+            throw new InvalidAccessTokenException("Failed to extract subject from access token", e);
         }
     }
 
@@ -45,7 +44,7 @@ public record CredentialIssueContext(
             }
             return new IssuanceTransactionId(transactionId);
         } catch (Exception e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Missing claim [%s] in access token".formatted("tx_id"));
+            throw new InvalidAccessTokenException("Missing claim [%s] in access token".formatted("tx_id"));
         }
     }
 

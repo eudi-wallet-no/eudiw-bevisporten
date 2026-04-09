@@ -14,8 +14,6 @@ import com.nimbusds.jwt.proc.ExpiredJWTException;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.id.Issuer;
 import com.nimbusds.openid.connect.sdk.validators.AbstractJWTValidator;
-import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 
 import java.net.URI;
 import java.util.Set;
@@ -29,10 +27,10 @@ public class AccessTokenValidator extends AbstractJWTValidator {
     @SuppressWarnings("unchecked")
     public JWT validate(JWT accessToken, URI acceptedAudience) {
         if (accessToken == null) {
-            throw new IssuerServerException(ErrorCode.UNAUTHORIZED_INVALID_REQUEST, "Missing access token");
+            throw new UnauthorizedRequestException("Missing access token");
         }
         if (! (accessToken instanceof SignedJWT)) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Unsigned access token");
+            throw new InvalidAccessTokenException("Unsigned access token");
         }
         try {
             SignedJWT signedJWT = (SignedJWT) accessToken;
@@ -45,11 +43,11 @@ public class AccessTokenValidator extends AbstractJWTValidator {
             jwtProcessor.process(accessToken, (SecurityContext) null);
             return signedJWT;
         } catch (ExpiredJWTException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Expired access token");
+            throw new InvalidAccessTokenException("Expired access token");
         } catch (BadJOSEException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid token format", e);
+            throw new InvalidAccessTokenException("Invalid token format", e);
         } catch (JOSEException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid token signature");
+            throw new InvalidAccessTokenException("Invalid token signature");
         }
     }
 
