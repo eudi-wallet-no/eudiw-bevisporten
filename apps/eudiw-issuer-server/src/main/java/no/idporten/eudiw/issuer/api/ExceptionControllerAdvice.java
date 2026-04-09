@@ -3,10 +3,8 @@ package no.idporten.eudiw.issuer.api;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.api.openid4vci.NonceErrorResponse;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceDataNotFoundException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceInvalidDataException;
+import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSourceIOException;
+import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
 import no.idporten.eudiw.issuer.openid4vci.proofs.InvalidProof;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,52 +23,32 @@ public class ExceptionControllerAdvice {
         log.warn("Failed to process request", invalidProof);
         return ResponseEntity
                 .status(invalidProof.getHttpStatus())
-                .body(new NonceErrorResponse(invalidProof.getError(), invalidProof.getErrorDescription(), invalidProof.getNonce(), invalidProof.getNonceExpiresInSecpnds()));
+                .body(new NonceErrorResponse(invalidProof.getError(), invalidProof.getErrorDescription(), invalidProof.getNonce(), invalidProof.getNonceExpiresInSeconds()));
     }
 
-    @ExceptionHandler(ClaimsSourceIOException.class)
-    public ResponseEntity<ErrorResponse> claimSourceIOException(ClaimsSourceIOException claimSourceIOException) {
-        log.error("IOException against claims-source=%s".formatted(claimSourceIOException.getAuthoritativeSource()), claimSourceIOException);
-        // TODO: add metrics for IOExceptions
-        return ResponseEntity
-                .status(claimSourceIOException.getHttpStatus())
-                .body(new ErrorResponse(claimSourceIOException.getError(), claimSourceIOException.getErrorDescription()));
-    }
-
-    @ExceptionHandler(ClaimsSourceDataNotFoundException.class)
-    public ResponseEntity<ErrorResponse> claimSourceDataNotFoundException(ClaimsSourceDataNotFoundException claimsSourceDataNotFoundException) {
-        if(claimsSourceDataNotFoundException.getLogMessage() != null) {
-            log.error(claimsSourceDataNotFoundException.getLogMessage(), claimsSourceDataNotFoundException);
+    @ExceptionHandler(CredentialRequestDeniedException.class)
+    public ResponseEntity<ErrorResponse> credentialRequestDeniedException(CredentialRequestDeniedException credentialRequestDeniedException) {
+        if(credentialRequestDeniedException.getLogMessage() != null) {
+            log.error(credentialRequestDeniedException.getLogMessage(), credentialRequestDeniedException);
         }else {
-            log.warn("Failed to find data in claims-source from authoritative source {}", claimsSourceDataNotFoundException.getAuthoritativeSource(), claimsSourceDataNotFoundException);
+            log.warn("Request denied for credential configuration {}", credentialRequestDeniedException.credentialConfigurationId(), credentialRequestDeniedException);
         }
         return ResponseEntity
-                .status(claimsSourceDataNotFoundException.getHttpStatus())
-                .body(new ErrorResponse(claimsSourceDataNotFoundException.getError(), claimsSourceDataNotFoundException.getErrorDescription()));
+                .status(credentialRequestDeniedException.getHttpStatus())
+                .body(new ErrorResponse(credentialRequestDeniedException.getError(), credentialRequestDeniedException.getErrorDescription()));
     }
 
-    @ExceptionHandler(ClaimsSourceInvalidDataException.class)
-    public ResponseEntity<ErrorResponse> claimSourceInvalidDataException(ClaimsSourceInvalidDataException claimsSourceInvalidDataException) {
-        if(claimsSourceInvalidDataException.getLogMessage() != null) {
-            log.info(claimsSourceInvalidDataException.getLogMessage(), claimsSourceInvalidDataException);
-        } else {
-            log.info("Invalid data in  claims-source from authoritative source {} ", claimsSourceInvalidDataException.getAuthoritativeSource(), claimsSourceInvalidDataException);
-        }
-        return ResponseEntity
-                .status(claimsSourceInvalidDataException.getHttpStatus())
-                .body(new ErrorResponse(claimsSourceInvalidDataException.getError(), claimsSourceInvalidDataException.getErrorDescription()));
-    }
-
-    @ExceptionHandler(ClaimsSourceException.class)
-    public ResponseEntity<ErrorResponse> claimSourceException(ClaimsSourceException claimSourceException) {
-        if(claimSourceException.getLogMessage() != null) {
-            log.error(claimSourceException.getLogMessage(), claimSourceException);
+    @ExceptionHandler(AuthoritativeSourceIOException.class)
+    public ResponseEntity<ErrorResponse> authoritativeSourceIOException(AuthoritativeSourceIOException exception) {
+        // TODO metrics for this type of exception
+        if(exception.getLogMessage() != null) {
+            log.error(exception.getLogMessage(), exception);
         }else {
-            log.error("Failed to process request in claims-source", claimSourceException);
+            log.warn("Request failed for authoritative source {}", exception.credentialConfigurationId(), exception);
         }
         return ResponseEntity
-                .status(claimSourceException.getHttpStatus())
-                .body(new ErrorResponse(claimSourceException.getError(), claimSourceException.getErrorDescription()));
+                .status(exception.getHttpStatus())
+                .body(new ErrorResponse(exception.getError(), exception.getErrorDescription()));
     }
 
     @ExceptionHandler(IssuerServerException.class)

@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.credentials;
 
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
+import no.idporten.eudiw.issuer.claimssource.exception.InvalidCredentialDataException;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import org.junit.jupiter.api.DisplayName;
@@ -31,13 +31,13 @@ class ClaimValueConverterTest {
         assertEquals(LocalDate.of(2024, 3, 25), ((FullDateValue) claim.getValue()).value());
     }
 
-    @DisplayName("when call getFullDateClaim with invalid format string then throws ClaimsSourceFormatException")
+    @DisplayName("when call getFullDateClaim with invalid format string then throws exception")
     @Test
-    void fullDateClaim_from_string_invalid_format_throws() {
-        ClaimsSourceFormatException ex =
-                assertThrows(ClaimsSourceFormatException.class,
+    void fullDateClaim_from_string_invalid_credential_data_throws() {
+        InvalidCredentialDataException ex =
+                assertThrows(InvalidCredentialDataException.class,
                         () -> converter.fullDateClaim("birth_date", "25-03-2024"));
-        assertTrue(ex.getMessage().contains("Invalid format for claim birth_date from authoritative source"));
+        assertTrue(ex.getMessage().contains("Invalid format for claim [birth_date]"));
     }
 
     @DisplayName("when call getFullDateClaim with LocalDate then returns FullDateValue Claim")

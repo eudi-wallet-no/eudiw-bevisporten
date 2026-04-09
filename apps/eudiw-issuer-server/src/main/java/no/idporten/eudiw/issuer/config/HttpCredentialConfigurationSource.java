@@ -1,14 +1,11 @@
 package no.idporten.eudiw.issuer.config;
 
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceIOException;
 import no.idporten.eudiw.issuer.credentials.configurations.*;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
@@ -92,16 +89,16 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
             this.credentialConfigurations.clear();
             this.credentialConfigurations.addAll(extendedCredentialConfigurations);
         } catch (ResourceAccessException e) {
-            throw new ClaimsSourceIOException("BYOB", "IO error when calling Byob-service", e);
+            throw new CredentialConfigurationSourceException("BYOB", "IO error when calling credential configuration source", e);
         } catch (RestClientException e) {
-            throw new ClaimsSourceException("BYOB", "server_error", "Failed to get information from Byob-service", HttpStatus.INTERNAL_SERVER_ERROR, e);
+            throw new CredentialConfigurationSourceException("BYOB", "Failed to get information from credential configuration source", e);
         }
     }
 
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to get data from authoritative source. Status: %s, message: %s".formatted(response.getStatusCode(), body);
-        throw new ClaimsSourceException("BYOB", "server_error", "Failed to get information from Byob-service", HttpStatus.INTERNAL_SERVER_ERROR, logMessage);
+        throw new CredentialConfigurationSourceException("BYOB", "Failed to get information from credential configuration source", logMessage);
     }
 
     protected ExtendedCredentialConfiguration fixByobCredentialConfiguration(ExtendedCredentialConfiguration credentialConfiguration) {

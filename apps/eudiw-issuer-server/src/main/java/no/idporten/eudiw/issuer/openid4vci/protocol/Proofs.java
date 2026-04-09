@@ -6,7 +6,7 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import org.springframework.http.HttpStatus;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
@@ -22,7 +22,7 @@ public class Proofs {
 
     public void validate() {
         if (CollectionUtils.isEmpty(jwt)) {
-            throw new IssuerServerException("invalid_proof", "Missing binding keys", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Missing binding keys");
         }
         getBindingKeys();
     }
@@ -33,7 +33,7 @@ public class Proofs {
             try {
                 bindingKeys.add(SignedJWT.parse(jwt).getHeader().getJWK());
             } catch (ParseException e) {
-                throw new IssuerServerException("invalid_proof", "Invalid proof format", HttpStatus.BAD_REQUEST);
+                throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Invalid proof format");
             }
         }
         return bindingKeys;

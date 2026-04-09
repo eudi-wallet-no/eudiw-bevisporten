@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.credentials;
 
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException;
+import no.idporten.eudiw.issuer.claimssource.exception.InvalidCredentialDataException;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.types.*;
 
@@ -16,7 +16,6 @@ import java.util.Map;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_TIME;
-import static no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceFormatException.INVALID_CLAIMS_DATA;
 
 // Expects values to be non-null and of valid format
 public class ClaimValueConverter {
@@ -30,7 +29,7 @@ public class ClaimValueConverter {
             LocalDate date = LocalDate.parse(value, FORMATTER_ISO_DATE);
             return buildClaim(key, new FullDateValue(date));
         } catch (DateTimeParseException e) {
-            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(key), e);
+            throw new InvalidCredentialDataException("Invalid format for claim [%s]".formatted(key), e);
         }
     }
 
@@ -39,7 +38,7 @@ public class ClaimValueConverter {
             LocalDate date = LocalDate.parse(value, FORMATTER_ISO_DATE);
             return buildClaim(path, new FullDateValue(date));
         } catch (DateTimeParseException e) {
-            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(path), e);
+            throw new InvalidCredentialDataException("Invalid format for claim [%s]".formatted(path), e);
         }
     }
 
@@ -56,7 +55,7 @@ public class ClaimValueConverter {
             ZonedDateTime date = ZonedDateTime.parse(value, FORMATTER_ISO_DATE_TIME);
             return buildClaim(path, new DateTimeValue(date));
         } catch (DateTimeParseException e) {
-            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(path), e);
+            throw new InvalidCredentialDataException("Invalid format for claim [%s]".formatted(path), e);
         }
     }
 
@@ -65,7 +64,7 @@ public class ClaimValueConverter {
             ZonedDateTime date = ZonedDateTime.parse(value, FORMATTER_ISO_DATE_TIME);
             return buildClaim(key, new DateTimeValue(date));
         } catch (DateTimeParseException e) {
-            throw new ClaimsSourceFormatException(INVALID_CLAIMS_DATA, "Invalid format for claim %s from authoritative source".formatted(key), e);
+            throw new InvalidCredentialDataException("Invalid format for claim [%s]".formatted(key), e);
         }
     }
 

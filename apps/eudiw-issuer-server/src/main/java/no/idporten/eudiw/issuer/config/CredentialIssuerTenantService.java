@@ -1,8 +1,8 @@
 package no.idporten.eudiw.issuer.config;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -30,7 +30,7 @@ public class CredentialIssuerTenantService implements InitializingBean {
     public CredentialIssuerTenant findTenantById(String tenant) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerServerProperties.getTenants().get(normalizeTenant(tenant));
         if (credentialIssuerTenant == null) {
-            throw new IssuerServerException("invalid_request", "Unknown credential issuer tenant.", HttpStatus.BAD_REQUEST);
+            throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Unknown credential issuer tenant.");
         }
         return credentialIssuerTenant;
     }

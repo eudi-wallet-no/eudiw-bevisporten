@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import no.idporten.eudiw.issuer.claimssource.exception.ClaimsSourceException;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -138,7 +137,7 @@ public class HttpCredentialConfigurationSourceTest {
         mockServer.expect(requestTo(EXTERNAL_SERVICE_URL)).andRespond(withServerError());
         credentialConfigurationSource.init();
         List<ExtendedCredentialConfiguration> credentialConfigurations = credentialConfigurationSource.retrieve();
-        assertThrows(ClaimsSourceException.class, () -> credentialConfigurationSource.refresh());
+        assertThrows(CredentialConfigurationSourceException.class, () -> credentialConfigurationSource.refresh());
         mockServer.verify();
         assertEquals(credentialConfigurations, credentialConfigurationSource.retrieve());
     }

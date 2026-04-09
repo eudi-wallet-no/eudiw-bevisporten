@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
-import org.springframework.http.HttpStatus;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -54,10 +54,9 @@ public class CredentialIssuerTenant {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(() -> new IssuerServerException(
-                        "unknown_credential_identifier",
+                        ErrorCode.UNKNOWN_CREDENTIAL_IDENTIFIER,
                         "Unknown credential identifier.",
-                        "Credential issuer %s does not support credential configuration %s".formatted(credentialIssuer, credentialIdentifier),
-                        HttpStatus.BAD_REQUEST));
+                        "Credential issuer %s does not support credential configuration %s".formatted(credentialIssuer, credentialIdentifier)));
     }
 
     public boolean isRootCredentialIssuer() {
