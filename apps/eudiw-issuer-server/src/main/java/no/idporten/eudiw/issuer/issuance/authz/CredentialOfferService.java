@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;

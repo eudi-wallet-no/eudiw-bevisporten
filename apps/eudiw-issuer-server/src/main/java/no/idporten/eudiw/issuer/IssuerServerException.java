@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer;
 
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 public class IssuerServerException extends RuntimeException {

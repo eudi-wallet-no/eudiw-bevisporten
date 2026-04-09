@@ -1,11 +1,10 @@
 package no.idporten.eudiw.issuer.claimssource;
 
 import com.nimbusds.jwt.JWT;
-import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.oauth2.InvalidAccessTokenException;
 
 import java.time.Duration;
 
@@ -36,11 +35,11 @@ public record PreAuthorizedIssuanceContext(
         try {
             String personIdentifier = accessToken.getJWTClaimsSet().getStringClaim("pid");
             if(personIdentifier == null || personIdentifier.isBlank()){
-                throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Access token is missing pid claim");
+                throw new InvalidAccessTokenException("Access token is missing pid claim");
             }
             return  personIdentifier;
         } catch (Exception e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Failed to extract subject from access token", e);
+            throw new InvalidAccessTokenException("Failed to extract subject from access token", e);
         }
     }
 

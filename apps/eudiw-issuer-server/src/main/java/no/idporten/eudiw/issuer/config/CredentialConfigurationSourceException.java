@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.config;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 
 public class CredentialConfigurationSourceException extends IssuerServerException {
 

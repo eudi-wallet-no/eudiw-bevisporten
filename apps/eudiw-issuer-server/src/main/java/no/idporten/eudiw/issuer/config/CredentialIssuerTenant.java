@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 
 import java.net.URI;

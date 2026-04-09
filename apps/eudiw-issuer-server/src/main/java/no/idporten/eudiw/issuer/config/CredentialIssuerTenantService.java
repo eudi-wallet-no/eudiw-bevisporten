@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.config;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;

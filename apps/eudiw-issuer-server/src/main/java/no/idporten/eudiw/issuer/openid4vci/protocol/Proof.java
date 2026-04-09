@@ -8,7 +8,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.Data;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 
 import java.text.ParseException;
 

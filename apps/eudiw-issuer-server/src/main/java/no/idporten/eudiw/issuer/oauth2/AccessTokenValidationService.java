@@ -11,7 +11,7 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import com.nimbusds.oauth2.sdk.token.DPoPAccessToken;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.claimssource.exception.ErrorCode;
+import no.idporten.eudiw.issuer.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -34,14 +34,14 @@ public class AccessTokenValidationService {
      */
     public JWT validateAccessToken(AccessTokenValidationContext context) {
         if (!StringUtils.hasText(context.authorizationHeader())) {
-            throw new IssuerServerException(ErrorCode.UNAUTHORIZED_INVALID_REQUEST, "Missing authorization header.");
+            throw new UnauthorizedRequestException("Missing authorization header.");
         }
         try {
             AccessToken accessToken = AccessToken.parse(context.authorizationHeader(), AccessTokenType.DPOP);
             JWT jwtAccessToken = SignedJWT.parse(accessToken.getValue());
             AuthorizationServer authorizationServer = authorizationServerService.findAuthorizationServerByIssuer(jwtAccessToken.getJWTClaimsSet().getIssuer(), context.authorizationServers());
             if (authorizationServer == null) {
-                throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Unknown authorization server.");
+                throw new InvalidAccessTokenException("Unknown authorization server.");
             }
             JWT validAccessToken = authorizationServer.getAccessTokenValidator().validate(jwtAccessToken, context.audience());
             if (AccessTokenType.DPOP.equals(accessToken.getType())) {
@@ -50,9 +50,9 @@ public class AccessTokenValidationService {
             return validAccessToken;
 
         } catch (ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid token format.");
+            throw new InvalidAccessTokenException("Invalid token format.");
         } catch (com.nimbusds.oauth2.sdk.ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid authentication scheme.");
+            throw new InvalidAccessTokenException("Invalid authentication scheme.");
         }
     }
 
@@ -65,10 +65,10 @@ public class AccessTokenValidationService {
                 return;
             }
             if (context.dPoPRequired() && !StringUtils.hasText(context.dpopHeader())) {
-                throw new IssuerServerException(ErrorCode.UNAUTHORIZED_INVALID_REQUEST, "Missing DPoP header.");
+                throw new UnauthorizedRequestException("Missing DPoP header.");
             }
             if (context.dPoPRequired() && (context.endpointHttpMethod() == null || context.endpointURI() == null)) {
-                throw new IssuerServerException(ErrorCode.UNAUTHORIZED_INVALID_REQUEST, "Missing DPoP configuration");
+                throw new UnauthorizedRequestException("Missing DPoP configuration");
             }
             DPoPAccessToken dPoPAccessToken = DPoPAccessToken.parse(context.authorizationHeader());
             JWT jwtAccessToken = SignedJWT.parse(dPoPAccessToken.getValue());
@@ -92,15 +92,15 @@ public class AccessTokenValidationService {
                     null // https://digdir.atlassian.net/browse/EUW-927 - nonce
             );
         } catch (com.nimbusds.oauth2.sdk.ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Failed to parse DPoP access token", e);
+            throw new InvalidAccessTokenException("Failed to parse DPoP access token", e);
         } catch (ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_DPOP_PROOF, "Failed to parse DPoP proof", e);
-        } catch (InvalidDPoPProofException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_DPOP_PROOF, "Invalid DPoP proof", e);
+            throw new InvalidDPoPProofException("Failed to parse DPoP proof", e);
+        } catch (com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPProofException e) {
+            throw new InvalidDPoPProofException("Invalid DPoP proof", e);
         } catch (AccessTokenValidationException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Access token validation failed", e);
+            throw new InvalidAccessTokenException("Access token validation failed", e);
         } catch (JOSEException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_DPOP_PROOF, "Failed to validate DPoP proof", e);
+            throw new InvalidDPoPProofException("Failed to validate DPoP proof", e);
         }
     }
 
@@ -113,14 +113,14 @@ public class AccessTokenValidationService {
                 : authorizationServerService.findPreAuthorizationServerById(validationContext.preAuthorizationServer());
         try {
             if (! authorizationServer.getIssuer().equals(URI.create(accessToken.getJWTClaimsSet().getIssuer()))) {
-                throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid authorization server for credential configuration.");
+                throw new InvalidAccessTokenException("Invalid authorization server for credential configuration.");
             }
             if (! validateScope(validationContext.scope(), accessToken)) {
                 throw new IssuerServerException(ErrorCode.INSUFFICIENT_SCOPE, "Invalid scope for credential configuration.");
             }
 
         } catch (ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid token format.");
+            throw new InvalidAccessTokenException("Invalid token format.");
         }
     }
 
@@ -131,13 +131,13 @@ public class AccessTokenValidationService {
         try {
             String pid = accessToken.getJWTClaimsSet().getStringClaim("pid");
             if (! StringUtils.hasText(pid)) {
-                throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Token must contain person identifier in pid claim.");
+                throw new InvalidAccessTokenException("Token must contain person identifier in pid claim.");
             }
             if (! Objects.equals(pid, personIdentifier)) {
-                throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Token and request subject/person identifier does not match.");
+                throw new InvalidAccessTokenException("Token and request subject/person identifier does not match.");
             }
         } catch (ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid token format.");
+            throw new InvalidAccessTokenException("Invalid token format.");
         }
     }
 
@@ -150,7 +150,7 @@ public class AccessTokenValidationService {
             List<String> parsedScopes = List.of(scope.split("\\s+"));
             return parsedScopes.contains(requiredScope);
         } catch (ParseException e) {
-            throw new IssuerServerException(ErrorCode.INVALID_TOKEN, "Invalid token format.");
+            throw new InvalidAccessTokenException("Invalid token format.");
         }
     }
 

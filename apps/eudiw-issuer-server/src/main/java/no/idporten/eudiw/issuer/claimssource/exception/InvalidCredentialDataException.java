@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.claimssource.exception;
 
 import no.idporten.eudiw.issuer.IssuerServerException;
 
-import static no.idporten.eudiw.issuer.claimssource.exception.ErrorCode.INVALID_REQUEST;
+import static no.idporten.eudiw.issuer.ErrorCode.INVALID_REQUEST;
 
 /**
  * Exception thrown when credential data is invalid.
