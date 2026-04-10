@@ -61,6 +61,11 @@ public class AuthoritativeSourceService implements InitializingBean {
             AuthoritativeSourceResponse authoritativeSourceResponse = restClients.get(source)
                     .post()
                     .uri(authoritativeSourceProperties.uri())
+                    .headers(headers -> {
+                        if (authoritativeSourceProperties.useApiKey()) {
+                            headers.add(authoritativeSourceProperties.apiKeyHeader(), authoritativeSourceProperties.apiKey());
+                        }
+                    })
                     .body(authoritativeSourceRequest)
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(source, response))

@@ -30,7 +30,12 @@ public class AuthoritativeSourceServiceTest {
     @BeforeEach
     public void setUp() {
         CredentialIssuerServerProperties credentialIssuerServerProperties = new CredentialIssuerServerProperties();
-        credentialIssuerServerProperties.getAuthoritativeSources().put("junit", new AuthoritativeSourceProperties(URI.create("https://junit.eidas2sandkasse.net/connector/junit"), Duration.ofSeconds(10), Duration.ofSeconds(10)));
+        credentialIssuerServerProperties.getAuthoritativeSources().put("junit",
+                new AuthoritativeSourceProperties(URI.create("https://junit.eidas2sandkasse.net/connector/junit"),
+                        Duration.ofSeconds(3),
+                        Duration.ofSeconds(3),
+                        "X-API-KEY",
+                        "junit-key"));
         AuthoritativeSourceService authoritativeSourceService = new AuthoritativeSourceService(credentialIssuerServerProperties);
         MockServerRestClientCustomizer customizer = new MockServerRestClientCustomizer();
         RestClient.Builder builder = RestClient.builder();
@@ -64,6 +69,7 @@ public class AuthoritativeSourceServiceTest {
                 }""".formatted(personIdentifier);
         mockServer
                 .expect(requestTo("https://junit.eidas2sandkasse.net/connector/junit"))
+                .andExpect(header("X-API-KEY", "junit-key"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(jsonPath("$.subject.identifier").value(personIdentifier))
                 .andExpect(jsonPath("$.credential_type").value("junit.x"))
