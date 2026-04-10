@@ -32,10 +32,10 @@ public class PidMdocCredentialDataSource implements CredentialDataSource {
 
     private void validate(PersonResource person) {
         if (person == null) {
-            throw new AuthoritativeSourceDataNotFoundException(FREG, "User not found in FREG");
+            throw new AuthoritativeSourceDataNotFoundException(FREG, "Not found", "User not found in FREG");
         }
         if (person.getFoedselsdato() == null) {
-            throw new AuthoritativeSourceInvalidDataException(FREG, "Foedselsdato is null");
+            throw new AuthoritativeSourceInvalidDataException(FREG, "Missing data", "Foedselsdato is null");
         }
     }
 }
