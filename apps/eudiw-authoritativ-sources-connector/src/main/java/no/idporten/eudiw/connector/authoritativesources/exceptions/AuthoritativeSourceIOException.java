@@ -1,16 +1,15 @@
 package no.idporten.eudiw.connector.authoritativesources.exceptions;
 
 import no.idporten.eudiw.connector.authoritativesources.AuthoritativeSources;
-import org.springframework.http.HttpStatus;
 
-import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.FAILED_CREDENTIAL_REQUEST;
+import static no.idporten.eudiw.connector.authoritativesources.exceptions.ErrorCodes.SERVER_ERROR;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
 
 public class AuthoritativeSourceIOException extends AuthoritativeSourceException {
 
-    private final static HttpStatus httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
-
     public AuthoritativeSourceIOException(AuthoritativeSources authoritativeSource, String message, Throwable cause) {
-        super(authoritativeSource, FAILED_CREDENTIAL_REQUEST, message, httpStatus, cause);
+        super(authoritativeSource, SERVER_ERROR, message, INTERNAL_SERVER_ERROR, cause);
     }
 
 }

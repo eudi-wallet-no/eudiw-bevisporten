@@ -5,6 +5,7 @@ import no.idporten.eudiw.connector.authoritativesources.CredentialDataSource;
 import no.idporten.eudiw.connector.authoritativesources.api.CredentialData;
 import no.idporten.eudiw.connector.authoritativesources.api.Subject;
 import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceDataNotFoundException;
+import no.idporten.eudiw.connector.authoritativesources.exceptions.AuthoritativeSourceInvalidDataException;
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.InntektsOpplysninger;
 import no.idporten.eudiw.connector.authoritativesources.skatteetaten.domain.Respons;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,7 @@ public class InntektCredentialDataSource implements CredentialDataSource {
             throw new AuthoritativeSourceDataNotFoundException(SKATTEETATEN, "No data available", "Failed to map response");
         }
         if (CollectionUtils.isEmpty(respons.oppgaveInntektsmottaker())) {
-            throw new AuthoritativeSourceDataNotFoundException(SKATTEETATEN, "No data available", "No data in response");
+            throw new AuthoritativeSourceInvalidDataException(SKATTEETATEN, "Missing data", "Missing inntektsopplysninger for user in Skatteetaten");
         }
     }
 }

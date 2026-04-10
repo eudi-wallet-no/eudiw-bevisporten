@@ -42,7 +42,7 @@ public class FregIntegration implements FregClientInterface {
         try {
             return restClient.get().uri(uri).accept(MediaType.APPLICATION_JSON).retrieve()
                     .onStatus(status -> status.value() == 404, (request, response) -> {
-                        throw new AuthoritativeSourceDataNotFoundException(FREG, "User not found in FREG");
+                        throw new AuthoritativeSourceDataNotFoundException(FREG, "Data not found","User not found in FREG");
                     })
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponseAs500(response))
                     .body(Folkeregisterperson.class);
