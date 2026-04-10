@@ -30,12 +30,20 @@ credential-issuer-server:
   authoritative-sources:
     krr:
       uri: http://authoritative-sources-connector:9298/api/v1/krr/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: eudiw
     freg:
       uri: http://authoritative-sources-connector:9298/api/v1/freg/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: eudiw
     skatteetaten:
       uri: http://authoritative-sources-connector:9298/api/v1/skatteetaten/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: eudiw
     advokatregisteret:
       uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: eudiw
   tenants:
     bevisgenerator:
       display-names:

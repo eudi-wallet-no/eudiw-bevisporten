@@ -42,12 +42,20 @@ credential-issuer-server:
   authoritative-sources:
     krr:
       uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/krr/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: ${AUTH_SOURCE_KRR_API_KEY}
     freg:
       uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/freg/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: ${AUTH_SOURCE_FREG_API_KEY}
     skatteetaten:
       uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/skatteetaten/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: ${AUTH_SOURCE_SKATTEETATEN_API_KEY}
     advokatregisteret:
       uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/advokatregisteret/credentialdata/retrieve
+      api-key-header: X-API-KEY
+      api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     root:
       credential-configuration-sources-properties:
