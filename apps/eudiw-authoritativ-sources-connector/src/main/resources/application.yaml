@@ -51,6 +51,8 @@ digdir:
       feature-enabled: false
 
 authoritative-sources-connector:
+  api:
+    api-key: ${API_KEY}
   features:
     allow-synthetic-pid: true
     allow-real-pid: false

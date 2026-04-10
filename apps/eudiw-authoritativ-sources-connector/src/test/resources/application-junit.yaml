@@ -4,6 +4,8 @@ spring:
     environment: junit
 
 authoritative-sources-connector:
+  api:
+      api-key: eudiw
   connectors:
     advokatregisteret:
       subscription-key: 12345
