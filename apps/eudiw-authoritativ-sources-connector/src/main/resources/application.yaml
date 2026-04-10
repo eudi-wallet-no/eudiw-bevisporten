@@ -57,23 +57,27 @@ authoritative-sources-connector:
   connectors:
     krr:
       uri: https://test.kontaktregisteret.no/
+      maskinporten-client: default
       scope: krr:global/kontaktinformasjon.read
       connect-timeout: 2s
       read-timeout: 2s
     advokatregisteret:
       uri: https://test-api.data.altinn.no/v1/directharvest/AdvRegPersonPrivat/
+      maskinporten-client: default
       subscription-key: ${ADVOKATREGISTERET_SUBSCRIPTION_KEY}
       scope: altinn:dataaltinnno/advregpersonprivat
       connect-timeout: 5s
       read-timeout: 5s
     inntektsapi:
       uri: https://inntekt.api.skatteetaten-test.no/
+      maskinporten-client: default
       scope: skatteetaten:inntekt
       connect-timeout: 2s
       read-timeout: 2s
     freg:
       uri: https://folkeregisteret-api-konsument.sits.no/folkeregisteret/offentlig-med-hjemmel/api/
       #uri: https://folkeregisteret.api.skatteetaten.no/folkeregisteret/offentlig-med-hjemmel/api # Prod
+      maskinporten-client: default
       connect-timeout: 5s
       read-timeout: 5s
 
