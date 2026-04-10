@@ -11,6 +11,8 @@ spring:
     environment: dev
 
 authoritative-sources-connector:
+  api:
+    api-key: eudiw
   connectors:
     advokatregisteret:
       subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f

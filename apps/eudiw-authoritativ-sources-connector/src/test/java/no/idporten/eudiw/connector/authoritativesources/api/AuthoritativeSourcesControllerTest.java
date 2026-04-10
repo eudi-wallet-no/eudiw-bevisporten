@@ -42,6 +42,7 @@ public class AuthoritativeSourcesControllerTest {
     @DisplayName("then credential data for given source is returned")
     void validDataTest() throws Exception {
         mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "junit")
+                        .header("X-API-KEY", "eudiw")
                         .content("""
                                 {
                                   "subject" : {
@@ -56,9 +57,48 @@ public class AuthoritativeSourcesControllerTest {
     }
 
     @Test
+    @DisplayName("then 'invalid_request' should be returned for invalid API key")
+    void invalidHeaderDataTest() throws Exception {
+        mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "junit")
+                        .header("X-API-KEY", "invalid_key")
+                        .content("""
+                                {
+                                  "subject" : {
+                                    "identifier" : "%s"
+                                  },
+                                  "credential_type" : "junit"
+                                }
+                                """.formatted(getValidSyntheticPersonIdentifier()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value(containsString("Invalid API Key")));
+    }
+
+
+    @Test
+    @DisplayName("then 'invalid_request' should be returned for missing API key")
+    void missingHeaderDataTest() throws Exception {
+        mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "junit")
+                        .content("""
+                                {
+                                  "subject" : {
+                                    "identifier" : "%s"
+                                  },
+                                  "credential_type" : "junit"
+                                }
+                                """.formatted(getValidSyntheticPersonIdentifier()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value(containsString("Invalid API Key")));
+    }
+
+    @Test
     @DisplayName("then 'invalid_request' and description should be returned for unknown source")
     void invalidSourceTest() throws Exception {
         mockMvc.perform(post("/api/v1/{source}/credentialdata/retrieve", "unknown")
+                        .header("X-API-KEY", "eudiw")
                         .content("""
                                 {
                                   "subject" : {
