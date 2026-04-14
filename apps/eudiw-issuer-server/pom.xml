@@ -25,7 +25,7 @@
         <idporten-access-log.version>4.0.0</idporten-access-log.version>
         <opentelemetry-api.version>1.60.1</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
-        <springdoc.version>3.0.2</springdoc.version>
+        <springdoc.version>3.0.3</springdoc.version>
         <bcpkix-jdk18on.version>1.83</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.83</bcprov-jdk18on.version>
         <nimbus-jose-jwt.version>10.9</nimbus-jose-jwt.version>
