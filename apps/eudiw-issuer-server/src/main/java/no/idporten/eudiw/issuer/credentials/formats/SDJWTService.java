@@ -15,6 +15,7 @@ import net.minidev.json.JSONObject;
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;
@@ -43,9 +44,9 @@ public class SDJWTService {
         this.keystoreManager = keystoreManager;
     }
 
-    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims, CredentialStatus credentialStatus) {
         try {
-            return Credential.builder().credential(encode(createSDJwt(credentialIssuer, jwk, credentialConfiguration, claims))).build();
+            return Credential.builder().credential(encode(createSDJwt(credentialIssuer, jwk, credentialConfiguration, claims, credentialStatus))).build();
         } catch (JOSEException|CertificateEncodingException e) {
             throw new CredentialRequestDeniedException(credentialConfiguration.getCredentialConfigurationId(), "Failed to issue credentials of SD-JWT format", e);
         }
@@ -55,7 +56,7 @@ public class SDJWTService {
         return sdJwt.getJwt() + sdJwt.getDisclosures().stream().collect(Collectors.joining("~", "~", "~"));
     }
 
-    protected SDJwt createSDJwt(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) throws JOSEException, CertificateEncodingException {
+    protected SDJwt createSDJwt(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims, CredentialStatus credentialStatus) throws JOSEException, CertificateEncodingException {
         KeyProvider keyProvider = keystoreManager.getKeyProvider(credentialConfiguration.getCredentialIssuerContext().getCredentialSigningKeystore());
         JWSSigner jwsSigner = new ECDSASigner((ECPrivateKey) keyProvider.privateKey());
         JWSAlgorithm jwsAlgorithm = ECDSA.resolveAlgorithm((ECPrivateKey) keyProvider.privateKey());
@@ -69,6 +70,9 @@ public class SDJWTService {
         claimsSetBuilder.claim("vct", credentialConfiguration.getCredentialType());
         claimsSetBuilder.claim("_sd_alg", "sha-256");
         claimsSetBuilder.claim("cnf", new JSONObject().appendField("jwk", jwk.toPublicJWK().toJSONObject()));
+        if (credentialStatus != null) {
+            claimsSetBuilder.claim("status", credentialStatus.toJSONObject());
+        }
         for (Claim claim : claims) {
             claimsSetBuilder.claim(claim.getPath().getLast(), convert(claim.getValue()));
         }

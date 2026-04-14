@@ -8,12 +8,14 @@ import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocBuilder;
 import id.walt.mdoc.mso.DeviceKeyInfo;
+import id.walt.mdoc.mso.Status;
 import id.walt.mdoc.mso.ValidityInfo;
 import kotlin.time.Instant;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.ErrorCode;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.lib.keystore.KeyProvider;
@@ -38,8 +40,8 @@ public class MDocService {
         this.keystoreManager = keystoreManager;
     }
 
-    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
-        String mDoc = encode(createMDoc(jwk, credentialConfiguration, claims));
+    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims, CredentialStatus credentialStatus) {
+        String mDoc = encode(createMDoc(jwk, credentialConfiguration, claims, credentialStatus));
         //System.out.println("Issuing credential " + mDoc);
         return Credential.builder().credential(mDoc).build();
     }
@@ -48,7 +50,7 @@ public class MDocService {
         return Base64.getUrlEncoder().encodeToString(mDoc.getIssuerSigned().toMapElement().toCBOR());
     }
 
-    protected MDoc createMDoc(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    protected MDoc createMDoc(JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims, CredentialStatus credentialStatus) {
         var ISSUER_KEY_ID = "ISSUER_KEY";
         var DEVICE_KEY_ID = "DEVICE_KEY";
         var READER_KEY_ID = "READER_KEY";
@@ -79,12 +81,13 @@ public class MDocService {
         Instant validFrom = signedAt;
         Instant validTo = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().plus(credentialConfiguration.getCredentialIssuerContext().getValidityDays(), ChronoUnit.DAYS).toEpochMilli());
         Instant expectedUpdateAt = validTo;
+        Status mdocStatus = credentialStatus != null ? MDocStatusBridge.create(credentialStatus) : null;
         return mDocBuilder.sign(
                 new ValidityInfo(signedAt, validFrom, validTo, expectedUpdateAt),
                 deviceKeyInfo,
                 cryptoProvider,
                 ISSUER_KEY_ID,
-                null
+                mdocStatus
         );
     }
 
