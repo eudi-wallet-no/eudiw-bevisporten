@@ -18,6 +18,7 @@ import id.walt.sdjwt.VerificationResult;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
 import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,10 +29,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.net.URI;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
-import java.time.*;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -89,7 +93,8 @@ public class SDJWTServiceTest {
                 credentialIssuerTenantService.findTenantById("root"),
                 deviceKey,
                 credentialConfiguration,
-                claims);
+                claims,
+                CredentialStatus.create(67, URI.create("https://junitstatus.eidas2sandkasse.dev/lists/1")));
         String encodedSDJwt = sdjwtService.encode(sdJwt);
         assertAll(
                 () -> assertNotNull(sdJwt)
@@ -140,6 +145,12 @@ public class SDJWTServiceTest {
                 () -> assertArrayEquals(new Long[]{1L, 2L, 3L}, verifiedClaims.getListClaim("listnumbers").toArray()),
                 () -> assertTrue((Boolean) verifiedClaims.getJSONObjectClaim("mapbooleans").get("JA")),
                 () -> assertFalse((Boolean) verifiedClaims.getJSONObjectClaim("mapbooleans").get("NEI"))
+        );
+        Map statusList = (Map) verifiedClaims.getJSONObjectClaim("status").get("status_list");
+        assertAll(
+                () -> assertNotNull(statusList),
+                () -> assertEquals(67L, statusList.get("idx")),
+                () -> assertEquals("https://junitstatus.eidas2sandkasse.dev/lists/1", statusList.get("uri"))
         );
         assertAll(
                 () -> assertTrue(deviceKey.isPrivate()),

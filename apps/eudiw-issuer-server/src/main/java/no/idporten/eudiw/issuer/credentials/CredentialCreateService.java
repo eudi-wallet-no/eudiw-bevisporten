@@ -1,12 +1,13 @@
 package no.idporten.eudiw.issuer.credentials;
 
 import com.nimbusds.jose.jwk.JWK;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.ErrorCode;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.formats.MDocService;
 import no.idporten.eudiw.issuer.credentials.formats.SDJWTService;
+import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,11 +39,18 @@ public class CredentialCreateService {
     }
 
     private Credential createCredential(CredentialIssuerTenant tenant, JWK bindingKey, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+        CredentialStatus credentialStatus = allocateStatus();
         return switch (credentialConfiguration.getFormat()) {
-            case MSO_MDOC -> mDocService.issueCredential(tenant, bindingKey, credentialConfiguration, claims);
-            case SD_JWT_VC -> sdjwtService.issueCredential(tenant, bindingKey, credentialConfiguration, claims);
+            case MSO_MDOC -> mDocService.issueCredential(tenant, bindingKey, credentialConfiguration, claims, credentialStatus);
+            case SD_JWT_VC -> sdjwtService.issueCredential(tenant, bindingKey, credentialConfiguration, claims, credentialStatus);
             case null -> throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Missing credential format.");
         };
+    }
+
+    private CredentialStatus allocateStatus() {
+        // TODO ett eller annet sted må vi allokere en statusm kanskje her eller et annet sted
+        // return CredentialStatus.create(42, URI.create("https://status.eidas2sandkasse.dev/lists/1"));
+         return null;
     }
 
 }
