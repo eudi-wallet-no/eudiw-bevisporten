@@ -32,6 +32,7 @@ services:
       - byob-service
       - oauth-server
       - authoritative-sources-connector
+      - status-list
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
@@ -172,6 +173,29 @@ services:
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9299 -jar application.jar
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:9298/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  status-list:
+    image: "crutvikling.azurecr.io/eudiw-status-list"
+    # image: "digital-lommebok-status-list" # Uncomment this line if you want to use the local image instead
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9288:9288"
+      - "9289:9289"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9289 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9288/health/readiness || exit 1
       interval: 15s
       start_period: 5s
       timeout: 5s
