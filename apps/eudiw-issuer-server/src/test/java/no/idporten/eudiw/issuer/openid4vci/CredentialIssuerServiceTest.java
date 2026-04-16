@@ -98,7 +98,7 @@ public class CredentialIssuerServiceTest {
             List<Claim> claims = List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build());
             when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(claims);
             when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
-            when(credentialCreateService.createCredentials(any(), isNull(), eq(credentialConfiguration), anyList()))
+            when(credentialCreateService.createCredentials(any(), isNull(), anyList()))
                     .thenReturn(List.of(Credential.builder().credential("{credential-with-n1-p1-v1}").build()));
             IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(transactionId);
             when(credentialIssuanceStatusService.credentialIssued(eq("cid"), eq(issuanceTransactionId))).thenReturn(new NotificationId("nid"));

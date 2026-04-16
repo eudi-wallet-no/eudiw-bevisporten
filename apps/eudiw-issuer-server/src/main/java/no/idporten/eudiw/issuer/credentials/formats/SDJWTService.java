@@ -12,6 +12,7 @@ import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SDPayload;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import net.minidev.json.JSONObject;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
@@ -44,7 +45,9 @@ public class SDJWTService {
         this.keystoreManager = keystoreManager;
     }
 
-    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims, CredentialStatus credentialStatus) {
+    public Credential issueCredential(CredentialIssueContext context, JWK jwk, List<Claim> claims, CredentialStatus credentialStatus) {
+        CredentialIssuerTenant credentialIssuer = context.credentialIssuerTenant();
+        ExtendedCredentialConfiguration credentialConfiguration = context.credentialConfiguration();
         try {
             return Credential.builder().credential(encode(createSDJwt(credentialIssuer, jwk, credentialConfiguration, claims, credentialStatus))).build();
         } catch (JOSEException|CertificateEncodingException e) {

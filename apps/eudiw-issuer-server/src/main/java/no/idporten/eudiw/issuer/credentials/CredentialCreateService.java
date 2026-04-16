@@ -3,8 +3,7 @@ package no.idporten.eudiw.issuer.credentials;
 import com.nimbusds.jose.jwk.JWK;
 import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
-import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.credentials.formats.MDocService;
 import no.idporten.eudiw.issuer.credentials.formats.SDJWTService;
 import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
@@ -30,19 +29,19 @@ public class CredentialCreateService {
     /**
      * Creates credentials in the format configured on credential configuration.
      */
-    public List<Credential> createCredentials(CredentialIssuerTenant tenant, List<JWK> bindingKeys, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    public List<Credential> createCredentials(CredentialIssueContext context, List<JWK> bindingKeys, List<Claim> claims) {
         if (bindingKeys == null) {
             // TODO this is most likely invalid - test with android and ios updated to OpenID4VCI 1!
-            return List.of(createCredential(tenant, null, credentialConfiguration, claims));
+            return List.of(createCredential(context, null, claims));
         }
-        return bindingKeys.stream().map(bindingKey -> createCredential(tenant, bindingKey, credentialConfiguration, claims)).toList();
+        return bindingKeys.stream().map(bindingKey -> createCredential(context, bindingKey, claims)).toList();
     }
 
-    private Credential createCredential(CredentialIssuerTenant tenant, JWK bindingKey, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims) {
+    private Credential createCredential(CredentialIssueContext context, JWK bindingKey, List<Claim> claims) {
         CredentialStatus credentialStatus = allocateStatus();
-        return switch (credentialConfiguration.getFormat()) {
-            case MSO_MDOC -> mDocService.issueCredential(tenant, bindingKey, credentialConfiguration, claims, credentialStatus);
-            case SD_JWT_VC -> sdjwtService.issueCredential(tenant, bindingKey, credentialConfiguration, claims, credentialStatus);
+        return switch (context.credentialConfiguration().getFormat()) {
+            case MSO_MDOC -> mDocService.issueCredential(context, bindingKey, claims, credentialStatus);
+            case SD_JWT_VC -> sdjwtService.issueCredential(context, bindingKey, claims, credentialStatus);
             case null -> throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Missing credential format.");
         };
     }
