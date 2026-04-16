@@ -26,7 +26,11 @@ management:
       environment: ${spring.application.environment}
 
 status-list:
-  uri: https://status.eidas2sandkasse.dev
+  uri: https://status.test.eidas2sandkasse.net
+  provider:
+    uri: ${status-list.uri}
+    ttl: 12h
+    valid: 24h
 
 idporten-key-manager:
   enabled: false
