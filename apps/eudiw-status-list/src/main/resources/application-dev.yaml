@@ -9,3 +9,6 @@ management:
 spring:
   application:
     environment: dev
+
+status-list:
+  uri: http://status-list:9288

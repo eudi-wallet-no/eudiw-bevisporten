@@ -1,25 +1,47 @@
-package no.idporten.eudiw.statuslist.provider.api;
+package no.idporten.eudiw.statuslist.provider;
 
+import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(StatusListProviderController.class)
-public class StatusListProviderApiTest {
+@WebMvcTest(StatusProviderController.class)
+public class StatusProviderControllerTest {
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private StatusProviderService statusProviderService;
+
+    @BeforeEach
+    public void setup() {
+        JWT jwt = new PlainJWT(new JWTClaimsSet.Builder()
+                .subject("https://status.eidas2sandkasse.dev/lists/1")
+                .claim("ttl", 43200L)
+                .claim("status_list", Map.of(
+                        "bits", 1L,
+                        "lst", "eNrbuRgAAhcBXQ"
+                ))
+                .build());
+
+        when(statusProviderService.getStatusList(any())).thenReturn(jwt);
+    }
 
     @Test
     @DisplayName("Should return a valid JWT with status list claims")
