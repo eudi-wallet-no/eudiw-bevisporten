@@ -41,8 +41,9 @@ public class CredentialIssuerService {
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
         List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs(), credentialRequest.getProof());
-        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(accessToken, tenant, credentialConfiguration));
-        List<Credential> credentials = credentialCreateService.createCredentials(tenant, bindingKeys, credentialConfiguration, claims);
+        CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration);
+        List<Claim> claims = claimsSource.issueClaims(credentialIssueContext);
+        List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
 

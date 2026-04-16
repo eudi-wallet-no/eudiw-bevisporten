@@ -13,7 +13,7 @@ import id.walt.mdoc.mso.ValidityInfo;
 import kotlin.time.Instant;
 import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
 import no.idporten.eudiw.issuer.credentials.types.*;
@@ -40,9 +40,8 @@ public class MDocService {
         this.keystoreManager = keystoreManager;
     }
 
-    public Credential issueCredential(CredentialIssuerTenant credentialIssuer, JWK jwk, ExtendedCredentialConfiguration credentialConfiguration, List<Claim> claims, CredentialStatus credentialStatus) {
-        String mDoc = encode(createMDoc(jwk, credentialConfiguration, claims, credentialStatus));
-        //System.out.println("Issuing credential " + mDoc);
+    public Credential issueCredential(CredentialIssueContext context, JWK jwk, List<Claim> claims, CredentialStatus credentialStatus) {
+        String mDoc = encode(createMDoc(jwk, context.credentialConfiguration(), claims, credentialStatus));
         return Credential.builder().credential(mDoc).build();
     }
 
