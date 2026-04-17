@@ -32,6 +32,7 @@ status-list:
     ttl: 12h
     valid: 24h
   issuer:
+    uri: ${status-list.uri}/lists/{id}
     api-key: ${STATUS_ISSUER_API_KEY}
 
 idporten-key-manager:
