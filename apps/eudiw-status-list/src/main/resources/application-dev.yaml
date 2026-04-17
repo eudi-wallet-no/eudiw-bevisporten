@@ -12,3 +12,5 @@ spring:
 
 status-list:
   uri: http://status-list:9288
+  issuer:
+    api-key: secret

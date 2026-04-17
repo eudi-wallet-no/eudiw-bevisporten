@@ -2,3 +2,7 @@
 spring:
   application:
     environment: junit
+
+status-list:
+  issuer:
+    api-key: junit-test-api-key
