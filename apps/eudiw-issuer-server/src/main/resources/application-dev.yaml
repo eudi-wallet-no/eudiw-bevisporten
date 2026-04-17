@@ -17,6 +17,8 @@ spring:
 credential-issuer-server:
 #  credential-issuer: http://localhost:9240 # bevisporten funkar/lommebok
   credential-issuer: http://issuer-server:9240 # demo-issuer-ui funkar
+  features:
+    status-list-enabled: true
   authorization-servers:
      ##  Her må jeg ta en titt på URL til oauth
     - id: auth-eidas2sandkasse
@@ -27,6 +29,11 @@ credential-issuer-server:
     - id: maskinporten
       issuer: https://maskinporten.dev/
       jwks-uri: https://maskinporten.dev/jwk
+  status-list:
+    status-issuer:
+      api:
+        uri: http://status-list:9288
+        api-key: secret
   authoritative-sources:
     krr:
       uri: http://authoritative-sources-connector:9298/api/v1/krr/credentialdata/retrieve
