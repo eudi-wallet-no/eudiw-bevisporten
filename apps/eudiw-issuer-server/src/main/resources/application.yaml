@@ -33,12 +33,22 @@ credential-issuer-server:
   metadata-refresh-rate-in-millis: 30000 # 30 seconds (must be > cache TTL)
   features:
     pid-signing-keystore: pid-provider
+    status-list-enabled: false
   cryptographic-bindings:
     - jwk
   proof-signing-algorithms:
     - ES256
   credential-signing-algorithms:
     - ES256
+  status-list:
+    status-issuer:
+      enabled: ${credential-issuer-server.features.status-list-enabled}
+      api:
+        uri: https://status.test.eidas2sandkasse.net
+        api-key: ${STATUS_ISSUER_API_KEY}
+        api-key-header: X-API-KEY
+        connect-timeout: 2s
+        read-timeout: 2s
   authoritative-sources:
     krr:
       uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/krr/credentialdata/retrieve
@@ -72,6 +82,7 @@ credential-issuer-server:
           read-timeout: 2s
           cache-ttl: 28s
 
+
 # Digdir standard logging
 digdir:
   access:
@@ -96,6 +107,7 @@ byob-service:
   connect-timeout: 2s
   read-timeout: 2s
   cache-ttl: 28s
+
 
 idporten-key-manager:
   keystores:

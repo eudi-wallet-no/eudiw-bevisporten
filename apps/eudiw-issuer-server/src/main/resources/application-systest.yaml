@@ -15,6 +15,8 @@ spring:
 
 credential-issuer-server:
   credential-issuer: https://utsteder.eidas2sandkasse.dev
+  features:
+    status-list-enabled: true
   authorization-servers:
     - id: auth-eidas2sandkasse
       issuer: https://auth.eidas2sandkasse.dev
@@ -24,6 +26,10 @@ credential-issuer-server:
     - id: maskinporten
       issuer: https://test.maskinporten.no/
       jwks-uri: https://test.maskinporten.no/jwk
+  status-list:
+    status-issuer:
+      api:
+        uri: https://status.eidas2sandkasse.dev
   # midlertidige tenants som brukes under utvikling og testing av multi-tenancy
   tenants:
     bevisgenerator:
