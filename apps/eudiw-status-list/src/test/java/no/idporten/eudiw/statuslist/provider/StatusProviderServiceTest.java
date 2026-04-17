@@ -2,6 +2,7 @@ package no.idporten.eudiw.statuslist.provider;
 
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
+import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -48,5 +50,15 @@ public class StatusProviderServiceTest {
         Long iat = claims.getDateClaim("iat").toInstant().toEpochMilli() / 1000;
         Long exp = claims.getDateClaim("exp").toInstant().toEpochMilli() / 1000;
         assertEquals(60 * 60, exp - iat, 2);
+    }
+
+    @Test
+    @DisplayName("Should return status list not found when calling non-existing status-list")
+    void getNonExistingStatusListTest() throws Exception {
+        String nonExistingId = "non-existing-id";
+
+        assertThrows(StatusListNotFoundException.class, () -> {
+            statusProviderService.getStatusList(nonExistingId);
+        });
     }
 }
