@@ -25,6 +25,7 @@
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
         <nimbus-jose-jwt.version>10.9</nimbus-jose-jwt.version>
+        <springdoc.version>3.0.3</springdoc.version>
     </properties>
 
     <dependencies>
@@ -67,6 +68,11 @@
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
             <version>${nimbus-jose-jwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

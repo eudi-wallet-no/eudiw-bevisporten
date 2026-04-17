@@ -1,5 +1,9 @@
 package no.idporten.eudiw.statuslist.issuer.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
@@ -17,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/status-issuer/api/v1/entries")
+@Tag(name = "StatusList Issuer API", description = "Status Issuer administrasjon av status-lister")
 public class StatusListIssuerApiController {
 
     private final StatusIssuerProperties properties;
@@ -25,6 +30,15 @@ public class StatusListIssuerApiController {
         this.properties = properties;
     }
 
+    @Operation(
+            summary = "Alloker status på status-list",
+            description = "Alloker N gyldige statuser på status-list")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Statuser allokert"),
+            @ApiResponse(responseCode = "400", description = "Ugyldig forespørsel"),
+            @ApiResponse(responseCode = "401", description = "Ikkje gyldig api-key"),
+            @ApiResponse(responseCode = "500", description = "Intern feil")
+    })
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StatusCreateResponse> allocateStatus(@RequestBody @Valid StatusCreateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
@@ -44,6 +58,15 @@ public class StatusListIssuerApiController {
         }
     }
 
+    @Operation(
+            summary = "Oppdaterer status på status-list",
+            description = "Oppdaterer status på indeksane angitt i requesten på status-list. Støtter berre revokering (INVALID) status-type p.t.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Statuser oppdatert"),
+            @ApiResponse(responseCode = "400", description = "Ugyldig forespørsel"),
+            @ApiResponse(responseCode = "401", description = "Ikkje gyldig api-key"),
+            @ApiResponse(responseCode = "500", description = "Intern feil")
+    })
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> revoke(@RequestBody @Valid StatusUpdateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
