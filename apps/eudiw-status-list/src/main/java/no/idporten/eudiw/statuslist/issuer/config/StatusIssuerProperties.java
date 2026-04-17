@@ -6,5 +6,5 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "status-list.issuer")
-public record StatusIssuerProperties(@NotBlank String apiKey) {
+public record StatusIssuerProperties(@NotBlank String uri, @NotBlank String apiKey) {
 }
