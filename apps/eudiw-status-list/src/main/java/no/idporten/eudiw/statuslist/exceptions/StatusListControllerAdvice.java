@@ -38,8 +38,8 @@ public class StatusListControllerAdvice {
         return errorResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, SERVER_ERROR, "Server failed to process request");
     }
 
-    @ExceptionHandler(StatusListProviderException.class)
-    public ResponseEntity<ErrorResponse> handleStatusProviderException(StatusListProviderException e) {
+    @ExceptionHandler(StatusListException.class)
+    public ResponseEntity<ErrorResponse> handleStatusProviderException(StatusListException e) {
         String logMessage = "%s: %s".formatted(e.getErrorCode(), e.getMessage());
         log.error(logMessage, e);
         return errorResponseEntity(e);
@@ -94,7 +94,7 @@ public class StatusListControllerAdvice {
         return SERVER_ERROR;
     }
 
-    protected ResponseEntity<ErrorResponse> errorResponseEntity(StatusListProviderException e) {
+    protected ResponseEntity<ErrorResponse> errorResponseEntity(StatusListException e) {
         return errorResponseEntity(e.getStatusCode(), e.getErrorCode(), e.getMessage());
     }
 
