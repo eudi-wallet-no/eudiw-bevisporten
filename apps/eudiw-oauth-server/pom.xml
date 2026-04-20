@@ -19,7 +19,7 @@
         <idporten-access-log.version>4.0.0</idporten-access-log.version>
         <idporten-audit-version>4.0.0</idporten-audit-version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
-        <opentelemetry-api.version>1.60.1</opentelemetry-api.version>
+        <opentelemetry-api.version>1.61.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <oauth2-oidc-sdk.version>11.37</oauth2-oidc-sdk.version>
         <lombok.version>1.18.44</lombok.version>
