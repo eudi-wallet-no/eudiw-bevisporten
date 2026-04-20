@@ -71,6 +71,9 @@ public class CredentialIssuerMetadataService {
                 .nonceEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NONCE_ENDPOINT_TENANT, tenant.getId()))
                 .notificationEndpoint(Endpoints.endpointURI(credentialIssuerProperties.getCredentialIssuer(), Endpoints.NOTIFICATION_ENDPOINT_TENANT, tenant.getId()))
                 .displays(tenant.getDisplayNames().keySet().stream().map(locale -> Display.builder().locale(locale).name(tenant.getDisplayNames().get(locale)).build()).toList());
+        if (tenant.getBatchSize() >= 2) {
+            builder.batchCredentialIssuance(BatchCredentialIssuance.builder().batchSize(tenant.getBatchSize()).build());
+        }
         CredentialConfigurations credentialConfigurations = findCredentialConfigurations(credentialIssuerServerProperties, tenant);
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();

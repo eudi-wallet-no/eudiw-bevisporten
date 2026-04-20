@@ -26,6 +26,7 @@ credential-issuer-server:
         - uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
         - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
     junit:
+      batch-size: 5
       display-names:
         "no": Junit Tenant
       credential-configuration-sources-properties:
