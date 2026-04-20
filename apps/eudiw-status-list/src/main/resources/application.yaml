@@ -36,4 +36,10 @@ status-list:
     api-key: ${STATUS_ISSUER_API_KEY}
 
 idporten-key-manager:
-  enabled: false
+  keystores:
+    status-provider:
+      key-store-type: ${SIGNING_KEYSTORE_TYPE}
+      key-store-location: ${SIGNING_KEYSTORE_LOCATION}
+      key-store-password: ${SIGNING_KEYSTORE_PASSWORD}
+      key-alias: ${SIGNING_KEYSTORE_KEY_ALIAS}
+      key-password: ${SIGNING_KEYSTORE_KEY_PASSWORD}
