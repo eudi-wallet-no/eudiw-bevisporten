@@ -36,6 +36,11 @@ public class CredentialIssuerTenant {
     private Map<String, String> displayNames = Map.of("no", "Digitaliseringsdirektoratet");
 
     /**
+     * Batch issuance maximum batch size.
+     */
+    private int batchSize = 1;
+
+    /**
      * The credential configuration sources containing the credential configurations supported by this credential issuer tenant.
      */
     private List<CredentialConfigurationSource> credentialConfigurationSources = new ArrayList<>();

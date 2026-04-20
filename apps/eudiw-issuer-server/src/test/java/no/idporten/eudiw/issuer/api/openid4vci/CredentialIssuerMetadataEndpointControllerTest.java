@@ -47,7 +47,17 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(jsonPath("$.credential_issuer").value("https://junit.eidas2sandkasse.dev"))
                 .andExpect(jsonPath("$.authorization_servers.[0]").value("https://junit.idporten.no"))
                 .andExpect(jsonPath("$.credential_endpoint").value("https://junit.eidas2sandkasse.dev/openid4vci/credential"))
-                .andExpect(jsonPath("$.nonce_endpoint").value("https://junit.eidas2sandkasse.dev/openid4vci/nonce"));
+                .andExpect(jsonPath("$.nonce_endpoint").value("https://junit.eidas2sandkasse.dev/openid4vci/nonce"))
+                .andExpect(jsonPath("$.batch_credential_issuance").doesNotExist());
+    }
+
+    @DisplayName("then batch issuance is only included if batch size is 2 or greater")
+    @Test
+    void testGetMetadataWithBatchIssuance() throws Exception {
+        mockMvc.perform(get("/.well-known/openid-credential-issuer/junit"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(jsonPath("$.batch_credential_issuance.batch_size").value(5));
     }
 
     @DisplayName("then credential configurations metadata is created from issuer server, credentials configuration and claims sources config ")

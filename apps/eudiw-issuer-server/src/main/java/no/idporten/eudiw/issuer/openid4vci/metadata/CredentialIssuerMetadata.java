@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.List;
@@ -38,25 +37,11 @@ public class CredentialIssuerMetadata {
     @JsonProperty("credential_configurations_supported")
     private CredentialConfigurations credentialConfigurations;
 
+    @JsonProperty("batch_credential_issuance")
+    private BatchCredentialIssuance batchCredentialIssuance;
+
     @Singular("display")
     @JsonProperty("display")
     private List<Display> displays;
-
-    /**
-     * Add a credential configuration to metadata.
-     *
-     * @param credentialIdentifier credential_configuration_id
-     * @param credentialConfiguration the metadata to add for this credential_configuration_id
-     */
-    public void addCredentialConfigurations(String credentialIdentifier, CredentialConfiguration credentialConfiguration) {
-        CredentialConfiguration existed = credentialConfigurations.put(credentialIdentifier, credentialConfiguration);
-        if(existed == null) {
-            LoggerFactory.getLogger(CredentialIssuerMetadata.class).info("Added credential configuration to metadata for credential_configuration_id: {}", credentialIdentifier);
-        }
-    }
-
-    public CredentialConfigurations getCredentialConfigurations() {
-        return credentialConfigurations;
-    }
 
 }
