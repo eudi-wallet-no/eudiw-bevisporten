@@ -29,6 +29,7 @@ public class AuditService {
     protected static final String NOTIFICATION_ID = "notification_id";
     protected static final String FORMAT = "format";
     protected static final String STATUS = "status";
+    protected static final String INSTANCES = "instances";
 
     @Qualifier("auditLogger")
     private final AuditLogger auditLogger;
@@ -58,13 +59,14 @@ public class AuditService {
                 .build());
     }
 
-    public void logIssueCredentials(@NotNull String authorizationServer, @NotEmpty String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, @NotNull CredentialFormat format, NotificationId notificationId, @NotNull JWT accessToken) {
+    public void logIssueCredentials(@NotNull String authorizationServer, @NotEmpty String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, @NotNull CredentialFormat format, int instances, NotificationId notificationId, @NotNull JWT accessToken) {
         auditLogger.log(AuditEntry.builder()
                 .auditId(AuditID.ISSUE_CREDENTIAL.auditIdentifier())
                 .logNullAttributes(false)
                 .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
                 .attribute(AUTHORIZATION_SERVER, authorizationServer)
                 .attribute(FORMAT, format.formatIdentifier())
+                .attribute(INSTANCES, instances)
                 .attribute(NOTIFICATION_ID, identifierValue(notificationId))
                 .attribute(ACCESS_TOKEN, maskJWT(accessToken))
                 .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))

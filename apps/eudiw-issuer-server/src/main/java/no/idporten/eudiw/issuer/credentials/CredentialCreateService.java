@@ -36,9 +36,9 @@ public class CredentialCreateService {
     public List<Credential> createCredentials(CredentialIssueContext context, List<JWK> bindingKeys, List<Claim> claims) {
         if (bindingKeys == null) {
             // TODO this is most likely invalid - test with android and ios updated to OpenID4VCI 1!
-            return List.of(createCredential(context, null, claims, allocateStatus()));
+            return List.of(createCredential(context, null, claims, allocateStatus(context)));
         }
-        List<CredentialStatus> credentialStatuses = allocateStatus(bindingKeys.size());
+        List<CredentialStatus> credentialStatuses = allocateStatus(context, bindingKeys.size());
         List<Credential> credentials = new ArrayList<>();
         for (int i = 0; i < bindingKeys.size(); i++) {
             credentials.add(createCredential(context, bindingKeys.get(i), claims, credentialStatuses != null ? credentialStatuses.get(i) : null));
@@ -54,12 +54,12 @@ public class CredentialCreateService {
         };
     }
 
-    private CredentialStatus allocateStatus() {
-        return statusIssuerService.isEnabled() ? statusIssuerService.allocateStatus(1).getFirst() : null;
+    private CredentialStatus allocateStatus(CredentialIssueContext context) {
+        return statusIssuerService.isEnabled(context) ? statusIssuerService.allocateStatus(context, 1).getFirst() : null;
     }
 
-    private List<CredentialStatus> allocateStatus(int instances) {
-        return statusIssuerService.isEnabled() ? statusIssuerService.allocateStatus(instances) : null;
+    private List<CredentialStatus> allocateStatus(CredentialIssueContext context, int instances) {
+        return statusIssuerService.isEnabled(context) ? statusIssuerService.allocateStatus(context, instances) : null;
     }
 
 }

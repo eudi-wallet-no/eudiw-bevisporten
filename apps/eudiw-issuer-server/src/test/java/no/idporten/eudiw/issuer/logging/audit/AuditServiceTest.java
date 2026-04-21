@@ -82,7 +82,7 @@ class AuditServiceTest {
         NotificationId notificationId = new NotificationId("222");
         JWT jwt = createAccessToken("12345678901");
 
-        auditService.logIssueCredentials(authorizationServer, credentialConfigId, issuanceTransactionId, format, notificationId, jwt);
+        auditService.logIssueCredentials(authorizationServer, credentialConfigId, issuanceTransactionId, format, 2, notificationId, jwt);
 
         verify(auditLogger).log(auditEntry.capture());
         AuditEntry actualEntry = auditEntry.getValue();
@@ -90,6 +90,7 @@ class AuditServiceTest {
         assertEquals(authorizationServer, actualEntry.getAttributes().get(AuditService.AUTHORIZATION_SERVER));
         assertEquals(credentialConfigId, actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
         assertEquals(format.formatIdentifier(), actualEntry.getAttributes().get(AuditService.FORMAT));
+        assertEquals(2, actualEntry.getAttributes().get(AuditService.INSTANCES));
         assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
         assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
         assertNotNull(actualEntry.getAttributes().get(AuditService.ACCESS_TOKEN));
