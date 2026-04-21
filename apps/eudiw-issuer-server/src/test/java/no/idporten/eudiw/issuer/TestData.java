@@ -7,6 +7,7 @@ import no.idporten.eudiw.issuer.config.ClasspathSingleCredentialConfigurationSou
 import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
@@ -46,6 +47,7 @@ public class TestData {
                 .extendedCredentialMetadata(new ExtendedCredentialMetadata(
                         List.of(new Display("no", "Junit doc", "Kun for junit-tester")),
                         List.of(new ExtendedClaimsDescription(null, "c", ClaimDataType.STRING, Map.of("no", "c1"), true, ".*"))))
+                .credentialIssuerContext(new CredentialIssuerContext())
                 .build();
     }
 

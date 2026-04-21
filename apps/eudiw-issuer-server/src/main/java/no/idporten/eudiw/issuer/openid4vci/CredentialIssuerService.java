@@ -46,8 +46,7 @@ public class CredentialIssuerService {
         List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
-
-        auditService.logIssueCredentials(credentialConfiguration.getCredentialIssuerContext().getAuthorizationServer(), credentialRequest.getCredentialConfigurationId(), issuanceTransactionId, credentialConfiguration.getFormat(), notificationId, accessToken);
+        auditService.logIssueCredentials(credentialConfiguration.getCredentialIssuerContext().getAuthorizationServer(), credentialRequest.getCredentialConfigurationId(), issuanceTransactionId, credentialConfiguration.getFormat(), credentials.size(), notificationId, accessToken);
         return CredentialResponse.builder()
                 .credentials(credentials)
                 .notificationId(notificationId)

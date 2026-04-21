@@ -50,6 +50,7 @@ public class CredentialIssuerContext {
      */
     @JsonProperty("validity_days")
     @Min(1)
+    @Builder.Default
     private int validityDays = 365;
 
     /**
