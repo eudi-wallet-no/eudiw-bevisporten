@@ -12,6 +12,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import tools.jackson.databind.DefaultTyping;
 import tools.jackson.databind.json.JsonMapper;
 
 @Slf4j
@@ -54,6 +55,7 @@ public class RedisConfig implements CachingConfigurer {
         template.setKeySerializer(new StringRedisSerializer());
         JsonMapper jsonMapper = JsonMapper.builder()
                 .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .activateDefaultTypingAsProperty(new LaissezFaireSubTypeValidator(), DefaultTyping.NON_FINAL_AND_RECORDS, "@class")
                 .build();
         template.setValueSerializer(new GenericJacksonJsonRedisSerializer(jsonMapper));
         return template;
