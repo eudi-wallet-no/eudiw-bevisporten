@@ -14,6 +14,7 @@ import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.metrics.MetricService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
@@ -34,6 +35,7 @@ public class CredentialIssuerService {
     private final CredentialCreateService credentialCreateService;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuditService auditService;
+    private final MetricService metricService;
 
     @SneakyThrows
     public CredentialResponse issueCredentials(CredentialIssuerTenant tenant, CredentialRequest credentialRequest, JWT accessToken) {
@@ -46,7 +48,9 @@ public class CredentialIssuerService {
         List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
+
         auditService.logIssueCredentials(credentialConfiguration.getCredentialIssuerContext().getAuthorizationServer(), credentialRequest.getCredentialConfigurationId(), issuanceTransactionId, credentialConfiguration.getFormat(), credentials.size(), notificationId, accessToken);
+        metricService.countIssued(credentialRequest.getCredentialConfigurationId());
         return CredentialResponse.builder()
                 .credentials(credentials)
                 .notificationId(notificationId)

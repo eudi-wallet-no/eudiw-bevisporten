@@ -13,6 +13,7 @@ import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationInt
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.metrics.MetricService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialOffer;
@@ -32,13 +33,15 @@ public class PreAuthorizedIssuanceService {
     private final PreAuthorizationIntegration preAuthorizationIntegration;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuditService auditService;
+    private final MetricService metricService;
 
-    public PreAuthorizedIssuanceService(ClaimsSourceService claimsSourceService, AccessTokenValidationService accessTokenValidationService, PreAuthorizationIntegration preAuthorizationIntegration, CredentialIssuanceStatusService credentialIssuanceStatusService, AuditService auditService) {
+    public PreAuthorizedIssuanceService(ClaimsSourceService claimsSourceService, AccessTokenValidationService accessTokenValidationService, PreAuthorizationIntegration preAuthorizationIntegration, CredentialIssuanceStatusService credentialIssuanceStatusService, AuditService auditService, MetricService metricService) {
         this.claimsSourceService = claimsSourceService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.preAuthorizationIntegration = preAuthorizationIntegration;
         this.credentialIssuanceStatusService = credentialIssuanceStatusService;
         this.auditService = auditService;
+        this.metricService = metricService;
     }
 
     public PreAuthorizedIssuanceResponse startIssuerTransaction(CredentialIssuerTenant credentialIssuerTenant, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest, JWT accessToken) {
@@ -75,6 +78,7 @@ public class PreAuthorizedIssuanceService {
                 .build();
         CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         auditService.logStartCredentialIssuanceTransaction(credentialOffer.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), issuanceTransactionId, accessToken);
+        metricService.countStartIssuance(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         return PreAuthorizedIssuanceResponse.builder()
                 .credentialOffer(credentialOffer)
                 .issuanceTransactionId(issuanceTransactionId)
