@@ -1,10 +1,18 @@
 # eudiw-issuer-ui-demo
+
+> [!NOTE]
+> This application is part of the National Sandbox for Digital Wallet.
+> See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
+
 EUDI wallet: Bevisgenerator for pre-authorized flow.
 
 ## Requirements
 - Java 25
 - Maven
 - Docker
+
+> [!WARNING]
+> Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 ## Configuration
 
