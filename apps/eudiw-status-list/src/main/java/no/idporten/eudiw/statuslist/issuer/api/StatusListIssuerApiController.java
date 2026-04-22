@@ -10,6 +10,8 @@ import jakarta.validation.Valid;
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.ErrorResponse;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
+import no.idporten.eudiw.statuslist.service.Status;
+import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -30,9 +32,11 @@ import java.util.List;
 public class StatusListIssuerApiController {
 
     private final StatusIssuerProperties properties;
+    private final StatusListService statuslistService;
 
-    public StatusListIssuerApiController(StatusIssuerProperties properties) {
+    public StatusListIssuerApiController(StatusIssuerProperties properties, StatusListService statusListService) {
         this.properties = properties;
+        this.statuslistService = statusListService;
     }
 
     @Operation(
@@ -81,17 +85,20 @@ public class StatusListIssuerApiController {
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> revoke(@RequestBody @Valid StatusUpdateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
-        // TODO call service for update (revoke) status on status-list
+        // TODO add listID
+        for (StatusEntryUpdateRequest entry: request.statusListEntries()) {
+            statuslistService.updateStatus(entry.idx(), Status.INVALID);
+        }
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     private @NonNull List<StatusEntry> allocateStatuses(StatusCreateRequest request) {
         List<StatusEntry> statusEntries = new ArrayList<>(request.numberOfEntries());
-        // TODO call service for allocate status on status-list, instead of dummy
-        String listId = "1";
+        List<Integer> allocatedStatuses = statuslistService.allocateToStatusList(request.numberOfEntries());
+        String listId = "1"; // TODO get list id from statuslist service and URI
         URI uri = UriComponentsBuilder.fromUriString(properties.uri()).buildAndExpand(listId).toUri();
-        for (int i = 0; i < request.numberOfEntries(); i++) {
-            StatusEntry e1 = new StatusEntry(i, uri);
+        for (Integer allocatedStatus: allocatedStatuses) {
+            StatusEntry e1 = new StatusEntry(allocatedStatus, uri);
             statusEntries.add(e1);
         }
         return statusEntries;

@@ -11,6 +11,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListSigningException;
+import no.idporten.eudiw.statuslist.service.StatusListService;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
@@ -29,10 +30,13 @@ public class StatusProviderService {
     private static final List<String> existingLists = List.of("1", "2", "3");
     private final StatusProviderProperties statusProviderProperties;
     private final KeystoreManager keystoreManager;
+    private final StatusListService statuslistService;
 
-    public StatusProviderService(StatusProviderProperties statusProviderProperties, KeystoreManager keystoreManager) {
+
+    public StatusProviderService(StatusProviderProperties statusProviderProperties, KeystoreManager keystoreManager, StatusListService statuslistService) {
         this.statusProviderProperties = statusProviderProperties;
         this.keystoreManager = keystoreManager;
+        this.statuslistService = statuslistService;
     }
 
     public JWT getStatusList(String id) {
@@ -65,12 +69,11 @@ public class StatusProviderService {
     }
 
     private Map<String, Object> getStatusListClaims(String id) {
-        // TODO: Get statusList from somewhere..
-
+        String compressedList = statuslistService.getJsonStatuslist();
         Map<String, Object> statusList = new HashMap<>();
 
         statusList.put("bits", 1);
-        statusList.put("lst", "eNrbuRgAAhcBXQ");
+        statusList.put("lst", compressedList);
 
         return statusList;
     }
