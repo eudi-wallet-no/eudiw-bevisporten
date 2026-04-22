@@ -1,10 +1,15 @@
 package no.idporten.eudiw.issuer.credentials.status;
 
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.status.cache.CredentialStatusInfo;
 import no.idporten.eudiw.issuer.credentials.status.cache.InMemoryCredentialStatusCache;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerIntegration;
+import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +22,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -38,6 +44,8 @@ public class StatusIssuerServiceTest {
     @Captor
     ArgumentCaptor<CredentialStatusInfo> credentialStatusInfoCaptor;
 
+    @Captor
+    ArgumentCaptor<List<UpdatedStatusEntry>> statusEntryListCaptor;
 
     private CredentialIssueContext testContext() {
         return new CredentialIssueContext(
@@ -82,6 +90,53 @@ public class StatusIssuerServiceTest {
         verify(credentialStatusCache).storeCredentialStatus(eq(junitIssuerTenant()), any(), credentialStatusInfoCaptor.capture(), any());
         CredentialStatusInfo credentialStatusInfo = credentialStatusInfoCaptor.getValue();
         assertEquals(2, credentialStatusInfo.statusEntries().size());
+    }
+
+    @DisplayName("then revoking a credential will update the status issuer")
+    @Test
+    void testRevoke() {
+        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
+        CredentialIssuerTenant tenant = junitIssuerTenant();
+        ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        CredentialStatusInfo credentialStatusInfo = new CredentialStatusInfo(tenant.getId(), credentialConfiguration.getCredentialConfigurationId(), List.of(new StatusEntry(7, URI.create("https://junit.eidas2sandkasse.dev/lists/0"))));
+        credentialStatusCache.storeCredentialStatus(tenant, transactionId, credentialStatusInfo, Duration.ofMinutes(1));
+        CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
+        service.revokeStatus(context);
+        verify(statusIssuerIntegration).updateStatusEntries(statusEntryListCaptor.capture());
+        List<UpdatedStatusEntry> updatedStatusEntries = statusEntryListCaptor.getValue();
+        assertAll(
+                () -> assertEquals(1, updatedStatusEntries.size()),
+                () -> assertEquals(7, updatedStatusEntries.getFirst().idx()),
+                () -> assertEquals("https://junit.eidas2sandkasse.dev/lists/0", updatedStatusEntries.getFirst().uri().toString()),
+                () -> assertEquals("INVALID", updatedStatusEntries.getFirst().statusType())
+        );
+    }
+
+    @DisplayName("then revoking with a non-matching credential configuration id is not allowed")
+    @Test
+    void testRevokeWithInvalidCredentialConfigurationId() {
+        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
+        CredentialIssuerTenant tenant = junitIssuerTenant();
+        ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        CredentialStatusInfo credentialStatusInfo = new CredentialStatusInfo(tenant.getId(), "somethingelse", List.of(new StatusEntry(7, URI.create("https://junit.eidas2sandkasse.dev/lists/0"))));
+        credentialStatusCache.storeCredentialStatus(tenant, transactionId, credentialStatusInfo, Duration.ofMinutes(1));
+        CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
+        IssuerServerException exception = assertThrows(IssuerServerException.class, () -> service.revokeStatus(context));
+        assertTrue(exception.getErrorDescription().contains("Not allowed to revoke credential status"));
+    }
+
+    @DisplayName("then revoking an unknown credential does not update the status issuer")
+    @Test
+    void testRevokeUnknownCredential() {
+        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
+        CredentialIssuerTenant tenant = junitIssuerTenant();
+        ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
+        service.revokeStatus(context);
+        verifyNoInteractions(statusIssuerIntegration);
     }
 
 }

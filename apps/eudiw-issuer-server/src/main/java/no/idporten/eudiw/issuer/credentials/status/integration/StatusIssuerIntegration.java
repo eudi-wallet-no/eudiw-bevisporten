@@ -48,6 +48,21 @@ public class StatusIssuerIntegration implements InitializingBean {
         }
     }
 
+    public void updateStatusEntries(List<UpdatedStatusEntry> statusEntries) {
+        UpdateStatusEntriesRequest updateStatusEntriesRequest = new UpdateStatusEntriesRequest(statusEntries);
+        try {
+            restClient.put()
+                    .uri("/status-issuer/api/v1/entries")
+                    .body(updateStatusEntriesRequest)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(response))
+                    .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleErrorResponse(response))
+                    .toBodilessEntity();
+        } catch (RestClientException e) {
+            throw new CredentialRequestDeniedException("Failed to update status for credential", "IO exception when calling status issuer", e);
+        }
+    }
+
     void handleErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to allocate status entry from status issuer: status: [%s], message: [%s]".formatted(response.getStatusCode(), body);
