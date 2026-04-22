@@ -1,4 +1,9 @@
 # eudiw-issuer-server
+
+> [!INFO]
+> This application is part of the National Sandbox for Digital Wallet.
+> See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
+
 EUDIW Credential Issuer Server.
 Digdir generic credential issuer server for issuing verifiable credentials to digital wallets in eidas2sandkasse.
 
@@ -6,6 +11,9 @@ Digdir generic credential issuer server for issuing verifiable credentials to di
 - Java 25
 - Maven
 - Docker
+
+> [!WARNING]
+> Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 ## Configuration
 
