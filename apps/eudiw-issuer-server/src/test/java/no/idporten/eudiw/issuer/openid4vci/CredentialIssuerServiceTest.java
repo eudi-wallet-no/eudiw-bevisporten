@@ -16,6 +16,7 @@ import no.idporten.eudiw.issuer.credentials.types.StringValue;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.metrics.MetricService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
@@ -56,6 +57,9 @@ public class CredentialIssuerServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private MetricService metricService;
 
     @InjectMocks
     private CredentialIssuerService credentialIssuerService;
