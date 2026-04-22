@@ -1,11 +1,18 @@
 # eudiw-authoritativ-sources-connector
 
+> [!NOTE]
+> This application is part of the National Sandbox for Digital Wallet.
+> See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
+
 EUDI wallet: Authoritativ-sources-connector to connect to external Authoritativ-sources when fetching data to issue verifiable credentials.
 
 ## Requirements
 - Java 25
 - Maven
 - Docker
+
+> [!WARNING]
+> Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 ## Configuration
 
