@@ -1,4 +1,9 @@
 # eudiw-oauth2-server
+
+> [!NOTE]
+> This application is part of the National Sandbox for Digital Wallet.
+> See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
+
 EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate users through ID-porten for Wallet.
 
 
@@ -8,6 +13,9 @@ EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate u
 - Maven
 - Docker
 - Redis
+
+> [!WARNING]
+> Access to Digitaliseringsdirektoratet infrastructure is required to run the application.
 
 ## Configuration
 
