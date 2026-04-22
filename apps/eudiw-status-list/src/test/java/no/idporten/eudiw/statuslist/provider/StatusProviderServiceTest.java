@@ -9,6 +9,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListSigningException;
+import no.idporten.eudiw.statuslist.service.StatusListService;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +50,9 @@ public class StatusProviderServiceTest {
     @Mock
     Certificate mockCertificate;
 
+    @Mock
+    StatusListService mockStatusListService;
+
     @Spy
     KeystoreManager keystoreManager = getKeystoreManager();
 
@@ -58,6 +62,7 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should generate a valid Status List Token as JWT")
     void getValidStatusListTest() throws Exception {
+        when(mockStatusListService.getJsonStatuslist()).thenReturn("eNrbuRgAAhcBXQ");
         String testId = "1";
 
         JWT jwt = statusProviderService.getStatusList(testId);
@@ -108,6 +113,7 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should trow StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
     void trowStatusListSigningExceptionTest1() throws Exception {
+        when(mockStatusListService.getJsonStatuslist()).thenReturn("eNrbuRgAAhcBXQ");
         doReturn(mockKeyProvider).when(keystoreManager).getKeyProvider(any());
         doReturn(mockCertificate).when(mockKeyProvider).certificate();
         when(mockCertificate.getEncoded()).thenThrow(CertificateEncodingException.class);
