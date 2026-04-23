@@ -3,10 +3,7 @@ package no.idporten.eudiw.issuer;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
-import no.idporten.eudiw.issuer.config.ClasspathSingleCredentialConfigurationSource;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
-import no.idporten.eudiw.issuer.config.CredentialConfigurationSourceProperties;
-import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.*;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
@@ -52,7 +49,7 @@ public class TestData {
     }
 
     public static ExtendedCredentialConfiguration credentialConfigurationFromClasspath(String uri) {
-        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(uri, null, null, null, null));
+        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(new APIConnectionProperties(URI.create(uri), null, null, null, null)));
         credentialConfigurationSource.init();
         return credentialConfigurationSource.retrieve().getFirst();
     }

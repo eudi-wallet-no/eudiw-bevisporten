@@ -24,7 +24,10 @@ credential-issuer-server:
     - id: auth-eidas2sandkasse
       issuer: http://oauth-server:9260
       jwks-uri: http://oauth-server:9260/jwks
-      api-key: eudiw
+      internal-api:
+        uri: http://oauth-server:9260
+        api-key-header: X-API-KEY
+        api-key: eudiw
   pre-authorization-servers:
     - id: maskinporten
       issuer: https://maskinporten.dev/
@@ -36,42 +39,50 @@ credential-issuer-server:
         api-key: secret
   authoritative-sources:
     krr:
-      uri: http://authoritative-sources-connector:9298/api/v1/krr/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: eudiw
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/krr/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: eudiw
     freg:
-      uri: http://authoritative-sources-connector:9298/api/v1/freg/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: eudiw
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/freg/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: eudiw
     skatteetaten:
-      uri: http://authoritative-sources-connector:9298/api/v1/skatteetaten/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: eudiw
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/skatteetaten/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: eudiw
     advokatregisteret:
-      uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: eudiw
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: eudiw
   tenants:
     bevisgenerator:
       display-names:
         "no": "Bevisgenerator"
       credential-configuration-sources-properties:
-        - uri: ${byob-service.uri}
-          api-key: ${byob-service.api-key}
-          connect-timeout: 2s
-          read-timeout: 2s
-          cache-ttl: 28s
+        - api:
+            uri: ${byob-service.uri}
+            api-key-header: X-API-KEY
+            api-key: ${byob-service.api-key}
+            connect-timeout: 2s
+            read-timeout: 2s
     pid:
       display-names:
         "no": "PID-utsteder"
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
-        - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
     demo-pid-issuer:
       display-names:
         "no": "Demo PID-utsteder"
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
 
 advoktatregisteret:
   subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f

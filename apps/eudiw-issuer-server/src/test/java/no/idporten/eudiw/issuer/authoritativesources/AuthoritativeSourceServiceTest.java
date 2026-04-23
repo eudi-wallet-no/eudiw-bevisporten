@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.authoritativesources;
 import no.idporten.eudiw.issuer.TestData;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
+import no.idporten.eudiw.issuer.config.APIConnectionProperties;
 import no.idporten.eudiw.issuer.config.AuthoritativeSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,15 +31,17 @@ public class AuthoritativeSourceServiceTest {
     @BeforeEach
     public void setUp() {
         CredentialIssuerServerProperties credentialIssuerServerProperties = new CredentialIssuerServerProperties();
-        credentialIssuerServerProperties.getAuthoritativeSources().put("junit",
-                new AuthoritativeSourceProperties(URI.create("https://junit.eidas2sandkasse.net/connector/junit"),
-                        Duration.ofSeconds(3),
-                        Duration.ofSeconds(3),
-                        "X-API-KEY",
-                        "junit-key"));
+        APIConnectionProperties apiConnectionProperties = new APIConnectionProperties(
+                URI.create("https://junit.eidas2sandkasse.net/connector/junit"),
+                Duration.ofSeconds(3),
+                Duration.ofSeconds(3),
+                "X-API-KEY",
+                "junit-key"
+        );
+        credentialIssuerServerProperties.getAuthoritativeSources().put("junit", new AuthoritativeSourceProperties(apiConnectionProperties));
         AuthoritativeSourceService authoritativeSourceService = new AuthoritativeSourceService(credentialIssuerServerProperties);
         MockServerRestClientCustomizer customizer = new MockServerRestClientCustomizer();
-        RestClient.Builder builder = RestClient.builder();
+        RestClient.Builder builder = apiConnectionProperties.createRestClientBuilder();
         customizer.customize(builder);
         mockServer = customizer.getServer();
         RestClient restClient = builder.build();

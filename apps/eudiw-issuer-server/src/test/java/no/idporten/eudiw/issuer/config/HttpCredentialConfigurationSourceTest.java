@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class HttpCredentialConfigurationSourceTest {
     private HttpCredentialConfigurationSource credentialConfigurationSource;
     private MockRestServiceServer mockServer;
 
-    private static final String EXTERNAL_SERVICE_URL = "http://my-byob-service-test:8/v1/admin/credential-configurations";
+    private static final URI EXTERNAL_SERVICE_URL = URI.create("http://my-byob-service-test:8/v1/admin/credential-configurations");
 
     private static final String EXAMPLE_JSON_RESPONSE = """
             {
@@ -84,12 +85,13 @@ public class HttpCredentialConfigurationSourceTest {
 
     @BeforeEach
     public void setUp() {
+        APIConnectionProperties apiConnectionProperties = new APIConnectionProperties(EXTERNAL_SERVICE_URL, Duration.ofSeconds(3), Duration.ofSeconds(3), null, null);
         MockServerRestClientCustomizer customizer = new MockServerRestClientCustomizer();
-        RestClient.Builder builder = RestClient.builder();
+        RestClient.Builder builder = apiConnectionProperties.createRestClientBuilder();
         customizer.customize(builder);
         mockServer = customizer.getServer();
         RestClient restClient = builder.build();
-        CredentialConfigurationSourceProperties properties = new CredentialConfigurationSourceProperties(EXTERNAL_SERVICE_URL, null, Duration.ofSeconds(3), Duration.ofSeconds(3), Duration.ofSeconds(10));
+        CredentialConfigurationSourceProperties properties = new CredentialConfigurationSourceProperties(apiConnectionProperties);
         credentialConfigurationSource = new HttpCredentialConfigurationSource(properties);
         credentialConfigurationSource.setRestClient(restClient);
     }

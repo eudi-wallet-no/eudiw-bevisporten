@@ -51,37 +51,48 @@ credential-issuer-server:
         read-timeout: 2s
   authoritative-sources:
     krr:
-      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/krr/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: ${AUTH_SOURCE_KRR_API_KEY}
+      api:
+        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/krr/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_KRR_API_KEY}
     freg:
-      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/freg/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: ${AUTH_SOURCE_FREG_API_KEY}
+      api:
+        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/freg/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_FREG_API_KEY}
     skatteetaten:
-      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/skatteetaten/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: ${AUTH_SOURCE_SKATTEETATEN_API_KEY}
+      api:
+        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/skatteetaten/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_SKATTEETATEN_API_KEY}
     advokatregisteret:
-      uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/advokatregisteret/credentialdata/retrieve
-      api-key-header: X-API-KEY
-      api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
+      api:
+        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/advokatregisteret/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     root:
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
-        - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-        - uri: classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
-        - uri: classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
-        - uri: classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
-        - uri: classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
-        - uri: classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
-        - uri: ${byob-service.uri}
-          api-key: ${byob-service.api-key}
-          connect-timeout: 2s
-          read-timeout: 2s
-          cache-ttl: 28s
-
+        - api:
+            uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
+        - api:
+            uri: ${byob-service.uri}
+            api-key-header: X-API-KEY
+            api-key: ${byob-service.api-key}
+            connect-timeout: 2s
+            read-timeout: 2s
 
 # Digdir standard logging
 digdir:

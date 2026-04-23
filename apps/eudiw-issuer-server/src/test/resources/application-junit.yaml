@@ -9,11 +9,17 @@ credential-issuer-server:
     - id: junit
       issuer: https://junit.idporten.no
       jwks-uri: https://junit.idporten.no/jwks.json
-      api-key: junit-key
+      internal-api:
+        uri: https://junit.idporten.no
+        api-key-header: X-API-KEY
+        api-key: junit-key
     - id: junit-invalid
       issuer: https://junit-invalid.idporten.no
       jwks-uri: https://junit-invalid.idporten.no/jwks.json
-      api-key: junit-key
+      internal-api:
+        uri: https://junit-invalid.idporten.no
+        api-key-header: X-API-KEY
+        api-key: junit-key
   cryptographic-bindings:
     - jwk
   tenants:
@@ -21,16 +27,21 @@ credential-issuer-server:
       display-names:
         "no": Root Tenant
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/junit_mso_mdoc.json
-        - uri: classpath:credential-configurations/junit_sd_jwt_vc.json
-        - uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
-        - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/junit_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/junit_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
     junit:
       batch-size: 5
       display-names:
         "no": Junit Tenant
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
 
 idporten-key-manager:
   keystores:

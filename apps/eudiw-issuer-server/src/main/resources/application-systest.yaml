@@ -21,7 +21,10 @@ credential-issuer-server:
     - id: auth-eidas2sandkasse
       issuer: https://auth.eidas2sandkasse.dev
       jwks-uri: http://digital-lommebok-oauth-server-service:8080/jwks
-      api-key: ${AUTH_PROXY_API_KEY}
+      internal-api:
+        uri: http://digital-lommebok-oauth-server-service:8080
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_PROXY_API_KEY}
   pre-authorization-servers:
     - id: maskinporten
       issuer: https://test.maskinporten.no/
@@ -36,14 +39,17 @@ credential-issuer-server:
       display-names:
         "no": "Bevisgenerator"
       credential-configuration-sources-properties:
-        - uri: ${byob-service.uri}
-          api-key: ${byob-service.api-key}
-          connect-timeout: 2s
-          read-timeout: 2s
-          cache-ttl: 28s
+        - api:
+            uri: ${byob-service.uri}
+            api-key-header: X-API-KEY
+            api-key: ${byob-service.api-key}
+            connect-timeout: 2s
+            read-timeout: 2s
     pid:
       display-names:
         "no": "PID-utsteder"
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
-        - uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
