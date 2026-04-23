@@ -58,7 +58,7 @@ class StatusListIssuerApiControllerTest {
                 .andExpect(jsonPath("$").exists())
                 .andExpect(jsonPath("$.status_list_entries").isArray())
                 .andExpect(jsonPath("$.status_list_entries", hasSize(number)))
-                .andExpect(jsonPath("$.status_list_entries[0].idx").value(0))
+                .andExpect(jsonPath("$.status_list_entries[0].idx").isNumber())
                 .andExpect(jsonPath("$.status_list_entries[0].uri").exists());
         verify(statuslistService).allocateToStatusList(eq(number));
     }

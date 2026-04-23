@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.Deflater;
@@ -14,8 +13,10 @@ import static no.idporten.eudiw.statuslist.service.Status.VALID;
 @Service
 public class StatusListService {
 
+    private final static int listSize = 1_000_000;
+
     private Map<Integer, Integer> statuslist;
-    private final AtomicInteger nextId = new AtomicInteger(0); // Temp. counter for statuslist entries, take next available instead of random allocation
+    private final IntStack freeIndexStack = createFreeIndexStack();
     private int bitsPerStatus = 1;
 
     public StatusListService() {
@@ -36,7 +37,7 @@ public class StatusListService {
     // berre midlertidig metode, skal bort.
     private void mockEmptyList() {
         // Mock default list with all valid
-        statuslist = IntStream.range(0, 1000000)
+        statuslist = IntStream.range(0, listSize)
                 .boxed()
                 .collect(Collectors.toMap(
                         i -> i,
@@ -104,14 +105,14 @@ public class StatusListService {
     }
 
     public List<Integer> allocateToStatusList(int count) {
-        if (nextId.get() + count >= statuslist.size()) {
-            throw new RuntimeException("Not enough space in statuslist to allocate " + count + " entries. Next id: " + nextId.get());
+        if (freeIndexStack.size() < count) {
+            throw new RuntimeException("Not enough space in statuslist to allocate " + count + " entries.");
         }
         List<Integer> allocatedIndexes = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            allocatedIndexes.add(nextId.get() + i);
+            allocatedIndexes.add(freeIndexStack.pop());
         }
-        nextId.set(nextId.get() + count);
+
         return allocatedIndexes;
     }
 
@@ -123,5 +124,23 @@ public class StatusListService {
             throw new IllegalArgumentException("Index " + index + " does not exist in statuslist");
         }
         statuslist.put(index, status);
+    }
+
+    private IntStack createFreeIndexStack() {
+        int[] numbers = new int[listSize];
+
+        for (int i = 0; i < listSize; i++) {
+            numbers[i] = i;
+        }
+
+        Random random = new Random();
+        for (int i = listSize - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            int temp = numbers[i];
+            numbers[i] = numbers[j];
+            numbers[j] = temp;
+        }
+
+        return new IntStack(numbers, listSize);
     }
 }
