@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,7 +16,7 @@ public class ClasspathSingleCredentialConfigurationSourceTest {
 
     @BeforeEach
     void setUp() {
-        credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties("classpath:credential-configurations/junit_mso_mdoc.json", null, null, null, null));
+        credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(new APIConnectionProperties(URI.create("classpath:credential-configurations/junit_mso_mdoc.json"), null, null, null, null)));
     }
 
     @DisplayName("then uninitialized will return empty list")

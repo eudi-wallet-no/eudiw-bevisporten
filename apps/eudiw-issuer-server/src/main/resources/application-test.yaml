@@ -19,7 +19,10 @@ credential-issuer-server:
     - id: auth-eidas2sandkasse
       issuer: https://auth.test.eidas2sandkasse.net
       jwks-uri: http://digital-lommebok-oauth-server-service:8080/jwks
-      api-key: ${AUTH_PROXY_API_KEY}
+      internal-api:
+        uri: http://digital-lommebok-oauth-server-service:8080
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_PROXY_API_KEY}
   pre-authorization-servers:
     - id: maskinporten
       issuer: https://test.maskinporten.no/
@@ -29,4 +32,5 @@ credential-issuer-server:
       display-names:
         "no": "Demo PID-utsteder"
       credential-configuration-sources-properties:
-        - uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
+        - api:
+            uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json

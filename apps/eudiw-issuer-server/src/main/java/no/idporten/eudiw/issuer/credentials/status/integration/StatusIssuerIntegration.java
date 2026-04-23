@@ -1,14 +1,10 @@
 package no.idporten.eudiw.issuer.credentials.status.integration;
 
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
-import no.idporten.eudiw.issuer.config.APIConnectionProperties;
 import no.idporten.eudiw.issuer.credentials.status.StatusIssuerProperties;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
@@ -71,17 +67,7 @@ public class StatusIssuerIntegration implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        APIConnectionProperties apiProperties = this.statusIssuerProperties.getApi();
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(apiProperties.connectTimeout());
-        requestFactory.setReadTimeout(apiProperties.readTimeout());
-        this.restClient = RestClient.builder()
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(apiProperties.apiKeyHeader(), apiProperties.apiKey())
-                .baseUrl(apiProperties.uri())
-                .requestFactory(requestFactory)
-                .build();
+        this.restClient = statusIssuerProperties.getApi().createRestClient();
     }
 
     protected void setRestClient(RestClient restClient) {

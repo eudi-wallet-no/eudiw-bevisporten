@@ -14,10 +14,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Validated
 @Data
@@ -54,9 +51,9 @@ public class CredentialIssuerServerProperties implements InitializingBean {
                 CredentialConfigurationSource credentialConfigurationSource = createCredentialConfigurationSource(properties);
                 try {
                     credentialConfigurationSource.init();
-                    log.info("Initialized credential configuration source with URI {}.", properties.uri());
+                    log.info("Initialized credential configuration source with URI {}.", properties.api().uri());
                 } catch (Exception e) {
-                    log.warn("Failed to initialize credential configuration source with URI {}.", properties.uri(), e);
+                    log.warn("Failed to initialize credential configuration source with URI {}.", properties.api().uri(), e);
                 }
                 tenant.getCredentialConfigurationSources().add(credentialConfigurationSource);
             }
@@ -64,13 +61,13 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     }
 
     protected CredentialConfigurationSource createCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
-        if (properties.uri().startsWith("classpath")) {
+        if (Set.of("file", "jar", "classpath").contains(properties.api().uri().getScheme())) {
             return new ClasspathSingleCredentialConfigurationSource(properties);
         }
-        if (properties.uri().startsWith("http")) {
+        if (Set.of("http", "https").contains(properties.api().uri().getScheme())) {
             return new HttpCredentialConfigurationSource(properties);
         }
-        throw new IllegalArgumentException("Unsupported credential configuration source URI: %s".formatted(properties.uri()));
+        throw new IllegalArgumentException("Unsupported credential configuration source URI: %s".formatted(properties.api().uri()));
     }
 
 }

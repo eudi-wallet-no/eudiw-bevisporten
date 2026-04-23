@@ -4,18 +4,16 @@ import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
+import no.idporten.eudiw.issuer.config.APIConnectionProperties;
 import no.idporten.eudiw.issuer.config.AuthoritativeSourceProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StreamUtils;
@@ -57,15 +55,11 @@ public class AuthoritativeSourceService implements InitializingBean {
         Subject subject = new Subject(personIdentifier);
         AuthoritativeSourceRequest authoritativeSourceRequest = new AuthoritativeSourceRequest(subject, credentialType);
         AuthoritativeSourceProperties authoritativeSourceProperties = findAuthoritativeSourceProperties(source);
+        APIConnectionProperties apiConnectionProperties = authoritativeSourceProperties.api();
         try {
             AuthoritativeSourceResponse authoritativeSourceResponse = restClients.get(source)
                     .post()
-                    .uri(authoritativeSourceProperties.uri())
-                    .headers(headers -> {
-                        if (authoritativeSourceProperties.useApiKey()) {
-                            headers.add(authoritativeSourceProperties.apiKeyHeader(), authoritativeSourceProperties.apiKey());
-                        }
-                    })
+                    .uri(apiConnectionProperties.uri())
                     .body(authoritativeSourceRequest)
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(source, response))
@@ -91,21 +85,11 @@ public class AuthoritativeSourceService implements InitializingBean {
         throw new CredentialRequestDeniedException(source, "Failed to get information from authoritative source %s".formatted(source), logMessage);
     }
 
-    private RestClient createRestClient(AuthoritativeSourceProperties properties) {
-        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-        clientHttpRequestFactory.setConnectTimeout(properties.connectTimeout());
-        clientHttpRequestFactory.setReadTimeout(properties.readTimeout());
-        return RestClient.builder()
-                .requestFactory(clientHttpRequestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .build();
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception {
         for (Map.Entry<String, AuthoritativeSourceProperties> entry : credentialIssuerServerProperties.getAuthoritativeSources().entrySet()) {
-            restClients.put(entry.getKey(), createRestClient(entry.getValue()));
-            log.info("Initialized authoritative source {} with URI {}", entry.getKey(), entry.getValue().uri());
+            restClients.put(entry.getKey(), entry.getValue().api().createRestClient());
+            log.info("Initialized authoritative source {} with URI {}", entry.getKey(), entry.getValue().api().uri());
         }
     }
 

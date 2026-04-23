@@ -39,9 +39,9 @@ public class ClasspathSingleCredentialConfigurationSource implements CredentialC
     @Override
     public void init() {
         JsonMapper jsonMapper = JsonMapper.builderWithJackson2Defaults().build();
-        try (InputStream inputStream = new DefaultResourceLoader().getResource(properties.uri()).getInputStream()) {
+        try (InputStream inputStream = new DefaultResourceLoader().getResource(properties.api().uri().toString()).getInputStream()) {
             ExtendedCredentialConfiguration extendedCredentialConfiguration = jsonMapper.readValue(inputStream, ExtendedCredentialConfiguration.class);
-            log.info("Retrieved credential configuration for {} from uri {}", extendedCredentialConfiguration.getCredentialType(), properties.uri());
+            log.info("Retrieved credential configuration for {} from uri {}", extendedCredentialConfiguration.getCredentialType(), properties.api().uri());
             this.credentialConfigurations.add(extendedCredentialConfiguration);
         } catch (IOException e) {
             throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to init credential configuration source.", e);

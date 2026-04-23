@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import no.idporten.eudiw.issuer.config.APIConnectionProperties;
 import org.springframework.validation.annotation.Validated;
 
 import java.net.URI;
@@ -52,9 +53,9 @@ public class AuthorizationServer {
     private Set<@NotNull JWSAlgorithm> dPoPAlgorithms = Set.of(JWSAlgorithm.ES256);
 
     /**
-     * OAuth2 authorization server api key for internal api.  Used in pre authorized flow.
+     * OAuth2 authorization server internal api properties.  Used in pre-authorized code flow.
      */
-    private String apiKey;
+    private APIConnectionProperties internalApi;
 
     /**
      * Validator for access_tokens from issuer.

@@ -5,11 +5,8 @@ import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpResponse;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -38,13 +35,7 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
 
     public HttpCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
         this.properties = properties;
-        SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
-        clientHttpRequestFactory.setConnectTimeout(properties.connectTimeout());
-        clientHttpRequestFactory.setReadTimeout(properties.readTimeout());
-        this.restClient = RestClient.builder()
-                .requestFactory(clientHttpRequestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
-                .build();
+        this.restClient = properties.api().createRestClient();
     }
 
     @Override
@@ -73,18 +64,17 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         try {
             ExtendedCredentialConfigurations credentialConfigurations = restClient
                     .get()
-                    .uri(properties.uri())
-                    .header(API_KEY, properties.apiKey())
+                    .uri(properties.api().uri())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
                     .body(ExtendedCredentialConfigurations.class);
 
             if (credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
-                log.warn("No credential configurations retrieved from {}", properties.uri());
+                log.warn("No credential configurations retrieved from {}", properties.api().uri());
                 return;
             }
-            log.info("Retrieved {} credential-configurations from {}", credentialConfigurations.getCredentialConfigurations().size(), properties.uri());
+            log.info("Retrieved {} credential-configurations from {}", credentialConfigurations.getCredentialConfigurations().size(), properties.api().uri());
             List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = credentialConfigurations.getCredentialConfigurations().stream().map(this::fixByobCredentialConfiguration).toList();
             this.credentialConfigurations.clear();
             this.credentialConfigurations.addAll(extendedCredentialConfigurations);

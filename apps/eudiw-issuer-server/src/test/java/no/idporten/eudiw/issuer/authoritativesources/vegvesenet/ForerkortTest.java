@@ -5,6 +5,7 @@ import no.idporten.eudiw.issuer.claimssource.CredentialData;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.PreAuthorizedIssuanceContext;
 import no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource;
+import no.idporten.eudiw.issuer.config.APIConnectionProperties;
 import no.idporten.eudiw.issuer.config.ClasspathSingleCredentialConfigurationSource;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationSourceProperties;
@@ -15,6 +16,7 @@ import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -61,7 +63,7 @@ class ForerkortTest {
         JWT jwt = mock(JWT.class);
         IssuanceTransactionId txId = new IssuanceTransactionId("tx-123");
 
-        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties("classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json", null,null, null, null));
+        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(new APIConnectionProperties(URI.create("classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json"), null,null, null, null)));
         CredentialData credentialData = source.push(new PreAuthorizedIssuanceContext(junitIssuerTenant(), credentialConfigurationSource.findConfiguration("org.iso.18013.5.1.mDL_mso_mdoc"), txId, jwt), new CredentialData(Collections.unmodifiableMap(inputClaims)));
         Map<String, Object> result = credentialData.claims();
         credentialConfigurationSource.init();
