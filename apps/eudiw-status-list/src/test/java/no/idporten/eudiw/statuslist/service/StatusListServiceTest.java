@@ -2,10 +2,7 @@ package no.idporten.eudiw.statuslist.service;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.HexFormat;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import static no.idporten.eudiw.statuslist.service.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -130,4 +127,13 @@ class StatusListServiceTest {
         assertEquals(INVALID, statuslistService.getStatuslist().get(0));
     }
 
+    @Test
+    void testAllocateToStatusListHasUniqueValues() {
+        StatusListService statuslistService = new StatusListService();
+
+        List<Integer> allocatedIndices = statuslistService.allocateToStatusList(1_000_000);
+        assertNotNull(allocatedIndices);
+        Set<Integer> uniqueIndices = new HashSet<>(allocatedIndices);
+        assertEquals(allocatedIndices.size(), uniqueIndices.size());
+    }
 }
