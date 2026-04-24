@@ -32,5 +32,6 @@ credential-issuer-server:
       display-names:
         "no": "Demo PID-utsteder"
       credential-configuration-sources-properties:
-        - api:
-            uri: classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
+        - local:
+            paths:
+              - classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json

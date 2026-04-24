@@ -49,7 +49,7 @@ public class TestData {
     }
 
     public static ExtendedCredentialConfiguration credentialConfigurationFromClasspath(String uri) {
-        CredentialConfigurationSource credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(new APIConnectionProperties(URI.create(uri), null, null, null, null)));
+        CredentialConfigurationSource credentialConfigurationSource = new ClasspathCredentialConfigurationSource(new LocalResourceProperties(List.of(URI.create(uri))));
         credentialConfigurationSource.init();
         return credentialConfigurationSource.retrieve().getFirst();
     }

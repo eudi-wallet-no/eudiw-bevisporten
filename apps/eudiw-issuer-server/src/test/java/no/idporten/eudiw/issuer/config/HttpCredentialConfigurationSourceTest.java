@@ -91,8 +91,7 @@ public class HttpCredentialConfigurationSourceTest {
         customizer.customize(builder);
         mockServer = customizer.getServer();
         RestClient restClient = builder.build();
-        CredentialConfigurationSourceProperties properties = new CredentialConfigurationSourceProperties(apiConnectionProperties);
-        credentialConfigurationSource = new HttpCredentialConfigurationSource(properties);
+        credentialConfigurationSource = new HttpCredentialConfigurationSource(apiConnectionProperties);
         credentialConfigurationSource.setRestClient(restClient);
     }
 

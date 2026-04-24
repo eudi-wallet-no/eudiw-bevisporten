@@ -10,8 +10,6 @@ import java.util.Objects;
  */
 public interface CredentialConfigurationSource {
 
-    CredentialConfigurationSourceProperties getProperties();
-
     /**
      * Initialize this credential configuration source.  Will be called once at startup.
      */

@@ -49,7 +49,7 @@ credential-issuer-server:
       display-names:
         "no": "PID-utsteder"
       credential-configuration-sources-properties:
-        - api:
-            uri: classpath:credential-configurations/pid/pid_mso_mdoc.json
-        - api:
-            uri: classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+        - local:
+            paths:
+              - classpath:credential-configurations/pid/pid_mso_mdoc.json
+              - classpath:credential-configurations/pid/pid_sd_jwt_vc.json

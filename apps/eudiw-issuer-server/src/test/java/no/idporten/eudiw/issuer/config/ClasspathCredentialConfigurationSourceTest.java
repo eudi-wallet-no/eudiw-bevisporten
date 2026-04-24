@@ -10,13 +10,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ClasspathSingleCredentialConfigurationSourceTest {
+public class ClasspathCredentialConfigurationSourceTest {
 
     private CredentialConfigurationSource credentialConfigurationSource;
 
     @BeforeEach
     void setUp() {
-        credentialConfigurationSource = new ClasspathSingleCredentialConfigurationSource(new CredentialConfigurationSourceProperties(new APIConnectionProperties(URI.create("classpath:credential-configurations/junit_mso_mdoc.json"), null, null, null, null)));
+        credentialConfigurationSource = new ClasspathCredentialConfigurationSource(new LocalResourceProperties(List.of(URI.create("classpath:credential-configurations/junit_mso_mdoc.json"))));
     }
 
     @DisplayName("then uninitialized will return empty list")
