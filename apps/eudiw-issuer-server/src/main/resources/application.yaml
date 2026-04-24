@@ -88,6 +88,13 @@ credential-issuer-server:
             api-key: ${byob-service.api-key}
             connect-timeout: 2s
             read-timeout: 2s
+    minid:
+      display-names:
+        "no": "MinID bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
 
 # Digdir standard logging
 digdir:
