@@ -30,15 +30,15 @@ public class CredentialConfigurationSourceScheduler implements InitializingBean 
     public void afterPropertiesSet() throws Exception {
         List<CredentialConfigurationSource> configurationSources = credentialIssuerServerProperties.getTenants().values().stream().map(CredentialIssuerTenant::getCredentialConfigurationSources).flatMap(Collection::stream).toList();
         for (CredentialConfigurationSource credentialConfigurationSource : configurationSources) {
-            if (credentialConfigurationSource instanceof HttpCredentialConfigurationSource) {
-                scheduleUpdate("*/30 * * * * *", credentialConfigurationSource);
+            if (credentialConfigurationSource instanceof HttpCredentialConfigurationSource configurationSource) {
+                scheduleUpdate("*/30 * * * * *", configurationSource);
             }
         }
     }
 
-    private void scheduleUpdate(String cronExpression, CredentialConfigurationSource credentialConfigurationSource) {
+    private void scheduleUpdate(String cronExpression, HttpCredentialConfigurationSource credentialConfigurationSource) {
         Runnable task = () -> {
-            log.info("Executing scheduled task to update credential configurations from {}", credentialConfigurationSource.getProperties().api().uri());
+            log.info("Executing scheduled task to update credential configurations from {}", credentialConfigurationSource.getApiConnectionProperties().uri());
             credentialConfigurationSource.refresh();
         };
         CronTrigger cronTrigger = new CronTrigger(cronExpression);

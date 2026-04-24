@@ -10,27 +10,23 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reads a single credential configuration from classpath.
+ * Reads credential configurations from classpath.
  */
-public class ClasspathSingleCredentialConfigurationSource implements CredentialConfigurationSource {
+public class ClasspathCredentialConfigurationSource implements CredentialConfigurationSource {
 
-    private static final Logger log = LoggerFactory.getLogger(ClasspathSingleCredentialConfigurationSource.class);
+    private static final Logger log = LoggerFactory.getLogger(ClasspathCredentialConfigurationSource.class);
 
-    private final CredentialConfigurationSourceProperties properties;
+    private final LocalResourceProperties properties;
     private final List<ExtendedCredentialConfiguration> credentialConfigurations;
 
-    public ClasspathSingleCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
+    public ClasspathCredentialConfigurationSource(LocalResourceProperties properties) {
         this.properties = properties;
         this.credentialConfigurations = new ArrayList<>();
-    }
-
-    @Override
-    public CredentialConfigurationSourceProperties getProperties() {
-        return properties;
     }
 
     /**
@@ -38,11 +34,17 @@ public class ClasspathSingleCredentialConfigurationSource implements CredentialC
      */
     @Override
     public void init() {
+        for (URI path : properties.paths()) {
+            this.credentialConfigurations.add(readExtendedCredentialConfiguration(path));
+        }
+    }
+
+    protected ExtendedCredentialConfiguration readExtendedCredentialConfiguration(URI uri) {
         JsonMapper jsonMapper = JsonMapper.builderWithJackson2Defaults().build();
-        try (InputStream inputStream = new DefaultResourceLoader().getResource(properties.api().uri().toString()).getInputStream()) {
-            ExtendedCredentialConfiguration extendedCredentialConfiguration = jsonMapper.readValue(inputStream, ExtendedCredentialConfiguration.class);
-            log.info("Retrieved credential configuration for {} from uri {}", extendedCredentialConfiguration.getCredentialType(), properties.api().uri());
-            this.credentialConfigurations.add(extendedCredentialConfiguration);
+        try (InputStream inputStream = new DefaultResourceLoader().getResource(uri.toString()).getInputStream()) {
+            ExtendedCredentialConfiguration credentialConfiguration = jsonMapper.readValue(inputStream, ExtendedCredentialConfiguration.class);
+            log.info("Retrieved credential configuration for {} from uri {}", credentialConfiguration.getCredentialType(), uri);
+            return credentialConfiguration;
         } catch (IOException e) {
             throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to init credential configuration source.", e);
         }

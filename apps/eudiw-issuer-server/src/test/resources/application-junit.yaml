@@ -27,21 +27,20 @@ credential-issuer-server:
       display-names:
         "no": Root Tenant
       credential-configuration-sources-properties:
-        - api:
-            uri: classpath:credential-configurations/junit_mso_mdoc.json
-        - api:
-            uri: classpath:credential-configurations/junit_sd_jwt_vc.json
-        - api:
-            uri: classpath:credential-configurations/junit_pre_mso_mdoc.json
-        - api:
-            uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+        - local:
+            paths:
+              - classpath:credential-configurations/junit_mso_mdoc.json
+              - classpath:credential-configurations/junit_sd_jwt_vc.json
+              - classpath:credential-configurations/junit_pre_mso_mdoc.json
+              - classpath:credential-configurations/junit_pre_sd_jwt_vc.json
     junit:
       batch-size: 5
       display-names:
         "no": Junit Tenant
       credential-configuration-sources-properties:
-        - api:
-            uri: classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+        - local:
+            paths:
+              - classpath:credential-configurations/junit_pre_sd_jwt_vc.json
 
 idporten-key-manager:
   keystores:

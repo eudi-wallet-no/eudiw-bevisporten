@@ -25,22 +25,15 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
 
     private static final Logger log = LoggerFactory.getLogger(HttpCredentialConfigurationSource.class);
 
-    public static final String API_KEY = "X-API-KEY";
-
-    private final CredentialConfigurationSourceProperties properties;
+    private final APIConnectionProperties apiConnectionProperties;
 
     private RestClient restClient;
 
     private final CopyOnWriteArrayList<ExtendedCredentialConfiguration> credentialConfigurations = new CopyOnWriteArrayList<>();
 
-    public HttpCredentialConfigurationSource(CredentialConfigurationSourceProperties properties) {
-        this.properties = properties;
-        this.restClient = properties.api().createRestClient();
-    }
-
-    @Override
-    public CredentialConfigurationSourceProperties getProperties() {
-        return properties;
+    public HttpCredentialConfigurationSource(APIConnectionProperties apiConnectionProperties) {
+        this.apiConnectionProperties = apiConnectionProperties;
+        this.restClient = apiConnectionProperties.createRestClient();
     }
 
     /**
@@ -64,17 +57,17 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         try {
             ExtendedCredentialConfigurations credentialConfigurations = restClient
                     .get()
-                    .uri(properties.api().uri())
+                    .uri(apiConnectionProperties.uri())
                     .retrieve()
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> handleErrorResponse(response))
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> handleErrorResponse(response))
                     .body(ExtendedCredentialConfigurations.class);
 
             if (credentialConfigurations == null || credentialConfigurations.getCredentialConfigurations() == null || credentialConfigurations.getCredentialConfigurations().isEmpty()) {
-                log.warn("No credential configurations retrieved from {}", properties.api().uri());
+                log.warn("No credential configurations retrieved from {}", apiConnectionProperties.uri());
                 return;
             }
-            log.info("Retrieved {} credential-configurations from {}", credentialConfigurations.getCredentialConfigurations().size(), properties.api().uri());
+            log.info("Retrieved {} credential-configurations from {}", credentialConfigurations.getCredentialConfigurations().size(), apiConnectionProperties.uri());
             List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = credentialConfigurations.getCredentialConfigurations().stream().map(this::fixByobCredentialConfiguration).toList();
             this.credentialConfigurations.clear();
             this.credentialConfigurations.addAll(extendedCredentialConfigurations);
@@ -89,6 +82,10 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to get data from authoritative source. Status: %s, message: %s".formatted(response.getStatusCode(), body);
         throw new CredentialConfigurationSourceException("BYOB", "Failed to get information from credential configuration source", logMessage);
+    }
+
+    public APIConnectionProperties getApiConnectionProperties() {
+        return apiConnectionProperties;
     }
 
     protected ExtendedCredentialConfiguration fixByobCredentialConfiguration(ExtendedCredentialConfiguration credentialConfiguration) {
