@@ -58,35 +58,6 @@ credential-issuer-server:
         uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
         api-key-header: X-API-KEY
         api-key: eudiw
-  tenants:
-    bevisgenerator:
-      display-names:
-        "no": "Bevisgenerator"
-      credential-configuration-sources-properties:
-        - api:
-            uri: ${byob-service.uri}
-            api-key-header: X-API-KEY
-            api-key: ${byob-service.api-key}
-            connect-timeout: 2s
-            read-timeout: 2s
-    pid:
-      display-names:
-        "no": "PID-utsteder"
-      credential-configuration-sources-properties:
-        - local:
-            paths:
-              - classpath:credential-configurations/pid/pid_mso_mdoc.json
-              - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-    demo-pid-issuer:
-      display-names:
-        "no": "Demo PID-utsteder"
-      credential-configuration-sources-properties:
-        - local:
-            paths:
-              - classpath:credential-configurations/pid/pid_preauth_mso_mdoc.json
-
-advoktatregisteret:
-  subscription-key: e944aaaf24a24dfb8352d1d49ddbd79f
 
 byob-service:
   uri: http://byob-service:9296/v1/admin/credential-configurations

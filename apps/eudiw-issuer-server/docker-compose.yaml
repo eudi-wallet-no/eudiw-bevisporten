@@ -107,7 +107,7 @@ services:
 
   issuer-ui-demo:
     image: "crutvikling.azurecr.io/eudiw-issuer-ui-demo"
-    #    image: "digital-lommebok-issuer-issuer-ui-demo" # Uncomment this line if you want to use the local image instead
+#    image: "digital-lommebok-issuer-bevisgenerator" # Uncomment this line if you want to use the local image instead
     depends_on:
       - issuer-server
     environment:
