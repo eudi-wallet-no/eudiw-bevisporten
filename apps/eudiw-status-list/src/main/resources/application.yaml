@@ -43,3 +43,14 @@ idporten-key-manager:
       key-store-password: ${SIGNING_KEYSTORE_PASSWORD}
       key-alias: ${SIGNING_KEYSTORE_KEY_ALIAS}
       key-password: ${SIGNING_KEYSTORE_KEY_PASSWORD}
+
+digdir:
+  audit:
+    application-name:  ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false                                     # optional - default 'true'
+      bearer-token: false                                    # optional - default 'true'
+      ip-address: true                                    # optional - default 'true'
+    prometheus:
+      counter: false                                     # optional - default 'true'

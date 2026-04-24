@@ -1,16 +1,17 @@
 package no.idporten.eudiw.statuslist.issuer.api;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.ErrorResponse;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
-import no.idporten.eudiw.statuslist.service.Status;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.LoggerFactory;
@@ -82,14 +83,30 @@ public class StatusListIssuerApiController {
             @ApiResponse(responseCode = "500", description = "Intern feil",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
+
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> revoke(@RequestBody @Valid StatusUpdateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
+
         // TODO add listID
-        for (StatusEntryUpdateRequest entry: request.statusListEntries()) {
-            statuslistService.updateStatus(entry.idx(), Status.INVALID);
-        }
+        List<Integer> indexes = request.statusListEntries().stream().map(StatusEntryUpdateRequest::idx).toList();
+        statuslistService.revokeStatuses(indexes);
+
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    // Temp endpoint for testing/verifying
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> getStatusForIndex(@RequestParam(value="index") @NotNull @Parameter(description = "Index on statuslist", example = "1") Integer index, @RequestParam(value="listId", required = false) @Parameter(description = "Id of statuslist", example = "1") Integer listId, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+        verifyApiKey(properties.apiKey(), apiKey);
+
+        if(listId == null){
+            listId = 1; // TODO use listId to get correct statuslist if multiple lists are supported
+        }
+
+        String status = statuslistService.getStatus(index);
+
+        return ResponseEntity.ok(status);
     }
 
     private @NonNull List<StatusEntry> allocateStatuses(StatusCreateRequest request) {
@@ -97,7 +114,7 @@ public class StatusListIssuerApiController {
         List<Integer> allocatedStatuses = statuslistService.allocateToStatusList(request.numberOfEntries());
         String listId = "1"; // TODO get list id from statuslist service and URI
         URI uri = UriComponentsBuilder.fromUriString(properties.uri()).buildAndExpand(listId).toUri();
-        for (Integer allocatedStatus: allocatedStatuses) {
+        for (Integer allocatedStatus : allocatedStatuses) {
             StatusEntry e1 = new StatusEntry(allocatedStatus, uri);
             statusEntries.add(e1);
         }
