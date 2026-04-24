@@ -1,0 +1,118 @@
+{
+  "credential_configuration_id": "no.minid.mpid_sd_jwt_vc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "validity_days": 30,
+    "require_tx_code": false,
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "credential_type": "no:minid:mpid:1",
+  "format": "dc+sd-jwt",
+  "scope": "eudiw:no:minid:mpid",
+  "credential_metadata": {
+    "display": [
+      {
+        "name": "MinID PID",
+        "locale": "no",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": "personal_administrative_number",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Norsk identitetsnummer",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "family_name",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Etternavn",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "given_name",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Fornavn",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "middle_name",
+        "type": "string",
+        "mandatory": false,
+        "display": [
+          {
+            "name": "Mellomnavn",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "birth_date",
+        "type": "iso_date",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Fødselsdato",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "expiry_date",
+        "type": "iso_date",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Gyldig til",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "issuance_date",
+        "type": "iso_date",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Ustedt",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -60,7 +60,7 @@ public class ClaimDataTypeValidator {
         if (!(claim instanceof String value)) {
             throw new InvalidCredentialDataException("Invalid type for iso_date_time claim %s".formatted(extendedClaimsDescription.name()));
         }
-        if (!value.matches(extendedClaimsDescription.validationRegex())) {
+        if (!value.matches(ClaimDataType.ISO_DATE_TIME.getDefaultRegex())) {
             throw new InvalidCredentialDataException("Invalid format for required value for iso_date_time claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
@@ -74,7 +74,7 @@ public class ClaimDataTypeValidator {
         if (!(claim instanceof String value)) {
             throw new InvalidCredentialDataException("Invalid type for iso_date claim %s".formatted(extendedClaimsDescription.name()));
         }
-        if (!value.matches(extendedClaimsDescription.validationRegex())) {
+        if (!value.matches(ClaimDataType.ISO_DATE.getDefaultRegex())) {
             throw new InvalidCredentialDataException("Invalid format for required value for iso_date claim %s".formatted(extendedClaimsDescription.name()));
         }
     }
