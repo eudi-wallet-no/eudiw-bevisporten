@@ -1,19 +1,31 @@
 package no.idporten.eudiw.statuslist.service;
 
+import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
-import static no.idporten.eudiw.statuslist.service.Status.*;
+import static no.idporten.eudiw.statuslist.service.Status.INVALID;
+import static no.idporten.eudiw.statuslist.service.Status.VALID;
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MockitoExtension.class)
 class StatusListServiceTest {
 
+
+    @Mock
+    private AuditService auditService;
+
+    @InjectMocks
+    private StatusListService statuslistService;
 
     @Test
     void getLargeJsonStatuslist() {
         long start = System.currentTimeMillis();
-        StatusListService statuslistService = new StatusListService();
         statuslistService.setStatuslist(createRandomStatuslist(1000000));
         long init = System.currentTimeMillis();
         String list = statuslistService.getJsonStatuslist();
@@ -25,7 +37,6 @@ class StatusListServiceTest {
 
     @Test
     void verifyGetJsonStatuslistFromSpecExample() {
-        StatusListService statuslistService = new StatusListService();
         // List and result from https://drafts.oauth.net/draft-ietf-oauth-status-list/draft-ietf-oauth-status-list.html#name-compressed-byte-array and
         statuslistService.setStatuslist(new HashMap<>() {{
             put(0, INVALID);
@@ -52,9 +63,9 @@ class StatusListServiceTest {
         assertEquals("78dadbb918000217015d", list, "List not equal to example=" + list);
     }
 
+
     @Test
     void getJsonStatuslistWithTwoBitsPerStatus() {
-        StatusListService statuslistService = new StatusListService();
         statuslistService.setBitsPerStatus(2);
         statuslistService.setStatuslist(new HashMap<>(Map.of(
                 0, VALID,
@@ -70,7 +81,6 @@ class StatusListServiceTest {
 
     @Test
     void getJsonStatuslistWithEightBitsPerStatus() {
-        StatusListService statuslistService = new StatusListService();
         statuslistService.setBitsPerStatus(8);
         statuslistService.setStatuslist(new HashMap<>(Map.of(
                 0, 0x12,
@@ -85,7 +95,6 @@ class StatusListServiceTest {
 
     @Test
     void setBitsPerStatusRejectsValuesOutsideSupportedRange() {
-        StatusListService statuslistService = new StatusListService();
 
         assertThrows(IllegalArgumentException.class, () -> statuslistService.setBitsPerStatus(0));
         assertThrows(IllegalArgumentException.class, () -> statuslistService.setBitsPerStatus(9));
@@ -93,7 +102,6 @@ class StatusListServiceTest {
 
     @Test
     void getJsonStatuslistRejectsStatusValueThatDoesNotFitBitSize() {
-        StatusListService statuslistService = new StatusListService();
         statuslistService.setBitsPerStatus(2);
         statuslistService.setStatuslist(new HashMap<>(Map.of(0, 0x04)));
 
@@ -121,7 +129,6 @@ class StatusListServiceTest {
 
     @Test
     void testUpdateStatus() {
-        StatusListService statuslistService = new StatusListService();
         statuslistService.setStatuslist(new HashMap<>(Map.of(0, VALID, 1, INVALID)));
         statuslistService.updateStatus(0, INVALID);
         assertEquals(INVALID, statuslistService.getStatuslist().get(0));
@@ -129,8 +136,6 @@ class StatusListServiceTest {
 
     @Test
     void testAllocateToStatusListHasUniqueValues() {
-        StatusListService statuslistService = new StatusListService();
-
         List<Integer> allocatedIndices = statuslistService.allocateToStatusList(1_000_000);
         assertNotNull(allocatedIndices);
         Set<Integer> uniqueIndices = new HashSet<>(allocatedIndices);

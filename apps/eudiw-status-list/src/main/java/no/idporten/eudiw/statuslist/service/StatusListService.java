@@ -1,5 +1,6 @@
 package no.idporten.eudiw.statuslist.service;
 
+import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -13,13 +14,16 @@ import static no.idporten.eudiw.statuslist.service.Status.VALID;
 @Service
 public class StatusListService {
 
+    private final AuditService auditService;
+
     private final static int listSize = 1_000_000;
 
     private Map<Integer, Integer> statuslist;
     private final IntStack freeIndexStack = createFreeIndexStack();
     private int bitsPerStatus = 1;
 
-    public StatusListService() {
+    public StatusListService(AuditService auditService) {
+        this.auditService = auditService;
         mockEmptyList();
     }
 
@@ -112,11 +116,28 @@ public class StatusListService {
         for (int i = 0; i < count; i++) {
             allocatedIndexes.add(freeIndexStack.pop());
         }
-
+        auditService.logAllocateIndexes(allocatedIndexes);
         return allocatedIndexes;
     }
 
-    public void updateStatus(int index, int status) {
+    public String getStatus(int index) {
+        if (!statuslist.containsKey(index)) {
+            throw new IllegalArgumentException("Index " + index + " does not exist in statuslist");
+        }
+        int status = Optional.ofNullable(statuslist.get(index)).orElse(VALID);
+        return Status.getStatus(status);
+    }
+
+    public void revokeStatuses(List<Integer> indexes) {
+        int revokeStatus = Status.INVALID;
+        for (int index : indexes) {
+            updateStatus(index, revokeStatus);
+        }
+        auditService.logUpdateIndexes(indexes, Status.getStatus(revokeStatus));
+    }
+
+
+    protected void updateStatus(int index, int status) {
         if(!List.of(Status.VALID, Status.INVALID).contains(status)){
             throw new IllegalArgumentException("Invalid status value: " + status);
         }

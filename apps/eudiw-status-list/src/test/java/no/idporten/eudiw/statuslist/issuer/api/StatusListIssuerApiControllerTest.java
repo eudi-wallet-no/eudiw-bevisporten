@@ -1,7 +1,6 @@
 package no.idporten.eudiw.statuslist.issuer.api;
 
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
-import no.idporten.eudiw.statuslist.service.Status;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -105,7 +104,7 @@ class StatusListIssuerApiControllerTest {
                 .andExpect(jsonPath("$").exists())
                 .andExpect(jsonPath("$.error").exists())
                 .andExpect(jsonPath("$.error").value(INVALID_REQUEST));
-        verify(statuslistService, never()).updateStatus(anyInt(),anyInt());
+        verify(statuslistService, never()).revokeStatuses(anyList());
     }
 
     @DisplayName("then a PUT with a valid StatusUpdateRequest will return a 204 No Content response")
@@ -121,6 +120,6 @@ class StatusListIssuerApiControllerTest {
                         .header("X-API-KEY", statusIssuerProperties.apiKey())
                         .content(statusesToRevoke))
                 .andExpect(status().isNoContent());
-        verify(statuslistService, times(1)).updateStatus(eq(idx),eq(Status.INVALID));
+        verify(statuslistService, times(1)).revokeStatuses(argThat(indices -> indices.equals(List.of(idx))));
     }
 }
