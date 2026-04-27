@@ -15,6 +15,7 @@ bevisgenerator:
     base-url: http://byob-service:9296
   issuer-server:
     credential-issuer: http://issuer-server:9240/bevisgenerator
+    credential-issuer-minid: http://issuer-server:9240/minid
 maskinporten:
   lib:
     issuer: https://maskinporten.dev/
