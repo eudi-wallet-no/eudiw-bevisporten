@@ -9,7 +9,6 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListSigningException;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import no.idporten.lib.keystore.KeyProvider;
@@ -27,7 +26,6 @@ import java.util.*;
 public class StatusProviderService {
 
     private static final String KEY_PROVIDER = "status-provider";
-    private static final List<String> existingLists = List.of("1", "2", "3");
     private final StatusProviderProperties statusProviderProperties;
     private final KeystoreManager keystoreManager;
     private final StatusListService statuslistService;
@@ -40,10 +38,6 @@ public class StatusProviderService {
     }
 
     public JWT getStatusList(String id) {
-        if (!existingLists.contains(id)) {
-            throw new StatusListNotFoundException(id);
-        }
-
         JWTClaimsSet claimsSet = buildJwtClaimsSet(id);
         return buildSignedJWT(claimsSet);
     }
@@ -69,7 +63,7 @@ public class StatusProviderService {
     }
 
     private Map<String, Object> getStatusListClaims(String id) {
-        String compressedList = statuslistService.getJsonStatuslist();
+        String compressedList = statuslistService.getJsonStatuslist(id);
         Map<String, Object> statusList = new HashMap<>();
 
         statusList.put("bits", 1);

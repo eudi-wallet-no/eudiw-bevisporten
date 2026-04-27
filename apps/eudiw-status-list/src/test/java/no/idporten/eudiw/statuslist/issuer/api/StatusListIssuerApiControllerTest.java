@@ -1,6 +1,9 @@
 package no.idporten.eudiw.statuslist.issuer.api;
 
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
+import no.idporten.eudiw.statuslist.logging.audit.AuditService;
+import no.idporten.eudiw.statuslist.service.StatusList;
+import no.idporten.eudiw.statuslist.service.StatusListRepository;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +20,7 @@ import java.net.URI;
 import java.util.List;
 
 import static no.idporten.eudiw.statuslist.exceptions.ErrorCodes.INVALID_REQUEST;
+import static no.idporten.eudiw.statuslist.service.Status.INVALID;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -40,6 +44,12 @@ class StatusListIssuerApiControllerTest {
 
     @MockitoSpyBean
     private StatusListService statuslistService;
+
+    @MockitoSpyBean
+    private StatusListRepository statusListRepository;
+
+    @MockitoSpyBean
+    private AuditService auditService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -104,14 +114,19 @@ class StatusListIssuerApiControllerTest {
                 .andExpect(jsonPath("$").exists())
                 .andExpect(jsonPath("$.error").exists())
                 .andExpect(jsonPath("$.error").value(INVALID_REQUEST));
+        verify(statuslistService, never()).updateStatus(anyString(), anyInt(),anyInt());
         verify(statuslistService, never()).revokeStatuses(anyList());
     }
 
     @DisplayName("then a PUT with a valid StatusUpdateRequest will return a 204 No Content response")
     @Test
     void revokeStatus() throws Exception {
+        StatusList statusList = new StatusList("1");
+        List<Integer> allocatedInts = statusList.allocateToStatusList(1);
+        statusListRepository.putStatusList("1", statusList);
 
-        int idx = 19;
+        int idx = allocatedInts.getFirst();
+
         StatusEntryUpdateRequest statusToRevoke = new StatusEntryUpdateRequest(idx, URI.create("https://junit.eidas2sandkasse.dev/1"), "INVALID");
 
         String statusesToRevoke = objectMapper.writeValueAsString(new StatusUpdateRequest(List.of(statusToRevoke)));
@@ -120,6 +135,7 @@ class StatusListIssuerApiControllerTest {
                         .header("X-API-KEY", statusIssuerProperties.apiKey())
                         .content(statusesToRevoke))
                 .andExpect(status().isNoContent());
-        verify(statuslistService, times(1)).revokeStatuses(argThat(indices -> indices.equals(List.of(idx))));
+        verify(statuslistService, times(1)).revokeStatuses(List.of(statusToRevoke));
+        verify(statuslistService, times(1)).updateStatus("1", idx, INVALID);
     }
 }
