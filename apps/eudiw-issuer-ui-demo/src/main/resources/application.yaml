@@ -66,6 +66,27 @@ bevisgenerator:
               "identifier": "16903349844"
             }
           }
+      - credential-configuration-id: no.minid.mpid_sd_jwt_vc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-minid}
+        description: MinID PID
+        scope: eudiw:no:minid:mpid
+        person-identifier: 24838674964
+        json-request: |
+          {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-minid}",
+            "credential_configuration_id": "no.minid.mpid_sd_jwt_vc",
+            "subject": {
+              "identifier": "24838674964"
+            },
+            "credential_data": {
+              "personal_administrative_number": "24838674964",
+              "issuance_date": "2025-09-17",
+              "given_name": "UTØRST",
+              "family_name": "KJENDIS",
+              "birth_date": "1886-03-24",
+              "expiry_date": "2025-11-01"
+            }
+          }
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: Norsk ID-bevis (mdoc push)
