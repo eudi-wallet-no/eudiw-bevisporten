@@ -14,7 +14,7 @@ bevisgenerator:
   byob-service:
     base-url: http://byob-service:9296
   issuer-server:
-    credential-issuer: http://issuer-server:9240
+    credential-issuer: http://issuer-server:9240/bevisgenerator
 #    base-url: https://utsteder.eidas2sandkasse.dev
 
 maskinporten:
