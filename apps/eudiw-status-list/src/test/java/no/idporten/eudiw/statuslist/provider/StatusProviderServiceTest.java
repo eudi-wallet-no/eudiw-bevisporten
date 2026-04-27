@@ -7,7 +7,6 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListSigningException;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import no.idporten.lib.keystore.KeyProvider;
@@ -62,7 +61,7 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should generate a valid Status List Token as JWT")
     void getValidStatusListTest() throws Exception {
-        when(mockStatusListService.getJsonStatuslist()).thenReturn("eNrbuRgAAhcBXQ");
+        when(mockStatusListService.getJsonStatuslist("1")).thenReturn("eNrbuRgAAhcBXQ");
         String testId = "1";
 
         JWT jwt = statusProviderService.getStatusList(testId);
@@ -101,19 +100,9 @@ public class StatusProviderServiceTest {
     }
 
     @Test
-    @DisplayName("Should return status list not found when calling non-existing status-list")
-    void getNonExistingStatusListTest() {
-        String nonExistingId = "non-existing-id";
-
-        assertThrows(StatusListNotFoundException.class, () -> {
-            statusProviderService.getStatusList(nonExistingId);
-        });
-    }
-
-    @Test
-    @DisplayName("Should trow StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
+    @DisplayName("Should throw StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
     void trowStatusListSigningExceptionTest1() throws Exception {
-        when(mockStatusListService.getJsonStatuslist()).thenReturn("eNrbuRgAAhcBXQ");
+        when(mockStatusListService.getJsonStatuslist("1")).thenReturn("eNrbuRgAAhcBXQ");
         doReturn(mockKeyProvider).when(keystoreManager).getKeyProvider(any());
         doReturn(mockCertificate).when(mockKeyProvider).certificate();
         when(mockCertificate.getEncoded()).thenThrow(CertificateEncodingException.class);

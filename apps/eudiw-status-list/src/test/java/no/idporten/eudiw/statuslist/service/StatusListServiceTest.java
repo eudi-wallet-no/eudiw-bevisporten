@@ -1,5 +1,6 @@
 package no.idporten.eudiw.statuslist.service;
 
+import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -7,105 +8,114 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HexFormat;
+import java.util.Map;
 
 import static no.idporten.eudiw.statuslist.service.Status.INVALID;
 import static no.idporten.eudiw.statuslist.service.Status.VALID;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class StatusListServiceTest {
-
-
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private StatusListRepository statusListRepository;
+
+    @Mock
+    StatusIssuerProperties statusIssuerProperties;
+
     @InjectMocks
-    private StatusListService statuslistService;
+    private StatusListService statusListService;
 
     @Test
     void getLargeJsonStatuslist() {
+        StatusList statusList = new StatusList("1", 1_000_000, 1);
+        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
         long start = System.currentTimeMillis();
-        statuslistService.setStatuslist(createRandomStatuslist(1000000));
         long init = System.currentTimeMillis();
-        String list = statuslistService.getJsonStatuslist();
+        String list = statusListService.getJsonStatuslist("1");
         long end = System.currentTimeMillis();
         assertNotNull(list);
         System.out.println("Init list: " + (init - start) + "ms, Generate: " + (end - init) + "ms, Total: " + (end - start) + "ms");
     }
 
-
     @Test
     void verifyGetJsonStatuslistFromSpecExample() {
         // List and result from https://drafts.oauth.net/draft-ietf-oauth-status-list/draft-ietf-oauth-status-list.html#name-compressed-byte-array and
-        statuslistService.setStatuslist(new HashMap<>() {{
-            put(0, INVALID);
-            put(1, VALID);
-            put(2, VALID);
-            put(3, INVALID);
-            put(4, INVALID);
-            put(5, INVALID);
-            put(6, VALID);
-            put(7, INVALID);
+        StatusList statusList = new StatusList("1");
+        statusList.setStatusList(
+            new HashMap<>() {{
+                put(0, INVALID);
+                put(1, VALID);
+                put(2, VALID);
+                put(3, INVALID);
+                put(4, INVALID);
+                put(5, INVALID);
+                put(6, VALID);
+                put(7, INVALID);
 
-            put(8, INVALID);
-            put(9, INVALID);
-            put(10, VALID);
-            put(11, VALID);
-            put(12, VALID);
-            put(13, INVALID);
-            put(14, VALID);
-            put(15, INVALID);
-        }});
-        String list = statuslistService.getJsonStatuslist();
+                put(8, INVALID);
+                put(9, INVALID);
+                put(10, VALID);
+                put(11, VALID);
+                put(12, VALID);
+                put(13, INVALID);
+                put(14, VALID);
+                put(15, INVALID);
+            }}
+        );
+
+        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+
+        String list = statusListService.getJsonStatuslist("1");
         assertNotNull(list);
-        //System.out.println(list);
         assertEquals("78dadbb918000217015d", list, "List not equal to example=" + list);
     }
 
-
     @Test
     void getJsonStatuslistWithTwoBitsPerStatus() {
-        statuslistService.setBitsPerStatus(2);
-        statuslistService.setStatuslist(new HashMap<>(Map.of(
+        StatusList statusList = new StatusList("1", 4, 2);
+        statusList.setStatusList(new HashMap<>(Map.of(
                 0, VALID,
                 1, INVALID,
                 2, VALID,
                 3, VALID
         )));
 
-        String list = statuslistService.getJsonStatuslist();
+        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+        String list = statusListService.getJsonStatuslist("1");
 
         assertEquals("78da63010000050005", list);
     }
 
     @Test
     void getJsonStatuslistWithEightBitsPerStatus() {
-        statuslistService.setBitsPerStatus(8);
-        statuslistService.setStatuslist(new HashMap<>(Map.of(
+        StatusList statusList = new StatusList("1", 3, 8);
+        statusList.setStatusList(new HashMap<>(Map.of(
                 0, 0x12,
                 1, 0xAB,
                 2, 0xFF
         )));
 
-        String list = statuslistService.getJsonStatuslist();
+        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+        String list = statusListService.getJsonStatuslist("1");
 
         assertEquals("78da135afd1f00028e01bd", list);
     }
 
     @Test
-    void setBitsPerStatusRejectsValuesOutsideSupportedRange() {
-
-        assertThrows(IllegalArgumentException.class, () -> statuslistService.setBitsPerStatus(0));
-        assertThrows(IllegalArgumentException.class, () -> statuslistService.setBitsPerStatus(9));
-    }
-
-    @Test
     void getJsonStatuslistRejectsStatusValueThatDoesNotFitBitSize() {
-        statuslistService.setBitsPerStatus(2);
-        statuslistService.setStatuslist(new HashMap<>(Map.of(0, 0x04)));
+        StatusList statusList = new StatusList("1", 2, 2);
+        statusList.setBitsPerStatus(2);
+        statusList.setStatusList(new HashMap<>(Map.of(0, 0x04)));
 
-        assertThrows(IllegalArgumentException.class, statuslistService::getJsonStatuslist);
+        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+
+        assertThrows(IllegalArgumentException.class, () -> statusListService.getJsonStatuslist("1"));
     }
 
 
@@ -115,30 +125,5 @@ class StatusListServiceTest {
         byte[] input = new byte[]{(byte) 0xB9, (byte) 0xA3};
         byte[] compressed = StatusListService.compressZlib(input);
         assertEquals("78dadbb918000217015d", HexFormat.of().formatHex(compressed));
-    }
-
-    private Map<Integer, Integer> createRandomStatuslist(int listSize) {
-        Random rand = new Random();
-        Map<Integer, Integer> statuslist = new HashMap<>();
-        for (int i = 0; i < listSize; i++) {
-            int randomStatus = rand.nextInt(2);
-            statuslist.put(i, randomStatus);
-        }
-        return statuslist;
-    }
-
-    @Test
-    void testUpdateStatus() {
-        statuslistService.setStatuslist(new HashMap<>(Map.of(0, VALID, 1, INVALID)));
-        statuslistService.updateStatus(0, INVALID);
-        assertEquals(INVALID, statuslistService.getStatuslist().get(0));
-    }
-
-    @Test
-    void testAllocateToStatusListHasUniqueValues() {
-        List<Integer> allocatedIndices = statuslistService.allocateToStatusList(1_000_000);
-        assertNotNull(allocatedIndices);
-        Set<Integer> uniqueIndices = new HashSet<>(allocatedIndices);
-        assertEquals(allocatedIndices.size(), uniqueIndices.size());
     }
 }

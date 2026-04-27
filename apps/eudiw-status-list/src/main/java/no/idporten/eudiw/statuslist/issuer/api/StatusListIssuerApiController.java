@@ -20,11 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.security.MessageDigest;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -88,36 +85,23 @@ public class StatusListIssuerApiController {
     public ResponseEntity<Void> revoke(@RequestBody @Valid StatusUpdateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
 
-        // TODO add listID
-        List<Integer> indexes = request.statusListEntries().stream().map(StatusEntryUpdateRequest::idx).toList();
-        statuslistService.revokeStatuses(indexes);
+        statuslistService.revokeStatuses(request.statusListEntries());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     // Temp endpoint for testing/verifying
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> getStatusForIndex(@RequestParam(value="index") @NotNull @Parameter(description = "Index on statuslist", example = "1") Integer index, @RequestParam(value="listId", required = false) @Parameter(description = "Id of statuslist", example = "1") Integer listId, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
+    public ResponseEntity<String> getStatusForIndex(@RequestParam(value="index") @NotNull @Parameter(description = "Index on statuslist", example = "1") Integer index, @RequestParam(value="listId") @Parameter(description = "Id of statuslist", example = "1") String listId, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
 
-        if(listId == null){
-            listId = 1; // TODO use listId to get correct statuslist if multiple lists are supported
-        }
-
-        String status = statuslistService.getStatus(index);
+        String status = statuslistService.getStatus(listId, index);
 
         return ResponseEntity.ok(status);
     }
 
     private @NonNull List<StatusEntry> allocateStatuses(StatusCreateRequest request) {
-        List<StatusEntry> statusEntries = new ArrayList<>(request.numberOfEntries());
-        List<Integer> allocatedStatuses = statuslistService.allocateToStatusList(request.numberOfEntries());
-        String listId = "1"; // TODO get list id from statuslist service and URI
-        URI uri = UriComponentsBuilder.fromUriString(properties.uri()).buildAndExpand(listId).toUri();
-        for (Integer allocatedStatus : allocatedStatuses) {
-            StatusEntry e1 = new StatusEntry(allocatedStatus, uri);
-            statusEntries.add(e1);
-        }
-        return statusEntries;
+        return statuslistService.allocateToStatusList(request.numberOfEntries());
+
     }
 }
