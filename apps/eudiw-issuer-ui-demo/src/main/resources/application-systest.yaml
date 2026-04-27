@@ -8,6 +8,7 @@ bevisgenerator:
     base-url: https://byob-service.eidas2sandkasse.dev
   issuer-server:
     credential-issuer: https://utsteder.eidas2sandkasse.dev/bevisgenerator
+    credential-issuer-minid: https://utsteder.eidas2sandkasse.dev/minid
 
 maskinporten:
   lib:
