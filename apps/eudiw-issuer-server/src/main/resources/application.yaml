@@ -161,3 +161,9 @@ idporten-key-manager:
       key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    minid-provider:
+      key-store-type: ${MINID_PROVIDER_KEYSTORE_TYPE}
+      key-store-location: ${MINID_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: ${MINID_PROVIDER_KEYSTORE_KEY_ALIAS}
+      key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
