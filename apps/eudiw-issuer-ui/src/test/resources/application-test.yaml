@@ -1,4 +1,0 @@
----
-issuer-ui:
-  issuer-server:
-    base-url: https://my-unit-test-issuer-server

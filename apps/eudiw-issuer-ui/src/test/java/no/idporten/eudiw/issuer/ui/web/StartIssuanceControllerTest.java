@@ -1,6 +1,7 @@
 package no.idporten.eudiw.issuer.ui.web;
 
 import no.idporten.eudiw.issuer.ui.issuer.IssuerServerService;
+import no.idporten.eudiw.issuer.ui.issuer.config.CredentialConfiguration;
 import no.idporten.eudiw.issuer.ui.issuer.domain.AuthorizedCodeGrant;
 import no.idporten.eudiw.issuer.ui.issuer.domain.CredentialOffer;
 import no.idporten.eudiw.issuer.ui.issuer.domain.Grants;
@@ -10,25 +11,29 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.net.URI;
 import java.util.Collections;
 
 import static no.idporten.eudiw.issuer.ui.web.StartIssuanceController.VIEW_ISSUANCE_RESPONSE;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("Test endpoints ")
 @AutoConfigureMockMvc
+@ActiveProfiles("junit")
 @SpringBootTest
 class StartIssuanceControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
+    @MockitoSpyBean
     private IssuerServerService issuerServerService;
 
     @DisplayName("start-issuance will returns request and issuance attributes")
@@ -38,8 +43,7 @@ class StartIssuanceControllerTest {
         String configuration_id = "test-id";
         String issuerServer = "issuer-server";
         CredentialOffer offer = new CredentialOffer(issuerServer, Collections.singletonList(configuration_id), new Grants(new AuthorizedCodeGrant(null, null)));
-        when(issuerServerService.startIssuance(configuration_id)).thenReturn(offer);
-
+        doReturn(offer).when(issuerServerService).startIssuance(any(CredentialConfiguration.class), any(URI.class));
         mockMvc.perform(get("/start-issuance?credential_configuration_id={configuration_id}", configuration_id))
                 .andExpect(status().isOk())
                 .andExpect(view().name(VIEW_ISSUANCE_RESPONSE))
