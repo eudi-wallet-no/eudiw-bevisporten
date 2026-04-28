@@ -1,0 +1,9 @@
+---
+issuer-ui:
+  issuer-server:
+    base-url: https://my-unit-test-issuer-server
+    credential-configurations:
+      - id: test-id
+        issuer: ${issuer-ui.issuer-server.base-url}/junit
+        title: Tetsbevis
+        description: Tetsbevis (mdoc)

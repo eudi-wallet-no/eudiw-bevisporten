@@ -32,6 +32,23 @@ management:
 issuer-ui:
   issuer-server:
     issuance-endpoint: /api/v1/credential-offer/create
+    credential-configurations:
+      - id: proof_of_age
+        issuer: ${issuer-ui.issuer-server.base-url}/bevisgenerator
+        title: Aldersbevis
+        description: Aldersbevis (mdoc)
+      - id: "no.digdir.eudiw.pid_mso_mdoc"
+        issuer: ${issuer-ui.issuer-server.base-url}/pid
+        title: Norsk ID-bevis
+        description: Norsk ID-bevis (mdoc)
+      - id: "no.digdir.eudiw.pid_sd_jwt_vc"
+        issuer: ${issuer-ui.issuer-server.base-url}/pid
+        title: Norsk ID-bevis
+        description: Norsk ID-bevis (SD-JWT VC)
+      - id: "no.skatteetaten.inntekt_sd_jwt_vc"
+        issuer: ${issuer-ui.issuer-server.base-url}/bevisgenerator
+        title: Inntektsbevis
+        description: Inntektsbevis (SD-JWT VC)
 
 # Digdir standard logging
 digdir:

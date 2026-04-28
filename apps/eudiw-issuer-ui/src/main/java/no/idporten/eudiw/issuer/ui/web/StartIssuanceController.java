@@ -6,6 +6,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import no.idporten.eudiw.issuer.ui.issuer.IssuerServerService;
+import no.idporten.eudiw.issuer.ui.issuer.config.CredentialConfiguration;
 import no.idporten.eudiw.issuer.ui.issuer.config.IssuerServerProperties;
 import no.idporten.eudiw.issuer.ui.issuer.domain.CredentialOffer;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -49,6 +51,7 @@ public class StartIssuanceController {
     @GetMapping("/")
     public String start(Model model) {
         model.addAttribute("credential_configuration_id", "");
+        model.addAttribute("credentialConfigurations", properties.getCredentialConfigurations());
         return "start";
     }
 
@@ -59,11 +62,14 @@ public class StartIssuanceController {
         if (credentialConfigurationId == null || credentialConfigurationId.isEmpty()) {
             credentialConfigurationId = "no.digdir.eudiw.pid_mso_mdoc";
         }
+        CredentialConfiguration credentialConfiguration = properties.findCredentialConfiguration(credentialConfigurationId);
+
         logger.info("Starting issuance for credential_configuration_id=" + credentialConfigurationId);
 
-        model.addAttribute("request", createRequestTraceing(credentialConfigurationId));
+        URI credentialOfferRequestUri = issuerServerService.createCredentialOfferRequestUri(credentialConfiguration);
+        model.addAttribute("request", createRequestTracing(credentialOfferRequestUri));
 
-        CredentialOffer response = issuerServerService.startIssuance(credentialConfigurationId);
+        CredentialOffer response = issuerServerService.startIssuance(credentialConfiguration, credentialOfferRequestUri);
 
         String uri = convertToCredentialOfferUri(response, "openid-credential-offer");
         String haipUri = convertToCredentialOfferUri(response, "haip-vci");
@@ -83,9 +89,8 @@ public class StartIssuanceController {
         return VIEW_ISSUANCE_RESPONSE;
     }
 
-    private IssuanceRequest createRequestTraceing(String offerId) {
-        String requestUri = String.format("%s?credential_configuration_id=%s", properties.getIssuanceUrl(), offerId);
-        return new IssuanceRequest(requestUri);
+    private IssuanceRequest createRequestTracing(URI uri) {
+        return new IssuanceRequest(uri.toString());
     }
 
     private String convertToCredentialOfferUri(CredentialOffer credentialOffer, String scheme) {

@@ -18,36 +18,12 @@
         </p>
     </div>
     <div class="flex-container">
-        <a th:href="@{/start-issuance?credential_configuration_id=proof_of_age}" class="ds-card"
-           data-variant="neutral" style="max-width: 500px">
-            <h2 class="ds-heading">Aldersbevis</h2>
-            <p class="ds-paragraph" data-variant="neutral">
-                eu.europa.ec.av.1 (mdoc)
-            </p>
+        <a th:each="cc : ${credentialConfigurations}"
+           th:href="@{/start-issuance?credential_configuration_id={id}(id = ${cc.id})}"
+           class="ds-card" data-variant="neutral" style="max-width: 500px">
+            <h2 class="ds-heading" th:text="${cc.title}">...</h2>
+            <p class="ds-paragraph" data-variant="neutral" th:text="${cc.description}">...</p>
         </a>
-    <a th:href="@{/start-issuance?credential_configuration_id=no.digdir.eudiw.pid_mso_mdoc}" class="ds-card"
-       data-variant="neutral" style="max-width: 500px">
-        <h2 class="ds-heading">Norsk ID-bevis</h2>
-        <p class="ds-paragraph" data-variant="neutral">
-            eu.europa.ec.eudi.pid.1 (mdoc)
-        </p>
-    </a>
-    <a th:href="@{/start-issuance?credential_configuration_id=no.digdir.eudiw.pid_sd_jwt_vc}" class="ds-card"
-       data-variant="neutral" style="max-width: 500px">
-        <h2 class="ds-heading">Norsk ID-bevis</h2>
-        <p class="ds-paragraph" data-variant="neutral">
-            urn:eudi:pid:1 (SD-JWT VC)
-        </p>
-    </a>
-        <a th:href="@{/start-issuance?credential_configuration_id=no.skatteetaten.inntekt_sd_jwt_vc}" class="ds-card"
-           data-variant="neutral" style="max-width: 500px">
-            <h2 class="ds-heading">Inntektsbevis</h2>
-            <p class="ds-paragraph" data-variant="neutral">
-                no.skatteetaten.inntekt.1 (SD-JWT VC)
-            </p>
-        </a>
-
-
     </div>
 
 </main>
