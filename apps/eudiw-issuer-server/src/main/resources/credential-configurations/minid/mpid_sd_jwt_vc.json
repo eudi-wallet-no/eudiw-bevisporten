@@ -2,7 +2,7 @@
   "credential_configuration_id": "no.minid.mpid_sd_jwt_vc",
   "credential_issuer_context": {
     "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource",
-    "credential_signing_keystore": "eaa-provider",
+    "credential_signing_keystore": "minid-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "pre_authorization_server": "maskinporten",
     "validity_days": 30,
