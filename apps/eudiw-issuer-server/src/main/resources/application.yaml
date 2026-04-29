@@ -77,17 +77,6 @@ credential-issuer-server:
             paths:
               - classpath:credential-configurations/pid/pid_mso_mdoc.json
               - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-              - classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
-              - classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
-              - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
-              - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
-              - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
-        - api:
-            uri: ${byob-service.uri}
-            api-key-header: X-API-KEY
-            api-key: ${byob-service.api-key}
-            connect-timeout: 2s
-            read-timeout: 2s
     bevisgenerator:
       display-names:
         "no": "Digdir bevisgenerator"
