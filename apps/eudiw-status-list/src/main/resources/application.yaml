@@ -34,6 +34,9 @@ status-list:
   issuer:
     uri: ${status-list.uri}/lists/{id}
     api-key: ${STATUS_ISSUER_API_KEY}
+  list-config:
+    list-size: 1000000
+    bits-per-status: 1
 
 idporten-key-manager:
   keystores:

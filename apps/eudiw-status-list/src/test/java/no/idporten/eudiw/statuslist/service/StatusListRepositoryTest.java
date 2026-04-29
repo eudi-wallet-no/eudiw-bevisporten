@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class StatusListRepositoryTest {
-    StatusListRepository statusListRepository = new StatusListRepository();
+    StatusListRepository statusListRepository = new StatusListRepository(new StatusListProperties(1, 1));
 
 
     @Test

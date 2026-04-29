@@ -10,6 +10,12 @@ import java.util.Map;
 public class StatusListRepository {
 
     private final Map<String, StatusList> statusLists = new HashMap<>();
+    private final StatusListProperties statusListProperties;
+
+    public StatusListRepository(StatusListProperties statusListProperties) {
+        this.statusListProperties = statusListProperties;
+    }
+
 
     public StatusList getStatusList(String id) {
         if (!statusLists.containsKey(id)) {
@@ -21,7 +27,7 @@ public class StatusListRepository {
 
     public StatusList generateNewStatusList() {
         String id = "%d".formatted(statusLists.size() + 1);
-        StatusList statusList = new StatusList(id);
+        StatusList statusList = new StatusList(id, statusListProperties.listSize(), statusListProperties.bitsPerStatus());
         statusLists.put(id, statusList);
         return statusList;
     }
