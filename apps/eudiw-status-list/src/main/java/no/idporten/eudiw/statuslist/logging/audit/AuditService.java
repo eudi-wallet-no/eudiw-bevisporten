@@ -1,8 +1,6 @@
 package no.idporten.eudiw.statuslist.logging.audit;
 
 import jakarta.validation.constraints.NotNull;
-import no.idporten.eudiw.statuslist.domain.StatusEntry;
-import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,19 +40,19 @@ public class AuditService {
                 .build());
     }
 
-    public void logAllocatedEntries(@NotNull List<StatusEntry> allocatedEntries) {
+    public <T extends Auditable> void logAllocatedEntries(@NotNull AuditEntryCollection<T> allocatedEntries) {
         auditLogger.log(AuditEntry.builder()
                 .auditId(AuditID.ALLOCATE_INDEXES.auditIdentifier())
                 .logNullAttributes(false)
-                .attribute(ENTRIES, allocatedEntries.toString())
+                .attribute(ENTRIES,  allocatedEntries.toAudit())
                 .build());
     }
 
-    public void logUpdatedEntries(@NotNull List<StatusEntryUpdateRequest> updatedEntries, @NotNull String statusUpdated) {
+    public <T extends Auditable> void logUpdatedEntries(@NotNull AuditEntryCollection<T> updatedEntries, @NotNull String statusUpdated) {
         auditLogger.log(AuditEntry.builder()
                 .auditId(AuditID.UPDATE_STATUS.auditIdentifier())
                 .logNullAttributes(false)
-                .attribute(ENTRIES, updatedEntries.toString())
+                .attribute(ENTRIES, updatedEntries.toAudit())
                 .attribute(STATUS, statusUpdated)
                 .build());
 

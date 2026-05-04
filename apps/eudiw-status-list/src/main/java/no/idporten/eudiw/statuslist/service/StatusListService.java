@@ -3,9 +3,9 @@ package no.idporten.eudiw.statuslist.service;
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
+import no.idporten.eudiw.statuslist.logging.audit.AuditEntryCollection;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.zip.Deflater;
+
+import static no.idporten.eudiw.statuslist.util.StatusListUtil.buildUri;
+import static no.idporten.eudiw.statuslist.util.StatusListUtil.getListId;
+
 
 @Service
 public class StatusListService {
@@ -60,16 +64,16 @@ public class StatusListService {
     public List<StatusEntry> allocateToStatusList(int count) {
         List<StatusEntry> allocatedIndexes = new ArrayList<>(count);
         allocatedIndexes = recursiveAllocateToStatusList(count, allocatedIndexes);
-        auditService.logAllocatedEntries(allocatedIndexes);
+        auditService.logAllocatedEntries(new AuditEntryCollection<>(allocatedIndexes));
         return allocatedIndexes;
     }
 
     public void revokeStatuses(List<StatusEntryUpdateRequest> entryUpdates) {
         for (StatusEntryUpdateRequest entry : entryUpdates) {
-            updateStatus(getId(entry.uri()), entry.idx(), Status.INVALID);
+            updateStatus(getListId(entry.uri()), entry.idx(), Status.INVALID);
         }
 
-        auditService.logUpdatedEntries(entryUpdates, Status.getStatus(Status.INVALID));
+        auditService.logUpdatedEntries(new AuditEntryCollection<>(entryUpdates), Status.getStatus(Status.INVALID));
     }
 
     public void updateStatus(String id, int index, int status) {
@@ -125,16 +129,10 @@ public class StatusListService {
         List<Integer> allocated = statusList.allocateToStatusList(remainingCount);
 
         for (Integer idx : allocated) {
-            URI uri = UriComponentsBuilder.fromUriString(statusIssuerProperties.uri()).buildAndExpand(statusList.getId()).toUri();
+            URI uri = buildUri(statusIssuerProperties.uri(), statusList.getId());
             statusEntries.add(new StatusEntry(idx, uri));
         }
 
         return recursiveAllocateToStatusList(count, statusEntries);
     }
-
-    private String getId(URI uri) {
-        String[] subPath = uri.getPath().split("/");
-        return subPath[subPath.length - 1];
-    }
-
 }
