@@ -5,16 +5,34 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
+import no.idporten.eudiw.statuslist.logging.audit.Auditable;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.net.URI;
 
+import static no.idporten.eudiw.statuslist.util.StatusListUtil.getListId;
+
 public record StatusEntryUpdateRequest(
-        @Schema(description = "Index på statuslist", example = "1") @PositiveOrZero int idx,
-        @Schema(description = "URI til statusliste der index ligg", example = "https://example.com/status/lists/1") @NotNull URI uri,
-        @Schema(description = "Status type values. Verdi for revokasjon er 'INVALID' og einaste gyldig verdi", example = "INVALID") @JsonProperty("status_type") @Pattern(regexp = "^INVALID$", message = "Status_type må vera lik INVALID") String statusType) {
+        @Schema(description = "Index på statuslist", example = "1") @PositiveOrZero
+        int idx,
+
+        @Schema(description = "URI til statusliste der index ligg", example = "https://example.com/status/lists/1")
+        @NotNull
+        URI uri,
+
+        @Schema(description = "Status type values. Verdi for revokasjon er 'INVALID' og einaste gyldig verdi", example = "INVALID")
+        @JsonProperty("status_type")
+        @Pattern(regexp = "^INVALID$", message = "Status_type må vera lik INVALID")
+        String statusType
+) implements Auditable {
 
     @Override
-    public String toString() {
-        return "List: %s, Index: %d, Status: %s".formatted(uri, idx, statusType);
+    public JsonNode toAudit() {
+        ObjectNode node = JsonNodeFactory.instance.objectNode();
+        node.put("list_id", getListId(uri()));
+        node.put("idx", idx);
+        return node;
     }
 }
