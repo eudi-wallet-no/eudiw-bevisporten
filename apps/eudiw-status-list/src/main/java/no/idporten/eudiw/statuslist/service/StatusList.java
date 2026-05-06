@@ -1,5 +1,9 @@
 package no.idporten.eudiw.statuslist.service;
 
+import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.exceptions.StatusNotAllocatedException;
+import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
+
 import java.util.*;
 
 import static no.idporten.eudiw.statuslist.service.Status.VALID;
@@ -7,11 +11,10 @@ import static no.idporten.eudiw.statuslist.service.Status.VALID;
 public class StatusList {
     private final String id;
     private final int listSize;
+    private final IntStack freeIndexStack;
     private int bitsPerStatus;
     private boolean full = false;
-
     private Map<Integer, Integer> statusList = new HashMap<>();
-    private final IntStack freeIndexStack;
 
     public StatusList(String id) {
         this.id = id;
@@ -35,17 +38,6 @@ public class StatusList {
         return full;
     }
 
-    public void setStatusList(Map<Integer, Integer> statusList) {
-        this.statusList = statusList;
-    }
-
-    void setBitsPerStatus(int bitsPerStatus) {
-        if (bitsPerStatus < 1 || bitsPerStatus > 8) {
-            throw new IllegalArgumentException("bitsPerStatus must be between 1 and 8");
-        }
-        this.bitsPerStatus = bitsPerStatus;
-    }
-
     public int getStatus(int index) {
         return statusList.getOrDefault(index, VALID);
     }
@@ -54,19 +46,30 @@ public class StatusList {
         return statusList;
     }
 
+    public void setStatusList(Map<Integer, Integer> statusList) {
+        this.statusList = statusList;
+    }
+
     public boolean containsIndex(int index) {
         return statusList.containsKey(index);
     }
 
     public void addStatus(int index, int status) {
         if (!containsIndex(index)) {
-            throw new IllegalArgumentException("Index " + index + " does not exist in statuslist");
+            throw new StatusNotAllocatedException(id, index);
         }
-        statusList.put(index,  status);
+        statusList.put(index, status);
     }
 
     public int getBitsPerStatus() {
         return bitsPerStatus;
+    }
+
+    void setBitsPerStatus(int bitsPerStatus) {
+        if (bitsPerStatus < 1 || bitsPerStatus > 8) {
+            throw new StatusListException("bitsPerStatus must be between 1 and 8");
+        }
+        this.bitsPerStatus = bitsPerStatus;
     }
 
     public List<Integer> allocateToStatusList(int count) {
@@ -87,11 +90,11 @@ public class StatusList {
     }
 
     public void updateStatus(int index, int status) {
-        if(!List.of(Status.VALID, Status.INVALID).contains(status)){
-            throw new IllegalArgumentException("Invalid status value: " + status);
+        if (!Status.isSupported(status)) {
+            throw new UnsupportedStatusException(status);
         }
-        if(!statusList.containsKey(index)){
-            throw new IllegalArgumentException("Index " + index + " does not exist in statuslist");
+        if (!statusList.containsKey(index)) {
+            throw new StatusNotAllocatedException(id, index);
         }
         statusList.put(index, status);
     }

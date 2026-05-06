@@ -1,6 +1,8 @@
 package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
+import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditEntryCollection;
@@ -77,8 +79,8 @@ public class StatusListService {
     }
 
     public void updateStatus(String id, int index, int status) {
-        if (!List.of(Status.VALID, Status.INVALID).contains(status)) {
-            throw new IllegalArgumentException("Invalid status value: " + status);
+        if (!Status.isSupported(status)) {
+            throw new UnsupportedStatusException(status);
         }
 
         StatusList statusList = statusListRepository.getStatusList(id);
@@ -98,9 +100,10 @@ public class StatusListService {
 
         for (int index = 0; index < size; index++) {
             int statusValue = statusList.getStatus(index);
-            if (statusValue > maxStatusValue) {
-                throw new IllegalArgumentException(
-                        "Status value %d at index %d does not fit in %d bits".formatted(statusValue, index, bitsPerStatus)
+            if (statusValue < 0 || statusValue > maxStatusValue) {
+                throw new StatusListException(
+                        "Status %d exceeds the allowed size of %d bits at index %d in list with id %s"
+                                .formatted(statusValue, bitsPerStatus, index, statusList.getId())
                 );
             }
 

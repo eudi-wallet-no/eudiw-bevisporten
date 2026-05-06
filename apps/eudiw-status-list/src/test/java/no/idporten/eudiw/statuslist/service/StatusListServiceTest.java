@@ -1,5 +1,7 @@
 package no.idporten.eudiw.statuslist.service;
 
+import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import org.junit.jupiter.api.Test;
@@ -115,7 +117,12 @@ class StatusListServiceTest {
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
 
-        assertThrows(IllegalArgumentException.class, () -> statusListService.getJsonStatuslist("1"));
+        assertThrows(StatusListException.class, () -> statusListService.getJsonStatuslist("1"));
+    }
+
+    @Test
+    void updateStatusShouldThrowUnsupportedStatus() {
+        assertThrows(UnsupportedStatusException.class, () -> statusListService.updateStatus("1", 0, 2));
     }
 
 
