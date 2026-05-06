@@ -50,6 +50,16 @@ public class StatusListControllerAdvice {
         return errorResponseEntity(e);
     }
 
+    @ExceptionHandler(UnsupportedStatusException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedStatusException(UnsupportedStatusException e) {
+        return errorResponseEntity(e);
+    }
+
+    @ExceptionHandler(StatusNotAllocatedException.class)
+    public ResponseEntity<ErrorResponse> handleStatusNotAllocatedException(StatusNotAllocatedException e) {
+        return errorResponseEntity(e);
+    }
+
     // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
