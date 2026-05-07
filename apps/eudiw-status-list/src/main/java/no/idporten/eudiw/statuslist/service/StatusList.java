@@ -38,6 +38,10 @@ public class StatusList {
         return full;
     }
 
+    public int getListSize() {
+        return listSize;
+    }
+
     public int getStatus(int index) {
         return statusList.getOrDefault(index, VALID);
     }

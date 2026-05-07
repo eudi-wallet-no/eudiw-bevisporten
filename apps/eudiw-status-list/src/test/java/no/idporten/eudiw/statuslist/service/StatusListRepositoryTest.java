@@ -24,27 +24,28 @@ public class StatusListRepositoryTest {
     @Test
     @DisplayName("Should generate new status list with correct id")
     void getStatusListTest() {
+        StatusList sl0 = statusListRepository.getNextFreeStatusList();
         StatusList sl1 = statusListRepository.generateNewStatusList();
-        statusListRepository.putStatusList("2", new StatusList("2"));
         StatusList sl2 = statusListRepository.generateNewStatusList();
 
+        assertEquals("0", sl0.getId());
         assertEquals("1", sl1.getId());
-        assertEquals("3", sl2.getId());
+        assertEquals("2", sl2.getId());
     }
 
 
     @Test
-    @DisplayName("Should generate new status list with correct id")
+    @DisplayName("Should return new status list with correct id")
     void getNextFreeStatusListTest() {
-        StatusList sl1 = new StatusList("1", 1, 1);
+        StatusList sl0 = statusListRepository.getNextFreeStatusList();
+        sl0.allocateToStatusList(1);
+        assertEquals("0", sl0.getId());
+
+        StatusList sl1 = statusListRepository.getNextFreeStatusList();
+        assertEquals("1", sl1.getId());
         sl1.allocateToStatusList(1);
-        StatusList sl2 = new StatusList("2", 1, 1);
-        sl2.allocateToStatusList(1);
-        statusListRepository.putStatusList("1", sl1);
-        statusListRepository.putStatusList("2", sl2);
 
-        StatusList statusList = statusListRepository.getNextFreeStatusList();
-
-        assertEquals("3", statusList.getId());
+        StatusList sl2 = statusListRepository.getNextFreeStatusList();
+        assertEquals("2", sl2.getId());
     }
 }
