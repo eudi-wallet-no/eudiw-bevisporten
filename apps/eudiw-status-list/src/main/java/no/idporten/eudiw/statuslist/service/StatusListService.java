@@ -89,10 +89,7 @@ public class StatusListService {
     }
 
     private byte[] packStatuses(StatusList statusList) {
-        int size = statusList.getStatusList().keySet().stream()
-                .max(Integer::compareTo)
-                .map(maxIndex -> maxIndex + 1)
-                .orElse(0);
+        int size = statusList.getListSize();
 
         int bitsPerStatus = statusList.getBitsPerStatus();
         byte[] packed = new byte[(size * bitsPerStatus + 7) / 8];

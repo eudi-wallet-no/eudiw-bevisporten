@@ -48,7 +48,7 @@ class StatusListServiceTest {
     @Test
     void verifyGetJsonStatuslistFromSpecExample() {
         // List and result from https://drafts.oauth.net/draft-ietf-oauth-status-list/draft-ietf-oauth-status-list.html#name-compressed-byte-array and
-        StatusList statusList = new StatusList("1");
+        StatusList statusList = new StatusList("1", 16, 1);
         statusList.setStatusList(
             new HashMap<>() {{
                 put(0, INVALID);

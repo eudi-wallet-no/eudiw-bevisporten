@@ -14,6 +14,7 @@ public class StatusListRepository {
 
     public StatusListRepository(StatusListProperties statusListProperties) {
         this.statusListProperties = statusListProperties;
+        generateNewStatusList();
     }
 
 
@@ -26,7 +27,7 @@ public class StatusListRepository {
     }
 
     public StatusList generateNewStatusList() {
-        String id = "%d".formatted(statusLists.size() + 1);
+        String id = "%d".formatted(statusLists.size());
         StatusList statusList = new StatusList(id, statusListProperties.listSize(), statusListProperties.bitsPerStatus());
         statusLists.put(id, statusList);
         return statusList;
