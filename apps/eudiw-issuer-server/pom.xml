@@ -35,7 +35,7 @@
         <cose-java.version>1.1.1-WALT-SNAPSHOT</cose-java.version>
         <kotlinx-serialization-bom.version>1.11.0</kotlinx-serialization-bom.version>
         <kotlinx-coroutines-core.version>1.10.2</kotlinx-coroutines-core.version>
-        <kotlinx-datetime-jvm.version>0.7.1-0.6.x-compat</kotlinx-datetime-jvm.version>
+        <kotlinx-datetime-jvm.version>0.8.0-0.6.x-compat</kotlinx-datetime-jvm.version>
         <kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
         <idporten-log-audit.version>4.0.2</idporten-log-audit.version>
         <idporten-lib-keystore-spring-boot-4.version>2.0.1</idporten-lib-keystore-spring-boot-4.version>
