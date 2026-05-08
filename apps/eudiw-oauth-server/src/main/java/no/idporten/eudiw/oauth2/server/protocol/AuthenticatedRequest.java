@@ -1,0 +1,38 @@
+package no.idporten.eudiw.oauth2.server.protocol;
+
+public interface AuthenticatedRequest {
+
+    String getAuthorizationHeader();
+    String getClientId();
+    String getClientSecret();
+    String getClientAssertion();
+    String getClientAssertionType();
+    void setAuthenticatedClientId(String clientId);
+
+    default boolean isAuthenticatedRequest() {
+        return isClientSecretPost() || isClientSecretBasic() || isClientSecretJwt() || isNone();
+    }
+
+    default boolean isClientSecretPost() {
+        return getClientId() != null && getClientSecret() != null;
+    }
+
+    default boolean isClientSecretBasic() {
+        return getAuthorizationHeader() != null && getAuthorizationHeader().startsWith("Basic ");
+    }
+
+    default boolean isClientSecretJwt() {
+        return "urn:ietf:params:oauth:client-assertion-type:jwt-bearer".equals(getClientAssertionType());
+    }
+
+    default boolean isNone() {
+        return getClientId() != null && !(isClientSecretBasic() || isClientSecretJwt() || isClientSecretPost());
+    }
+
+    default boolean hasMoreThanOneClientAuthMethod() {
+        return isClientSecretPost() ? isClientSecretBasic() || isClientSecretJwt() : isClientSecretBasic() && isClientSecretJwt();
+    }
+
+    void clearAuthentication();
+
+}
