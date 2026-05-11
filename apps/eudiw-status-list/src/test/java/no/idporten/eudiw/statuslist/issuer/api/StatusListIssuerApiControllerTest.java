@@ -2,8 +2,8 @@ package no.idporten.eudiw.statuslist.issuer.api;
 
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
+import no.idporten.eudiw.statuslist.repository.StatusListRepository;
 import no.idporten.eudiw.statuslist.service.StatusList;
-import no.idporten.eudiw.statuslist.service.StatusListRepository;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

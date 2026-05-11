@@ -1,6 +1,7 @@
 package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
+import no.idporten.eudiw.statuslist.repository.StatusListRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

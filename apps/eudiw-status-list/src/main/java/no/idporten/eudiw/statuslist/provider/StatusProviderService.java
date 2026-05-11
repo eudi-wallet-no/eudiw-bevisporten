@@ -63,7 +63,7 @@ public class StatusProviderService {
     }
 
     private Map<String, Object> getStatusListClaims(String id) {
-        String compressedList = statuslistService.getJsonStatuslist(id);
+        String compressedList = statuslistService.getJsonStatusList(id);
         Map<String, Object> statusList = new HashMap<>();
 
         statusList.put("bits", 1);

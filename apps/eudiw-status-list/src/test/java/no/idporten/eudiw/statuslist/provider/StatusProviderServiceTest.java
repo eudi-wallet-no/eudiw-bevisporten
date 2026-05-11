@@ -61,7 +61,7 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should generate a valid Status List Token as JWT")
     void getValidStatusListTest() throws Exception {
-        when(mockStatusListService.getJsonStatuslist("1")).thenReturn("eNrbuRgAAhcBXQ");
+        when(mockStatusListService.getJsonStatusList("1")).thenReturn("eNrbuRgAAhcBXQ");
         String testId = "1";
 
         JWT jwt = statusProviderService.getStatusList(testId);
@@ -102,7 +102,7 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should throw StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
     void trowStatusListSigningExceptionTest1() throws Exception {
-        when(mockStatusListService.getJsonStatuslist("1")).thenReturn("eNrbuRgAAhcBXQ");
+        when(mockStatusListService.getJsonStatusList("1")).thenReturn("eNrbuRgAAhcBXQ");
         doReturn(mockKeyProvider).when(keystoreManager).getKeyProvider(any());
         doReturn(mockCertificate).when(mockKeyProvider).certificate();
         when(mockCertificate.getEncoded()).thenThrow(CertificateEncodingException.class);

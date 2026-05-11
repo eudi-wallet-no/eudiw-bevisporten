@@ -1,9 +1,11 @@
 package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.exceptions.StatusNotAllocatedException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
+import no.idporten.eudiw.statuslist.repository.StatusListRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,7 +41,7 @@ class StatusListServiceTest {
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
         long start = System.currentTimeMillis();
         long init = System.currentTimeMillis();
-        String list = statusListService.getJsonStatuslist("1");
+        String list = statusListService.getJsonStatusList("1");
         long end = System.currentTimeMillis();
         assertNotNull(list);
         System.out.println("Init list: " + (init - start) + "ms, Generate: " + (end - init) + "ms, Total: " + (end - start) + "ms");
@@ -73,7 +75,7 @@ class StatusListServiceTest {
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
 
-        String list = statusListService.getJsonStatuslist("1");
+        String list = statusListService.getJsonStatusList("1");
         assertNotNull(list);
         assertEquals("78dadbb918000217015d", list, "List not equal to example=" + list);
     }
@@ -89,7 +91,7 @@ class StatusListServiceTest {
         )));
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-        String list = statusListService.getJsonStatuslist("1");
+        String list = statusListService.getJsonStatusList("1");
 
         assertEquals("78da63010000050005", list);
     }
@@ -104,7 +106,7 @@ class StatusListServiceTest {
         )));
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-        String list = statusListService.getJsonStatuslist("1");
+        String list = statusListService.getJsonStatusList("1");
 
         assertEquals("78da135afd1f00028e01bd", list);
     }
@@ -117,12 +119,20 @@ class StatusListServiceTest {
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
 
-        assertThrows(StatusListException.class, () -> statusListService.getJsonStatuslist("1"));
+        assertThrows(StatusListException.class, () -> statusListService.getJsonStatusList("1"));
     }
 
     @Test
     void updateStatusShouldThrowUnsupportedStatus() {
         assertThrows(UnsupportedStatusException.class, () -> statusListService.updateStatus("1", 0, 2));
+    }
+
+    @Test
+    void updateStatusRejectsUnallocatedIndex() {
+        StatusList statusList = new StatusList("1", 2, 2);
+        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+
+        assertThrows(StatusNotAllocatedException.class, () -> statusListService.updateStatus("1", 1, INVALID));
     }
 
 
