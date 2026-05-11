@@ -71,12 +71,6 @@ credential-issuer-server:
         api-key-header: X-API-KEY
         api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
-    root:
-      credential-configuration-sources-properties:
-        - local:
-            paths:
-              - classpath:credential-configurations/pid/pid_mso_mdoc.json
-              - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
     bevisgenerator:
       display-names:
         "no": "Digdir bevisgenerator"
