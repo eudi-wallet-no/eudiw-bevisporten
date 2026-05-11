@@ -2,11 +2,13 @@ package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.exceptions.StatusNotAllocatedException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditEntryCollection;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
+import no.idporten.eudiw.statuslist.repository.StatusListRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -50,7 +52,7 @@ public class StatusListService {
         return outputStream.toByteArray();
     }
 
-    public String getJsonStatuslist(String id) {
+    public String getJsonStatusList(String id) {
         StatusList statusList = statusListRepository.getStatusList(id);
         byte[] packedBytes = packStatuses(statusList);
         byte[] compressed = compressZlib(packedBytes);
@@ -59,7 +61,7 @@ public class StatusListService {
 
 
     public String getStatus(String id, int index) {
-        int status = statusListRepository.getStatusList(id).getStatus(index);
+        int status = statusListRepository.getStatus(id, index);
         return Status.getStatus(status);
     }
 
@@ -85,7 +87,11 @@ public class StatusListService {
 
         StatusList statusList = statusListRepository.getStatusList(id);
 
-        statusList.addStatus(index, status);
+        if (!statusList.containsIndex(index)) {
+            throw new StatusNotAllocatedException(id, index);
+        }
+
+        statusList.updateStatus(index, status);
     }
 
     private byte[] packStatuses(StatusList statusList) {

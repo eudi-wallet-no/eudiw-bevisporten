@@ -1,8 +1,6 @@
 package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
-import no.idporten.eudiw.statuslist.exceptions.StatusNotAllocatedException;
-import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -34,20 +32,6 @@ class StatusListTest {
         statusList.setStatusList(new HashMap<>(Map.of(0, VALID, 1, INVALID)));
         statusList.updateStatus(0, INVALID);
         assertEquals(INVALID, statusList.getStatusList().get(0));
-    }
-
-    @Test
-    void updateStatusRejectsUnsupportedStatus() {
-        statusList.setStatusList(new HashMap<>(Map.of(0, VALID)));
-
-        assertThrows(UnsupportedStatusException.class, () -> statusList.updateStatus(0, 2));
-    }
-
-    @Test
-    void updateStatusRejectsUnallocatedIndex() {
-        statusList.setStatusList(new HashMap<>(Map.of(0, VALID)));
-
-        assertThrows(StatusNotAllocatedException.class, () -> statusList.updateStatus(1, INVALID));
     }
 
     @Test

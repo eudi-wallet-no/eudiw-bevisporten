@@ -1,12 +1,11 @@
 package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
-import no.idporten.eudiw.statuslist.exceptions.StatusNotAllocatedException;
-import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 
 import java.util.*;
 
 import static no.idporten.eudiw.statuslist.service.Status.VALID;
+import static no.idporten.eudiw.statuslist.util.StatusListUtil.createFreeIndexStack;
 
 public class StatusList {
     private final String id;
@@ -20,14 +19,16 @@ public class StatusList {
         this.id = id;
         this.listSize = 1_000_000;
         setBitsPerStatus(1);
-        freeIndexStack = createFreeIndexStack(listSize);
+        int seed = new Random().nextInt();
+        freeIndexStack = createFreeIndexStack(listSize, seed);
     }
 
     public StatusList(String id, int listSize, int bitsPerStatus) {
         this.id = id;
         this.listSize = listSize;
         setBitsPerStatus(bitsPerStatus);
-        freeIndexStack = createFreeIndexStack(listSize);
+        int seed = new Random().nextInt();
+        freeIndexStack = createFreeIndexStack(listSize, seed);
     }
 
     public String getId() {
@@ -56,13 +57,6 @@ public class StatusList {
 
     public boolean containsIndex(int index) {
         return statusList.containsKey(index);
-    }
-
-    public void addStatus(int index, int status) {
-        if (!containsIndex(index)) {
-            throw new StatusNotAllocatedException(id, index);
-        }
-        statusList.put(index, status);
     }
 
     public int getBitsPerStatus() {
@@ -94,30 +88,6 @@ public class StatusList {
     }
 
     public void updateStatus(int index, int status) {
-        if (!Status.isSupported(status)) {
-            throw new UnsupportedStatusException(status);
-        }
-        if (!statusList.containsKey(index)) {
-            throw new StatusNotAllocatedException(id, index);
-        }
         statusList.put(index, status);
-    }
-
-    private IntStack createFreeIndexStack(int count) {
-        int[] numbers = new int[count];
-
-        for (int i = 0; i < count; i++) {
-            numbers[i] = i;
-        }
-
-        Random random = new Random();
-        for (int i = count - 1; i > 0; i--) {
-            int j = random.nextInt(i + 1);
-            int temp = numbers[i];
-            numbers[i] = numbers[j];
-            numbers[j] = temp;
-        }
-
-        return new IntStack(numbers, count);
     }
 }
