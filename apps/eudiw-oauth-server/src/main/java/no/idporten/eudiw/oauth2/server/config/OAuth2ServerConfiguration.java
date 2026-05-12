@@ -78,6 +78,11 @@ public final class OAuth2ServerConfiguration {
     private URI userinfoEndpoint;
 
     /**
+     * Uri to endpoint for challenge requests to this server.
+     */
+    private URI challengeEndpoint;
+
+    /**
      * Internal id used in generated keys for OAuth2 par request_uri.
      */
     @Builder.Default
@@ -231,6 +236,18 @@ public final class OAuth2ServerConfiguration {
      */
     @Builder.Default
     private int dPopTimeSkewSeconds = 60;
+
+    /**
+     * List of supported algorithms for client attestations.
+     */
+    @Builder.Default
+    private List<JWSAlgorithm> clientAttestationSigningAlgValuesSupported = List.of(JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512);
+
+    /**
+     * List of supported algorithms for client attestation proof-of-posession.
+     */
+    @Builder.Default
+    private List<JWSAlgorithm> clientAttestationPoPSigningAlgValuesSupported = List.of(JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512);
 
     /**
      * Backward compatibility - avoid in new applications - ignore client_id parameter missing on pushed authorization requests

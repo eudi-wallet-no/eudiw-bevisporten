@@ -2,11 +2,14 @@ package no.idporten.eudiw.oauth2.server;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyType;
+import com.nimbusds.jose.util.X509CertChainUtils;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.dpop.JWKThumbprintConfirmation;
@@ -17,8 +20,8 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
-import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
+import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.util.JsonObjectBuilder;
 import no.idporten.eudiw.oauth2.server.util.StringUtils;
 
@@ -28,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.*;
 
@@ -56,6 +60,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .authorizationEndpoint(serverConfiguration.getAuthorizationEndpoint())
                 .tokenEndpoint(serverConfiguration.getTokenEndpoint())
                 .userinfoEndpoint(serverConfiguration.getUserinfoEndpoint())
+                .challengeEndpoint(serverConfiguration.getChallengeEndpoint())
                 .jwksUri(serverConfiguration.getJwksUri())
                 .grantTypesSupported(serverConfiguration.getGrantTypesSupported())
                 .acrValuesSupported(serverConfiguration.getAcrValues())
@@ -73,6 +78,8 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .preAuthorizedGrantAnonymousAccessSupported(serverConfiguration.isPreAuthorizedGrantAnonymousAccessSupported())
                 .dpopSigningAlgValuesSupported(serverConfiguration.getDPopSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
                 .dpopBoundAccessTokens(serverConfiguration.isDPopBoundAccessTokens())
+                .clientAttestationSigningAlgValuesSupported(serverConfiguration.getClientAttestationSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
+                .clientAttestationPopSigningAlgValuesSupported(serverConfiguration.getClientAttestationPoPSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
                 .build();
     }
 
@@ -329,6 +336,11 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     }
 
     @Override
+    public ChallengeResponse process(ChallengeRequest challengeRequest) throws OAuth2Exception {
+        return new ChallengeResponse(generateId());
+    }
+
+    @Override
     public ClientMetadata authenticateClient(AuthenticatedRequest authenticatedRequest) {
         if (!authenticatedRequest.isAuthenticatedRequest()) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Missing client authentication.", 401);
@@ -359,6 +371,12 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             }
             clientMetadata = authenticateClient(clientId, clientSecret);
             clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("client_secret_basic").build();
+        } else if (authenticatedRequest.isAttestationBased()) {
+            clientMetadata = authenticateClientByAttestation(authenticatedRequest.getClientId(), authenticatedRequest.getClientAttestation(), authenticatedRequest.getClientAttestationPoP());
+            if (authenticatedRequest instanceof PushedAuthorizationRequest) {
+                clientMetadata.setRedirectUris(List.of(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()));
+            }
+            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("attest_jwt_client_auth").build();
         } else if (authenticatedRequest.isNone()) {
             if (authenticatedRequest instanceof PushedAuthorizationRequest) {
                 clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId())
@@ -398,15 +416,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             if (!serverConfiguration.getTokenEndpointAuthSigningAlgValuesSupported().contains(signedJWT.getHeader().getAlgorithm())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unsupported JWT signing algorithm.", 401);
             }
-            if (signedJWT.getJWTClaimsSet().getAudience() == null || signedJWT.getJWTClaimsSet().getAudience().isEmpty()) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT audience.", 401);
-            }
-            if (signedJWT.getJWTClaimsSet().getAudience().size() != 1) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unique JWT audience required.", 401);
-            }
-            if (!signedJWT.getJWTClaimsSet().getAudience().contains(serverConfiguration.getIssuer().toString())) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown JWT audience.", 401);
-            }
+            validateJWTAudience(signedJWT);
             final ClientMetadata clientMetadata = serverConfiguration.findClient(signedJWT.getJWTClaimsSet().getSubject());
             JWSVerifier jwsVerifier = new MACVerifier(clientMetadata.getClientSecret());
             if (!signedJWT.verify(jwsVerifier)) {
@@ -426,6 +436,133 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             throw e;
         } catch (Exception e) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Assertion processing failed.", 401, e);
+        }
+    }
+
+    private void validateJWTAudience(SignedJWT signedJWT) {
+        try {
+            if (signedJWT.getJWTClaimsSet().getAudience() == null || signedJWT.getJWTClaimsSet().getAudience().isEmpty()) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT audience.", 401);
+            }
+            if (signedJWT.getJWTClaimsSet().getAudience().size() != 1) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unique JWT audience required.", 401);
+            }
+            if (!signedJWT.getJWTClaimsSet().getAudience().contains(serverConfiguration.getIssuer().toString())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown JWT audience.", 401);
+            }
+        } catch (ParseException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unparsable JWT audience.", 401, e);
+        }
+    }
+
+    protected ClientMetadata authenticateClientByAttestation(final String clientId, final String clientAttestation, String clientAttestationPoP) {
+        try {
+            final SignedJWT clientAttestationJWT = SignedJWT.parse(clientAttestation);
+            final SignedJWT clientAttestationPoPJWT = SignedJWT.parse(clientAttestationPoP);
+            validateClientAttestation(clientAttestationJWT);
+            validateClientAttestationPoP(clientAttestationJWT, clientAttestationPoPJWT);
+            if (!Objects.equals(clientId, clientAttestationJWT.getJWTClaimsSet().getSubject())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid subject.", 401);
+            }
+            if (!Objects.equals(clientId, clientAttestationPoPJWT.getJWTClaimsSet().getIssuer())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid subject.", 401);
+            }
+            return ClientMetadata.builder().clientId(clientId).build();
+        } catch (OAuth2Exception e) {
+            throw e;
+        } catch (Exception e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Attestation processing failed.", 401, e);
+        }
+    }
+
+    protected void validateClientAttestation(SignedJWT clientAttestation) {
+        if (!serverConfiguration.getClientAttestationSigningAlgValuesSupported().contains(clientAttestation.getHeader().getAlgorithm())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unsupported JWT signing algorithm.", 401);
+        }
+        X509Certificate clientAttesterCertificate = extractX509CertificateFromJWTHeader(clientAttestation);
+        ECKey clientAttesterPublicKey = extractJWKFromX509Certificate(clientAttesterCertificate);
+        verifyJWTSignature(clientAttestation, clientAttesterPublicKey);
+        verifyJWTType(clientAttestation, "oauth-client-attestation+jwt");
+        validateJWTLifetime(clientAttestation);
+    }
+
+    protected void validateClientAttestationPoP(SignedJWT clientAttestation, SignedJWT clientAttestationPoP) {
+        if (!serverConfiguration.getClientAttestationPoPSigningAlgValuesSupported().contains(clientAttestationPoP.getHeader().getAlgorithm())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unsupported PoP JWT signing algorithm.", 401);
+        }
+        ECKey clientKey = extractJWKFromCnf(clientAttestation);
+        verifyJWTSignature(clientAttestationPoP, clientKey);
+        if (!clientKey.equals(extractJWKFromCnf(clientAttestationPoP))) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. cnf claim in attestation and PoP JWT must be equal.", 401);
+        }
+        verifyJWTType(clientAttestationPoP, "oauth-client-attestation-pop+jwt");
+        validateJWTAudience(clientAttestationPoP);
+        validateJWTLifetime(clientAttestationPoP);
+    }
+
+    void verifyJWTType(SignedJWT signedJWT, String type) {
+        if (signedJWT.getHeader().getType() == null) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT typ header.", 401);
+        }
+        if (!type.equals(signedJWT.getHeader().getType().getType())) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid JWT typ header.", 401);
+        }
+    }
+
+    void verifyJWTSignature(SignedJWT signedJWT, ECKey publicKey) {
+        try {
+            JWSVerifier jwsVerifier = new ECDSAVerifier(publicKey);
+            if (!signedJWT.verify(jwsVerifier)) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid JWT signature.", 401);
+            }
+        } catch (JOSEException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Failed to verify JWT signature.", 401, e);
+        }
+    }
+
+    void validateJWTLifetime(final SignedJWT signedJWT) {
+        try {
+            if (signedJWT.getJWTClaimsSet().getExpirationTime() == null) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT exp claim.", 401);
+            }
+            if (signedJWT.getJWTClaimsSet().getExpirationTime().before(new Date())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT expired.", 401);
+            }
+        } catch (ParseException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT unparsable.", 401, e);
+        }
+    }
+
+    X509Certificate extractX509CertificateFromJWTHeader(SignedJWT signedJWT) {
+        List<X509Certificate> x5cList = null;
+        try {
+            x5cList = X509CertChainUtils.parse(signedJWT.getHeader().getX509CertChain());
+            if (x5cList.isEmpty()) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT missing x5c header.", 401);
+            }
+            return x5cList.getFirst();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    ECKey extractJWKFromX509Certificate(X509Certificate x509Certificate) {
+        try {
+            return JWK.parse(x509Certificate).toECKey();
+        } catch (JOSEException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT invalid x5c header.", 401);
+        }
+    }
+
+    ECKey extractJWKFromCnf(SignedJWT signedJWT) {
+        try {
+            ECKey ecKey = ECKey.parse((Map) signedJWT.getJWTClaimsSet().getJSONObjectClaim("cnf").get("jwk"));
+            if (ecKey.isPrivate()) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client passed private key in cnf claim.", 401);
+            }
+            return ecKey;
+        } catch (ParseException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT invalid cnf claim.", 401, e);
         }
     }
 

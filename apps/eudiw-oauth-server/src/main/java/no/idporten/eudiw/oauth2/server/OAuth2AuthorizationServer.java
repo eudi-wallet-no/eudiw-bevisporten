@@ -32,6 +32,14 @@ public interface OAuth2AuthorizationServer {
     void validate(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) throws OAuth2Exception;
 
     /**
+     * Process a request for a challenge for attestation based client authentication.
+     * @param challengeRequest
+     * @return challenge response
+     * @throws OAuth2Exception
+     */
+    ChallengeResponse process(ChallengeRequest challengeRequest) throws OAuth2Exception;
+
+    /**
      * Authenticates client with information from request.
      *
      * @throws OAuth2Exception if client authentication fails

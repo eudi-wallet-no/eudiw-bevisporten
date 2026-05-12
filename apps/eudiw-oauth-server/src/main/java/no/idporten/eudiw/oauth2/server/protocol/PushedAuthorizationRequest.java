@@ -32,6 +32,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     private transient String clientSecret;
     private transient String clientAssertion;
     private transient String clientAssertionType;
+    private transient String clientAttestation;
+    private transient String clientAttestationPoP;
     private transient String dPoPHeader;
     private String clientId;
     private String redirectUri;
@@ -72,6 +74,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
         clientSecret = getFirstValue("client_secret", parameters);
         clientAssertion = getFirstValue("client_assertion", parameters);
         clientAssertionType = getFirstValue("client_assertion_type", parameters);
+        clientAttestation = getFirstValue("OAuth-Client-Attestation", ciHeaders);
+        clientAttestationPoP = getFirstValue("OAuth-Client-Attestation-PoP", ciHeaders);
         redirectUri = getFirstValue("redirect_uri", parameters);
         state = getFirstValue("state", parameters);
         nonce = getFirstValue("nonce", parameters);
@@ -132,6 +136,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
         clientSecret = null;
         authorizationHeader = null;
         clientAssertion = null;
+        clientAttestation = null;
+        clientAttestationPoP = null;
     }
 
     @Override

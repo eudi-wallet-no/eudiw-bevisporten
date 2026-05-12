@@ -25,11 +25,12 @@ public class OpenIDProviderMetadataResponseTest {
                 () -> assertTrue(metadata.getGrantTypesSupported().contains("authorization_code")),
                 () -> assertEquals(1, metadata.getSubjectTypesSupported().size()),
                 () -> assertTrue(metadata.getSubjectTypesSupported().contains("public")),
-                () -> assertEquals(4, metadata.getTokenEndpointAuthMethodsSupported().size()),
+                () -> assertEquals(5, metadata.getTokenEndpointAuthMethodsSupported().size()),
                 () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("client_secret_basic")),
                 () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("client_secret_post")),
                 () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("client_secret_jwt")),
                 () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("none")),
+                () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("attest_jwt_client_auth")),
                 () -> assertTrue(metadata.isRequirePushedAuthorizationRequests()),
                 () -> assertTrue(metadata.isAuthorizationResponseIssParameterSupported())
         );
@@ -45,6 +46,7 @@ public class OpenIDProviderMetadataResponseTest {
                 .authorizationEndpoint(new URI("https://www.digdir.no/a"))
                 .tokenEndpoint(new URI("https://www.digdir.no/t"))
                 .jwksUri(new URI("https://www.digdir.no/j"))
+                .challengeEndpoint(new URI("https://www.digdir.no/c"))
                 .acrValueSupported("l3")
                 .acrValueSupported("l4")
                 .uiLocaleSupported("nn")
@@ -61,6 +63,10 @@ public class OpenIDProviderMetadataResponseTest {
                 .authorizationSigningAlgValueSupported("RS256")
                 .tokenEndpointAuthSigningAlgValueSupported("HS256")
                 .authorizationResponseIssParameterSupported(false)
+                .clientAttestationSigningAlgValueSupported("ES256")
+                .clientAttestationSigningAlgValueSupported("ES384")
+                .clientAttestationPopSigningAlgValueSupported("ES256")
+                .clientAttestationPopSigningAlgValueSupported("ES384")
                 .build();
 
         String json = metadata.toJsonString();
@@ -73,6 +79,7 @@ public class OpenIDProviderMetadataResponseTest {
                 () -> assertEquals("https://www.digdir.no/a", jsonMap.get("authorization_endpoint")),
                 () -> assertEquals("https://www.digdir.no/t", jsonMap.get("token_endpoint")),
                 () -> assertEquals("https://www.digdir.no/j", jsonMap.get("jwks_uri")),
+                () -> assertEquals("https://www.digdir.no/c", jsonMap.get("challenge_endpoint")),
                 () -> assertEquals(List.of("openid", "prefix:customscope"), jsonMap.get("scopes_supported")),
                 () -> assertEquals(List.of("claim1", "claim2"), jsonMap.get("claims_supported")),
                 () -> assertEquals(List.of("xxx:1", "yyy:2"), jsonMap.get("authorization_details_types_supported")),
@@ -83,11 +90,13 @@ public class OpenIDProviderMetadataResponseTest {
                 () -> assertEquals(List.of("public"), jsonMap.get("subject_types_supported")),
                 () -> assertEquals(List.of("RS256"), jsonMap.get("id_token_signing_alg_values_supported")),
                 () -> assertEquals(List.of("RS256"), jsonMap.get("authorization_signing_alg_values_supported")),
-                () -> assertEquals(List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none"), jsonMap.get("token_endpoint_auth_methods_supported")),
+                () -> assertEquals(List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none", "attest_jwt_client_auth"), jsonMap.get("token_endpoint_auth_methods_supported")),
                 () -> assertEquals(List.of("HS256"), jsonMap.get("token_endpoint_auth_signing_alg_values_supported")),
                 () -> assertEquals(List.of("nn", "nb"), jsonMap.get("ui_locales_supported")),
-                () -> assertFalse((Boolean) jsonMap.get("authorization_response_iss_parameter_supported"))
-        );
+                () -> assertFalse((Boolean) jsonMap.get("authorization_response_iss_parameter_supported")),
+                () -> assertEquals(List.of("ES256", "ES384"), jsonMap.get("client_attestation_signing_alg_values_supported")),
+                () -> assertEquals(List.of("ES256", "ES384"), jsonMap.get("client_attestation_pop_signing_alg_values_supported"))
+                );
     }
 
 }

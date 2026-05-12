@@ -98,6 +98,7 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
                         .authorizationEndpoint(UriComponentsBuilder.fromUri(issuer).path("/authorize").build().toUri())
                         .tokenEndpoint(UriComponentsBuilder.fromUri(issuer).path("/token").build().toUri())
                         .jwksUri(UriComponentsBuilder.fromUri(issuer).path("/jwks").build().toUri())
+                        .challengeEndpoint(UriComponentsBuilder.fromUri(issuer).path("/challenge").build().toUri())
                         .grantTypesSupported(grantTypesSupported)
                         .authorizationRequestLifetimeSeconds(parLifetimeSeconds)
                         .authorizationLifetimeSeconds(authorizationLifetimeSeconds)
