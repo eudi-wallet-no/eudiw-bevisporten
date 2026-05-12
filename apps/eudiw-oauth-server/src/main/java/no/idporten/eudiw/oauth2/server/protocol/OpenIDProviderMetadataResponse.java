@@ -44,6 +44,9 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     public static final String DPOP_SIGNING_ALG_VALUES_SUPPORTED = "dpop_signing_alg_values_supported";
     public static final String DPOP_BOUND_ACCESS_TOKENS = "dpop_bound_access_tokens";
     public static final String PRE_AUTHORIZED_GRANT_ANONYMOUS_ACCESS_SUPPORTED = "pre-authorized_grant_anonymous_access_supported";
+    public static final String CHALLENGE_ENDPOINT = "challenge_endpoint";
+    public static final String CLIENT_ATTESTATION_SIGNING_ALG_VALUES_SUPPORTED = "client_attestation_signing_alg_values_supported";
+    public static final String CLIENT_ATTESTATION_POP_SIGNING_ALG_VALUES_SUPPORTED = "client_attestation_pop_signing_alg_values_supported";
 
     @JsonProperty(ISSUER)
     private URI issuer;
@@ -66,6 +69,9 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
 
     @JsonProperty(USERINFO_ENDPOINT)
     private URI userinfoEndpoint;
+
+    @JsonProperty(CHALLENGE_ENDPOINT)
+    private URI challengeEndpoint;
 
     @JsonProperty(SCOPES_SUPPORTED)
     @Singular("scopeSupported")
@@ -109,7 +115,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
 
     @JsonProperty(TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED)
     @Builder.Default
-    private List<String> tokenEndpointAuthMethodsSupported = List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none");
+    private List<String> tokenEndpointAuthMethodsSupported = List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none", "attest_jwt_client_auth");
 
     @JsonProperty(TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED)
     @Singular("tokenEndpointAuthSigningAlgValueSupported")
@@ -137,6 +143,14 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     @JsonProperty(PRE_AUTHORIZED_GRANT_ANONYMOUS_ACCESS_SUPPORTED)
     private boolean preAuthorizedGrantAnonymousAccessSupported;
 
+    @Singular("clientAttestationSigningAlgValueSupported")
+    @JsonProperty(CLIENT_ATTESTATION_SIGNING_ALG_VALUES_SUPPORTED)
+    private List<String> clientAttestationSigningAlgValuesSupported;
+
+    @Singular("clientAttestationPopSigningAlgValueSupported")
+    @JsonProperty(CLIENT_ATTESTATION_POP_SIGNING_ALG_VALUES_SUPPORTED)
+    private List<String> clientAttestationPopSigningAlgValuesSupported;
+
     @Override
     public Map<String, Object> toJsonObject() {
         return JsonUtils.jsonObjectBuilder()
@@ -147,6 +161,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
                 .addAttribute(TOKEN_ENDPOINT, tokenEndpoint)
                 .addAttribute(JWKS_URI, jwksUri)
                 .addAttribute(USERINFO_ENDPOINT, userinfoEndpoint)
+                .addAttribute(CHALLENGE_ENDPOINT, challengeEndpoint)
                 .addAttribute(SCOPES_SUPPORTED, scopesSupported)
                 .addAttribute(CLAIMS_SUPPORTED, claimsSupported)
                 .addAttribute(AUTHORIZATION_DETAILS_TYPES_SUPPORTED, authorizationDetailsTypesSupported)
@@ -165,6 +180,8 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
                 .addAttribute(DPOP_SIGNING_ALG_VALUES_SUPPORTED, dpopSigningAlgValuesSupported)
                 .addAttribute(DPOP_BOUND_ACCESS_TOKENS, dpopBoundAccessTokens)
                 .addAttribute(PRE_AUTHORIZED_GRANT_ANONYMOUS_ACCESS_SUPPORTED, preAuthorizedGrantAnonymousAccessSupported)
+                .addAttribute(CLIENT_ATTESTATION_SIGNING_ALG_VALUES_SUPPORTED, clientAttestationSigningAlgValuesSupported)
+                .addAttribute(CLIENT_ATTESTATION_POP_SIGNING_ALG_VALUES_SUPPORTED, clientAttestationPopSigningAlgValuesSupported)
                 .build();
     }
 

@@ -19,6 +19,8 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
     private transient String clientSecret;
     private transient String clientAssertion;
     private transient String clientAssertionType;
+    private transient String clientAttestation;
+    private transient String clientAttestationPoP;
     private String dPoPHeader;
     private String clientId;
     private String codeVerifier;
@@ -41,6 +43,8 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
         clientSecret = getFirstValue("client_secret", parameters);
         clientAssertion = getFirstValue("client_assertion", parameters);
         clientAssertionType = getFirstValue("client_assertion_type", parameters);
+        clientAttestation = getFirstValue("OAuth-Client-Attestation", ciHeaders);
+        clientAttestationPoP = getFirstValue("OAuth-Client-Attestation-PoP", ciHeaders);
         code = getFirstValue("code", parameters);
         preAuthorizedCode = getFirstValue("pre-authorized_code", parameters);
         txCode = getFirstValue("tx_code", parameters);
@@ -59,6 +63,8 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
         clientSecret = null;
         authorizationHeader = null;
         clientAssertion = null;
+        clientAttestation = null;
+        clientAttestationPoP = null;
     }
 
     @Override
