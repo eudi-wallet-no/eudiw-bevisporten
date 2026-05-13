@@ -69,8 +69,7 @@ class ImplicitPARFlowTest {
         // 1. Process pushed authorization request and generate direct response w/tokens
         MockRequest request = new MockRequest();
         ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
-        request.addParameter("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
-        request.addParameter("client_assertion", TestUtils.createClientSecretJWT(clientMetadata, authorizationServer.getConfiguration().getIssuer().toString()).serialize());
+        request.addParameter("client_id", clientMetadata.getClientId());
         request.addParameter("code_challenge", "WWHTYIjNclXxS69q1gerQ-eTlW5ab1YCpKTorurQ3zw");
         request.addParameter("code_challenge_method", "S256");
         request.addParameter("scope", "openid");

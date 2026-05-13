@@ -3,7 +3,6 @@ package no.idporten.eudiw.oauth2.server;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
@@ -73,7 +72,6 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .requirePushedAuthorizationRequests(serverConfiguration.isRequirePushedAuthorizationRequests())
                 .idTokenSigningAlgValueSupported(serverConfiguration.getDefaultSigningAlgorithm().getName())
                 .authorizationSigningAlgValueSupported(serverConfiguration.getDefaultSigningAlgorithm().getName())
-                .tokenEndpointAuthSigningAlgValuesSupported(serverConfiguration.getTokenEndpointAuthSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
                 .authorizationResponseIssParameterSupported(serverConfiguration.isAuthorizationResponseIssParameterSupported())
                 .preAuthorizedGrantAnonymousAccessSupported(serverConfiguration.isPreAuthorizedGrantAnonymousAccessSupported())
                 .dpopSigningAlgValuesSupported(serverConfiguration.getDPopSigningAlgValuesSupported().stream().map(Algorithm::getName).toList())
@@ -352,28 +350,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
         final ClientMetadata clientMetadata;
         final ClientAuthentication clientAuthentication;
-        if (authenticatedRequest.isClientSecretPost()) {
-            clientMetadata = authenticateClient(authenticatedRequest.getClientId(), authenticatedRequest.getClientSecret());
-            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("client_secret_post").build();
-        } else if (authenticatedRequest.isClientSecretJwt()) {
-            clientMetadata = authenticateClientByJwt(authenticatedRequest.getClientAssertion());
-            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("client_secret_jwt").build();
-        } else if (authenticatedRequest.isClientSecretBasic()) {
-            final String clientId;
-            final String clientSecret;
-            try {
-                String httpBasicAuthorizationHeader = authenticatedRequest.getAuthorizationHeader();
-                final String encodedCredentials = httpBasicAuthorizationHeader.substring(httpBasicAuthorizationHeader.lastIndexOf("Basic ") + 6);
-                final String decodedCredentials = new String(java.util.Base64.getDecoder().decode(encodedCredentials));
-                String[] credentials = decodedCredentials.split(":");
-                clientId = credentials[0];
-                clientSecret = credentials[1];
-            } catch (Exception e) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid Authorization header.", 401, e);
-            }
-            clientMetadata = authenticateClient(clientId, clientSecret);
-            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("client_secret_basic").build();
-        } else if (authenticatedRequest.isAttestationBased()) {
+        if (authenticatedRequest.isAttestationBased()) {
             clientMetadata = authenticateClientByAttestation(authenticatedRequest.getClientId(), authenticatedRequest.getClientAttestation(), authenticatedRequest.getClientAttestationPoP());
             if (authenticatedRequest instanceof PushedAuthorizationRequest) {
                 clientMetadata.setRedirectUris(List.of(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()));
@@ -398,49 +375,6 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         serverConfiguration.getAuditLogger().auditClientAuthentication(clientAuthentication);
         return clientMetadata;
     }
-
-    protected ClientMetadata authenticateClient(String clientId, String clientSecret) {
-        final ClientMetadata clientMetadata = serverConfiguration.findClient(clientId);
-        if (clientMetadata == null) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown client.", 401);
-        }
-        if (!(Objects.equals(clientMetadata.getClientId(), clientId)
-              && Objects.equals(clientMetadata.getClientSecret(), clientSecret))) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication.", 401);
-
-        }
-        return clientMetadata;
-    }
-
-    protected ClientMetadata authenticateClientByJwt(final String jwt) {
-        try {
-            final SignedJWT signedJWT = SignedJWT.parse(jwt);
-            if (!serverConfiguration.getTokenEndpointAuthSigningAlgValuesSupported().contains(signedJWT.getHeader().getAlgorithm())) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unsupported JWT signing algorithm.", 401);
-            }
-            validateJWTAudience(signedJWT);
-            final ClientMetadata clientMetadata = serverConfiguration.findClient(signedJWT.getJWTClaimsSet().getSubject());
-            JWSVerifier jwsVerifier = new MACVerifier(clientMetadata.getClientSecret());
-            if (!signedJWT.verify(jwsVerifier)) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid JWT signature.", 401);
-            }
-            if (!StringUtils.hasText(signedJWT.getJWTClaimsSet().getJWTID())) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT jti claim.", 401);
-            }
-            if (signedJWT.getJWTClaimsSet().getExpirationTime() == null) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT exp claim.", 401);
-            }
-            if (signedJWT.getJWTClaimsSet().getExpirationTime().before(new Date())) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT expired.", 401);
-            }
-            return clientMetadata;
-        } catch (OAuth2Exception e) {
-            throw e;
-        } catch (Exception e) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Assertion processing failed.", 401, e);
-        }
-    }
-
     private void validateJWTAudience(SignedJWT signedJWT) {
         try {
             if (signedJWT.getJWTClaimsSet().getAudience() == null || signedJWT.getJWTClaimsSet().getAudience().isEmpty()) {

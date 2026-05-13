@@ -18,17 +18,17 @@ public class PushedAuthorizationRequestTest {
     @Test
     @DisplayName("then core parameters and headers can be parsed")
     public void testCoreParametersAndHeaders() {
-        final String authorizationHeader = "Basic foo:bar";
         final String clientId = "foo";
-        final String clientSecret = "bar";
         final String state = "ss";
         final String nonce = "nn";
         final String responseType = "code";
         final String responseMode = "form_post";
+        final String clientAttestation = "ca";
+        final String clientAttestationPoP = "cap";
         MockRequest request = new MockRequest();
-        request.addHeader("authorizatioN", authorizationHeader);
+        request.addHeader("OAuth-Client-Attestation", clientAttestation);
+        request.addHeader("OAuth-Client-Attestation-PoP", clientAttestationPoP);
         request.addParameter("client_id", clientId);
-        request.addParameter("client_secret", clientSecret);
         request.addParameter("scope", "openid  profile ");
         request.addParameter("state", state);
         request.addParameter("nonce", nonce);
@@ -38,9 +38,7 @@ public class PushedAuthorizationRequestTest {
         request.addParameter("ui_locales", "nn nb");
         PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
         assertAll(
-                () -> assertEquals(authorizationHeader, pushedAuthorizationRequest.getAuthorizationHeader()),
                 () -> assertEquals(clientId, pushedAuthorizationRequest.getClientId()),
-                () -> assertEquals(clientSecret, pushedAuthorizationRequest.getClientSecret()),
                 () -> assertTrue(pushedAuthorizationRequest.getScope().contains("openid")),
                 () -> assertTrue(pushedAuthorizationRequest.getScope().contains("profile")),
                 () -> assertEquals(state, pushedAuthorizationRequest.getState()),
@@ -110,15 +108,15 @@ public class PushedAuthorizationRequestTest {
     }
 
     @Test
-    @DisplayName("then serialization to cache hides secrets")
+    @DisplayName("then serialization to cache hides client authentication")
     public void testSerializationHidesSecrets(@TempDir File folder) throws Exception {
-        final String authorizationHeader = "Basic foo:bar";
         final String clientId = "foo";
-        final String clientSecret = "bar";
+        final String clientAttestation = "ca";
+        final String clientAttestationPoP = "cap";
         MockRequest request = new MockRequest();
-        request.addHeader("Authorization", authorizationHeader);
+        request.addHeader("OAuth-Client-Attestation", clientAttestation);
+        request.addHeader("OAuth-Client-Attestation-PoP", clientAttestationPoP);
         request.addParameter("client_id", clientId);
-        request.addParameter("client_secret", clientSecret);
         PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
         pushedAuthorizationRequest.setLifetimeSeconds(10);
 
@@ -132,8 +130,8 @@ public class PushedAuthorizationRequestTest {
         }
         assertAll(
                 () -> assertEquals(pushedAuthorizationRequest, deserialized),
-                () -> assertNull(deserialized.getClientSecret()),
-                () -> assertNull(deserialized.getAuthorizationHeader()),
+                () -> assertNull(deserialized.getClientAttestationPoP()),
+                () -> assertEquals(clientAttestation, deserialized.getClientAttestation()),
                 () -> assertEquals(clientId, deserialized.getClientId()),
                 () -> assertTrue(deserialized.isValidNow())
         );
@@ -144,7 +142,6 @@ public class PushedAuthorizationRequestTest {
     public void testAuditData() {
         final String authorizationHeader = "Basic foo:bar";
         final String clientId = "foo";
-        final String clientSecret = "bar";
         final String state = "ss";
         final String nonce = "nn";
         final String responseType = "code";
@@ -178,22 +175,6 @@ public class PushedAuthorizationRequestTest {
                 () -> assertEquals("nn nb", auditData.getAttribute("ui_locales")),
                 () -> assertNotNull(auditData.getAttribute("authorization_details")),
                 () -> assertEquals("is", auditData.getAttribute("issuer_state"))
-        );
-    }
-
-    @Test
-    @DisplayName("then audit data does not contain client_secret")
-    public void testAuditDataNoSecret() {
-        final String clientId = "foo";
-        final String clientSecret = "bar";
-        MockRequest request = new MockRequest();
-        request.addParameter("client_id", clientId);
-        request.addParameter("client_secret", clientSecret);
-        PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
-        AuditData auditData = pushedAuthorizationRequest.getAuditData();
-        assertAll(
-                () -> assertEquals(1, auditData.getAttributes().size()),
-                () -> assertEquals(clientId, auditData.getAttribute("client_id"))
         );
     }
 

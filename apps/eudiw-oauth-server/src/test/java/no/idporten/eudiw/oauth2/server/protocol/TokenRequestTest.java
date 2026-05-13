@@ -18,22 +18,25 @@ public class TokenRequestTest {
     @Test
     @DisplayName("then core parameters and headers can be parsed")
     public void testCoreParametersAndHeaders() {
-        final String authorizationHeader = "Basic foo:bar";
+        final String clientAttestation = "ca";
+        final String clientAttestationPoP = "cap";
         final String clientId = "foo";
-        final String clientSecret = "bar";
         final String code = "ccc";
         final String grantType = "ggg";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("OAuth-Client-Attestation", clientAttestation);
+        headers.put("OAuth-Client-Attestation-PoP", clientAttestationPoP);
         Map<String, String> parameters = new HashMap<>();
         parameters.put("client_id", clientId);
-        parameters.put("client_secret", clientSecret);
         parameters.put("code", code);
         parameters.put("grant_type", grantType);
 
-        TokenRequest tokenRequest = new TokenRequest(Map.of("Authorization", Collections.singletonList(authorizationHeader)), toMultiValuedMap(parameters));
+
+        TokenRequest tokenRequest = new TokenRequest(toMultiValuedMap(headers), toMultiValuedMap(parameters));
         assertAll(
-                () -> assertEquals(authorizationHeader, tokenRequest.getAuthorizationHeader()),
+                () -> assertEquals(clientAttestation, tokenRequest.getClientAttestation()),
+                () -> assertEquals(clientAttestationPoP, tokenRequest.getClientAttestationPoP()),
                 () -> assertEquals(clientId, tokenRequest.getClientId()),
-                () -> assertEquals(clientSecret, tokenRequest.getClientSecret()),
                 () -> assertEquals(code, tokenRequest.getCode()),
                 () -> assertEquals(grantType, tokenRequest.getGrantType())
         );
@@ -52,13 +55,11 @@ public class TokenRequestTest {
     @DisplayName("then audit data contains token parameters")
     public void testAuditData() {
         final String clientId = "foo";
-        final String clientSecret = "bar";
         final String code = "ccc";
         final String grantType = "ggg";
         final String redirectUri = "https://idporten.no/";
         Map<String, String> parameters = new HashMap<>();
         parameters.put("client_id", clientId);
-        parameters.put("client_secret", clientSecret);
         parameters.put("code", code);
         parameters.put("grant_type", grantType);
         parameters.put("redirect_uri", redirectUri);
@@ -70,22 +71,6 @@ public class TokenRequestTest {
                 () -> assertEquals(code, auditData.getAttribute("code")),
                 () -> assertEquals(grantType, auditData.getAttribute("grant_type")),
                 () -> assertEquals(redirectUri, auditData.getAttribute("redirect_uri"))
-        );
-    }
-
-    @Test
-    @DisplayName("then audit data does not contain client_secret")
-    public void testAuditDataNoSecret() {
-        final String clientId = "foo";
-        final String clientSecret = "bar";
-        Map<String, String> parameters = new HashMap<>();
-        parameters.put("client_id", clientId);
-        parameters.put("client_secret", clientSecret);
-        TokenRequest tokenRequest = new TokenRequest(Collections.emptyMap(), toMultiValuedMap(parameters));
-        AuditData auditData = tokenRequest.getAuditData();
-        assertAll(
-                () -> assertEquals(1, auditData.getAttributes().size()),
-                () -> assertEquals(clientId, auditData.getAttribute("client_id"))
         );
     }
 

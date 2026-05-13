@@ -24,7 +24,7 @@ public class TokenRequestProcessingTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        client1 = ClientMetadata.builder().clientId("client1").clientSecret("secret").scope("openid").redirectUri("https://junit.idporten.no/").build();
+        client1 = ClientMetadata.builder().clientId("client1").scope("openid").redirectUri("https://junit.idporten.no/").build();
         OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .client(client1)
                 .build();
@@ -37,7 +37,6 @@ public class TokenRequestProcessingTest {
     public void testInvalidGrantType() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "refresh_token");
         request.addParameter("code", "c");
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
@@ -50,7 +49,6 @@ public class TokenRequestProcessingTest {
     public void testMissingGrantType() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
         OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.process(tokenRequest));
         assertTrue(e.errorDescription().contains("Invalid parameter grant_type"));
@@ -61,7 +59,6 @@ public class TokenRequestProcessingTest {
     public void testMissingCode() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
         OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.process(tokenRequest));
@@ -73,7 +70,6 @@ public class TokenRequestProcessingTest {
     public void testUnknownAuthorizationCode() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "RxsIXCOY_4PZdei6pfv6D0T9Dp0Fhfh2GfQR0bU554M");
@@ -90,7 +86,6 @@ public class TokenRequestProcessingTest {
     public void testAuthorizationCodeIssuedToAnotherClient() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "Oxu73SxN_YdXaR6D7kp8amib-lrTe0P27qFu-jun99o");
@@ -110,7 +105,6 @@ public class TokenRequestProcessingTest {
     public void testInvalidCodeVerfier() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "cv");
@@ -130,7 +124,6 @@ public class TokenRequestProcessingTest {
     public void testMissingCodeVerifier() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
@@ -146,7 +139,6 @@ public class TokenRequestProcessingTest {
     public void testInvalidCodeVerifierTooShort() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "kort");
@@ -163,7 +155,6 @@ public class TokenRequestProcessingTest {
     public void testInvalidCodeVerifierInvalidCharacters() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "yXbcA9SFmU5hAeMka1bj_E9B1yV_E-A1QdmKM-k8æææ");
@@ -180,7 +171,6 @@ public class TokenRequestProcessingTest {
     public void testInvalidDPoPHeader() {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "0bIIA7r2upg7LcYGak1kWWJlndTO4FtDW8smeRhjf_I");
@@ -203,7 +193,6 @@ public class TokenRequestProcessingTest {
     public void testValidateTokenRequest(boolean hasDPoP) throws Exception {
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        request.addParameter("client_secret", "secret");
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", "c");
         request.addParameter("code_verifier", "yXbcA9SFmU5hAeMka1bj_E9B1yV_E-A1QdmKM-k8zw4");

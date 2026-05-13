@@ -25,10 +25,7 @@ public class OpenIDProviderMetadataResponseTest {
                 () -> assertTrue(metadata.getGrantTypesSupported().contains("authorization_code")),
                 () -> assertEquals(1, metadata.getSubjectTypesSupported().size()),
                 () -> assertTrue(metadata.getSubjectTypesSupported().contains("public")),
-                () -> assertEquals(5, metadata.getTokenEndpointAuthMethodsSupported().size()),
-                () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("client_secret_basic")),
-                () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("client_secret_post")),
-                () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("client_secret_jwt")),
+                () -> assertEquals(2, metadata.getTokenEndpointAuthMethodsSupported().size()),
                 () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("none")),
                 () -> assertTrue(metadata.getTokenEndpointAuthMethodsSupported().contains("attest_jwt_client_auth")),
                 () -> assertTrue(metadata.isRequirePushedAuthorizationRequests()),
@@ -61,7 +58,6 @@ public class OpenIDProviderMetadataResponseTest {
                 .responseModeSupported("form_post")
                 .idTokenSigningAlgValueSupported("RS256")
                 .authorizationSigningAlgValueSupported("RS256")
-                .tokenEndpointAuthSigningAlgValueSupported("HS256")
                 .authorizationResponseIssParameterSupported(false)
                 .clientAttestationSigningAlgValueSupported("ES256")
                 .clientAttestationSigningAlgValueSupported("ES384")
@@ -90,8 +86,7 @@ public class OpenIDProviderMetadataResponseTest {
                 () -> assertEquals(List.of("public"), jsonMap.get("subject_types_supported")),
                 () -> assertEquals(List.of("RS256"), jsonMap.get("id_token_signing_alg_values_supported")),
                 () -> assertEquals(List.of("RS256"), jsonMap.get("authorization_signing_alg_values_supported")),
-                () -> assertEquals(List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none", "attest_jwt_client_auth"), jsonMap.get("token_endpoint_auth_methods_supported")),
-                () -> assertEquals(List.of("HS256"), jsonMap.get("token_endpoint_auth_signing_alg_values_supported")),
+                () -> assertEquals(List.of("none", "attest_jwt_client_auth"), jsonMap.get("token_endpoint_auth_methods_supported")),
                 () -> assertEquals(List.of("nn", "nb"), jsonMap.get("ui_locales_supported")),
                 () -> assertFalse((Boolean) jsonMap.get("authorization_response_iss_parameter_supported")),
                 () -> assertEquals(List.of("ES256", "ES384"), jsonMap.get("client_attestation_signing_alg_values_supported")),

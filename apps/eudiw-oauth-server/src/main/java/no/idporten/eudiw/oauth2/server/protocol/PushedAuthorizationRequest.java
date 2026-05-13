@@ -20,19 +20,15 @@ import static no.idporten.eudiw.oauth2.server.util.MultiValuedMapUtils.*;
  * Extend this class to add more protocol parameters or use {@link #getParameter(String)} to retrieve parameters by name.
  */
 @Getter
-@EqualsAndHashCode(exclude = {"authorizationHeader", "clientSecret"})
-@ToString(exclude = {"authorizationHeader", "clientSecret"})
+@EqualsAndHashCode(exclude = {"clientAttestationPoP"})
+@ToString(exclude = {"clientAttestationPoP"})
 @NoArgsConstructor
 public class PushedAuthorizationRequest implements AuthenticatedRequest, ResourceIndicatorSupport, Cacheable, AuditDataProvider {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private transient String authorizationHeader;
-    private transient String clientSecret;
-    private transient String clientAssertion;
-    private transient String clientAssertionType;
-    private transient String clientAttestation;
+    private String clientAttestation;
     private transient String clientAttestationPoP;
     private transient String dPoPHeader;
     private String clientId;
@@ -68,12 +64,8 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
 
     public PushedAuthorizationRequest(final Map<String, List<String>> headers, final Map<String, List<String>> parameters) {
         Map<String, List<String>> ciHeaders = caseInsensitiveMap(headers);
-        this.authorizationHeader = getFirstValue("Authorization", ciHeaders);
         this.dPoPHeader = getFirstValue("dpop", ciHeaders); // TODO feile om fleire dpop-headers
         clientId = getFirstValue("client_id", parameters);
-        clientSecret = getFirstValue("client_secret", parameters);
-        clientAssertion = getFirstValue("client_assertion", parameters);
-        clientAssertionType = getFirstValue("client_assertion_type", parameters);
         clientAttestation = getFirstValue("OAuth-Client-Attestation", ciHeaders);
         clientAttestationPoP = getFirstValue("OAuth-Client-Attestation-PoP", ciHeaders);
         redirectUri = getFirstValue("redirect_uri", parameters);
@@ -133,9 +125,6 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
 
     @Override
     public void clearAuthentication() {
-        clientSecret = null;
-        authorizationHeader = null;
-        clientAssertion = null;
         clientAttestation = null;
         clientAttestationPoP = null;
     }

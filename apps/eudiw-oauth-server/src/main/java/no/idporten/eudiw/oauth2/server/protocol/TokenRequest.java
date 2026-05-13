@@ -15,11 +15,7 @@ import static no.idporten.eudiw.oauth2.server.util.MultiValuedMapUtils.*;
 @ToString(exclude = {"parameters"})
 public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupport, AuditDataProvider {
 
-    private transient String authorizationHeader;
-    private transient String clientSecret;
-    private transient String clientAssertion;
-    private transient String clientAssertionType;
-    private transient String clientAttestation;
+    private String clientAttestation;
     private transient String clientAttestationPoP;
     private String dPoPHeader;
     private String clientId;
@@ -36,13 +32,9 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
 
     public TokenRequest(final Map<String, List<String>> headers, final Map<String, List<String>> parameters) {
         Map<String, List<String>> ciHeaders = caseInsensitiveMap(headers);
-        authorizationHeader = getFirstValue("Authorization", ciHeaders);
         dPoPHeader = getFirstValue("dpop", ciHeaders);
         clientId = getFirstValue("client_id", parameters);
         codeVerifier = getFirstValue("code_verifier", parameters);
-        clientSecret = getFirstValue("client_secret", parameters);
-        clientAssertion = getFirstValue("client_assertion", parameters);
-        clientAssertionType = getFirstValue("client_assertion_type", parameters);
         clientAttestation = getFirstValue("OAuth-Client-Attestation", ciHeaders);
         clientAttestationPoP = getFirstValue("OAuth-Client-Attestation-PoP", ciHeaders);
         code = getFirstValue("code", parameters);
@@ -60,9 +52,6 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
 
     @Override
     public void clearAuthentication() {
-        clientSecret = null;
-        authorizationHeader = null;
-        clientAssertion = null;
         clientAttestation = null;
         clientAttestationPoP = null;
     }
