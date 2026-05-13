@@ -12,7 +12,7 @@ Profiles in the [resources](/src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|
-| dev     | Local development                          |
+| dev     | Local development + mariadb in docker      |
 | docker  | Docker locally, run by docker-compose file |
 | systest | Systest environment                        |
 | test    | Test environment                           |
@@ -20,7 +20,12 @@ Profiles in the [resources](/src/main/resources) folder:
 
 ## Running the application locally
 
-The `dev` and `docker` profiles runs the application with the same configuration.
+### dev
+This application requires a MariaDB instance to run. Start it with:
+
+```bash
+docker compose up -d status-list-db
+```
 
 The local hosts file should include:
 ```
@@ -31,6 +36,8 @@ The application can be started with Maven:
 ```
 mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
 ```
+
+### docker
 
 The application can be started with Docker compose:
 ```

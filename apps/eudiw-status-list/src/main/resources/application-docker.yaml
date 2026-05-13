@@ -9,7 +9,11 @@ management:
 spring:
   application:
     environment: docker
-
+  datasource:
+    url: jdbc:mariadb://status-list-db:3306/status_list_db
+    username: eudiw_user
+    password: lesssecret
+    driver-class-name: org.mariadb.jdbc.Driver
 
 status-list:
   uri: http://status-list:9288

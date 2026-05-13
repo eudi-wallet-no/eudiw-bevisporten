@@ -3,10 +3,18 @@ server:
   port: 8080
 
 spring:
-  thread-executor: virtual
+ # thread-executor: virtual
   application:
     name: digital-lommebok-status-list
     environment: default
+  datasource:
+    url: ${MARIADB_URL}
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+  flyway:
+    table: flyway_schema_history
+    locations: classpath:/db/migration
 
 management:
   server:
