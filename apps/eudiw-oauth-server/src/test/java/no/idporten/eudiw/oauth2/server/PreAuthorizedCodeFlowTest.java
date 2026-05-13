@@ -11,9 +11,14 @@ import no.idporten.eudiw.oauth2.server.audit.OpenIDConnectAuditLogger;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Set;
@@ -21,16 +26,19 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("When testing the pre-authorized code flow with the authorization server")
 class PreAuthorizedCodeFlowTest {
 
     private OpenID4VCIAuthorizationServer openID4VCIAuthorizationServer;
     private SimpleOpenIDConnectCache cache;
+    @Mock
     private OpenIDConnectAuditLogger auditLogger;
+    @Captor
+    private ArgumentCaptor<ClientAuthentication> clientAuthenticationCaptor;
 
     @BeforeEach
     public void setUp() throws Exception {
-        auditLogger = mock(OpenIDConnectAuditLogger.class);
         OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .auditLogger(auditLogger)
                 .build();
@@ -91,8 +99,9 @@ class PreAuthorizedCodeFlowTest {
 
         // 9. Check cache empty
         assertTrue(cache.isEmpty());
-        verify(auditLogger).auditClientAuthentication(any(ClientAuthentication.class));
+        verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
         verifyNoMoreInteractions(auditLogger);
+        assertEquals("none", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
     }
 
 }

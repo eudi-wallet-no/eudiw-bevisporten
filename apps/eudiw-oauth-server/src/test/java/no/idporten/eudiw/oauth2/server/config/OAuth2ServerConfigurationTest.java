@@ -87,7 +87,7 @@ public class OAuth2ServerConfigurationTest {
     @Test
     @DisplayName("then only http and https schemes are allowed for OAuth2/OIDC endpoint URIs")
     void testOnlyHttpAndHttpsEndpointUrisAllowed() throws Exception {
-        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedSercerTestConfiguration();
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedServerTestConfiguration();
         serverConfiguration.validateUri("http", true, new URI("http://localhost/"));
         serverConfiguration.validateUri("https", true, new URI("https://digdir.no/"));
         try {
@@ -101,7 +101,7 @@ public class OAuth2ServerConfigurationTest {
     @Test
     @DisplayName("then fragments are not allowed in OAuth2/OIDC endpoint URIs")
     void testFragmentsNotAllowedInEndpointUris() throws Exception {
-        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedSercerTestConfiguration();
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedServerTestConfiguration();
         serverConfiguration.validateUri("x", true, new URI("https://digdir.no/"));
         try {
             serverConfiguration.validateUri("x", true, new URI("https://digdir.no/foo#bar"));
@@ -114,7 +114,7 @@ public class OAuth2ServerConfigurationTest {
     @Test
     @DisplayName("then cache object lifetimes must be greater than zero seconds")
     void testLifetimesMustBePositiveAboveZero() throws Exception {
-        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedSercerTestConfiguration();
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedServerTestConfiguration();
         serverConfiguration.validateLifetime("x", 1);
         try {
             serverConfiguration.validateLifetime("x", 0);
@@ -127,7 +127,7 @@ public class OAuth2ServerConfigurationTest {
     @Test
     @DisplayName("then the discovery endpoint uri is calculated from the issuer uri")
     void testCalculateDiscoveryEndpointUriFromIssuer() throws Exception {
-        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedSercerTestConfiguration();
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedServerTestConfiguration();
         assertEquals("http://my-test-server/.well-known/openid-configuration", serverConfiguration.getOidcDiscoveryEndpoint().toString());
         serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder().issuer(URI.create("https://junit.idporten.no/foo")).build();
         assertEquals("https://junit.idporten.no/foo/.well-known/openid-configuration", serverConfiguration.getOidcDiscoveryEndpoint().toString());
@@ -136,7 +136,7 @@ public class OAuth2ServerConfigurationTest {
     @Test
     @DisplayName("then the iss authorization response parameter is supported by default")
     void testSupportIssParameterDefaultTrue() throws Exception {
-        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedSercerTestConfiguration();
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultEmbeddedServerTestConfiguration();
         assertTrue(serverConfiguration.isAuthorizationResponseIssParameterSupported());
     }
 

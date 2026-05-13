@@ -2,6 +2,7 @@ package no.idporten.eudiw.oauth2.server;
 
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -13,8 +14,13 @@ import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.Serializable;
 import java.net.URI;
@@ -26,13 +32,17 @@ import static no.idporten.eudiw.oauth2.server.TestUtils.getDPoPProofFactory;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("When testing the authorization code flow with the embedded oauth2 authorization server")
 class AuthorizationCodeFlowTest {
 
     private OAuth2AuthorizationServerBase oAuth2AuthorizationServer;
     private SimpleOpenIDConnectCache cache;
-    private OpenIDConnectAuditLogger auditLogger;
     private DPoPProofFactory proofFactory;
+    @Mock
+    private OpenIDConnectAuditLogger auditLogger;
+    @Captor
+    private ArgumentCaptor<ClientAuthentication> clientAuthenticationCaptor;
 
     public enum DPopTestCase {
         NONE, // no endpoint uses DPoP
@@ -40,10 +50,8 @@ class AuthorizationCodeFlowTest {
         DPOP_TOKEN; // only token endpoint uses DPoP
     }
 
-
     @BeforeEach
     public void setUp() throws Exception {
-        auditLogger = mock(OpenIDConnectAuditLogger.class);
         OAuth2ServerConfiguration oAuth2ServerConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .responseMode("form_post")
                 .userinfoEndpoint(new URI(TestUtils.defaultIssuer() + "userinfo"))
@@ -62,12 +70,22 @@ class AuthorizationCodeFlowTest {
     @DisplayName("then the server's public methods all work together to implement the protocol (this test tests everything...)")
     void testCodeFlow(DPopTestCase hasDPoP) throws Exception {
         final String dPoPHeader = hasDPoP == DPopTestCase.DPOP_ALL ? TestUtils.createDpopHeader(oAuth2AuthorizationServer.getConfiguration().getPushedAuthorizationRequestEndpoint(), proofFactory) : null;
+        final ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
+        ECKey clientKey = TestUtils.createECPrivateKey();
+
+        // 0. use attestation based client authentication
+        MockRequest request = new MockRequest();
+        ChallengeRequest challengeRequest = new ChallengeRequest(request.getHeaders());
+        ChallengeResponse challengeResponse = oAuth2AuthorizationServer.process(challengeRequest);
+        assertEquals(challengeResponse.getAttestationChallenge(), cache.getChallenge(challengeResponse.getAttestationChallenge()).challenge());
+        SignedJWT clientAttestation = TestUtils.createClientAttestation(clientMetadata.getClientId(), clientKey);
+        SignedJWT clientAttestationPoP = TestUtils.createClientAttestationPoP(clientMetadata.getClientId(), challengeResponse.getAttestationChallenge(), oAuth2AuthorizationServer.getConfiguration().getIssuer().toString(), clientKey);
 
         // 1. Process pushed authorization request
-        MockRequest request = new MockRequest();
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
-        request.addParameter("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
-        request.addParameter("client_assertion", TestUtils.createClientSecretJWT(clientMetadata, oAuth2AuthorizationServer.getConfiguration().getIssuer().toString()).serialize());
+        request = new MockRequest();
+        request.addHeader("OAuth-Client-Attestation", clientAttestation.serialize());
+        request.addHeader("OAuth-Client-Attestation-PoP", clientAttestationPoP.serialize());
+        request.addParameter("client_id", clientMetadata.getClientId());
         request.addParameter("code_challenge", "WWHTYIjNclXxS69q1gerQ-eTlW5ab1YCpKTorurQ3zw");
         request.addParameter("code_challenge_method", "S256");
         request.addParameter("scope", "openid pid.mdoc");
@@ -94,6 +112,8 @@ class AuthorizationCodeFlowTest {
         assertTrue(pushedAuthorizationResponse.getExpiresIn() > 0);
         verify(auditLogger).auditPushedAuthorizationRequest(pushedAuthorizationRequest);
         verify(auditLogger).auditPushedAuthorizationResponse(pushedAuthorizationResponse);
+        assertNull(cache.getChallenge(challengeResponse.getAttestationChallenge()));
+
         final String requestUri = pushedAuthorizationResponse.getRequestUri();
 
         // 2. Process authorization request
@@ -128,9 +148,13 @@ class AuthorizationCodeFlowTest {
 
         // 4. Process token request
         final String dPoPHeaderToken = hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP == DPopTestCase.DPOP_TOKEN ? TestUtils.createDpopHeader(oAuth2AuthorizationServer.getConfiguration().getTokenEndpoint(), proofFactory) : null;
+        challengeResponse = oAuth2AuthorizationServer.process(challengeRequest);
+        assertEquals(challengeResponse.getAttestationChallenge(), cache.getChallenge(challengeResponse.getAttestationChallenge()).challenge());
+        clientAttestationPoP = TestUtils.createClientAttestationPoP(clientMetadata.getClientId(), challengeResponse.getAttestationChallenge(), oAuth2AuthorizationServer.getConfiguration().getIssuer().toString(), clientKey);
         request = new MockRequest();
-        request.addParameter("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
-        request.addParameter("client_assertion", TestUtils.createClientSecretJWT(clientMetadata, oAuth2AuthorizationServer.getConfiguration().getIssuer().toString()).serialize());
+        request.addHeader("OAuth-Client-Attestation", clientAttestation.serialize());
+        request.addHeader("OAuth-Client-Attestation-PoP", clientAttestationPoP.serialize());
+        request.addParameter("client_id", clientMetadata.getClientId());
         request.addParameter("grant_type", "authorization_code");
         request.addParameter("code", code);
         request.addParameter("redirect_uri", clientMetadata.getRedirectUris().getFirst());
@@ -206,8 +230,9 @@ class AuthorizationCodeFlowTest {
         assertTrue(cache.getAuthorizationRequestMap().isEmpty());
         assertTrue(cache.getCode2authorizationMap().isEmpty());
         assertFalse(cache.getAccessToken2authorizationMap().isEmpty());
-        verify(auditLogger, times(2)).auditClientAuthentication(any(ClientAuthentication.class));
+        verify(auditLogger, times(2)).auditClientAuthentication(clientAuthenticationCaptor.capture());
         verifyNoMoreInteractions(auditLogger);
+        assertEquals("attest_jwt_client_auth", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
     }
 
 }

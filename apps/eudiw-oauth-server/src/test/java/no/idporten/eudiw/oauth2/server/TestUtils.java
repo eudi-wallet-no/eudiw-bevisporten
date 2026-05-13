@@ -3,6 +3,7 @@ package no.idporten.eudiw.oauth2.server;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -17,6 +18,7 @@ import com.nimbusds.oauth2.sdk.dpop.DefaultDPoPProofFactory;
 import no.idporten.eudiw.oauth2.server.cache.SimpleOpenIDConnectCache;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
+import no.idporten.eudiw.oauth2.server.util.JsonObjectBuilder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -87,7 +89,7 @@ public class TestUtils {
     /**
      * A default server configuration for testing.
      */
-    public static OAuth2ServerConfiguration defaultEmbeddedSercerTestConfiguration() throws Exception {
+    public static OAuth2ServerConfiguration defaultEmbeddedServerTestConfiguration() throws Exception {
         return defaultOAuth2ServerTestConfigurationBuilder().build();
     }
 
@@ -140,7 +142,6 @@ public class TestUtils {
         return new DefaultDPoPProofFactory(clientJWK, jwsAlg);
     }
 
-
     public static String createDpopJtk() throws JOSEException {
         ECKey clientJWK = new ECKeyGenerator(Curve.P_256).keyIDFromThumbprint(true).generate();
         return clientJWK.computeThumbprint().toString();
@@ -153,7 +154,70 @@ public class TestUtils {
         return thumbprint.toString();
     }
 
-}
+    public static ECKey createECPrivateKey() throws JOSEException {
+        return new ECKeyGenerator(Curve.P_256).keyUse(KeyUse.SIGNATURE).generate();
+    }
 
+    public static ECKey clientAttesterJWK() throws ParseException {
+        String jwk = """
+                {
+                    "kty": "EC",
+                    "d": "2-l5GM-TAWasqjRY3MyMRvY6e66NvTCz6JbGzaGt1Rw",
+                    "use": "sig",
+                    "crv": "P-256",
+                    "kid": "client-attester",
+                    "x": "HYcDXOZC5_-HkTQbLNchOVzURImyNIjBCxPxJ_bDq1c",
+                    "y": "TLXo-M78sfQ1ka3xQ0ifoS1FlJbC3MvHB4Amt3gjoZU",
+                    "alg": "ES256",
+                    "x5c": ["MIIBJjCBzKADAgECAgYBnhtoXDQwCgYIKoZIzj0EAwIwGjEYMBYGA1UEAwwPY2xpZW50LWF0dGVzdGVyMB4XDTI2MDUxMjA4NTgwNFoXDTI3MDMwODA4NTgwNFowGjEYMBYGA1UEAwwPY2xpZW50LWF0dGVzdGVyMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHYcDXOZC5/+HkTQbLNchOVzURImyNIjBCxPxJ/bDq1dMtej4zvyx9DWRrfFDSJ+hLUWUlsLcy8cHgCa3eCOhlTAKBggqhkjOPQQDAgNJADBGAiEAgGImI4eYd52Qqq6Q4aa/H3sk3Jqj7hRKocmYLJ1IEUsCIQDL4qJBw6JHFnBX1vEDbxmWuR4inapgOcsv4WtP+YKpJA=="]
+                }""";
+        return ECKey.parse(jwk);
+    }
+
+    public static SignedJWT createClientAttestation(String clientId, ECKey clientKey) throws ParseException, JOSEException {
+        ECKey clientAttesterJWK = clientAttesterJWK();
+        SignedJWT clientAttestation =
+                new SignedJWT(
+                        JWSHeader.parse("""
+                                {
+                                  "typ": "oauth-client-attestation+jwt",
+                                  "alg": "ES256",
+                                  "x5c": [
+                                    "%s"
+                                  ]
+                                }""".formatted(clientAttesterJWK.getX509CertChain().getFirst())),
+                        new JWTClaimsSet.Builder()
+                                .issuer("client-attester")
+                                .audience("anyone")
+                                .subject(clientId)
+                                .jwtID(UUID.randomUUID().toString())
+                                .expirationTime(new Date(new Date().getTime() + 1000 * 60 * 60 * 24))
+                                .claim("cnf", JsonObjectBuilder.builder().addAttribute("jwk", clientKey.toPublicJWK().toJSONObject()).build())
+                                .build());
+        clientAttestation.sign(new ECDSASigner(clientAttesterJWK.toECPrivateKey()));
+        return clientAttestation;
+    }
+
+    public static SignedJWT createClientAttestationPoP(String clientId, String challenge, String audience, ECKey clientKey) throws ParseException, JOSEException {
+        SignedJWT clientAttestationPop =
+                new SignedJWT(
+                        JWSHeader.parse("""
+                                {
+                                  "typ": "oauth-client-attestation-pop+jwt",
+                                  "alg": "ES256"
+                                }"""),
+                        new JWTClaimsSet.Builder()
+                                .issuer(clientId)
+                                .audience(audience)
+                                .jwtID(UUID.randomUUID().toString())
+                                .expirationTime(new Date(new Date().getTime() + 1000 * 60))
+                                .claim("cnf", JsonObjectBuilder.builder().addAttribute("jwk", clientKey.toPublicJWK().toJSONObject()).build())
+                                .claim("challenge", challenge)
+                                .build());
+        clientAttestationPop.sign(new ECDSASigner(clientKey.toECPrivateKey()));
+        return clientAttestationPop;
+    }
+
+}
 
 
