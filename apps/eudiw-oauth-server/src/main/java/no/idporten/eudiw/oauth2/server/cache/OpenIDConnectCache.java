@@ -1,5 +1,6 @@
 package no.idporten.eudiw.oauth2.server.cache;
 
+import no.idporten.eudiw.oauth2.server.protocol.Challenge;
 import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationRequest;
 import no.idporten.eudiw.oauth2.server.protocol.Authorization;
 /**
@@ -15,6 +16,10 @@ public interface OpenIDConnectCache {
     void putAuthorization(String code, Authorization authorization);
     Authorization getAuthorization(String code);
     void removeAuthorization(String code);
+
+    void putChallenge(Challenge challenge);
+    Challenge getChallenge(String challenge);
+    void removeChallenge(String challenge);
 
     default void putAccessTokenAndAuthorization(String token, Authorization authorization) {
         throw new UnsupportedOperationException("Cache for access tokens not implemented.");

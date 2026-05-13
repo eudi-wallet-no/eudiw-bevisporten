@@ -250,6 +250,12 @@ public final class OAuth2ServerConfiguration {
     private List<JWSAlgorithm> clientAttestationPoPSigningAlgValuesSupported = List.of(JWSAlgorithm.ES256, JWSAlgorithm.ES384, JWSAlgorithm.ES512);
 
     /**
+     * Lifetime in seconds for challenges accepted by this server.
+     */
+    @Builder.Default
+    private int challengeLifetimeSeconds = 120;
+
+    /**
      * Backward compatibility - avoid in new applications - ignore client_id parameter missing on pushed authorization requests
      * TODO: remove in future versions
      */
@@ -323,6 +329,7 @@ public final class OAuth2ServerConfiguration {
         validateLifetime("idTokenLifetimeSeconds", idTokenLifetimeSeconds);
         validateLifetime("dPopLifetimeSeconds", dPopLifetimeSeconds);
         validateLifetime("dPopTimeSkewSeconds", dPopTimeSkewSeconds);
+        validateLifetime("challengeLifetimeSeconds", challengeLifetimeSeconds);
         validateClients();
         validateList("responseModes", true, responseModes, "query", "form_post", "query.jwt");
         validateScopes();

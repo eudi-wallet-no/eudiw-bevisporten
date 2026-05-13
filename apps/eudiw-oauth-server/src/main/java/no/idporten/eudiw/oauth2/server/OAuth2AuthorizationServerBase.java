@@ -337,7 +337,9 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
     @Override
     public ChallengeResponse process(ChallengeRequest challengeRequest) throws OAuth2Exception {
-        return new ChallengeResponse(generateId());
+        Challenge challenge = new Challenge(generateId(), serverConfiguration.getChallengeLifetimeSeconds());
+        serverConfiguration.getCache().putChallenge(challenge);
+        return new ChallengeResponse(challenge.challenge());
     }
 
     @Override
@@ -465,7 +467,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid subject.", 401);
             }
             if (!Objects.equals(clientId, clientAttestationPoPJWT.getJWTClaimsSet().getIssuer())) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid subject.", 401);
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid issuer.", 401);
             }
             return ClientMetadata.builder().clientId(clientId).build();
         } catch (OAuth2Exception e) {
@@ -477,7 +479,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
     protected void validateClientAttestation(SignedJWT clientAttestation) {
         if (!serverConfiguration.getClientAttestationSigningAlgValuesSupported().contains(clientAttestation.getHeader().getAlgorithm())) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unsupported JWT signing algorithm.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Unsupported JWT signing algorithm.", 401);
         }
         X509Certificate clientAttesterCertificate = extractX509CertificateFromJWTHeader(clientAttestation);
         ECKey clientAttesterPublicKey = extractJWKFromX509Certificate(clientAttesterCertificate);
@@ -486,26 +488,50 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         validateJWTLifetime(clientAttestation);
     }
 
+    void validateAttestationChallenge(SignedJWT clientAttestationPoP) {
+        String challenge = null;
+        try {
+            challenge = clientAttestationPoP.getJWTClaimsSet().getStringClaim("challenge");
+            if (! StringUtils.hasText(challenge)) {
+                throw new OAuth2Exception(OAuth2Exception.USE_ATTESTATION_CHALLENGE, "Invalid client authentication. Missing challenge in attestation pop.", 401);
+            }
+            Challenge serverIssuedChallenge = serverConfiguration.getCache().getChallenge(challenge);
+            if (serverIssuedChallenge == null) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Unknown challenge in attestation pop.", 401);
+            }
+            if (! serverIssuedChallenge.isValidNow()) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Expired challenge in attestation pop.", 401);
+            }
+        } catch (ParseException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Failed to parse attestation pop.", 401);
+        } finally {
+            if (challenge != null) {
+                serverConfiguration.getCache().removeChallenge(challenge);
+            }
+        }
+    }
+
     protected void validateClientAttestationPoP(SignedJWT clientAttestation, SignedJWT clientAttestationPoP) {
         if (!serverConfiguration.getClientAttestationPoPSigningAlgValuesSupported().contains(clientAttestationPoP.getHeader().getAlgorithm())) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unsupported PoP JWT signing algorithm.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Unsupported PoP JWT signing algorithm.", 401);
         }
         ECKey clientKey = extractJWKFromCnf(clientAttestation);
         verifyJWTSignature(clientAttestationPoP, clientKey);
         if (!clientKey.equals(extractJWKFromCnf(clientAttestationPoP))) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. cnf claim in attestation and PoP JWT must be equal.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. cnf claim in attestation and PoP JWT must be equal.", 401);
         }
         verifyJWTType(clientAttestationPoP, "oauth-client-attestation-pop+jwt");
         validateJWTAudience(clientAttestationPoP);
+        validateAttestationChallenge(clientAttestationPoP);
         validateJWTLifetime(clientAttestationPoP);
     }
 
     void verifyJWTType(SignedJWT signedJWT, String type) {
         if (signedJWT.getHeader().getType() == null) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT typ header.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Missing JWT typ header.", 401);
         }
         if (!type.equals(signedJWT.getHeader().getType().getType())) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid JWT typ header.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Invalid JWT typ header.", 401);
         }
     }
 
@@ -538,7 +564,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         try {
             x5cList = X509CertChainUtils.parse(signedJWT.getHeader().getX509CertChain());
             if (x5cList.isEmpty()) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT missing x5c header.", 401);
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing x5c header.", 401);
             }
             return x5cList.getFirst();
         } catch (ParseException e) {
@@ -550,7 +576,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         try {
             return JWK.parse(x509Certificate).toECKey();
         } catch (JOSEException e) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT invalid x5c header.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT invalid x5c header.", 401);
         }
     }
 
@@ -558,11 +584,11 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         try {
             ECKey ecKey = ECKey.parse((Map) signedJWT.getJWTClaimsSet().getJSONObjectClaim("cnf").get("jwk"));
             if (ecKey.isPrivate()) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client passed private key in cnf claim.", 401);
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Client passed private key in cnf claim.", 401);
             }
             return ecKey;
-        } catch (ParseException e) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. JWT invalid cnf claim.", 401, e);
+        } catch (Exception e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT invalid or missing cnf claim.", 401, e);
         }
     }
 

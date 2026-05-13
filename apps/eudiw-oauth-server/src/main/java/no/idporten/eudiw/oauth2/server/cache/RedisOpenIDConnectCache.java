@@ -2,6 +2,7 @@ package no.idporten.eudiw.oauth2.server.cache;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.oauth2.server.protocol.Authorization;
+import no.idporten.eudiw.oauth2.server.protocol.Challenge;
 import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,10 @@ public class RedisOpenIDConnectCache implements OpenIDConnectCache {
 
     protected String authCacheKey(String key) {
         return applicationName + ":auth:" + key;
+    }
+
+    protected String challengeCacheKey(String key) {
+        return applicationName + ":challenge:" + key;
     }
 
     @Override
@@ -55,4 +60,20 @@ public class RedisOpenIDConnectCache implements OpenIDConnectCache {
     public void removeAuthorization(String code) {
         cache.remove(authCacheKey(code));
     }
+
+    @Override
+    public void putChallenge(Challenge challenge) {
+        cache.put(challengeCacheKey(challenge.challenge()), challenge, Duration.of(challenge.expiresAtEpochMillis() - challenge.createdAtEpochMillis(), ChronoUnit.MILLIS));
+    }
+
+    @Override
+    public Challenge getChallenge(String challenge) {
+        return (Challenge) cache.get(challengeCacheKey(challenge));
+    }
+
+    @Override
+    public void removeChallenge(String challenge) {
+        cache.remove(challengeCacheKey(challenge));
+    }
+
 }
