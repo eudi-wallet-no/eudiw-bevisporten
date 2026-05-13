@@ -4,7 +4,29 @@ networks:
     name: eudiw
 
 services:
+  status-list-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: status_list_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "36306:3306"
+    networks:
+      - eudiw
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
   status-list:
+    depends_on:
+      status-list-db:
+        condition: service_healthy
     build:
       context: .
       dockerfile: docker/dev.Dockerfile
