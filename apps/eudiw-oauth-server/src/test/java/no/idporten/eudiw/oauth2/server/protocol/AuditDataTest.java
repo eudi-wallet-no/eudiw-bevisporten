@@ -11,28 +11,28 @@ public class AuditDataTest {
     @Test
     @DisplayName("then empty tokens are removed")
     public void testMaskNullAccessToken() {
-        AuditData auditData = AuditData.builder().accessToken(null).build();
+        AuditData auditData = AuditData.builder().maskedJwt("access_token", null).build();
         assertNull(auditData.getAttribute("access_token"));
     }
 
     @Test
     @DisplayName("then short tokens are included as is")
     public void testMaskShortAccessToken() {
-        AuditData auditData = AuditData.builder().accessToken("abc").build();
+        AuditData auditData = AuditData.builder().maskedJwt("access_token", "abc").build();
         assertEquals("abc", auditData.getAttribute("access_token"));
     }
 
     @Test
     @DisplayName("then opaque tokens are masked by chopping after 10 characters")
     public void testMaskOpaqueAccessToken() {
-        AuditData auditData = AuditData.builder().accessToken("abcdefghijklmnopqrstu").build();
+        AuditData auditData = AuditData.builder().maskedJwt("access_token", "abcdefghijklmnopqrstu").build();
         assertEquals("abcdefghij...", auditData.getAttribute("access_token"));
     }
 
     @Test
-    @DisplayName("then JWK tokens are masked by removing the signature")
+    @DisplayName("then JWT tokens are masked by removing the signature")
     public void testMaskJWTAccessToken() {
-        AuditData auditData = AuditData.builder().accessToken("header.body.sign").build();
+        AuditData auditData = AuditData.builder().maskedJwt("access_token", "header.body.sign").build();
         assertEquals("header.body...", auditData.getAttribute("access_token"));
     }
 

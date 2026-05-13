@@ -7,6 +7,7 @@ import no.idporten.eudiw.oauth2.server.protocol.*;
  */
 public interface OpenIDConnectAuditLogger {
 
+    void auditChallengeResponse(ChallengeResponse challengeResponse);
     void auditClientAuthentication(ClientAuthentication clientAuthentication);
     void auditPushedAuthorizationRequest(PushedAuthorizationRequest pushedAuthorizationRequest);
     void auditPushedAuthorizationResponse(PushedAuthorizationResponse pushedAuthorizationResponse);

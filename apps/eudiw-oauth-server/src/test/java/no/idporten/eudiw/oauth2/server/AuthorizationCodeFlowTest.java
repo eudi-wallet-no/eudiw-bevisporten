@@ -231,8 +231,9 @@ class AuthorizationCodeFlowTest {
         assertTrue(cache.getCode2authorizationMap().isEmpty());
         assertFalse(cache.getAccessToken2authorizationMap().isEmpty());
         verify(auditLogger, times(2)).auditClientAuthentication(clientAuthenticationCaptor.capture());
-        verifyNoMoreInteractions(auditLogger);
         assertEquals("attest_jwt_client_auth", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
+        verify(auditLogger, times(2)).auditChallengeResponse(any());
+        verifyNoMoreInteractions(auditLogger);
     }
 
 }

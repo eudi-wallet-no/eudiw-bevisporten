@@ -4,7 +4,6 @@ package no.idporten.eudiw.oauth2.server.protocol;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import no.idporten.eudiw.oauth2.server.util.JsonObjectBuilder;
 import no.idporten.eudiw.oauth2.server.util.JsonUtils;
 
 import java.util.Map;
@@ -15,7 +14,7 @@ import java.util.Map;
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class ChallengeResponse implements JsonResponse {
+public class ChallengeResponse implements JsonResponse, AuditDataProvider {
 
     public static final String ATTESTATION_CHALLENGE = "attestation_challenge";
 
@@ -24,9 +23,12 @@ public class ChallengeResponse implements JsonResponse {
 
     @Override
     public Map<String, Object> toJsonObject() {
-        JsonObjectBuilder jsonObjectBuilder = JsonUtils.jsonObjectBuilder()
-                .addAttribute(ATTESTATION_CHALLENGE, attestationChallenge);
-        return jsonObjectBuilder.build();
+        return JsonUtils.jsonObjectBuilder().addAttribute(ATTESTATION_CHALLENGE, attestationChallenge).build();
+    }
+
+    @Override
+    public AuditData getAuditData() {
+        return AuditData.builder().attribute(ATTESTATION_CHALLENGE, attestationChallenge).build();
     }
 
 }

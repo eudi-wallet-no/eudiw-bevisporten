@@ -40,7 +40,7 @@ public class DirectPushedAuthorizationResponse extends PushedAuthorizationRespon
     protected AuditData.AuditDataBuilder buildAuditData(AuditData.AuditDataBuilder builder) {
         return builder
                 .attribute(ID_TOKEN, idToken)
-                .accessToken(accessToken)
+                .maskedJwt("access_token", accessToken)
                 .attribute(TOKEN_TYPE, tokenType)
                 .attribute(STATE, state);
     }
