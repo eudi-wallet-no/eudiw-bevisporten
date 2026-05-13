@@ -25,7 +25,7 @@ public class AuthorizationRequestProcessingTest {
     @BeforeEach
     public void setUp() throws Exception {
         auditLogger = mock(OpenIDConnectAuditLogger.class);
-        client1 = ClientMetadata.builder().clientId("client1").clientSecret("secret").scope("openid").redirectUri("https://junit.idporten.no/").build();
+        client1 = ClientMetadata.builder().clientId("client1").scope("openid").redirectUri("https://junit.idporten.no/").build();
         OAuth2ServerConfiguration oAuth2ServerConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .auditLogger(auditLogger)
                 .client(client1)
@@ -153,8 +153,6 @@ public class AuthorizationRequestProcessingTest {
                 () -> assertFalse(oAuth2AuthorizationServer.getConfiguration().isDisableClientIdCheckOnPARAuthorizationRequests()),
                 () -> assertNotNull(cachedPushedAuthorizationRequest),
                 () -> assertEquals(clientId, cachedPushedAuthorizationRequest.getClientId()),
-                () -> assertNull(cachedPushedAuthorizationRequest.getClientSecret()),
-                () -> assertNull(cachedPushedAuthorizationRequest.getAuthorizationHeader()),
                 () -> assertTrue(cachedPushedAuthorizationRequest.isValidNow())
         );
         ArgumentCaptor<AuthorizationRequest> authorizationRequestCaptor = ArgumentCaptor.forClass(AuthorizationRequest.class);

@@ -37,7 +37,6 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
     public static final String CODE_CHALLENGE_METHODS_SUPPORTED = "code_challenge_methods_supported";
     public static final String UI_LOCALES_SUPPORTED = "ui_locales_supported";
     public static final String TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = "token_endpoint_auth_methods_supported";
-    public static final String TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED = "token_endpoint_auth_signing_alg_values_supported";
     public static final String AUTHORIZATION_SIGNING_ALG_VALUES_SUPPORTED = "authorization_signing_alg_values_supported";
     public static final String ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED = "id_token_signing_alg_values_supported";
     public static final String AUTHORIZATION_RESPONSE_ISS_PARAMETER_SUPPORTED = "authorization_response_iss_parameter_supported";
@@ -115,11 +114,7 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
 
     @JsonProperty(TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED)
     @Builder.Default
-    private List<String> tokenEndpointAuthMethodsSupported = List.of("client_secret_basic", "client_secret_post", "client_secret_jwt", "none", "attest_jwt_client_auth");
-
-    @JsonProperty(TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED)
-    @Singular("tokenEndpointAuthSigningAlgValueSupported")
-    private List<String> tokenEndpointAuthSigningAlgValuesSupported;
+    private List<String> tokenEndpointAuthMethodsSupported = List.of("none", "attest_jwt_client_auth");
 
     @JsonProperty(UI_LOCALES_SUPPORTED)
     @Singular("uiLocaleSupported")
@@ -173,7 +168,6 @@ public class OpenIDProviderMetadataResponse implements JsonResponse {
                 .addAttribute(ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED, idTokenSigningAlgValuesSupported)
                 .addAttribute(AUTHORIZATION_SIGNING_ALG_VALUES_SUPPORTED, authorizationSigningAlgValuesSupported)
                 .addAttribute(TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED, tokenEndpointAuthMethodsSupported)
-                .addAttribute(TOKEN_ENDPOINT_AUTH_SIGNING_ALG_VALUES_SUPPORTED, tokenEndpointAuthSigningAlgValuesSupported)
                 .addAttribute(UI_LOCALES_SUPPORTED, uiLocalesSupported)
                 .addAttribute(CODE_CHALLENGE_METHODS_SUPPORTED, codeChallengeMethodsSupported)
                 .addAttribute(AUTHORIZATION_RESPONSE_ISS_PARAMETER_SUPPORTED, authorizationResponseIssParameterSupported)

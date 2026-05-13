@@ -24,18 +24,6 @@ public class ClientMetadataTest {
     }
 
     @Test
-    @DisplayName("then a client must have a client_secret")
-    public void testClientMustHaveASecret() {
-        ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder().clientSecret(null).build();
-        try {
-            clientMetadata.validate();
-            fail();
-        } catch (Exception e) {
-            assertTrue(e.getMessage().contains("does not have a client secret"));
-        }
-    }
-
-    @Test
     @DisplayName("then a client must have at least one redirect_uri in redirect_uris")
     public void testClientMustHaveARedirectUri() {
         ClientMetadata clientMetadata = TestUtils.defaultClientMetadataBuilder().build();

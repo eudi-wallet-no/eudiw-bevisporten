@@ -16,7 +16,6 @@ public class ClientMetadata {
 
     // core config
     private String clientId;
-    private String clientSecret;
     @Singular("redirectUri")
     private List<String> redirectUris;
     @Singular("scope")
@@ -34,9 +33,6 @@ public class ClientMetadata {
     public void validate() {
         if (clientId == null || clientId.isEmpty()) {
             throw new IllegalArgumentException("Client must have a client id.");
-        }
-        if (clientSecret == null || clientSecret.isEmpty()) {
-            throw new IllegalArgumentException("Client %s does not have a client secret.".formatted(clientId));
         }
         if (redirectUris == null || redirectUris.isEmpty()) {
             throw new IllegalArgumentException("Client %s does not have any redirect uris.".formatted(clientId));

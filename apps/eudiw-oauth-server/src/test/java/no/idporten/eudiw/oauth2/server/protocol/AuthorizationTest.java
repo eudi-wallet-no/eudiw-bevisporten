@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthorizationTest {
 
     @Test
-    @DisplayName("then serializing to cache hides secrets")
+    @DisplayName("then serializing to cache hides secret data")
     void testSerializationHidesSecrets(@TempDir File folder) throws Exception {
         Map<String, Serializable> extra = new HashMap<>();
         extra.put("coop", "extra");

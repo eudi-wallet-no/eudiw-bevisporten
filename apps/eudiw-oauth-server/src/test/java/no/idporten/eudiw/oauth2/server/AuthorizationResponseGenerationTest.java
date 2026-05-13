@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class AuthorizationResponseGenerationTest {
 
     OAuth2AuthorizationServer initServer(boolean authorizationResponseIssParameterSupported) throws Exception {
-        ClientMetadata client1 = ClientMetadata.builder().clientId("client1").clientSecret("secret").scope("openid").redirectUri("https://junit.idporten.no/").build();
+        ClientMetadata client1 = ClientMetadata.builder().clientId("client1").scope("openid").redirectUri("https://junit.idporten.no/").build();
         OAuth2ServerConfiguration configuration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .client(client1)
                 .authorizationDetailsTypeSupported("foo")
