@@ -25,7 +25,6 @@
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
         <lombok.version>1.18.46</lombok.version>
-        <slf4j-api.version>2.0.17</slf4j-api.version>
     </properties>
     <dependencies>
         <dependency>
@@ -99,12 +98,6 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
             <version>${bcprov-jdk18on.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j-api.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
