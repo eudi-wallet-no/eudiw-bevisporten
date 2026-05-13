@@ -53,15 +53,10 @@ public class CredentialEndpointController {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forDPoPToken(request, List.of(authorizationServerService.getPrimaryAuthorizationServer()), credentialIssuerTenant.getCredentialIssuer()));
         credentialRequest.validate();
-        if (credentialRequest.getProofs() == null && credentialRequest.getProof() == null) {
+        if (credentialRequest.getProofs() == null) {
             throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
         }
-        if (credentialRequest.getProof() != null) {
-            proofService.validateProof(credentialIssuerTenant, credentialRequest.getProof());
-        }
-        if (credentialRequest.getProofs() != null) {
-            proofService.validateProofs(credentialIssuerTenant, credentialRequest.getProofs());
-        }
+        proofService.validateProofs(credentialIssuerTenant, credentialRequest.getProofs());
         CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialIssuerTenant, credentialRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.OK)

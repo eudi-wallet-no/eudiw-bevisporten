@@ -79,30 +79,6 @@ public class CredentialEndpointControllerTest {
         when(authorizationServerService.getPrimaryAuthorizationServer()).thenReturn(authorizationServer);
     }
 
-    @DisplayName("then a valid credential request gives a credential response")
-    @Test
-    void testPostCredentialRequest() throws Exception {
-        setUpAccessTokenValidation();
-        when(credentialIssuerService.issueCredentials(any(), any(CredentialRequest.class), any(JWT.class))).thenReturn(CredentialResponse.builder().credentials(List.of(Credential.builder().credential("foo").build())).build());
-        mockMvc.perform(post("/openid4vci/credential")
-                        .header("Authorization", "Bearer %s".formatted(sampleBearerToken()))
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content("""
-                                {
-                                     "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
-                                     "proof": {
-                                         "jwt": "eyJhbGciOiJFUzI1NiIsImp3ayI6eyJhbGciOiJFUzI1NiIsImNydiI6IlAtMjU2Iiwia2lkIjoiMUUxQzUzQTYtOTNCMS00MTdFLUFBMzQtQjE0RTMyNjNEMTRBIiwia3R5IjoiRUMiLCJ1c2UiOiJzaWciLCJ4IjoiV1lGSGwwVTNBMXRCZHA4Y09IdS1YRGh6aEpjcF9XNkhJOWkyVU81UTUycyIsInkiOiJSLWZFdUhvWWVhMWNBTXJtSF9rTVNnWEhhb3NPSE9tc1QyVEh5VzlCU1lFIn0sInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0In0.eyJhdWQiOiJodHRwczpcL1wvZGVtby11dHN0ZWRlci50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQiLCJpYXQiOjE3NTAzMjc1MTksImlzcyI6ImRlbW8tbG9tbWVib2sifQ.-LSGbLPF3NDQoFEZInkhIDqLVcu7n5Zp-_5cQo3wYlSNSogwUa1FVmg6WOnKr6zHtb4v2ipRdnYjS2tq2LbXIg",
-                                         "type": "jwt"
-                                     }
-                                 }"""))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.credentials").isArray())
-                .andExpect(jsonPath("$.credentials").isNotEmpty())
-                .andExpect(jsonPath("$.credentials[0].credential").value("foo"));
-        verify(proofService).validateProof(any(), any());
-    }
-
     @DisplayName("then a valid credential request with proofs gives a credential response")
     @Test
     void testPostCredentialRequestWithMultipleProofs() throws Exception {

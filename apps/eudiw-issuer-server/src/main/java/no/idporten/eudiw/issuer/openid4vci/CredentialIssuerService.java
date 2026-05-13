@@ -42,7 +42,7 @@ public class CredentialIssuerService {
         ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
-        List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs(), credentialRequest.getProof());
+        List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs());
         CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration);
         List<Claim> claims = claimsSource.issueClaims(credentialIssueContext);
         List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
@@ -57,9 +57,8 @@ public class CredentialIssuerService {
                 .build();
     }
 
-    // Support OpenID4VCI 1 proofs vs older versions proof
-    protected List<JWK> getBindingKeys(Proofs proofs, Proof proof) {
-        return proofs != null ? proofs.getBindingKeys() : proof != null ? List.of(proof.getBindingKey()) : null;
+    protected List<JWK> getBindingKeys(Proofs proofs) {
+        return proofs != null ? proofs.getBindingKeys() : null;
     }
 
     private IssuanceTransactionId getIssuanceTransactionId(JWT accessToken) {

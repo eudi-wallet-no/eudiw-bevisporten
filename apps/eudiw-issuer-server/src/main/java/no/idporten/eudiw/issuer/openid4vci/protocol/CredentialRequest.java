@@ -20,10 +20,6 @@ public class CredentialRequest {
     @JsonProperty("credential_configuration_id")
     private String credentialConfigurationId;
 
-    @Deprecated
-    @JsonProperty("proof")
-    private Proof proof;
-
     @JsonProperty("proofs")
     private Proofs proofs;
 
@@ -33,9 +29,6 @@ public class CredentialRequest {
         }
         if (! (StringUtils.hasText(credentialIdentifier) || StringUtils.hasText(credentialConfigurationId))) {
             throw new InvalidCredentialRequest("One of credential_identifier or credential_configuration_id must have a value.");
-        }
-        if (getProof() != null) {
-            proof.validate();
         }
         if (getProofs() != null) {
             proofs.validate();
