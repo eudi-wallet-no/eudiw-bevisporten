@@ -16,21 +16,21 @@ public class AuditData {
 
     public static class AuditDataBuilder {
 
-        protected String maskToken(String token) {
-            if (token == null) {
-                return token;
+        protected String maskJwt(String jwt) {
+            if (jwt == null) {
+                return jwt;
             }
-            if (token.contains(".")) { // jwt
-                return token.substring(0, token.lastIndexOf('.')) + "...";
+            if (jwt.contains(".")) { // jwt
+                return jwt.substring(0, jwt.lastIndexOf('.')) + "...";
             }
-            if (token.length() > 10) { //opaque
-                return token.substring(0, 10) + "...";
+            if (jwt.length() > 10) { //opaque
+                return jwt.substring(0, 10) + "...";
             }
-            return token;
+            return jwt;
         }
 
-        public AuditDataBuilder accessToken(String accessToken) {
-            attribute("access_token", maskToken(accessToken));
+        public AuditDataBuilder maskedJwt(String attribute, String jwt) {
+            attribute(attribute, maskJwt(jwt));
             return this;
         }
     }

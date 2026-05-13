@@ -337,7 +337,9 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     public ChallengeResponse process(ChallengeRequest challengeRequest) throws OAuth2Exception {
         Challenge challenge = new Challenge(generateId(), serverConfiguration.getChallengeLifetimeSeconds());
         serverConfiguration.getCache().putChallenge(challenge);
-        return new ChallengeResponse(challenge.challenge());
+        ChallengeResponse challengeResponse = new ChallengeResponse(challenge.challenge());
+        serverConfiguration.getAuditLogger().auditChallengeResponse(challengeResponse);
+        return challengeResponse;
     }
 
     @Override
@@ -348,24 +350,19 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (authenticatedRequest.hasMoreThanOneClientAuthMethod()) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Multiple client authentications.", 401);
         }
-        final ClientMetadata clientMetadata;
         final ClientAuthentication clientAuthentication;
         if (authenticatedRequest.isAttestationBased()) {
-            clientMetadata = authenticateClientByAttestation(authenticatedRequest.getClientId(), authenticatedRequest.getClientAttestation(), authenticatedRequest.getClientAttestationPoP());
-            if (authenticatedRequest instanceof PushedAuthorizationRequest) {
-                clientMetadata.setRedirectUris(List.of(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()));
-            }
-            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("attest_jwt_client_auth").build();
+            clientAuthentication = authenticateClientByAttestation(authenticatedRequest);
         } else if (authenticatedRequest.isNone()) {
-            if (authenticatedRequest instanceof PushedAuthorizationRequest) {
-                clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId())
-                        .redirectUri(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()).build();
-            } else {
-                clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId()).build();
-            }
-            clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("none").build();
+            clientAuthentication = authenticateClientByNone(authenticatedRequest);
         } else {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown client authentication method.", 401);
+        }
+        final ClientMetadata clientMetadata;
+        if (authenticatedRequest instanceof PushedAuthorizationRequest) {
+            clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId()).redirectUri(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()).build();
+        } else {
+            clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId()).build();
         }
         if (hasText(authenticatedRequest.getClientId()) && !Objects.equals(authenticatedRequest.getClientId(), clientMetadata.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client authentication does not match parameter client_id.", 401);
@@ -391,10 +388,15 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
     }
 
-    protected ClientMetadata authenticateClientByAttestation(final String clientId, final String clientAttestation, String clientAttestationPoP) {
+    protected ClientAuthentication authenticateClientByNone(AuthenticatedRequest authenticatedRequest) {
+        return ClientAuthentication.builder().clientId(authenticatedRequest.getClientId()).tokenEndpointAuthMethod("none").build();
+    }
+
+        protected ClientAuthentication authenticateClientByAttestation(AuthenticatedRequest authenticatedRequest) {
         try {
-            final SignedJWT clientAttestationJWT = SignedJWT.parse(clientAttestation);
-            final SignedJWT clientAttestationPoPJWT = SignedJWT.parse(clientAttestationPoP);
+            final String clientId = authenticatedRequest.getClientId();
+            final SignedJWT clientAttestationJWT = SignedJWT.parse(authenticatedRequest.getClientAttestation());
+            final SignedJWT clientAttestationPoPJWT = SignedJWT.parse(authenticatedRequest.getClientAttestationPoP());
             validateClientAttestation(clientAttestationJWT);
             validateClientAttestationPoP(clientAttestationJWT, clientAttestationPoPJWT);
             if (!Objects.equals(clientId, clientAttestationJWT.getJWTClaimsSet().getSubject())) {
@@ -403,7 +405,13 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             if (!Objects.equals(clientId, clientAttestationPoPJWT.getJWTClaimsSet().getIssuer())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid issuer.", 401);
             }
-            return ClientMetadata.builder().clientId(clientId).build();
+            return ClientAuthentication.builder()
+                    .clientId(clientId)
+                    .tokenEndpointAuthMethod("attest_jwt_client_auth")
+                    .clientAttestation(authenticatedRequest.getClientAttestation())
+                    .clientAttestationPoP(authenticatedRequest.getClientAttestationPoP())
+                    .attestationChallenge(clientAttestationPoPJWT.getJWTClaimsSet().getStringClaim("challenge"))
+                    .build();
         } catch (OAuth2Exception e) {
             throw e;
         } catch (Exception e) {

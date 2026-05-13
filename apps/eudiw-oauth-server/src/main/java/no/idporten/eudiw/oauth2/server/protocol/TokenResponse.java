@@ -42,7 +42,7 @@ public class TokenResponse implements AuditDataProvider, JsonResponse {
     public AuditData getAuditData() {
         return AuditData.builder()
                 .attribute(ID_TOKEN, idToken)
-                .accessToken(accessToken)
+                .maskedJwt("access_token", accessToken)
                 .attribute(EXPIRES_IN, expiresInSeconds)
                 .attribute(TOKEN_TYPE, tokenType)
                 .build();

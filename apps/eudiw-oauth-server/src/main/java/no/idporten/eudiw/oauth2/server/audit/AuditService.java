@@ -19,6 +19,7 @@ public class AuditService implements OpenIDConnectAuditLogger {
     @AllArgsConstructor
     enum AuditIdPattern {
 
+        OAUTH_CHALLENGE_RESPONSE("%s-CHALLENGE-RESPONSE"),
         OAUTH_CLIENT_AUTHENTICATION("%s-AUTHENTICATE-CLIENT"),
         OAUTH_PAR_REQUEST("%s-RECEIVE-PUSHED-AUTHORIZATION-REQUEST"),
         OAUTH_PAR_RESPONSE("%s-SEND-PUSHED-AUTHORIZATION-RESPONSE"),
@@ -33,6 +34,15 @@ public class AuditService implements OpenIDConnectAuditLogger {
         AuditIdentifier auditIdentifier() {
             return () -> getPattern().formatted("EUDIW-OAUTH-SERVER");
         }
+    }
+
+    @Override
+    public void auditChallengeResponse(ChallengeResponse challengeResponse) {
+        auditLogger.log(AuditEntry.builder()
+                .auditId(AuditIdPattern.OAUTH_CHALLENGE_RESPONSE.auditIdentifier())
+                .logNullAttributes(false)
+                .attributes(challengeResponse.getAuditData().getAttributes())
+                .build());
     }
 
     @Override

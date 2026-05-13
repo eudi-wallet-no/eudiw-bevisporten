@@ -5,6 +5,10 @@ import no.idporten.eudiw.oauth2.server.protocol.*;
 public class NullAuditLogger implements OpenIDConnectAuditLogger {
 
     @Override
+    public void auditChallengeResponse(ChallengeResponse challengeResponse) {
+    }
+
+    @Override
     public void auditClientAuthentication(ClientAuthentication clientAuthentication) {
     }
 

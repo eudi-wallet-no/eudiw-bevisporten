@@ -10,6 +10,7 @@ import no.idporten.eudiw.oauth2.server.audit.OpenIDConnectAuditLogger;
 import no.idporten.eudiw.oauth2.server.cache.SimpleOpenIDConnectCache;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
+import no.idporten.eudiw.oauth2.server.protocol.AuditData;
 import no.idporten.eudiw.oauth2.server.protocol.AuthenticatedRequest;
 import no.idporten.eudiw.oauth2.server.protocol.Challenge;
 import no.idporten.eudiw.oauth2.server.protocol.ClientAuthentication;
@@ -108,8 +109,13 @@ public class ClientAuthenticationTest {
             ClientMetadata clientMetadata = authorizationServer.authenticateClient(authenticatedRequest);
             assertEquals(clientId, clientMetadata.getClientId());
             verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
-            assertEquals(clientId, clientAuthenticationCaptor.getValue().getClientId());
-            assertEquals("attest_jwt_client_auth", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
+            AuditData auditData = clientAuthenticationCaptor.getValue().getAuditData();
+            assertEquals(clientId, auditData.getAttribute("client_id"));
+            assertEquals("attest_jwt_client_auth", auditData.getAttribute("token_endpoint_auth_method"));
+            assertEquals(clientAttestation.serialize(), auditData.getAttribute("client_attestation"));
+            assertNotEquals(clientAttestationPoPJwt.serialize(), auditData.getAttribute("client_attestation_pop"));
+            assertTrue(auditData.getAttribute("client_attestation_pop").toString().endsWith("..."));
+            assertEquals(challenge.challenge(), auditData.getAttribute("attestation_challenge"));
         }
 
     }

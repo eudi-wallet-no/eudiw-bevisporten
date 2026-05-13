@@ -40,7 +40,7 @@ public class UserInfoRequest implements AuditDataProvider {
     @Override
     public AuditData getAuditData() {
         return AuditData.builder()
-                .accessToken(getBearerToken())
+                .maskedJwt("access_token", getBearerToken())
                 .build();
     }
 
