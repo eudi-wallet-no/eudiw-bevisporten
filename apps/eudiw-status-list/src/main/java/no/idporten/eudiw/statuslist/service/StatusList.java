@@ -1,6 +1,7 @@
 package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.util.IntStack;
 
 import java.util.*;
 

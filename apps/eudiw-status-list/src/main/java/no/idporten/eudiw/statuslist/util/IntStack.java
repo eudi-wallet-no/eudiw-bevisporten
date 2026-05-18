@@ -1,4 +1,4 @@
-package no.idporten.eudiw.statuslist.service;
+package no.idporten.eudiw.statuslist.util;
 
 public class IntStack {
     private final int[] data;
