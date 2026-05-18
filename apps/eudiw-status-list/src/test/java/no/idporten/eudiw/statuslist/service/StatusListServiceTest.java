@@ -41,7 +41,7 @@ class StatusListServiceTest {
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
         long start = System.currentTimeMillis();
         long init = System.currentTimeMillis();
-        String list = statusListService.getJsonStatusList("1");
+        String list = statusListService.getJsonStatusList("1").statusList();
         long end = System.currentTimeMillis();
         assertNotNull(list);
         System.out.println("Init list: " + (init - start) + "ms, Generate: " + (end - init) + "ms, Total: " + (end - start) + "ms");
@@ -75,7 +75,7 @@ class StatusListServiceTest {
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
 
-        String list = statusListService.getJsonStatusList("1");
+        String list = statusListService.getJsonStatusList("1").statusList();
         assertNotNull(list);
         assertEquals("78dadbb918000217015d", list, "List not equal to example=" + list);
     }
@@ -91,7 +91,7 @@ class StatusListServiceTest {
         )));
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-        String list = statusListService.getJsonStatusList("1");
+        String list = statusListService.getJsonStatusList("1").statusList();
 
         assertEquals("78da63010000050005", list);
     }
@@ -106,7 +106,7 @@ class StatusListServiceTest {
         )));
 
         when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-        String list = statusListService.getJsonStatusList("1");
+        String list = statusListService.getJsonStatusList("1").statusList();
 
         assertEquals("78da135afd1f00028e01bd", list);
     }
