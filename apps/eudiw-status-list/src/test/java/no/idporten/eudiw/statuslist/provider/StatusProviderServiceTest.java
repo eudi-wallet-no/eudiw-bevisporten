@@ -8,6 +8,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.statuslist.exceptions.StatusListSigningException;
+import no.idporten.eudiw.statuslist.service.CompressedStatusList;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -61,7 +62,8 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should generate a valid Status List Token as JWT")
     void getValidStatusListTest() throws Exception {
-        when(mockStatusListService.getJsonStatusList("1")).thenReturn("eNrbuRgAAhcBXQ");
+        CompressedStatusList compressedStatusList = new CompressedStatusList("eNrbuRgAAhcBXQ", 1);
+        when(mockStatusListService.getJsonStatusList("1")).thenReturn(compressedStatusList);
         String testId = "1";
 
         JWT jwt = statusProviderService.getStatusList(testId);
@@ -102,7 +104,8 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should throw StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
     void trowStatusListSigningExceptionTest1() throws Exception {
-        when(mockStatusListService.getJsonStatusList("1")).thenReturn("eNrbuRgAAhcBXQ");
+        CompressedStatusList compressedStatusList = new CompressedStatusList("eNrbuRgAAhcBXQ", 1);
+        when(mockStatusListService.getJsonStatusList("1")).thenReturn(compressedStatusList);
         doReturn(mockKeyProvider).when(keystoreManager).getKeyProvider(any());
         doReturn(mockCertificate).when(mockKeyProvider).certificate();
         when(mockCertificate.getEncoded()).thenThrow(CertificateEncodingException.class);

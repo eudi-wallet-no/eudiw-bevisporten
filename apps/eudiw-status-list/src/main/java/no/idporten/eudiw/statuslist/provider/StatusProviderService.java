@@ -10,6 +10,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.statuslist.exceptions.StatusListSigningException;
+import no.idporten.eudiw.statuslist.service.CompressedStatusList;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -63,11 +64,11 @@ public class StatusProviderService {
     }
 
     private Map<String, Object> getStatusListClaims(String id) {
-        String compressedList = statuslistService.getJsonStatusList(id);
+        CompressedStatusList compressedList = statuslistService.getJsonStatusList(id);
         Map<String, Object> statusList = new HashMap<>();
 
-        statusList.put("bits", 1);
-        statusList.put("lst", compressedList);
+        statusList.put("bits", compressedList.bitsPerStatus());
+        statusList.put("lst", compressedList.statusList());
 
         return statusList;
     }

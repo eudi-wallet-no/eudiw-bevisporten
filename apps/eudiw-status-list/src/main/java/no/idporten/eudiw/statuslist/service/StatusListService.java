@@ -53,11 +53,11 @@ public class StatusListService {
         return outputStream.toByteArray();
     }
 
-    public String getJsonStatusList(String id) {
+    public CompressedStatusList getJsonStatusList(String id) {
         StatusList statusList = statusListRepository.getStatusList(id);
         byte[] packedBytes = packStatuses(statusList);
         byte[] compressed = compressZlib(packedBytes);
-        return HexFormat.of().formatHex(compressed);
+        return new CompressedStatusList(HexFormat.of().formatHex(compressed), statusList.getBitsPerStatus());
     }
 
 
