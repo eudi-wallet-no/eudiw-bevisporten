@@ -1,6 +1,5 @@
 package no.idporten.eudiw.statuslist.util;
 
-import no.idporten.eudiw.statuslist.service.IntStack;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;

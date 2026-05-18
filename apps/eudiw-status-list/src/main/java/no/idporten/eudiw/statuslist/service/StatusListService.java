@@ -9,6 +9,7 @@ import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditEntryCollection;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import no.idporten.eudiw.statuslist.repository.StatusListRepository;
+import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -66,10 +67,16 @@ public class StatusListService {
     }
 
     public List<StatusEntry> allocateToStatusList(int count) {
-        List<StatusEntry> allocatedIndexes = new ArrayList<>(count);
-        allocatedIndexes = recursiveAllocateToStatusList(count, allocatedIndexes);
-        auditService.logAllocatedEntries(new AuditEntryCollection<>(allocatedIndexes));
-        return allocatedIndexes;
+        List<StatusEntry> statusEntries = new ArrayList<>();
+
+        List<AllocatedIndexDto> allocatedIndexesDto = statusListRepository.allocateToStatusList(count);
+        for (AllocatedIndexDto dto : allocatedIndexesDto) {
+            URI uri = buildUri(statusIssuerProperties.uri(), dto.listId());
+            statusEntries.add(new StatusEntry(dto.index(), uri));
+        }
+
+        auditService.logAllocatedEntries(new AuditEntryCollection<>(statusEntries));
+        return statusEntries;
     }
 
     public void revokeStatuses(List<StatusEntryUpdateRequest> entryUpdates) {

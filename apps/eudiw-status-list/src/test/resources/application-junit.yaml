@@ -10,8 +10,12 @@ spring:
     password: password
 
 status-list:
+  uri: https://status.junit-test.eidas2sandkasse.net
   issuer:
     api-key: junit-test-api-key
+  list-config:
+    list-size: 10
+    bits-per-status: 1
 
 idporten-key-manager:
   keystores:
@@ -21,3 +25,4 @@ idporten-key-manager:
       key-store-password: changeit
       key-alias: status-provider
       key-password: changeit
+
