@@ -411,6 +411,8 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                     .clientAttestation(authenticatedRequest.getClientAttestation())
                     .clientAttestationPoP(authenticatedRequest.getClientAttestationPoP())
                     .attestationChallenge(clientAttestationPoPJWT.getJWTClaimsSet().getStringClaim("challenge"))
+                    .walletName(clientAttestationJWT.getJWTClaimsSet().getStringClaim("wallet_name"))
+                    .walletLink(clientAttestationJWT.getJWTClaimsSet().getStringClaim("wallet_link"))
                     .build();
         } catch (OAuth2Exception e) {
             throw e;

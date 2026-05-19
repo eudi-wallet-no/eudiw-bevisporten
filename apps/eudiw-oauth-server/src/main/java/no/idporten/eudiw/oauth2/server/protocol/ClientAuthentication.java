@@ -12,6 +12,8 @@ public class ClientAuthentication implements AuditDataProvider {
     private String clientAttestation;
     private String clientAttestationPoP;
     private String attestationChallenge;
+    private String walletName;
+    private String walletLink;
 
     @Override
     public AuditData getAuditData() {
@@ -21,6 +23,8 @@ public class ClientAuthentication implements AuditDataProvider {
                 .attribute("client_attestation", clientAttestation)
                 .maskedJwt("client_attestation_pop", clientAttestationPoP)
                 .attribute("attestation_challenge", attestationChallenge)
+                .attribute("wallet_name", walletName)
+                .attribute("wallet_link", walletLink)
                 .build();
     }
 

@@ -78,7 +78,7 @@ class AuthorizationCodeFlowTest {
         ChallengeRequest challengeRequest = new ChallengeRequest(request.getHeaders());
         ChallengeResponse challengeResponse = oAuth2AuthorizationServer.process(challengeRequest);
         assertEquals(challengeResponse.getAttestationChallenge(), cache.getChallenge(challengeResponse.getAttestationChallenge()).challenge());
-        SignedJWT clientAttestation = TestUtils.createClientAttestation(clientMetadata.getClientId(), clientKey);
+        SignedJWT clientAttestation = TestUtils.createClientAttestation(clientMetadata.getClientId(), "jw", "https://jw.eidas2sandkasse.dev", clientKey);
         SignedJWT clientAttestationPoP = TestUtils.createClientAttestationPoP(clientMetadata.getClientId(), challengeResponse.getAttestationChallenge(), oAuth2AuthorizationServer.getConfiguration().getIssuer().toString(), clientKey);
 
         // 1. Process pushed authorization request

@@ -95,7 +95,7 @@ public class ClientAuthenticationTest {
             final ECKey clientKey = TestUtils.createECPrivateKey();
             final Challenge challenge = new Challenge("dgsdjhagdhjaj", 120);
             authorizationServer.getConfiguration().getCache().putChallenge(challenge);
-            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, clientKey);
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
             SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
                     clientId,
                     challenge.challenge(),
@@ -116,6 +116,8 @@ public class ClientAuthenticationTest {
             assertNotEquals(clientAttestationPoPJwt.serialize(), auditData.getAttribute("client_attestation_pop"));
             assertTrue(auditData.getAttribute("client_attestation_pop").toString().endsWith("..."));
             assertEquals(challenge.challenge(), auditData.getAttribute("attestation_challenge"));
+            assertEquals("w", auditData.getAttribute("wallet_name"));
+            assertEquals("https://w.eidas2sandkasse.dev", auditData.getAttribute("wallet_link"));
         }
 
     }
