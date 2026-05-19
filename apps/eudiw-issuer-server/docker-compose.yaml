@@ -177,10 +177,31 @@ services:
       start_period: 5s
       timeout: 5s
       retries: 20
+  status-list-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: status_list_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "36306:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
 
   status-list:
     image: "crutvikling.azurecr.io/eudiw-status-list"
     # image: "digital-lommebok-status-list" # Uncomment this line if you want to use the local image instead
+    depends_on:
+      status-list-db:
+        condition: service_healthy
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
