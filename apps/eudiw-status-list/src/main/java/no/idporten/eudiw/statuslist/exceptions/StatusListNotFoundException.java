@@ -10,6 +10,10 @@ public class StatusListNotFoundException extends StatusListException {
         super("Could not find status list with id " + id);
     }
 
+    public StatusListNotFoundException(int id) {
+        this(String.valueOf(id));
+    }
+
     @Override
     public String getErrorCode() {
         return errorCode;

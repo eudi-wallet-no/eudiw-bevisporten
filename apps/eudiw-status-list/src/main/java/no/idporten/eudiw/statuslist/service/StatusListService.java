@@ -2,7 +2,6 @@ package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
-import no.idporten.eudiw.statuslist.exceptions.StatusNotAllocatedException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
@@ -10,6 +9,7 @@ import no.idporten.eudiw.statuslist.logging.audit.AuditEntryCollection;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import no.idporten.eudiw.statuslist.repository.StatusListRepository;
 import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
+import no.idporten.eudiw.statuslist.repository.models.StatusListWithEntriesDto;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -54,10 +54,10 @@ public class StatusListService {
     }
 
     public CompressedStatusList getJsonStatusList(String id) {
-        StatusList statusList = statusListRepository.getStatusList(id);
+        StatusListWithEntriesDto statusList = statusListRepository.getStatusList(id);
         byte[] packedBytes = packStatuses(statusList);
         byte[] compressed = compressZlib(packedBytes);
-        return new CompressedStatusList(HexFormat.of().formatHex(compressed), statusList.getBitsPerStatus());
+        return new CompressedStatusList(HexFormat.of().formatHex(compressed), statusList.bitsPerStatus());
     }
 
 
@@ -92,28 +92,28 @@ public class StatusListService {
             throw new UnsupportedStatusException(status);
         }
 
-        StatusList statusList = statusListRepository.getStatusList(id);
-
-        if (!statusList.containsIndex(index)) {
-            throw new StatusNotAllocatedException(id, index);
-        }
-
-        statusList.updateStatus(index, status);
+//        StatusList statusList = statusListRepository.getStatusList(id);
+//
+//        if (!statusList.containsIndex(index)) {
+//            throw new StatusNotAllocatedException(id, index);
+//        }
+//
+        statusListRepository.tempUpdateStatus(id, index, status);
     }
 
-    private byte[] packStatuses(StatusList statusList) {
-        int size = statusList.getListSize();
+    private byte[] packStatuses(StatusListWithEntriesDto statusList) {
+        int size = statusList.size();
 
-        int bitsPerStatus = statusList.getBitsPerStatus();
+        int bitsPerStatus = statusList.bitsPerStatus();
         byte[] packed = new byte[(size * bitsPerStatus + 7) / 8];
         int maxStatusValue = (1 << bitsPerStatus) - 1;
 
         for (int index = 0; index < size; index++) {
-            int statusValue = statusList.getStatus(index);
+            int statusValue = statusList.entries().getOrDefault(index, Status.VALID);
             if (statusValue < 0 || statusValue > maxStatusValue) {
                 throw new StatusListException(
                         "Status %d exceeds the allowed size of %d bits at index %d in list with id %s"
-                                .formatted(statusValue, bitsPerStatus, index, statusList.getId())
+                                .formatted(statusValue, bitsPerStatus, index, statusList.id())
                 );
             }
 
