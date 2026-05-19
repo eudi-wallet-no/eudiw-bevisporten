@@ -145,7 +145,7 @@ public class TestUtils {
         return ECKey.parse(jwk);
     }
 
-    public static SignedJWT createClientAttestation(String clientId, ECKey clientKey) throws ParseException, JOSEException {
+    public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey) throws ParseException, JOSEException {
         ECKey clientAttesterJWK = clientAttesterJWK();
         SignedJWT clientAttestation =
                 new SignedJWT(
@@ -164,6 +164,8 @@ public class TestUtils {
                                 .jwtID(UUID.randomUUID().toString())
                                 .expirationTime(new Date(new Date().getTime() + 1000 * 60 * 60 * 24))
                                 .claim("cnf", JsonObjectBuilder.builder().addAttribute("jwk", clientKey.toPublicJWK().toJSONObject()).build())
+                                .claim("wallet_name", walletName)
+                                .claim("wallet_link", walletLink)
                                 .build());
         clientAttestation.sign(new ECDSASigner(clientAttesterJWK.toECPrivateKey()));
         return clientAttestation;
