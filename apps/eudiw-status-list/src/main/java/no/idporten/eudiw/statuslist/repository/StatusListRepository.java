@@ -4,6 +4,7 @@ import no.idporten.eudiw.statuslist.exceptions.StatusListException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
 import no.idporten.eudiw.statuslist.repository.models.StatusListDto;
+import no.idporten.eudiw.statuslist.repository.models.StatusListWithEntriesDto;
 import no.idporten.eudiw.statuslist.service.StatusList;
 import no.idporten.eudiw.statuslist.service.StatusListProperties;
 import no.idporten.eudiw.statuslist.util.FreeIndexList;
@@ -39,19 +40,31 @@ public class StatusListRepository {
 
     public int getStatus(String listId, int index) {
         // TODO: select * from Status where status_list_id = listId and index = index
-        return getStatusList(listId).getStatus(index);
+        return statusLists.get(listId).getStatus(index);
     }
 
-    public StatusList getStatusList(String listId) {
-        // TODO: Check cache
-        // TODO: If cache invalid / empty: Get statuslist from database
-        // TODO: List<Status> = select * from Status where status_list_id = listId
-        // TODO: Generate full statuslist
-        if (!statusLists.containsKey(listId)) {
+    public StatusListWithEntriesDto getStatusList(String listId) {
+        try {
+            int id = Integer.parseInt(listId);
+            return getStatusList(id);
+        } catch (NumberFormatException e) {
+            throw new StatusListNotFoundException(listId);
+        }
+    }
+
+    public StatusListWithEntriesDto getStatusList(int listId) {
+        StatusListWithEntriesDto result = getStatusListWithEntries(listId);
+
+        if (result == null) {
             throw new StatusListNotFoundException(listId);
         }
 
-        return statusLists.get(listId);
+        return result;
+    }
+
+
+    public void tempUpdateStatus(String listId, int index, int status) {
+        statusLists.get(listId).updateStatus(index, status);
     }
 
     public StatusList generateNewStatusList() {
@@ -125,6 +138,42 @@ public class StatusListRepository {
         return allocatedIndexes;
     }
 
+    private StatusListWithEntriesDto getStatusListWithEntries(int id) {
+        return jdbc.query("""
+                         SELECT
+                            sl.id,
+                            sl.list_size,
+                            sle.list_index  AS list_index,
+                            sle.status_value AS status_value
+                        FROM status_list sl
+                        LEFT JOIN status_list_entry sle ON sl.id = sle.status_list_id
+                        WHERE sl.id = ?
+                        """,
+                rs -> {
+                    StatusListWithEntriesDto sl = null;
+                    while (rs.next()) {
+                        if (sl == null) {
+                            sl = new StatusListWithEntriesDto(
+                                    rs.getInt("id"),
+                                    rs.getInt("list_size"),
+                                    statusListProperties.bitsPerStatus(),
+                                    new HashMap<>()
+                            );
+                        }
+
+                        Integer listIndex = rs.getObject("list_index", Integer.class);
+                        Integer statusValue = rs.getObject("status_value", Integer.class);
+                        if (listIndex != null && statusValue != null) {
+                            sl.entries().put(listIndex, statusValue);
+                        }
+                    }
+
+                    return sl;
+                },
+                id
+        );
+    }
+
     private FreeIndexList getOrCreateFreeIndexList(StatusListDto statusListDto) {
         return freeIndexLists.computeIfAbsent(
                 statusListDto.id(),
@@ -170,14 +219,14 @@ public class StatusListRepository {
 
     @NonNull StatusListDto createNewStatusList() {
         long nowMs = System.currentTimeMillis();
-        StatusListDto tmp = new StatusListDto(0, statusListProperties.listSize(), createNewSeed(), 0,  nowMs, nowMs);
+        StatusListDto tmp = new StatusListDto(0, statusListProperties.listSize(), createNewSeed(), 0, nowMs, nowMs);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
                     """
-                    INSERT INTO status_list (list_size, seed, next_index, created_ms, updated_ms)
-                    VALUES (?, ?, ?, ?, ?)
-                    """,
+                            INSERT INTO status_list (list_size, seed, next_index, created_ms, updated_ms)
+                            VALUES (?, ?, ?, ?, ?)
+                            """,
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setInt(1, tmp.size());
