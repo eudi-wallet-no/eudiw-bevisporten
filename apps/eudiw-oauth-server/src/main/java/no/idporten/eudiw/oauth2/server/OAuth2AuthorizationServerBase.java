@@ -16,7 +16,6 @@ import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPIssuer;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.DPoPTokenRequestVerifier;
 import com.nimbusds.oauth2.sdk.dpop.verifiers.InvalidDPoPProofException;
 import com.nimbusds.openid.connect.sdk.Nonce;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
@@ -306,31 +305,6 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid request. DPop Proof header invalid JWK", 400, e);
         }
 
-    }
-
-    /**
-     * Creates a direct pushed authorization response to the pushed authorization request.  Clients must not redirect to
-     * the authorization endpoint.  They must handle the custom response containing tokens.
-     *
-     * @param authorizationRequest client authz request
-     * @param authorization        base for token creation
-     * @return direct pushed authorization response with tokens
-     */
-    @SneakyThrows
-    protected final PushedAuthorizationResponse createDirectPushedAuthorizationResponse(PushedAuthorizationRequest authorizationRequest, Authorization authorization) {
-        authorization.setLifetimeSeconds(serverConfiguration.getAuthorizationLifetimeSeconds());
-        authorization.setAud(authorizationRequest.getClientId());
-        authorization.setNonce(authorizationRequest.getNonce());
-        if (!hasText(authorization.getAcr())) {
-            authorization.setAcr(authorizationRequest.getResolvedAcrValue());
-        }
-        serverConfiguration.getAuditLogger().auditAuthorization(authorization);
-        TokenResponse tokenResponse = createTokenResponse(authorization);
-        return DirectPushedAuthorizationResponse.builder()
-                .accessToken(tokenResponse.getAccessToken())
-                .state(authorizationRequest.getState())
-                .expiresIn(serverConfiguration.getAccessTokenLifetimeSeconds())
-                .build();
     }
 
     @Override
