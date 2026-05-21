@@ -44,41 +44,42 @@ public class StatusListUtilTest {
     public void shouldGenerateIdenticalListForGivenSeed() {
         int size = 10;
         int seed = 42;
-        IntStack s1 = createFreeIndexStack(size, seed);
-        IntStack s2 = createFreeIndexStack(size, seed);
+        FreeIndexList s1 = createFreeIndexList(size, seed);
+        FreeIndexList s2 = createFreeIndexList(size, seed);
 
         for (int i = 0; i < size; i++) {
-            assertEquals(s1.pop(), s2.pop());
+            assertEquals(s1.peek(i), s2.peek(i));
         }
 
         size = 1000;
         seed = 987456;
-        s1 = createFreeIndexStack(size, seed, 569);
-        s2 = createFreeIndexStack(size, seed, 569);
+        s1 = createFreeIndexList(size, seed);
+        s2 = createFreeIndexList(size, seed);
 
-        for (int i = 0; i < 569; i++) {
-            assertEquals(s1.pop(), s2.pop());
+        for (int i = 0; i < size; i++) {
+            assertEquals(s1.peek(i), s2.peek(i));
         }
     }
 
     @Test
     public void shouldGenerateDifferentListsForDifferentSeed() {
-        int size = 10;
-        IntStack s1 = createFreeIndexStack(size, 42);
-        IntStack s2 = createFreeIndexStack(size, 43);
+        int size1 = 10;
+        FreeIndexList s1 = createFreeIndexList(size1, 42);
+        FreeIndexList s2 = createFreeIndexList(size1, 43);
 
         assertThrows(AssertionError.class, () -> {
-            for (int i = 0; i < size; i++) {
-                assertEquals(s1.pop(), s2.pop());
+            for (int i = 0; i < size1; i++) {
+                assertEquals(s1.peek(i), s2.peek(i));
             }
         });
 
-        IntStack s3 = createFreeIndexStack(1000, 987456, 569);
-        IntStack s4 = createFreeIndexStack(1000, 654789, 569);
+        int size2 = 1000;
+        FreeIndexList s3 = createFreeIndexList(size2, 987456);
+        FreeIndexList s4 = createFreeIndexList(size2, 654789);
 
         assertThrows(AssertionError.class, () -> {
-            for (int i = 0; i < 569; i++) {
-                assertEquals(s3.pop(), s4.pop());
+            for (int i = 0; i < size2; i++) {
+                assertEquals(s3.peek(i), s4.peek(i));
             }
         });
     }

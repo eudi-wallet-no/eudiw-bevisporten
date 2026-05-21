@@ -1,14 +1,12 @@
 package no.idporten.eudiw.statuslist.issuer.api;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.ErrorResponse;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
@@ -88,16 +86,6 @@ public class StatusListIssuerApiController {
         statuslistService.revokeStatuses(request.statusListEntries());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    // Temp endpoint for testing/verifying
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> getStatusForIndex(@RequestParam(value="index") @NotNull @Parameter(description = "Index on statuslist", example = "1") Integer index, @RequestParam(value="listId") @Parameter(description = "Id of statuslist", example = "1") String listId, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
-        verifyApiKey(properties.apiKey(), apiKey);
-
-        String status = statuslistService.getStatus(listId, index);
-
-        return ResponseEntity.ok(status);
     }
 
     private @NonNull List<StatusEntry> allocateStatuses(StatusCreateRequest request) {

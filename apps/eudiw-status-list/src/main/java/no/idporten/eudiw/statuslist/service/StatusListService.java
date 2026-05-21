@@ -2,6 +2,7 @@ package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
+import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
@@ -60,12 +61,6 @@ public class StatusListService {
         return new CompressedStatusList(HexFormat.of().formatHex(compressed), statusList.bitsPerStatus());
     }
 
-
-    public String getStatus(String id, int index) {
-        int status = statusListRepository.getStatus(id, index);
-        return Status.getStatus(status);
-    }
-
     public List<StatusEntry> allocateToStatusList(int count) {
         List<StatusEntry> statusEntries = new ArrayList<>();
 
@@ -88,17 +83,17 @@ public class StatusListService {
     }
 
     public void updateStatus(String id, int index, int status) {
-        if (!Status.isSupported(status)) {
+        if (status != Status.INVALID) {
             throw new UnsupportedStatusException(status);
         }
 
-//        StatusList statusList = statusListRepository.getStatusList(id);
-//
-//        if (!statusList.containsIndex(index)) {
-//            throw new StatusNotAllocatedException(id, index);
-//        }
-//
-        statusListRepository.tempUpdateStatus(id, index, status);
+        try {
+            int listId = Integer.parseInt(id);
+            statusListRepository.createStatusEntry(listId, index, status);
+        }
+        catch (NumberFormatException e) {
+            throw new StatusListNotFoundException(id);
+        }
     }
 
     private byte[] packStatuses(StatusListWithEntriesDto statusList) {
@@ -130,22 +125,5 @@ public class StatusListService {
             }
         }
         return packed;
-    }
-
-    private List<StatusEntry> recursiveAllocateToStatusList(int count, List<StatusEntry> statusEntries) {
-        if (statusEntries.size() >= count) {
-            return statusEntries;
-        }
-
-        int remainingCount = count - statusEntries.size();
-        StatusList statusList = statusListRepository.getNextFreeStatusList();
-        List<Integer> allocated = statusList.allocateToStatusList(remainingCount);
-
-        for (Integer idx : allocated) {
-            URI uri = buildUri(statusIssuerProperties.uri(), statusList.getId());
-            statusEntries.add(new StatusEntry(idx, uri));
-        }
-
-        return recursiveAllocateToStatusList(count, statusEntries);
     }
 }
