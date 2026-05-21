@@ -25,15 +25,6 @@ public class StatusListUtil {
         return new FreeIndexList(createShuffledArray(length, seed));
     }
 
-    public static IntStack createFreeIndexStack(int count, int seed) {
-        return createFreeIndexStack(count, seed, count-1);
-    }
-
-    public static IntStack createFreeIndexStack(int count, int seed, int next) {
-        int[] numbers = createShuffledArray(count, seed);
-        return new IntStack(numbers, next);
-    }
-
     public static int createNewSeed() {
         return SEED_RNG.nextInt(Integer.MAX_VALUE);
     }

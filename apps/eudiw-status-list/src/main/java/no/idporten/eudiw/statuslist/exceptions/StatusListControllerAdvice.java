@@ -46,7 +46,7 @@ public class StatusListControllerAdvice {
     }
 
     @ExceptionHandler(StatusListNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleStatusProviderNotFoundException(StatusListNotFoundException e) {
+    public ResponseEntity<ErrorResponse> handleStatusEntryException(StatusListNotFoundException e) {
         return errorResponseEntity(e);
     }
 
@@ -55,8 +55,8 @@ public class StatusListControllerAdvice {
         return errorResponseEntity(e);
     }
 
-    @ExceptionHandler(StatusNotAllocatedException.class)
-    public ResponseEntity<ErrorResponse> handleStatusNotAllocatedException(StatusNotAllocatedException e) {
+    @ExceptionHandler(StatusEntryException.class)
+    public ResponseEntity<ErrorResponse> handleStatusNotAllocatedException(StatusEntryException e) {
         return errorResponseEntity(e);
     }
 

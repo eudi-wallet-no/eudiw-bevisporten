@@ -6,4 +6,5 @@ public class ErrorCodes {
     public static final String STATUS_LIST_NOT_FOUND = "status_list_not_found";
     public static final String INVALID_STATUS = "invalid_status";
     public static final String STATUS_NOT_ALLOCATED = "status_not_allocated";
+    public static final String STATUS_ALREADY_REVOKED = "status_already_revoked";
 }

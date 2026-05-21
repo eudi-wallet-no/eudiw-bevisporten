@@ -13,11 +13,4 @@ public class Status {
             default -> "INVALID STATUS CODE";
         };
     }
-
-    public static boolean isSupported(int status) {
-        return switch (status) {
-            case VALID, INVALID -> true;
-            default -> false;
-        };
-    }
 }
