@@ -59,12 +59,13 @@ public class StatusIssuerServiceTest {
         reset(statusIssuerIntegration, credentialStatusCache);
     }
 
-    @DisplayName("then the status list feature is feature switched and applies only for pre-authorized code flow")
+    @DisplayName("then the status list feature is feature switched and is per credential configuration")
     @Test
     void testFeatureSwitch() {
         StatusIssuerProperties properties = new StatusIssuerProperties();
         StatusIssuerService service = new StatusIssuerService(properties, null, credentialStatusCache);
         CredentialIssueContext context = testContext();
+        context.credentialConfiguration().getCredentialIssuerContext().setIncludeStatus(true);
         assertFalse(service.isEnabled(context));
         properties.setEnabled(true);
         assertTrue(service.isEnabled(context));
