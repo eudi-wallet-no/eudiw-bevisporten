@@ -35,10 +35,9 @@ public class StatusIssuerService {
 
     /**
      * Checks if feature is enabled and credential issue context indicates that a status should be allocated for the credential.
-     * For now, only pre-authorized code flow.
      */
     public boolean isEnabled(CredentialIssueContext credentialIssueContext) {
-        return statusIssuerProperties.isEnabled() && credentialIssueContext.transactionId() != null;
+        return statusIssuerProperties.isEnabled() && credentialIssueContext.credentialConfiguration().getCredentialIssuerContext().isIncludeStatus();
     }
 
     public List<CredentialStatus> allocateStatus(CredentialIssueContext context, int numberOfEntries) {

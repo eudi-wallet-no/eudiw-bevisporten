@@ -57,7 +57,15 @@ public class CredentialIssuerContext {
      * Pre-authorization code flow requires tx code or not.
      */
     @JsonProperty("require_tx_code")
+    @Builder.Default
     private boolean requireTxCode = true;
+
+    /**
+     * Allocate and include a status in the credential
+     */
+    @JsonProperty("include_status")
+    @Builder.Default
+    private boolean includeStatus = false;
 
     @JsonProperty("credential_datasource_uri")
     @NotNull
