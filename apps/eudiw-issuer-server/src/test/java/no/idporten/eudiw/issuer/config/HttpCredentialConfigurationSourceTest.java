@@ -95,7 +95,7 @@ public class HttpCredentialConfigurationSourceTest {
         credentialConfigurationSource.setRestClient(restClient);
     }
 
-    @DisplayName("then return all configurations from success response")
+    @DisplayName("then return all configurations from success response and enrich context")
     @Test
     void testRetrieveAllSuccess() throws JsonProcessingException {
         mockServer.expect(requestTo(EXTERNAL_SERVICE_URL)).andRespond(withSuccess(EXAMPLE_JSON_RESPONSE, MediaType.APPLICATION_JSON));
@@ -105,6 +105,12 @@ public class HttpCredentialConfigurationSourceTest {
                 () -> assertEquals(1, retrievedCredentialConfigurations.size()),
                 () -> assertEquals("net.eidas2sandkasse:programmer_stats_sd_jwt_vc", retrievedCredentialConfigurations.getFirst().getCredentialConfigurationId()),
                 () -> assertEquals("net.eidas2sandkasse:programmer_stats", retrievedCredentialConfigurations.getFirst().getCredentialType())
+        );
+        ExtendedCredentialConfiguration cc = retrievedCredentialConfigurations.getFirst();
+        assertAll(
+                () -> assertEquals("urn:ietf:params:oauth:grant-type:pre-authorized_code", cc.getCredentialIssuerContext().getGrantType()),
+                () -> assertTrue(cc.getCredentialIssuerContext().isRequireTxCode()),
+                () -> assertTrue(cc.getCredentialIssuerContext().isIncludeStatus())
         );
     }
 

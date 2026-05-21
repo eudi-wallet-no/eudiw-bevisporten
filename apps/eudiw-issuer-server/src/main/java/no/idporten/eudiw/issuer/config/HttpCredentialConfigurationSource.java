@@ -98,6 +98,7 @@ public class HttpCredentialConfigurationSource implements CredentialConfiguratio
         credentialIssuerContext.setAuthorizationServer("auth-eidas2sandkasse");
         credentialIssuerContext.setPreAuthorizationServer("maskinporten");
         credentialIssuerContext.setCredentialSigningKeystore("eaa-provider");
+        credentialIssuerContext.setIncludeStatus(true);
         credentialConfiguration.setCredentialIssuerContext(credentialIssuerContext);
         return credentialConfiguration;
     }
