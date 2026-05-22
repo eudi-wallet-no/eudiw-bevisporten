@@ -63,8 +63,8 @@ public class StatusProviderServiceTest {
     @DisplayName("Should generate a valid Status List Token as JWT")
     void getValidStatusListTest() throws Exception {
         CompressedStatusList compressedStatusList = new CompressedStatusList("eNrbuRgAAhcBXQ", 1);
-        when(mockStatusListService.getJsonStatusList("1")).thenReturn(compressedStatusList);
-        String testId = "1";
+        when(mockStatusListService.getJsonStatusList(1)).thenReturn(compressedStatusList);
+        int testId = 1;
 
         JWT jwt = statusProviderService.getStatusList(testId);
 
@@ -105,16 +105,19 @@ public class StatusProviderServiceTest {
     @DisplayName("Should throw StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
     void trowStatusListSigningExceptionTest1() throws Exception {
         CompressedStatusList compressedStatusList = new CompressedStatusList("eNrbuRgAAhcBXQ", 1);
-        when(mockStatusListService.getJsonStatusList("1")).thenReturn(compressedStatusList);
+        when(mockStatusListService.getJsonStatusList(1)).thenReturn(compressedStatusList);
         doReturn(mockKeyProvider).when(keystoreManager).getKeyProvider(any());
         doReturn(mockCertificate).when(mockKeyProvider).certificate();
         when(mockCertificate.getEncoded()).thenThrow(CertificateEncodingException.class);
 
 
-        String testId = "1";
+        int testId = 1;
 
-        assertThrows(StatusListSigningException.class, (
+        StatusListSigningException e = assertThrows(StatusListSigningException.class, (
                 () -> statusProviderService.getStatusList(testId)
         ));
+
+        assertEquals("Failed to encode certificate", e.getMessage());
+        assertEquals("server_error", e.getErrorCode());
     }
 }

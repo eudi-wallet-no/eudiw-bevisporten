@@ -1,5 +1,7 @@
 package no.idporten.eudiw.statuslist.util;
 
+import no.idporten.eudiw.statuslist.exceptions.StatusListBadRequestException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -10,37 +12,56 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class StatusListUtilTest {
     @Test
+    @DisplayName("Should build correct URI when given base URI and list id")
     public void isBuildingCorrectUri() {
         URI expected = URI.create("https://status.junit.eidas2sandkasse.net/lists/1");
-        URI uri = buildUri("https://status.junit.eidas2sandkasse.net/lists/{id}", "1");
+        URI uri = buildUri("https://status.junit.eidas2sandkasse.net/lists/{id}", 1);
 
         assertEquals(expected, uri);
 
-        expected = URI.create("https://status.junit.eidas2sandkasse.net/lists/en-to-tre");
-        uri = buildUri("https://status.junit.eidas2sandkasse.net/lists/{id}", "en-to-tre");
+        expected = URI.create("https://status.junit.eidas2sandkasse.net/lists/123");
+        uri = buildUri("https://status.junit.eidas2sandkasse.net/lists/{id}", 123);
 
         assertEquals(expected, uri);
     }
 
     @Test
+    @DisplayName("Should get correct id from URI when URI ends with a valid unsigned integer")
     public void isGettingCorrectIdFromUri() {
-        String expected = "1";
-        String id = getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/1"));
+        int expected = 1;
+        int id = getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/1"));
 
         assertEquals(expected, id);
 
-        expected = "en-to-tre";
-        id = getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/en-to-tre"));
+        expected = 123;
+        id = getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/123"));
 
         assertEquals(expected, id);
 
-        expected = "tre";
-        id = getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/en/to/tre"));
+        expected = 3;
+        id = getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/en/to/3"));
 
         assertEquals(expected, id);
     }
 
     @Test
+    @DisplayName("Should throw StatusListBadRequestException when URI does not end with a valid unsigned integer")
+    public void isGettingIncorrectIdFromUri() {
+        StatusListBadRequestException e1 = assertThrows(StatusListBadRequestException.class, () -> {
+            getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/en"));
+        });
+        assertEquals("Unable to parse id from URI: https://status.junit.eidas2sandkasse.net/lists/en",  e1.getMessage());
+        assertEquals("invalid_request",  e1.getErrorCode());
+
+        StatusListBadRequestException e2 = assertThrows(StatusListBadRequestException.class, () -> {
+            getListId(URI.create("https://status.junit.eidas2sandkasse.net/lists/-1"));
+        });
+        assertEquals("Unable to parse id from URI: https://status.junit.eidas2sandkasse.net/lists/-1",  e2.getMessage());
+        assertEquals("invalid_request",  e2.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("Should generate identical lists for the same seed and size")
     public void shouldGenerateIdenticalListForGivenSeed() {
         int size = 10;
         int seed = 42;
@@ -62,6 +83,7 @@ public class StatusListUtilTest {
     }
 
     @Test
+    @DisplayName("Should generate different lists for different seeds")
     public void shouldGenerateDifferentListsForDifferentSeed() {
         int size1 = 10;
         FreeIndexList s1 = createFreeIndexList(size1, 42);

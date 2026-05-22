@@ -83,7 +83,7 @@ public class StatusListIssuerApiController {
     public ResponseEntity<Void> revoke(@RequestBody @Valid StatusUpdateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
 
-        statuslistService.revokeStatuses(request.statusListEntries());
+        statuslistService.updateStatuses(request.statusListEntries());
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

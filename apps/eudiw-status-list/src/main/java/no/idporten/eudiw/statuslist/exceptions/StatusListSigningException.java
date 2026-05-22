@@ -10,7 +10,6 @@ public class StatusListSigningException extends StatusListException {
         super(message, cause);
     }
 
-
     @Override
     public String getErrorCode() {
         return errorCode;

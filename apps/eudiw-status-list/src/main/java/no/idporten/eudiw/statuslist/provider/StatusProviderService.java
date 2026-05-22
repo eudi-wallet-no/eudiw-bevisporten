@@ -38,19 +38,19 @@ public class StatusProviderService {
         this.statuslistService = statuslistService;
     }
 
-    public JWT getStatusList(String id) {
+    public JWT getStatusList(int id) {
         JWTClaimsSet claimsSet = buildJwtClaimsSet(id);
         return buildSignedJWT(claimsSet);
     }
 
-    private JWTClaimsSet buildJwtClaimsSet(String id) {
+    private JWTClaimsSet buildJwtClaimsSet(int id) {
         Map<String, Object> statusList = getStatusListClaims(id);
 
         Date issueTime = new Date();
         Date expirationTime = new Date(issueTime.getTime() + statusProviderProperties.valid().toMillis());
 
         URI uri = UriComponentsBuilder.fromUri(statusProviderProperties.uri())
-                .pathSegment("lists", id)
+                .pathSegment("lists", Integer.toString(id))
                 .build()
                 .toUri();
 
@@ -63,7 +63,7 @@ public class StatusProviderService {
                 .build();
     }
 
-    private Map<String, Object> getStatusListClaims(String id) {
+    private Map<String, Object> getStatusListClaims(int id) {
         CompressedStatusList compressedList = statuslistService.getJsonStatusList(id);
         Map<String, Object> statusList = new HashMap<>();
 

@@ -56,7 +56,7 @@ class AuditServiceTest {
 
     @Test
     void logAllocatedEntries() {
-        URI uri = buildUri("https://status.junit.eidas2sandkasse.net", "1");
+        URI uri = buildUri("https://status.junit.eidas2sandkasse.net/{id}", 1);
 
         List<StatusEntry> entries = List.of(
                 new StatusEntry(31432, uri),
@@ -78,7 +78,7 @@ class AuditServiceTest {
 
     @Test
     void logUpdatedEntries() {
-        URI uri = buildUri("https://status.junit.eidas2sandkasse.net/lists/{id}", "1");
+        URI uri = buildUri("https://status.junit.eidas2sandkasse.net/lists/{id}", 1);
 
         List<StatusEntryUpdateRequest> entries = List.of(
                 new StatusEntryUpdateRequest(31432, uri, "INVALID"),

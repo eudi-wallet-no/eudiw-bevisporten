@@ -1,7 +1,7 @@
 package no.idporten.eudiw.statuslist.repository;
 
 import no.idporten.eudiw.statuslist.exceptions.ErrorCodes;
-import no.idporten.eudiw.statuslist.exceptions.StatusEntryException;
+import no.idporten.eudiw.statuslist.exceptions.StatusListBadRequestException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
@@ -36,15 +36,6 @@ public class StatusListRepository {
     public StatusListRepository(StatusListProperties statusListProperties, JdbcTemplate jdbc) {
         this.statusListProperties = statusListProperties;
         this.jdbc = jdbc;
-    }
-
-    public StatusListWithEntriesDto getStatusList(String listId) {
-        try {
-            int id = Integer.parseInt(listId);
-            return getStatusList(id);
-        } catch (NumberFormatException e) {
-            throw new StatusListNotFoundException(listId);
-        }
     }
 
     public StatusListWithEntriesDto getStatusList(int listId) {
@@ -82,8 +73,8 @@ public class StatusListRepository {
     @Transactional
     public void createStatusEntry(int listId, int index, int status) {
         if (!isStatusAllocated(listId, index)) {
-            throw new StatusEntryException(
-                    ErrorCodes.STATUS_NOT_ALLOCATED,
+            throw new StatusListBadRequestException(
+                    ErrorCodes.INVALID_REQUEST,
                     "Status at index %d is not allocated in status list with id %d".formatted(index, listId)
             );
         }
@@ -249,8 +240,8 @@ public class StatusListRepository {
                     listId, index, status, nowMs, nowMs
             );
         } catch (DuplicateKeyException ex) {
-            throw new StatusEntryException(
-                    ErrorCodes.STATUS_ALREADY_REVOKED,
+            throw new StatusListBadRequestException(
+                    ErrorCodes.INVALID_REQUEST,
                     "Status at index %d is already revoked in status list with id %d".formatted(index, listId),
                     ex
             );

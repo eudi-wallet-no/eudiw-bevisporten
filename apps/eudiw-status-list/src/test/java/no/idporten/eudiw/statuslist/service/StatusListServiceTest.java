@@ -35,10 +35,10 @@ class StatusListServiceTest {
     @Test
     void getLargeJsonStatuslist() {
         StatusListWithEntriesDto statusList = new StatusListWithEntriesDto(1, 1_000_000, 1, new HashMap<>());
-        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+        when(statusListRepository.getStatusList(1)).thenReturn(statusList);
         long start = System.currentTimeMillis();
         long init = System.currentTimeMillis();
-        String list = statusListService.getJsonStatusList("1").statusList();
+        String list = statusListService.getJsonStatusList(1).statusList();
         long end = System.currentTimeMillis();
         assertNotNull(list);
         System.out.println("Init list: " + (init - start) + "ms, Generate: " + (end - init) + "ms, Total: " + (end - start) + "ms");
@@ -69,9 +69,9 @@ class StatusListServiceTest {
         StatusListWithEntriesDto statusList = new StatusListWithEntriesDto(1, 16, 1, entries);
 
 
-        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+        when(statusListRepository.getStatusList(1)).thenReturn(statusList);
 
-        String list = statusListService.getJsonStatusList("1").statusList();
+        String list = statusListService.getJsonStatusList(1).statusList();
         assertNotNull(list);
         assertEquals("78dadbb918000217015d", list, "List not equal to example=" + list);
     }
@@ -87,8 +87,8 @@ class StatusListServiceTest {
         StatusListWithEntriesDto statusList = new StatusListWithEntriesDto(1, 4, 2, entries);
 
 
-        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-        String list = statusListService.getJsonStatusList("1").statusList();
+        when(statusListRepository.getStatusList(1)).thenReturn(statusList);
+        String list = statusListService.getJsonStatusList(1).statusList();
 
         assertEquals("78da63010000050005", list);
     }
@@ -103,8 +103,8 @@ class StatusListServiceTest {
         StatusListWithEntriesDto statusList = new StatusListWithEntriesDto(1, 3, 8, entries);
 
 
-        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-        String list = statusListService.getJsonStatusList("1").statusList();
+        when(statusListRepository.getStatusList(1)).thenReturn(statusList);
+        String list = statusListService.getJsonStatusList(1).statusList();
 
         assertEquals("78da135afd1f00028e01bd", list);
     }
@@ -112,24 +112,15 @@ class StatusListServiceTest {
     @Test
     void getJsonStatuslistRejectsStatusValueThatDoesNotFitBitSize() {
         StatusListWithEntriesDto statusList = new StatusListWithEntriesDto(1, 2, 2, Map.of(0, 0x04));
-        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
+        when(statusListRepository.getStatusList(1)).thenReturn(statusList);
 
-        assertThrows(StatusListException.class, () -> statusListService.getJsonStatusList("1"));
+        assertThrows(StatusListException.class, () -> statusListService.getJsonStatusList(1));
     }
 
     @Test
     void updateStatusShouldThrowUnsupportedStatus() {
-        assertThrows(UnsupportedStatusException.class, () -> statusListService.updateStatus("1", 0, 2));
+        assertThrows(UnsupportedStatusException.class, () -> statusListService.updateStatus(1, 0, 2));
     }
-
-//    @Test
-//    void updateStatusRejectsUnallocatedIndex() {
-//        StatusListWithEntriesDto statusList = new StatusListWithEntriesDto(1, 2, 2,  Map.of(0, VALID));
-//        when(statusListRepository.getStatusList("1")).thenReturn(statusList);
-//
-//        assertThrows(StatusNotAllocatedException.class, () -> statusListService.updateStatus("1", 1, INVALID));
-//    }
-
 
     @Test
     void compressZlib() {

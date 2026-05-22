@@ -19,7 +19,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.List;
 
-import static no.idporten.eudiw.statuslist.exceptions.ErrorCodes.INVALID_REQUEST;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -81,7 +80,7 @@ class StatusListIssuerApiControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$").exists())
                 .andExpect(jsonPath("$.error").exists())
-                .andExpect(jsonPath("$.error").value(INVALID_REQUEST));
+                .andExpect(jsonPath("$.error").value("invalid_request"));
         verify(statuslistService, never()).allocateToStatusList(anyInt());
     }
 
@@ -96,7 +95,7 @@ class StatusListIssuerApiControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$").exists())
                 .andExpect(jsonPath("$.error").exists())
-                .andExpect(jsonPath("$.error").value(INVALID_REQUEST));
+                .andExpect(jsonPath("$.error").value("invalid_request"));
         verify(statuslistService, never()).allocateToStatusList(anyInt());
     }
 
@@ -112,9 +111,9 @@ class StatusListIssuerApiControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$").exists())
                 .andExpect(jsonPath("$.error").exists())
-                .andExpect(jsonPath("$.error").value(INVALID_REQUEST));
-        verify(statuslistService, never()).updateStatus(anyString(), anyInt(),anyInt());
-        verify(statuslistService, never()).revokeStatuses(anyList());
+                .andExpect(jsonPath("$.error").value("invalid_request"));
+        verify(statuslistService, never()).updateStatus(anyInt(), anyInt(),anyInt());
+        verify(statuslistService, never()).updateStatuses(anyList());
     }
 
     @DisplayName("then a PUT with a valid StatusUpdateRequest will return a 204 No Content response")
@@ -133,7 +132,7 @@ class StatusListIssuerApiControllerTest {
                         .header("X-API-KEY", statusIssuerProperties.apiKey())
                         .content(statusesToRevoke))
                 .andExpect(status().isNoContent());
-        verify(statuslistService, times(1)).revokeStatuses(List.of(statusToRevoke));
-        verify(statuslistService, times(1)).updateStatus("1", index, Status.INVALID);
+        verify(statuslistService, times(1)).updateStatuses(List.of(statusToRevoke));
+        verify(statuslistService, times(1)).updateStatus(1, index, Status.INVALID);
     }
 }

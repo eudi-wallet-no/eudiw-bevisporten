@@ -10,6 +10,10 @@ public class UnsupportedStatusException extends StatusListException {
         super("Status %d is not supported".formatted(status));
     }
 
+    public UnsupportedStatusException(String status) {
+        super("Status '%s' is not supported".formatted(status));
+    }
+
     @Override
     public String getErrorCode() {
         return errorCode;

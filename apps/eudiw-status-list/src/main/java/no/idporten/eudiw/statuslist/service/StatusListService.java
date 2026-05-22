@@ -2,7 +2,6 @@ package no.idporten.eudiw.statuslist.service;
 
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
-import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
@@ -54,7 +53,7 @@ public class StatusListService {
         return outputStream.toByteArray();
     }
 
-    public CompressedStatusList getJsonStatusList(String id) {
+    public CompressedStatusList getJsonStatusList(int id) {
         StatusListWithEntriesDto statusList = statusListRepository.getStatusList(id);
         byte[] packedBytes = packStatuses(statusList);
         byte[] compressed = compressZlib(packedBytes);
@@ -74,26 +73,20 @@ public class StatusListService {
         return statusEntries;
     }
 
-    public void revokeStatuses(List<StatusEntryUpdateRequest> entryUpdates) {
+    public void updateStatuses(List<StatusEntryUpdateRequest> entryUpdates) {
         for (StatusEntryUpdateRequest entry : entryUpdates) {
-            updateStatus(getListId(entry.uri()), entry.idx(), Status.INVALID);
+            updateStatus(getListId(entry.uri()), entry.idx(), Status.getStatus(entry.statusType()));
         }
 
         auditService.logUpdatedEntries(new AuditEntryCollection<>(entryUpdates), Status.getStatus(Status.INVALID));
     }
 
-    public void updateStatus(String id, int index, int status) {
+    public void updateStatus(int id, int index, int status) {
         if (status != Status.INVALID) {
             throw new UnsupportedStatusException(status);
         }
 
-        try {
-            int listId = Integer.parseInt(id);
-            statusListRepository.createStatusEntry(listId, index, status);
-        }
-        catch (NumberFormatException e) {
-            throw new StatusListNotFoundException(id);
-        }
+        statusListRepository.createStatusEntry(id, index, status);
     }
 
     private byte[] packStatuses(StatusListWithEntriesDto statusList) {
