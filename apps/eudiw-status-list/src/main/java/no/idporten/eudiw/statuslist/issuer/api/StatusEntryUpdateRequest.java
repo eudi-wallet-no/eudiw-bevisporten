@@ -2,6 +2,7 @@ package no.idporten.eudiw.statuslist.issuer.api;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -25,6 +26,7 @@ public record StatusEntryUpdateRequest(
         @Schema(description = "Status type values. Verdi for revokasjon er 'INVALID' og einaste gyldig verdi", example = "INVALID")
         @JsonProperty("status_type")
         @Pattern(regexp = "^INVALID$", message = "Status_type må vera lik INVALID")
+        @NotEmpty(message = "Status_type må vera lik INVALID")
         String statusType
 ) implements Auditable {
 

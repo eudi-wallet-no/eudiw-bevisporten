@@ -11,5 +11,4 @@ public record ErrorResponse(@JsonProperty("error") String error, @JsonProperty("
         this.error = error;
         this.errorDescription ="%s (trace_id=%s)".formatted(errorDescription, Span.current().getSpanContext().getTraceId());
     }
-
 }

@@ -3,6 +3,7 @@ package no.idporten.eudiw.statuslist.provider;
 import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,10 @@ public class StatusProviderController {
             description = "Status-list som JWT")
     @CrossOrigin(origins = "*", methods = RequestMethod.GET)
     @GetMapping(path = "/lists/{id}", produces = STATUS_LIST_TOKEN)
-    public ResponseEntity<String> getStatusList(@PathVariable String id) {
+    public ResponseEntity<String> getStatusList(@PathVariable int id) {
+        if (id < 0) {
+            throw new StatusListNotFoundException(id);
+        }
         JWT jwt = statusProviderService.getStatusList(id);
         return ResponseEntity.ok(jwt.serialize());
     }

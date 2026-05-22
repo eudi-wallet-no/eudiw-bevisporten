@@ -1,5 +1,7 @@
 package no.idporten.eudiw.statuslist.util;
 
+import no.idporten.eudiw.statuslist.exceptions.ErrorCodes;
+import no.idporten.eudiw.statuslist.exceptions.StatusListBadRequestException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -8,17 +10,22 @@ import java.security.SecureRandom;
 public class StatusListUtil {
     private static final SecureRandom SEED_RNG = new SecureRandom();
 
-    public static String getListId(URI uri) {
-        String[] parts = uri.getPath().split("/");
-        return parts[parts.length - 1];
-    }
-
-    public static URI buildUri(String baseUri, String listId) {
-        return UriComponentsBuilder.fromUriString(baseUri).buildAndExpand(listId).toUri();
+    public static int getListId(URI uri) {
+        try {
+            String[] parts = uri.getPath().split("/");
+            return Integer.parseUnsignedInt(parts[parts.length - 1]);
+        }
+        catch (Exception e) {
+            throw new StatusListBadRequestException(
+                    ErrorCodes.INVALID_REQUEST,
+                    "Unable to parse id from URI: %s".formatted(uri.toString()),
+                    e
+            );
+        }
     }
 
     public static URI buildUri(String baseUri, int listId) {
-        return buildUri(baseUri, String.valueOf(listId));
+        return UriComponentsBuilder.fromUriString(baseUri).buildAndExpand(listId).toUri();
     }
 
     public static FreeIndexList createFreeIndexList(int length, int seed) {

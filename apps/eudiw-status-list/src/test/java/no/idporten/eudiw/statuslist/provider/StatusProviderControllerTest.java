@@ -3,7 +3,6 @@ package no.idporten.eudiw.statuslist.provider;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
-import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -42,7 +40,7 @@ public class StatusProviderControllerTest {
                 ))
                 .build());
 
-        when(statusProviderService.getStatusList(any())).thenReturn(jwt);
+        when(statusProviderService.getStatusList(1)).thenReturn(jwt);
     }
 
     @Test
@@ -67,25 +65,37 @@ public class StatusProviderControllerTest {
     }
 
     @Test
-    @DisplayName("Should return 404 when calling /non-existing-service")
+    @DisplayName("Should return 404 when calling invalid url")
     void getNoSuchServiceFound() throws Exception {
         mockMvc.perform(get("/non-existing-service").accept("application/statuslist+jwt"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(containsString("Requested resource not found")));
+   }
+
+    @Test
+    @DisplayName("Should fail when calling invalid id")
+    void getInvalidIdFormat() throws Exception {
+        mockMvc.perform(get("/lists/{}", "en").accept("application/statuslist+jwt"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"));
+
+        int invalidId = -1;
+        mockMvc.perform(get("/lists/{id}", invalidId).accept("application/statuslist+jwt"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("status_list_not_found"));
     }
 
     @Test
     @DisplayName("Should return 404 when calling non-existing id")
     void statusListNotFound() throws Exception {
-        String invalidId = "-1";
-        when(statusProviderService.getStatusList(invalidId)).thenThrow(new StatusListNotFoundException(invalidId));
-
-        mockMvc.perform(get("/lists/{id}", invalidId).accept("application/statuslist+jwt"))
+        mockMvc.perform(get("/4312").accept("application/statuslist+jwt"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value("status_list_not_found"))
-                .andExpect(jsonPath("$.error_description").value(containsString("Could not find status list with id %s".formatted(invalidId))));
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value(containsString("Requested resource not found")));
     }
 }

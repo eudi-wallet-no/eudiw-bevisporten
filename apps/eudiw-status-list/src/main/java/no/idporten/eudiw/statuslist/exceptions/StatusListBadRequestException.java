@@ -2,16 +2,16 @@ package no.idporten.eudiw.statuslist.exceptions;
 
 import org.springframework.http.HttpStatus;
 
-public class StatusEntryException extends StatusListException {
+public class StatusListBadRequestException extends StatusListException {
     private final String errorCode;
     private static final HttpStatus statusCode = HttpStatus.BAD_REQUEST;
 
-    public StatusEntryException(String errorCode, String message) {
+    public StatusListBadRequestException(String errorCode, String message) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    public StatusEntryException(String errorCode, String message, Throwable cause) {
+    public StatusListBadRequestException(String errorCode, String message, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }

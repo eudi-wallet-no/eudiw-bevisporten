@@ -13,6 +13,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -55,8 +56,8 @@ public class StatusListControllerAdvice {
         return errorResponseEntity(e);
     }
 
-    @ExceptionHandler(StatusEntryException.class)
-    public ResponseEntity<ErrorResponse> handleStatusNotAllocatedException(StatusEntryException e) {
+    @ExceptionHandler(StatusListBadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleStatusListBadRequestException(StatusListBadRequestException e) {
         return errorResponseEntity(e);
     }
 
@@ -95,6 +96,11 @@ public class StatusListControllerAdvice {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
         return errorResponseEntity(e.getStatusCode(), errorMessageForHttpStatus(e.getStatusCode()), e.getReason());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, "Invalid argument");
     }
 
     protected String errorMessageForHttpStatus(HttpStatusCode httpStatus) {
