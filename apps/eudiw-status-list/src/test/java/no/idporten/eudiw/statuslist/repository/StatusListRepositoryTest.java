@@ -5,7 +5,6 @@ import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
 import no.idporten.eudiw.statuslist.repository.models.StatusListWithEntriesDto;
 import no.idporten.eudiw.statuslist.service.Status;
-import no.idporten.eudiw.statuslist.service.StatusListProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -92,15 +91,28 @@ class StatusListRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should create new StatusListDto instance and insert into database when allocating from empty repository")
-    void createNew() {
+    @DisplayName("Should insert new status list if no list has free space")
+    void shouldInsertNewStatusListIfNoListHasFreeSpace() {
+        int listSize = properties.listSize();
         String query = "SELECT count(*) FROM status_list";
+
         Integer count = jdbc.queryForObject(query, Integer.class);
         assertEquals(0, count);
 
-        repository.createNewStatusList();
+        repository.allocateToStatusList(1);
+
         count = jdbc.queryForObject(query, Integer.class);
         assertEquals(1, count);
+
+        repository.allocateToStatusList(listSize-1);
+
+        count = jdbc.queryForObject(query, Integer.class);
+        assertEquals(1, count);
+
+        repository.allocateToStatusList(1);
+
+        count = jdbc.queryForObject(query, Integer.class);
+        assertEquals(2, count);
     }
 
     @Test
