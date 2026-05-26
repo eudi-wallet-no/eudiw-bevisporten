@@ -1,4 +1,4 @@
-package no.idporten.eudiw.statuslist.service;
+package no.idporten.eudiw.statuslist.repository;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
