@@ -7,11 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.ErrorResponse;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.service.StatusListService;
-import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.MessageDigest;
-import java.util.List;
 
 @RestController
 @RequestMapping("/status-issuer/api/v1/entries")
@@ -29,6 +27,7 @@ public class StatusListIssuerApiController {
 
     private final StatusIssuerProperties properties;
     private final StatusListService statuslistService;
+    private static final Logger log = LoggerFactory.getLogger(StatusListIssuerApiController.class);
 
     public StatusListIssuerApiController(StatusIssuerProperties properties, StatusListService statusListService) {
         this.properties = properties;
@@ -50,20 +49,8 @@ public class StatusListIssuerApiController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StatusCreateResponse> allocateStatus(@RequestBody @Valid StatusCreateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
-        StatusCreateResponse response = new StatusCreateResponse(allocateStatuses(request));
+        StatusCreateResponse response = new StatusCreateResponse(statuslistService.allocateToStatusList(request.numberOfEntries()));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    private void verifyApiKey(String serverKey, String inputKey) {
-        if (serverKey == null) {
-            LoggerFactory.getLogger(StatusListIssuerApiController.class).error("API key is missing in configuration.");
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API key");
-        }
-        // Use MessageDigest because of security: Attacker can time String.equals() since it finishes on first mismatch in String, but MessageDigest always compares entire String.
-        // So slower, but safer security.
-        if (inputKey == null || !MessageDigest.isEqual(serverKey.getBytes(), inputKey.getBytes())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API key");
-        }
     }
 
     @Operation(
@@ -88,8 +75,15 @@ public class StatusListIssuerApiController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private @NonNull List<StatusEntry> allocateStatuses(StatusCreateRequest request) {
-        return statuslistService.allocateToStatusList(request.numberOfEntries());
-
+    private void verifyApiKey(String serverKey, String inputKey) {
+        if (serverKey == null) {
+            log.error("API key is missing in configuration.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API key");
+        }
+        // Use MessageDigest because of security: Attacker can time String.equals() since it finishes on first mismatch in String, but MessageDigest always compares entire String.
+        // So slower, but safer security.
+        if (inputKey == null || !MessageDigest.isEqual(serverKey.getBytes(), inputKey.getBytes())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API key");
+        }
     }
 }

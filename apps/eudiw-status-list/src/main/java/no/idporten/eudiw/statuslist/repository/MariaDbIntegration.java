@@ -47,8 +47,6 @@ public class MariaDbIntegration {
                 SELECT id, list_size, seed, next_index
                 FROM status_list 
                 WHERE id = ?
-                ORDER BY id ASC
-                LIMIT 1
                 """, statusListRowMapper, id).stream().findFirst();
 
         if (result.isEmpty()) {

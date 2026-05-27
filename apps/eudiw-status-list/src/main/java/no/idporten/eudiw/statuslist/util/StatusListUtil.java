@@ -12,10 +12,17 @@ public class StatusListUtil {
 
     public static int getListId(URI uri) {
         try {
-            String[] parts = uri.getPath().split("/");
+            String path = uri.getPath();
+            if (path == null || path.isEmpty()) {
+                throw new StatusListBadRequestException(
+                        ErrorCodes.INVALID_REQUEST,
+                        "URI path is empty: %s".formatted(uri.toString())
+                );
+            }
+            String[] parts = path.split("/");
             return Integer.parseUnsignedInt(parts[parts.length - 1]);
         }
-        catch (Exception e) {
+        catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             throw new StatusListBadRequestException(
                     ErrorCodes.INVALID_REQUEST,
                     "Unable to parse id from URI: %s".formatted(uri.toString()),
