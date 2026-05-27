@@ -11,7 +11,7 @@ public class Status {
         return switch (status) {
             case VALID -> "VALID";
             case INVALID -> "INVALID";
-            default -> "INVALID STATUS CODE";
+            default -> throw new UnsupportedStatusException(status);
         };
     }
 
