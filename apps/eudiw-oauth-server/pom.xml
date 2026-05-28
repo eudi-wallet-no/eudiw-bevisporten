@@ -15,7 +15,7 @@
     <properties>
         <java.version>25</java.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-        <idporten-actuator-starter.version>3.1.0</idporten-actuator-starter.version>
+        <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.1</idporten-access-log.version>
         <idporten-audit-version>4.0.2</idporten-audit-version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
