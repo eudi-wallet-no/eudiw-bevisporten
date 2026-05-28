@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
@@ -73,7 +74,10 @@ class StatusListServiceTest {
 
         String list = statusListService.getJsonStatusList(1).statusList();
         assertNotNull(list);
-        assertEquals("78dadbb918000217015d", list, "List not equal to example=" + list);
+
+        String expect = getHexFormat(list);
+
+        assertEquals("78dadbb918000217015d", expect);
     }
 
     @Test
@@ -88,9 +92,12 @@ class StatusListServiceTest {
 
 
         when(statusListRepository.getStatusList(1)).thenReturn(statusList);
+
         String list = statusListService.getJsonStatusList(1).statusList();
 
-        assertEquals("78da63010000050005", list);
+        String expect = getHexFormat(list);
+
+        assertEquals("78da63010000050005", expect);
     }
 
     @Test
@@ -106,7 +113,9 @@ class StatusListServiceTest {
         when(statusListRepository.getStatusList(1)).thenReturn(statusList);
         String list = statusListService.getJsonStatusList(1).statusList();
 
-        assertEquals("78da135afd1f00028e01bd", list);
+        String expect = getHexFormat(list);
+
+        assertEquals("78da135afd1f00028e01bd", expect);
     }
 
     @Test
@@ -128,5 +137,10 @@ class StatusListServiceTest {
         byte[] input = new byte[]{(byte) 0xB9, (byte) 0xA3};
         byte[] compressed = StatusListService.compressZlib(input);
         assertEquals("78dadbb918000217015d", HexFormat.of().formatHex(compressed));
+    }
+
+    private static String getHexFormat(String list) {
+        byte[] result = Base64.getDecoder().decode(list);
+        return HexFormat.of().formatHex(result);
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HexFormat;
+import java.util.Base64;
 import java.util.List;
 import java.util.zip.Deflater;
 
@@ -57,7 +57,10 @@ public class StatusListService {
         StatusListWithEntriesDto statusList = statusListRepository.getStatusList(id);
         byte[] packedBytes = packStatuses(statusList);
         byte[] compressed = compressZlib(packedBytes);
-        return new CompressedStatusList(HexFormat.of().formatHex(compressed), statusList.bitsPerStatus());
+        return new CompressedStatusList(
+                Base64.getUrlEncoder().withoutPadding().encodeToString(compressed),
+                statusList.bitsPerStatus()
+        );
     }
 
     public List<StatusEntry> allocateToStatusList(int count) {
