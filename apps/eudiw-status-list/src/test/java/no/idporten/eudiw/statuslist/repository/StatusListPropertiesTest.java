@@ -30,6 +30,18 @@ public class StatusListPropertiesTest {
     }
 
     @Test
+    void shouldSucceedWhenBitsPerEntryIsValid() {
+        int[] validBitsPerStatus = new int[] { 1, 2, 4, 8 };
+
+        for (int bitsPerStatus : validBitsPerStatus) {
+            StatusListProperties props = new StatusListProperties(1000, bitsPerStatus);
+            assertEquals(bitsPerStatus, props.bitsPerStatus());
+            Set<ConstraintViolation<StatusListProperties>> violations = validator.validate(props);
+            assertEquals(0, violations.size());
+        }
+    }
+
+    @Test
     void shouldFailWhenSizeTooSmall() {
         var props = new StatusListProperties(0, 4);
         Set<ConstraintViolation<StatusListProperties>> violations = validator.validate(props);
@@ -38,17 +50,22 @@ public class StatusListPropertiesTest {
     }
 
     @Test
-    void shouldFailWhenBitsPerEntryExceedsMax() {
-        var props = new StatusListProperties(1, 9);
-        Set<ConstraintViolation<StatusListProperties>> violations = validator.validate(props);
-        assertEquals(1, violations.size());
-        assertEquals("bitsPerStatus", violations.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
     void shouldFailMultipleConstraints() {
         var props = new StatusListProperties(0, 0);
         Set<ConstraintViolation<StatusListProperties>> violations = validator.validate(props);
         assertEquals(2, violations.size());
     }
+
+    @Test
+    void shouldFailWhenBitsPerEntryIsInvalid() {
+        int[] invalidBitsPerStatus = new int[] { 0, 3, 5, 7, 9 };
+
+        for (int bitsPerStatus : invalidBitsPerStatus) {
+            var props = new StatusListProperties(1000, bitsPerStatus);
+            Set<ConstraintViolation<StatusListProperties>> violations = validator.validate(props);
+            assertEquals(1, violations.size());
+            assertEquals("bitsPerStatus must be 1, 2, 4 or 8", violations.iterator().next().getMessage());
+            assertEquals("bitsPerStatus", violations.iterator().next().getPropertyPath().toString());
+        }
+   }
 }
