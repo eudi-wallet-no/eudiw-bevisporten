@@ -2,13 +2,14 @@ package no.idporten.eudiw.statuslist.logging.audit;
 
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
-import no.idporten.eudiw.statuslist.service.Status;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 
 import java.net.URI;
 import java.util.List;
@@ -25,34 +26,6 @@ class AuditServiceTest {
 
     @InjectMocks
     private AuditService auditService;
-
-    @Test
-    void logAllocateIndexes() {
-        List<Integer> indexes = List.of(99,200,3);
-        auditService.logAllocateIndexes(indexes);
-        verify(auditLogger).log(org.mockito.ArgumentMatchers.argThat(argument -> {
-            assertNotNull(argument);
-            assertEquals(AuditID.ALLOCATE_INDEXES.auditIdentifier().auditId(), argument.getAuditId().auditId());
-            assertFalse(argument.isLogNullAttributes());
-            assertTrue(argument.getAttributes().containsKey(AuditService.INDEXES));
-            assertEquals(indexes.toString(), argument.getAttributes().get(AuditService.INDEXES));
-            return true;
-        }));
-    }
-
-    @Test
-    void logUpdateIndexes() {
-        List<Integer> indexes = List.of(1000000,1,44,9999);
-        auditService.logUpdateIndexes(indexes, Status.getStatus(Status.INVALID));
-        verify(auditLogger).log(org.mockito.ArgumentMatchers.argThat(argument -> {
-            assertNotNull(argument);
-            assertEquals(AuditID.UPDATE_STATUS.auditIdentifier().auditId(), argument.getAuditId().auditId());
-            assertFalse(argument.isLogNullAttributes());
-            assertTrue(argument.getAttributes().containsKey(AuditService.INDEXES));
-            assertEquals(indexes.toString(), argument.getAttributes().get(AuditService.INDEXES));
-            return true;
-        }));
-    }
 
     @Test
     void logAllocatedEntries() {
@@ -85,15 +58,21 @@ class AuditServiceTest {
                 new StatusEntryUpdateRequest(982315, uri, "INVALID")
         );
 
-        auditService.logUpdatedEntries(new AuditEntryCollection<>(entries), "INVALID");
+        auditService.logUpdatedEntries(new AuditEntryCollection<>(entries));
 
         verify(auditLogger).log(org.mockito.ArgumentMatchers.argThat(argument -> {
             assertNotNull(argument);
             assertEquals(AuditID.UPDATE_STATUS.auditIdentifier().auditId(), argument.getAuditId().auditId());
             assertFalse(argument.isLogNullAttributes());
             assertTrue(argument.getAttributes().containsKey(AuditService.ENTRIES));
-            assertEquals("INVALID", argument.getAttributes().get(AuditService.STATUS));
             assertEquals(new AuditEntryCollection<>(entries).toAudit(), argument.getAttributes().get(AuditService.ENTRIES));
+
+            ArrayNode arrayNode = (ArrayNode) argument.getAttributes().get(AuditService.ENTRIES);
+            for (JsonNode node : arrayNode) {
+                assertEquals(uri.toString(), node.get("uri").asString());
+                assertEquals("INVALID", node.get("status").asString());
+            }
+
             return true;
         }));
 

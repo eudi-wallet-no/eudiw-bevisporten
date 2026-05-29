@@ -81,7 +81,7 @@ public class StatusListService {
             updateStatus(getListId(entry.uri()), entry.idx(), Status.getStatus(entry.statusType()));
         }
 
-        auditService.logUpdatedEntries(new AuditEntryCollection<>(entryUpdates), Status.getStatus(Status.INVALID));
+        auditService.logUpdatedEntries(new AuditEntryCollection<>(entryUpdates));
     }
 
     public void updateStatus(int id, int index, int status) {
