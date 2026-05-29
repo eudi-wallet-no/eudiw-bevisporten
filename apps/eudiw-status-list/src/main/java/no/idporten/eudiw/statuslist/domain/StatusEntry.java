@@ -2,11 +2,9 @@ package no.idporten.eudiw.statuslist.domain;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import no.idporten.eudiw.statuslist.logging.audit.Auditable;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 import java.net.URI;
+import java.util.Map;
 
 public record StatusEntry(
         @Schema(description = "Index på statuslist", example = "1")
@@ -17,10 +15,7 @@ public record StatusEntry(
 ) implements Auditable {
 
     @Override
-    public JsonNode toAudit() {
-        ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("uri", uri().toString());
-        node.put("idx", idx);
-        return node;
+    public Map<String, Object> toAudit() {
+        return Map.of("uri", uri().toString(), "idx", idx);
     }
 }
