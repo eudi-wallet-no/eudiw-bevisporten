@@ -99,6 +99,8 @@ public class StartIssuanceController {
 
         Issuance issuance = new Issuance(toPrettyJsonString(response), uri, qrCode);
         model.addAttribute("issuance", issuance);
+        model.addAttribute("issuedCredentialConfigurationId", credentialConfiguration.credentialConfigurationId());
+        model.addAttribute("issuedTransactionId", response.issuanceTransactionId());
         return "issuer_response";
     }
 

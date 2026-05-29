@@ -4,10 +4,8 @@
     <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
     <title>Bevisgenerator</title>
 </head>
-
 <body>
 <header th:replace="~{fragments/general :: page_header_fragment}"></header>
-
 <main>
     <div>
         <h1 class="ds-heading" data-size="lg">
@@ -32,13 +30,19 @@
                 Utsted eit bevis ved å skrive inn noko dummy-data og deretter overføre det til ei lommebok
             </p>
         </a>
+        <a th:href="@{/revoke}" class="ds-card"
+           data-variant="neutral" style="max-width: 500px">
+            <h2 class="ds-heading">Revoker utstedte bevis</h2>
+            <p class="ds-paragraph" data-variant="neutral">
+                Her kan du revokere utstedte bevis manuelt
+            </p>
+        </a>
     </div>
     <div>
         <p class="ds-paragraph">
             Denne tenesta er eit GUI foran "extended APIet" til BYOB-utstedaren (Bring-Your-Own-Bevis)
         </p>
     </div>
-
 </main>
 <footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 </body>
