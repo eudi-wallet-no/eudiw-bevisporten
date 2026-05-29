@@ -1,8 +1,7 @@
 package no.idporten.eudiw.statuslist.logging.audit;
 
-
-import tools.jackson.databind.JsonNode;
+import java.util.Map;
 
 public interface Auditable {
-    JsonNode toAudit();
+    Map<String, Object> toAudit();
 }

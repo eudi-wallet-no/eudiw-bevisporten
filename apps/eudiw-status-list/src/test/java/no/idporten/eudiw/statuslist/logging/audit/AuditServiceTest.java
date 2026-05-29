@@ -8,11 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 
 import static no.idporten.eudiw.statuslist.util.StatusListUtil.buildUri;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,6 +43,13 @@ class AuditServiceTest {
             assertFalse(argument.isLogNullAttributes());
             assertTrue(argument.getAttributes().containsKey(AuditService.ENTRIES));
             assertEquals(new AuditEntryCollection<>(entries).toAudit(), argument.getAttributes().get(AuditService.ENTRIES));
+
+            List<?> arrayNode = (List<?>) argument.getAttributes().get(AuditService.ENTRIES);
+            for (Object node : arrayNode) {
+                Map<?, ?> map = (Map<?, ?>) node;
+                assertEquals(uri.toString(), map.get("uri"));
+            }
+
             return true;
         }));
 
@@ -67,10 +73,11 @@ class AuditServiceTest {
             assertTrue(argument.getAttributes().containsKey(AuditService.ENTRIES));
             assertEquals(new AuditEntryCollection<>(entries).toAudit(), argument.getAttributes().get(AuditService.ENTRIES));
 
-            ArrayNode arrayNode = (ArrayNode) argument.getAttributes().get(AuditService.ENTRIES);
-            for (JsonNode node : arrayNode) {
-                assertEquals(uri.toString(), node.get("uri").asString());
-                assertEquals("INVALID", node.get("status").asString());
+            List<?> arrayNode = (List<?>) argument.getAttributes().get(AuditService.ENTRIES);
+            for (Object node : arrayNode) {
+                Map<?, ?> map = (Map<?, ?>) node;
+                assertEquals(uri.toString(), map.get("uri"));
+                assertEquals("INVALID", map.get("status"));
             }
 
             return true;

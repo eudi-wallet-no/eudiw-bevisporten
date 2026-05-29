@@ -7,11 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import no.idporten.eudiw.statuslist.logging.audit.Auditable;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 import java.net.URI;
+import java.util.Map;
 
 public record StatusEntryUpdateRequest(
         @Schema(description = "Index på statuslist", example = "1") @PositiveOrZero
@@ -29,11 +27,7 @@ public record StatusEntryUpdateRequest(
 ) implements Auditable {
 
     @Override
-    public JsonNode toAudit() {
-        ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("uri", uri.toString());
-        node.put("idx", idx);
-        node.put("status", statusType);
-        return node;
+    public Map<String, Object> toAudit() {
+        return Map.of("uri", uri().toString(), "idx", idx, "status", statusType);
     }
 }
