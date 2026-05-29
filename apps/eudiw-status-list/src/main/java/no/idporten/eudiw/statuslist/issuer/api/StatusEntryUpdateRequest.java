@@ -13,8 +13,6 @@ import tools.jackson.databind.node.ObjectNode;
 
 import java.net.URI;
 
-import static no.idporten.eudiw.statuslist.util.StatusListUtil.getListId;
-
 public record StatusEntryUpdateRequest(
         @Schema(description = "Index på statuslist", example = "1") @PositiveOrZero
         int idx,
@@ -33,8 +31,9 @@ public record StatusEntryUpdateRequest(
     @Override
     public JsonNode toAudit() {
         ObjectNode node = JsonNodeFactory.instance.objectNode();
-        node.put("list_id", getListId(uri()));
+        node.put("uri", uri.toString());
         node.put("idx", idx);
+        node.put("status", statusType);
         return node;
     }
 }
