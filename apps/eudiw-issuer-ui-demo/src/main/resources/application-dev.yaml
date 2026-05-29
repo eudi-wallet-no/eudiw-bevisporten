@@ -9,6 +9,8 @@ management:
 spring:
   application:
     environment: dev
+  thymeleaf:
+    cache: false
 
 bevisgenerator:
   byob-service:

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Revoker utstedte bevis</title>
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
+        <h1 class="ds-heading" data-size="lg">
+            Revoker utstedte bevis
+        </h1>
+    </div>
+
+    <div class="ds-card" style="max-width: 900px">
+        <h2 class="ds-heading" data-size="sm">Manuell revokering</h2>
+
+        <p th:if="${successMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${successMessage}"></p>
+        <p th:if="${errorMessage}" class="ds-validation-message" th:text="${errorMessage}"></p>
+
+        <form id="revoke-form"
+              class="form-container"
+              th:object="${revokeForm}"
+              th:action="@{/revoke}"
+              method="POST">
+
+            <div class="ds-field">
+                <label for="credentialConfigurationId"
+                       data-weight="medium"
+                       class="ds-label">
+                    Credential configuration
+                </label>
+                <select id="credentialConfigurationId"
+                        class="ds-input"
+                        th:field="*{credentialConfigurationId}"
+                        th:attr="aria-invalid=${#fields.hasErrors('credentialConfigurationId')}">
+                    <option value="">Velg</option>
+                    <option th:each="credentialConfiguration : ${credentialConfigurations}"
+                            th:value="${credentialConfiguration.credentialConfigurationId()}"
+                            th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
+                    </option>
+                </select>
+                <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
+                      class="ds-validation-message"
+                      th:errors="*{credentialConfigurationId}"></span>
+            </div>
+            <div class="ds-field">
+                <label for="issuanceTransactionId"
+                       data-weight="medium"
+                       class="ds-label">
+                    Issuance transaction id
+                </label>
+                <input id="issuanceTransactionId"
+                       class="ds-input"
+                       th:field="*{issuanceTransactionId}"
+                       th:attr="aria-invalid=${#fields.hasErrors('issuanceTransactionId')}" />
+                <span th:if="${#fields.hasErrors('issuanceTransactionId')}"
+                      class="ds-validation-message"
+                      th:errors="*{issuanceTransactionId}"></span>
+            </div>
+            <div class="button-group">
+                <button class="ds-button"
+                        type="submit"
+                        data-variant="primary">
+                    Revoker
+                </button>
+            </div>
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>
