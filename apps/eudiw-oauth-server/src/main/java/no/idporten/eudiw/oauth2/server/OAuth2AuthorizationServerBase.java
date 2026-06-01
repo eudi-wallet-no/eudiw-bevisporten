@@ -435,9 +435,6 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
         ECKey clientKey = extractJWKFromCnf(clientAttestation);
         verifyJWTSignature(clientAttestationPoP, clientKey);
-        if (!clientKey.equals(extractJWKFromCnf(clientAttestationPoP))) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. cnf claim in attestation and PoP JWT must be equal.", 401);
-        }
         verifyJWTType(clientAttestationPoP, "oauth-client-attestation-pop+jwt");
         validateJWTAudience(clientAttestationPoP);
         validateAttestationChallenge(clientAttestationPoP);
