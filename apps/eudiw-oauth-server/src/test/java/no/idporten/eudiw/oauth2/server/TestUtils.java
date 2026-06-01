@@ -183,8 +183,6 @@ public class TestUtils {
                                 .issuer(clientId)
                                 .audience(audience)
                                 .jwtID(UUID.randomUUID().toString())
-                                .expirationTime(new Date(new Date().getTime() + 1000 * 60))
-                                .claim("cnf", JsonObjectBuilder.builder().addAttribute("jwk", clientKey.toPublicJWK().toJSONObject()).build())
                                 .claim("challenge", challenge)
                                 .build());
         clientAttestationPop.sign(new ECDSASigner(clientKey.toECPrivateKey()));
