@@ -438,7 +438,6 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         verifyJWTType(clientAttestationPoP, "oauth-client-attestation-pop+jwt");
         validateJWTAudience(clientAttestationPoP);
         validateAttestationChallenge(clientAttestationPoP);
-        validateJWTLifetime(clientAttestationPoP);
     }
 
     void verifyJWTType(SignedJWT signedJWT, String type) {
