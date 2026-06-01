@@ -74,12 +74,12 @@ public class CredentialIssuerMetadataService {
         if (tenant.getBatchSize() >= 2) {
             builder.batchCredentialIssuance(BatchCredentialIssuance.builder().batchSize(tenant.getBatchSize()).build());
         }
-        CredentialConfigurations credentialConfigurations = findCredentialConfigurations(credentialIssuerServerProperties, tenant);
+        CredentialConfigurations credentialConfigurations = credentialConfigurations(credentialIssuerServerProperties, tenant);
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
     }
 
-    private CredentialConfigurations findCredentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties, CredentialIssuerTenant tenant) {
+    private CredentialConfigurations credentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties, CredentialIssuerTenant tenant) {
         List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = new ArrayList<>();
         for (CredentialConfigurationSource credentialConfigurationSource : tenant.getCredentialConfigurationSources()) {
             extendedCredentialConfigurations.addAll(credentialConfigurationSource.retrieve());
@@ -101,18 +101,20 @@ public class CredentialIssuerMetadataService {
                     .credentialMetadata(claimsSourceMetadata.toOpenID4VCICredentialMetadata())
                     // config from issuer server
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
-                    .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms())
                     .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
             // config for formats
             if (CredentialFormat.MSO_MDOC.equals(credentialConfiguration.getFormat())) {
-                credentialConfigurationBuilder.doctype(credentialConfiguration.getCredentialType());
+                credentialConfigurationBuilder
+                        .doctype(credentialConfiguration.getCredentialType())
+                        .credentialSigningAlgValuesSupportedMdoc(credentialIssuerProperties.getCredentialSigningAlgorithms().getMsoMdoc());
             } else if (CredentialFormat.SD_JWT_VC.equals(credentialConfiguration.getFormat())) {
-                credentialConfigurationBuilder.vct(credentialConfiguration.getCredentialType());
+                credentialConfigurationBuilder
+                        .vct(credentialConfiguration.getCredentialType())
+                        .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms().getDcSdJwt());
             }
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;
-
     }
 
 }

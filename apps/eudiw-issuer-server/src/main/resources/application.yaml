@@ -39,7 +39,10 @@ credential-issuer-server:
   proof-signing-algorithms:
     - ES256
   credential-signing-algorithms:
-    - ES256
+    mso_mdoc:
+      - -7
+    dc+sd-jwt:
+      - ES256
   status-list:
     status-issuer:
       enabled: ${credential-issuer-server.features.status-list-enabled}

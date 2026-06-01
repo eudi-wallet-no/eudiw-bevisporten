@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.openid4vci.metadata;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -30,8 +31,17 @@ public class CredentialConfiguration  {
     @JsonProperty("cryptographic_binding_methods_supported")
     private List<String> cryptographicBindingMethods;
 
-    @JsonProperty("credential_signing_alg_values_supported")
     private List<String> credentialSigningAlgValuesSupported;
+    private List<Integer> credentialSigningAlgValuesSupportedMdoc;
+
+    @JsonGetter("credential_signing_alg_values_supported")
+    public List<? extends Object>  getCredentialSigningAlgValuesSupported() {
+        if ("mso_mdoc".equals(format)) {
+            return credentialSigningAlgValuesSupportedMdoc;
+        } else {
+            return credentialSigningAlgValuesSupported;
+        }
+    }
 
     @Getter
     @JsonProperty("credential_metadata")
