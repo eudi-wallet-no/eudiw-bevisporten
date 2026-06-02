@@ -5,6 +5,7 @@
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "pre_authorization_server": "maskinporten",
+    "include_status": true,
     "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
   },
   "scope": "eudiw:no:advokattilsynet:advokatregisteret",
