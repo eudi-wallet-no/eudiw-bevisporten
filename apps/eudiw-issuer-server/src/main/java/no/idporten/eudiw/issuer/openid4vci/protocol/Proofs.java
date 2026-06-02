@@ -2,41 +2,29 @@ package no.idporten.eudiw.issuer.openid4vci.protocol;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.Data;
-import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.ErrorCode;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import org.springframework.util.CollectionUtils;
 
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class Proofs {
 
+    // https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-jwt-proof-type
     @JsonProperty("jwt")
     private List<String> jwt;
 
-    public void validate() {
-        if (CollectionUtils.isEmpty(jwt)) {
-            throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Missing binding keys");
-        }
-        getBindingKeys();
-    }
+    // https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-attestation-proof-type
+    @JsonProperty("attestation")
+    private List<String> attestation;
 
-    public List<JWK> getBindingKeys() {
-        List<JWK> bindingKeys = new ArrayList<>();
-        for (String jwt : getJwt()) {
-            try {
-                bindingKeys.add(SignedJWT.parse(jwt).getHeader().getJWK());
-            } catch (ParseException e) {
-                throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Invalid proof format");
-            }
+    public void validate() {
+        if (CollectionUtils.isEmpty(jwt) && CollectionUtils.isEmpty(attestation)) {
+            throw new IssuerServerException(ErrorCode.INVALID_PROOF, "Missing proofs");
         }
-        return bindingKeys;
     }
 
 }
