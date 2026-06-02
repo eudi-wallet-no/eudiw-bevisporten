@@ -123,11 +123,6 @@ public class CredentialIssuerMetadataService {
                             ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
                                     .keyAttestationsRequired(keyAttestationRequired)
                                     .build())
-                    .attestationProofType(
-                            ProofType.builder()
-                                    .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
-                                    .keyAttestationsRequired(keyAttestationRequired)
-                                    .build())
                             .build());
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }

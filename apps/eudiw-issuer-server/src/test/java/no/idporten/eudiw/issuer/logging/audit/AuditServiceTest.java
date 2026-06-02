@@ -8,7 +8,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.issuer.IssuerServerException;
-import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
@@ -27,6 +27,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
+import static no.idporten.eudiw.issuer.TestData.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 
@@ -75,25 +76,26 @@ class AuditServiceTest {
     @Test
     void testLogIssueCredentials() throws ParseException {
         ArgumentCaptor<AuditEntry> auditEntry = ArgumentCaptor.forClass(AuditEntry.class);
-        String authorizationServer = "authServer";
-        String credentialConfigId = "credentialConfigId";
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId("33");
-        CredentialFormat format = CredentialFormat.SD_JWT_VC;
         NotificationId notificationId = new NotificationId("222");
         JWT jwt = createAccessToken("12345678901");
+        CredentialIssueContext context = new CredentialIssueContext(jwt, junitIssuerTenant(), credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"));
 
-        auditService.logIssueCredentials(authorizationServer, credentialConfigId, issuanceTransactionId, format, 2, notificationId, jwt);
+        auditService.logIssueCredentials(context, issuanceTransactionId, 2, notificationId);
 
         verify(auditLogger).log(auditEntry.capture());
         AuditEntry actualEntry = auditEntry.getValue();
-        assertEquals(AuditID.ISSUE_CREDENTIAL.auditIdentifier().auditId(), actualEntry.getAuditId().auditId());
-        assertEquals(authorizationServer, actualEntry.getAttributes().get(AuditService.AUTHORIZATION_SERVER));
-        assertEquals(credentialConfigId, actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
-        assertEquals(format.formatIdentifier(), actualEntry.getAttributes().get(AuditService.FORMAT));
-        assertEquals(2, actualEntry.getAttributes().get(AuditService.INSTANCES));
-        assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
-        assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
-        assertNotNull(actualEntry.getAttributes().get(AuditService.ACCESS_TOKEN));
+        assertAll(
+                () -> assertEquals(AuditID.ISSUE_CREDENTIAL.auditIdentifier().auditId(), actualEntry.getAuditId().auditId()),
+                () -> assertEquals("12345678901", actualEntry.getAttributes().get(AuditService.SUBJECT)),
+                () -> assertEquals("junit", actualEntry.getAttributes().get(AuditService.AUTHORIZATION_SERVER)),
+                () -> assertEquals("junitdoc_mso_mdoc", actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID)),
+                () -> assertEquals("mso_mdoc", actualEntry.getAttributes().get(AuditService.FORMAT)),
+                () -> assertEquals(2, actualEntry.getAttributes().get(AuditService.INSTANCES)),
+                () -> assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID)),
+                () -> assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID)),
+                () -> assertNotNull(actualEntry.getAttributes().get(AuditService.ACCESS_TOKEN))
+        );
     }
 
     @DisplayName("then all audit entries are logged correctly for WalletStatusUpdate")
