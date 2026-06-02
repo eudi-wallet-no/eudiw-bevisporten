@@ -20,6 +20,7 @@ import no.idporten.eudiw.issuer.metrics.MetricService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
+import no.idporten.eudiw.issuer.openid4vci.proofs.ProofService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
@@ -48,6 +49,9 @@ public class CredentialIssuerServiceTest {
 
     @Mock
     private AccessTokenValidationService accessTokenValidationService;
+
+    @Mock
+    private ProofService proofService;
 
     @Mock
     private CredentialIssuanceStatusService credentialIssuanceStatusService;
@@ -102,7 +106,7 @@ public class CredentialIssuerServiceTest {
             List<Claim> claims = List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build());
             when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(claims);
             when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
-            when(credentialCreateService.createCredentials(any(), isNull(), anyList()))
+            when(credentialCreateService.createCredentials(any(), anyList(), anyList()))
                     .thenReturn(List.of(Credential.builder().credential("{credential-with-n1-p1-v1}").build()));
             IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(transactionId);
             when(credentialIssuanceStatusService.credentialIssued(eq("cid"), eq(issuanceTransactionId))).thenReturn(new NotificationId("nid"));

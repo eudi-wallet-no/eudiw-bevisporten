@@ -18,6 +18,7 @@ import no.idporten.eudiw.issuer.metrics.MetricService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
+import no.idporten.eudiw.issuer.openid4vci.proofs.ProofService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class CredentialIssuerService {
 
     private final ClaimsSourceService claimsSourceService;
     private final AccessTokenValidationService accessTokenValidationService;
-
+    private final ProofService proofService;
     private final CredentialCreateService credentialCreateService;
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuditService auditService;
@@ -42,7 +43,7 @@ public class CredentialIssuerService {
         ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
-        List<JWK> bindingKeys = getBindingKeys(credentialRequest.getProofs());
+        List<JWK> bindingKeys = proofService.validateProofs(tenant, credentialRequest.getProofs());
         CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration);
         List<Claim> claims = claimsSource.issueClaims(credentialIssueContext);
         List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
@@ -55,10 +56,6 @@ public class CredentialIssuerService {
                 .credentials(credentials)
                 .notificationId(notificationId)
                 .build();
-    }
-
-    protected List<JWK> getBindingKeys(Proofs proofs) {
-        return proofs != null ? proofs.getBindingKeys() : null;
     }
 
     private IssuanceTransactionId getIssuanceTransactionId(JWT accessToken) {

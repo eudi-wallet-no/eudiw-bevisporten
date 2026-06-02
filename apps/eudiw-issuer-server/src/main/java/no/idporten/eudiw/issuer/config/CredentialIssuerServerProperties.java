@@ -30,6 +30,9 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     private List<@NotNull String> cryptographicBindings;
     @NotEmpty
     private List<@NotNull String> proofSigningAlgorithms;
+    private boolean keyAttestationsRequired;
+    private List<@NotNull String> attestationKeyStorage;
+    private List<@NotNull String> attestationUserAuthentication;
     @Valid
     @NotNull
     private CredentialSigningAlgorithms credentialSigningAlgorithms;

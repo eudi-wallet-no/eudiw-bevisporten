@@ -74,12 +74,12 @@ public class CredentialIssuerMetadataService {
         if (tenant.getBatchSize() >= 2) {
             builder.batchCredentialIssuance(BatchCredentialIssuance.builder().batchSize(tenant.getBatchSize()).build());
         }
-        CredentialConfigurations credentialConfigurations = credentialConfigurations(credentialIssuerServerProperties, tenant);
+        CredentialConfigurations credentialConfigurations = buildCredentialConfigurations(credentialIssuerServerProperties, tenant);
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();
     }
 
-    private CredentialConfigurations credentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties, CredentialIssuerTenant tenant) {
+    private CredentialConfigurations buildCredentialConfigurations(CredentialIssuerServerProperties credentialIssuerProperties, CredentialIssuerTenant tenant) {
         List<ExtendedCredentialConfiguration> extendedCredentialConfigurations = new ArrayList<>();
         for (CredentialConfigurationSource credentialConfigurationSource : tenant.getCredentialConfigurationSources()) {
             extendedCredentialConfigurations.addAll(credentialConfigurationSource.retrieve());
@@ -101,7 +101,7 @@ public class CredentialIssuerMetadataService {
                     .credentialMetadata(claimsSourceMetadata.toOpenID4VCICredentialMetadata())
                     // config from issuer server
                     .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
-                    .proofTypes(ProofTypes.builder().jwtProofType(JwtProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
+                    .proofTypes(ProofTypes.builder().jwtProofType(ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
             // config for formats
             if (CredentialFormat.MSO_MDOC.equals(credentialConfiguration.getFormat())) {
                 credentialConfigurationBuilder
@@ -112,6 +112,23 @@ public class CredentialIssuerMetadataService {
                         .vct(credentialConfiguration.getCredentialType())
                         .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms().getDcSdJwt());
             }
+            KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
+                    ? KeyAttestationRequired.builder()
+                            .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
+                            .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
+                            .build()
+                    : null;
+            credentialConfigurationBuilder.proofTypes(ProofTypes.builder()
+                    .jwtProofType(
+                            ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                                    .keyAttestationsRequired(keyAttestationRequired)
+                                    .build())
+                    .attestationProofType(
+                            ProofType.builder()
+                                    .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                                    .keyAttestationsRequired(keyAttestationRequired)
+                                    .build())
+                            .build());
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;

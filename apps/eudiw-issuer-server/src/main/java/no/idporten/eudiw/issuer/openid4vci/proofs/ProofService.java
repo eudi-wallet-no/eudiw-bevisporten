@@ -18,12 +18,13 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
-import no.idporten.eudiw.issuer.openid4vci.protocol.Proof;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -34,22 +35,21 @@ public class ProofService {
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
-    @Deprecated
-    public void validateProof(CredentialIssuerTenant credentialIssuerTenant, Proof proof) {
-            if (PROOF_TYPE_JWT.equals(proof.getProofType())) {
-                validateJwtProof(credentialIssuerTenant, proof.getJwt());
-            } else {
-                throw new InvalidProof(null, "Unsupported proof type.");
-        }
-    }
-
-    public void validateProofs(CredentialIssuerTenant credentialIssuerTenant, Proofs proofs) {
+    /**
+     * Validates proofs and returns binding keys.
+     * @param credentialIssuerTenant tenant
+     * @param proofs proofs
+     * @return binding keys from validated proofs
+     */
+    public List<JWK> validateProofs(CredentialIssuerTenant credentialIssuerTenant, Proofs proofs) {
+        List<JWK> bindingKeys = new ArrayList<>();
         for (String jwtProof : proofs.getJwt()) {
-            validateJwtProof(credentialIssuerTenant, jwtProof);
+            bindingKeys.add(validateJwtProof(credentialIssuerTenant, jwtProof));
         }
+        return bindingKeys;
     }
 
-    public void validateJwtProof(CredentialIssuerTenant credentialIssuerTenant, String jwtProof) {
+    public JWK validateJwtProof(CredentialIssuerTenant credentialIssuerTenant, String jwtProof) {
         try {
             SignedJWT jwt = SignedJWT.parse(jwtProof);
             JWSHeader jwsHeader = jwt.getHeader();
@@ -74,6 +74,7 @@ public class ProofService {
             ));
             jwtProcessor.setJWSTypeVerifier(new DefaultJOSEObjectTypeVerifier<>(new JOSEObjectType("openid4vci-proof+jwt")));
             jwtProcessor.process(jwt, (SecurityContext) null);
+            return jwk;
         } catch (ParseException e) {
             throw new InvalidProof("Invalid jwt proof.  Invalid JWT format.");
         } catch (JOSEException e) {
