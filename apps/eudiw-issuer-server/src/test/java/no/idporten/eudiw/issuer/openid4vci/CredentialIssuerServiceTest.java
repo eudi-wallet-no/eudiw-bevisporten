@@ -71,6 +71,8 @@ public class CredentialIssuerServiceTest {
     @Captor
     private ArgumentCaptor<AccessTokenCredentialValidationContext> accessTokenCredentialValidationContextCaptor;
 
+    @Captor
+    private ArgumentCaptor<CredentialIssueContext> credentialIssueContextCaptor;
 
     @DisplayName("When issuing credentials")
     @Nested
@@ -126,7 +128,12 @@ public class CredentialIssuerServiceTest {
                     () -> assertEquals("foo:bar", accessTokenCredentialValidationContextCaptor.getValue().scope())
             );
             verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
-            verify(auditService).logIssueCredentials(eq("junit"), eq("cid"), eq(issuanceTransactionId), eq(CredentialFormat.SD_JWT_VC), eq(1), eq(new NotificationId("nid")) ,eq(accessToken));
+            verify(auditService).logIssueCredentials(credentialIssueContextCaptor.capture(),  eq(issuanceTransactionId), eq(1), eq(new NotificationId("nid")));
+            assertAll(
+                    () -> assertEquals("junit", credentialIssueContextCaptor.getValue().credentialConfiguration().getCredentialIssuerContext().getAuthorizationServer()),
+                    () -> assertEquals("foo:bar", credentialIssueContextCaptor.getValue().credentialConfiguration().getScope()),
+                    () -> assertEquals(accessToken, credentialIssueContextCaptor.getValue().accessToken())
+            );
         }
 
     }

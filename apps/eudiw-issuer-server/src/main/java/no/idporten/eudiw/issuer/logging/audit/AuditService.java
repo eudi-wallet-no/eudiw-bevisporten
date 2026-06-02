@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.ErrorCode;
-import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
@@ -30,6 +30,7 @@ public class AuditService {
     protected static final String FORMAT = "format";
     protected static final String STATUS = "status";
     protected static final String INSTANCES = "instances";
+    protected static final String SUBJECT = "subject";
 
     @Qualifier("auditLogger")
     private final AuditLogger auditLogger;
@@ -59,16 +60,17 @@ public class AuditService {
                 .build());
     }
 
-    public void logIssueCredentials(@NotNull String authorizationServer, @NotEmpty String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, @NotNull CredentialFormat format, int instances, NotificationId notificationId, @NotNull JWT accessToken) {
+    public void logIssueCredentials(CredentialIssueContext context, IssuanceTransactionId issuanceTransactionId, int instances, NotificationId notificationId) {
         auditLogger.log(AuditEntry.builder()
                 .auditId(AuditID.ISSUE_CREDENTIAL.auditIdentifier())
                 .logNullAttributes(false)
-                .attribute(CREDENTIAL_CONFIGURATION_ID, credentialConfigurationId)
-                .attribute(AUTHORIZATION_SERVER, authorizationServer)
-                .attribute(FORMAT, format.formatIdentifier())
+                .attribute(SUBJECT, context.personIdentifier())
+                .attribute(CREDENTIAL_CONFIGURATION_ID, context.credentialConfiguration().getCredentialConfigurationId())
+                .attribute(AUTHORIZATION_SERVER, context.credentialConfiguration().getCredentialIssuerContext().getAuthorizationServer())
+                .attribute(FORMAT, context.credentialConfiguration().getFormat().formatIdentifier())
                 .attribute(INSTANCES, instances)
                 .attribute(NOTIFICATION_ID, identifierValue(notificationId))
-                .attribute(ACCESS_TOKEN, maskJWT(accessToken))
+                .attribute(ACCESS_TOKEN, maskJWT(context.accessToken()))
                 .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))
                 .build());
     }

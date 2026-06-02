@@ -50,7 +50,7 @@ public class CredentialIssuerService {
         IssuanceTransactionId issuanceTransactionId = getIssuanceTransactionId(accessToken);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialRequest.getCredentialConfigurationId(), issuanceTransactionId);
 
-        auditService.logIssueCredentials(credentialConfiguration.getCredentialIssuerContext().getAuthorizationServer(), credentialRequest.getCredentialConfigurationId(), issuanceTransactionId, credentialConfiguration.getFormat(), credentials.size(), notificationId, accessToken);
+        auditService.logIssueCredentials(credentialIssueContext, issuanceTransactionId, credentials.size(), notificationId);
         metricService.countIssued(credentialRequest.getCredentialConfigurationId());
         return CredentialResponse.builder()
                 .credentials(credentials)
