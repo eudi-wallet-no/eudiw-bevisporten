@@ -5,8 +5,8 @@ import no.idporten.eudiw.statuslist.exceptions.StatusListException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
 import no.idporten.eudiw.statuslist.issuer.api.StatusEntryUpdateRequest;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
-import no.idporten.eudiw.statuslist.logging.audit.AuditEntryCollection;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
+import no.idporten.eudiw.statuslist.logging.audit.AuditableStatusEntryCollection;
 import no.idporten.eudiw.statuslist.repository.StatusListRepository;
 import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
 import no.idporten.eudiw.statuslist.repository.models.StatusListWithEntriesDto;
@@ -30,7 +30,11 @@ public class StatusListService {
     private final StatusListRepository statusListRepository;
     private final StatusIssuerProperties statusIssuerProperties;
 
-    public StatusListService(AuditService auditService, StatusListRepository statusListRepository, StatusIssuerProperties statusIssuerProperties) {
+    public StatusListService(
+            AuditService auditService,
+            StatusListRepository statusListRepository,
+            StatusIssuerProperties statusIssuerProperties
+    ) {
         this.auditService = auditService;
         this.statusListRepository = statusListRepository;
         this.statusIssuerProperties = statusIssuerProperties;
@@ -72,16 +76,19 @@ public class StatusListService {
             statusEntries.add(new StatusEntry(dto.index(), uri));
         }
 
-        auditService.logAllocatedEntries(new AuditEntryCollection<>(statusEntries));
+        auditService.logAllocatedEntries(new AuditableStatusEntryCollection(statusEntries));
         return statusEntries;
     }
 
     public void updateStatuses(List<StatusEntryUpdateRequest> entryUpdates) {
+        List<StatusEntry> statusEntries = new ArrayList<>();
+
         for (StatusEntryUpdateRequest entry : entryUpdates) {
             updateStatus(getListId(entry.uri()), entry.idx(), Status.getStatus(entry.statusType()));
+            statusEntries.add(new StatusEntry(entry.idx(), entry.uri()));
         }
 
-        auditService.logUpdatedEntries(new AuditEntryCollection<>(entryUpdates));
+        auditService.logUpdatedEntries(new AuditableStatusEntryCollection(statusEntries), entryUpdates.getFirst().statusType());
     }
 
     public void updateStatus(int id, int index, int status) {
