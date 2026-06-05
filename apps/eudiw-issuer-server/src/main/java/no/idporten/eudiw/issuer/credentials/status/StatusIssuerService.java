@@ -9,11 +9,13 @@ import no.idporten.eudiw.issuer.credentials.status.cache.CredentialStatusInfo;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerIntegration;
 import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
+import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,11 +28,13 @@ public class StatusIssuerService {
     private final StatusIssuerProperties statusIssuerProperties;
     private final StatusIssuerIntegration statusIssuerIntegration;
     private final CredentialStatusCache credentialStatusCache;
+    private final AuditService auditService;
 
-    public StatusIssuerService(StatusIssuerProperties statusIssuerProperties, StatusIssuerIntegration statusIssuerIntegration, CredentialStatusCache credentialStatusCache) {
+    public StatusIssuerService(StatusIssuerProperties statusIssuerProperties, StatusIssuerIntegration statusIssuerIntegration, CredentialStatusCache credentialStatusCache, AuditService auditService) {
         this.statusIssuerProperties = statusIssuerProperties;
         this.statusIssuerIntegration = statusIssuerIntegration;
         this.credentialStatusCache = credentialStatusCache;
+        this.auditService = auditService;
     }
 
     /**
@@ -47,6 +51,7 @@ public class StatusIssuerService {
                 context.transactionId(),
                 new CredentialStatusInfo(context.credentialIssuerTenant().getId(), context.credentialConfiguration().getCredentialConfigurationId(), statusEntries),
                 Duration.ofDays(context.credentialConfiguration().getCredentialIssuerContext().getValidityDays() + 1));
+        auditService.logIssueCredentialStatus(context, statusEntries);
         return statusEntries
                 .stream()
                 .map(statusEntry -> CredentialStatus.create(statusEntry.idx(), statusEntry.uri()))
@@ -55,6 +60,7 @@ public class StatusIssuerService {
 
     public void revokeStatus(CredentialRevokeContext context) {
         CredentialStatusInfo credentialStatusInfo = credentialStatusCache.retrieveCredentialStatus(context.credentialIssuerTenant(), context.transactionId());
+        final String status = STATUS_TYPE_INVALID;
         if (credentialStatusInfo != null) {
             if (!Objects.equals(context.credentialConfiguration().getCredentialConfigurationId(), credentialStatusInfo.credentialConfigurationId())) {
                 throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Not allowed to revoke credential status.", "Credential configuration id in context [%s] does not match credential status info [%s].".formatted(context.credentialConfiguration().getCredentialConfigurationId(), credentialStatusInfo.credentialConfigurationId()));
@@ -63,10 +69,12 @@ public class StatusIssuerService {
                     credentialStatusInfo
                             .statusEntries()
                             .stream()
-                            .map(entry -> new UpdatedStatusEntry(entry, STATUS_TYPE_INVALID))
+                            .map(entry -> new UpdatedStatusEntry(entry, status))
                             .toList());
+            auditService.logRevokeCredential(context, credentialStatusInfo.statusEntries(), status);
         } else {
             log.info("No credential status info found for transaction id {}, cannot revoke status", context.transactionId());
+            auditService.logRevokeCredential(context, Collections.emptyList(), status);
         }
     }
 

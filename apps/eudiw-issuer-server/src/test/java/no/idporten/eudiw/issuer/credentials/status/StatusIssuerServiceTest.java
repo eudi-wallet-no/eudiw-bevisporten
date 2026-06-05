@@ -11,14 +11,12 @@ import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerIntegration;
 import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
@@ -38,14 +36,26 @@ public class StatusIssuerServiceTest {
     @Mock
     StatusIssuerIntegration statusIssuerIntegration;
 
+    @Mock
+    AuditService auditService;
+
     @Spy
     InMemoryCredentialStatusCache credentialStatusCache;
+
+    @Mock
+    StatusIssuerProperties statusIssuerProperties;
+
+    @InjectMocks
+    StatusIssuerService service;
 
     @Captor
     ArgumentCaptor<CredentialStatusInfo> credentialStatusInfoCaptor;
 
     @Captor
-    ArgumentCaptor<List<UpdatedStatusEntry>> statusEntryListCaptor;
+    ArgumentCaptor<List<UpdatedStatusEntry>> updatedStatusEntryListCaptor;
+
+    @Captor
+    ArgumentCaptor<List<StatusEntry>> statusEntryListCaptor;
 
     private CredentialIssueContext testContext() {
         return new CredentialIssueContext(
@@ -63,7 +73,7 @@ public class StatusIssuerServiceTest {
     @Test
     void testFeatureSwitch() {
         StatusIssuerProperties properties = new StatusIssuerProperties();
-        StatusIssuerService service = new StatusIssuerService(properties, null, credentialStatusCache);
+        StatusIssuerService service = new StatusIssuerService(properties, null, credentialStatusCache, auditService);
         CredentialIssueContext context = testContext();
         context.credentialConfiguration().getCredentialIssuerContext().setIncludeStatus(true);
         assertFalse(service.isEnabled(context));
@@ -75,7 +85,6 @@ public class StatusIssuerServiceTest {
     @DisplayName("then status entries is allocated by integrating with the status issuer")
     @Test
     void testAllocateStatus() {
-        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
         when(statusIssuerIntegration.allocateStatusEntries(anyInt()))
                 .thenAnswer(invocationOnMock -> IntStream.range(0, invocationOnMock.getArgument(0))
                         .mapToObj(idx -> new StatusEntry(idx, URI.create("https://junit.eidas2sandkasse.dev/lists/" + idx * 2)))
@@ -91,12 +100,13 @@ public class StatusIssuerServiceTest {
         verify(credentialStatusCache).storeCredentialStatus(eq(junitIssuerTenant()), any(), credentialStatusInfoCaptor.capture(), any());
         CredentialStatusInfo credentialStatusInfo = credentialStatusInfoCaptor.getValue();
         assertEquals(2, credentialStatusInfo.statusEntries().size());
+        verify(auditService).logIssueCredentialStatus(any(), statusEntryListCaptor.capture());
+        assertEquals(2, statusEntryListCaptor.getValue().size());
     }
 
     @DisplayName("then revoking a credential will update the status issuer")
     @Test
     void testRevoke() {
-        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
         CredentialIssuerTenant tenant = junitIssuerTenant();
         ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
         IssuanceTransactionId transactionId = new IssuanceTransactionId();
@@ -104,20 +114,21 @@ public class StatusIssuerServiceTest {
         credentialStatusCache.storeCredentialStatus(tenant, transactionId, credentialStatusInfo, Duration.ofMinutes(1));
         CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
         service.revokeStatus(context);
-        verify(statusIssuerIntegration).updateStatusEntries(statusEntryListCaptor.capture());
-        List<UpdatedStatusEntry> updatedStatusEntries = statusEntryListCaptor.getValue();
+        verify(statusIssuerIntegration).updateStatusEntries(updatedStatusEntryListCaptor.capture());
+        List<UpdatedStatusEntry> updatedStatusEntries = updatedStatusEntryListCaptor.getValue();
         assertAll(
                 () -> assertEquals(1, updatedStatusEntries.size()),
                 () -> assertEquals(7, updatedStatusEntries.getFirst().idx()),
                 () -> assertEquals("https://junit.eidas2sandkasse.dev/lists/0", updatedStatusEntries.getFirst().uri().toString()),
                 () -> assertEquals("INVALID", updatedStatusEntries.getFirst().statusType())
         );
+        verify(auditService).logRevokeCredential(any(), statusEntryListCaptor.capture(), eq("INVALID"));
+        assertEquals(1, statusEntryListCaptor.getValue().size());
     }
 
     @DisplayName("then revoking with a non-matching credential configuration id is not allowed")
     @Test
     void testRevokeWithInvalidCredentialConfigurationId() {
-        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
         CredentialIssuerTenant tenant = junitIssuerTenant();
         ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
         IssuanceTransactionId transactionId = new IssuanceTransactionId();
@@ -131,7 +142,6 @@ public class StatusIssuerServiceTest {
     @DisplayName("then revoking an unknown credential does not update the status issuer")
     @Test
     void testRevokeUnknownCredential() {
-        StatusIssuerService service = new StatusIssuerService(null, statusIssuerIntegration, credentialStatusCache);
         CredentialIssuerTenant tenant = junitIssuerTenant();
         ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
         IssuanceTransactionId transactionId = new IssuanceTransactionId();

@@ -5,17 +5,25 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.oauth2.sdk.id.Identifier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
+import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
+import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AuditService {
@@ -31,6 +39,7 @@ public class AuditService {
     protected static final String STATUS = "status";
     protected static final String INSTANCES = "instances";
     protected static final String SUBJECT = "subject";
+    protected static final String TOKEN_STATUS_LIST = "token_status_list";
 
     @Qualifier("auditLogger")
     private final AuditLogger auditLogger;
@@ -73,6 +82,53 @@ public class AuditService {
                 .attribute(ACCESS_TOKEN, maskJWT(context.accessToken()))
                 .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(issuanceTransactionId))
                 .build());
+    }
+
+    public void logIssueCredentialStatus(CredentialIssueContext context, List<StatusEntry> statusEntries) {
+        auditLogger.log(AuditEntry.builder()
+                .auditId(AuditID.ISSUE_CREDENTIAL_STATUS.auditIdentifier())
+                .logNullAttributes(false)
+                .attribute(CREDENTIAL_CONFIGURATION_ID, context.credentialConfiguration().getCredentialConfigurationId())
+                .attribute(TOKEN_STATUS_LIST, compactTokenStatusList(statusEntries, null))
+                .build());
+    }
+
+    public void logRevokeCredential(CredentialRevokeContext context, List<StatusEntry> statusEntries, String status) {
+        auditLogger.log(AuditEntry.builder()
+                .auditId(AuditID.REVOKE_CREDENTIAL.auditIdentifier())
+                .logNullAttributes(false)
+                .attribute(CREDENTIAL_CONFIGURATION_ID, context.credentialConfiguration().getCredentialConfigurationId())
+                .attribute(ISSUANCE_TRANSACTION_ID, identifierValue(context.transactionId()))
+                .attribute(ACCESS_TOKEN, maskJWT(context.accessToken()))
+                .attribute(TOKEN_STATUS_LIST, compactTokenStatusList(statusEntries, status))
+                .build());
+    }
+
+    private JSONObject compactTokenStatusList(List<StatusEntry> entries, String status) {
+        JSONArray compactEntries = new JSONArray();
+        Map<String, List<Integer>> groupedIndexes = new LinkedHashMap<>();
+        entries.forEach(entry -> {
+            groupedIndexes
+                    .computeIfAbsent(entry.uri().toString(), ignored -> new ArrayList<>())
+                    .add(entry.idx());
+        });
+        groupedIndexes.forEach((uri, indexes) -> {
+            JSONObject compactEntry = new JSONObject();
+            JSONArray indexArray = new JSONArray();
+            indexArray.addAll(indexes);
+            compactEntry.put("uri", uri);
+            compactEntry.put("indexes", indexArray);
+            compactEntry.put("count", indexes.size());
+            compactEntries.add(compactEntry);
+        });
+
+        JSONObject compact = new JSONObject();
+        compact.put("entries", compactEntries);
+        compact.put("count", entries.size());
+        if (StringUtils.hasText(status)) {
+            compact.put("status", status);
+        }
+        return compact;
     }
 
     public void logWalletStatusUpdate(String credentialConfigurationId, IssuanceTransactionId issuanceTransactionId, NotificationId notificationId, String status) {
