@@ -26,7 +26,7 @@
         <springdoc.version>3.0.3</springdoc.version>
         <maskinporten.client.version>6.0.1</maskinporten.client.version>
         <log-event.version>2.0.1</log-event.version>
-        <freg-integration-lib.version>2.0.0</freg-integration-lib.version>
+        <freg-integration-lib.version>2.0.3</freg-integration-lib.version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
     </properties>
 
