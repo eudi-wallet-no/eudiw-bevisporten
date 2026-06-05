@@ -7,8 +7,12 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.SignedJWT;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
+import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
+import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
@@ -23,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.text.ParseException;
+import java.net.URI;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -116,6 +121,95 @@ class AuditServiceTest {
         assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
         assertEquals(notificationId.getValue(), actualEntry.getAttributes().get(AuditService.NOTIFICATION_ID));
         assertEquals(status, actualEntry.getAttributes().get(AuditService.STATUS));
+    }
+
+    @DisplayName("then all audit entries are logged correctly for RevokeCredential")
+    @Test
+    void testLogRevokeCredential() throws ParseException {
+        ArgumentCaptor<AuditEntry> auditEntry = ArgumentCaptor.forClass(AuditEntry.class);
+        IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId("99");
+        String status = "INVALID";
+        CredentialRevokeContext context = new CredentialRevokeContext(
+                createAccessToken("12345678901"),
+                junitIssuerTenant(),
+                credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"),
+                issuanceTransactionId
+        );
+        List<StatusEntry> entries = List.of(
+                new StatusEntry(1, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(5, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(2, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(20, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(1, URI.create("https://status.eidas2sandkasse.no/lists/2")),
+                new StatusEntry(3, URI.create("https://status.eidas2sandkasse.no/lists/2"))
+        );
+
+        auditService.logRevokeCredential(context, entries, status);
+
+        verify(auditLogger).log(auditEntry.capture());
+        AuditEntry actualEntry = auditEntry.getValue();
+        assertEquals(AuditID.REVOKE_CREDENTIAL.auditIdentifier().auditId(), actualEntry.getAuditId().auditId());
+        assertEquals("junitdoc_mso_mdoc", actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
+        assertEquals(issuanceTransactionId.getValue(), actualEntry.getAttributes().get(AuditService.ISSUANCE_TRANSACTION_ID));
+        assertNotNull(actualEntry.getAttributes().get(AuditService.ACCESS_TOKEN));
+
+        JSONObject compact = (JSONObject) actualEntry.getAttributes().get(AuditService.TOKEN_STATUS_LIST);
+        assertEquals(6, compact.get("count"));
+        assertEquals(status, compact.get("status"));
+        JSONArray compactEntries = (JSONArray) compact.get("entries");
+        assertEquals(2, compactEntries.size());
+
+        JSONObject first = (JSONObject) compactEntries.get(0);
+        assertEquals("https://status.eidas2sandkasse.no/lists/1", first.get("uri"));
+        assertEquals(4, first.get("count"));
+        assertEquals(List.of(1, 5, 2, 20), first.get("indexes"));
+
+        JSONObject second = (JSONObject) compactEntries.get(1);
+        assertEquals("https://status.eidas2sandkasse.no/lists/2", second.get("uri"));
+        assertEquals(2, second.get("count"));
+        assertEquals(List.of(1, 3), second.get("indexes"));
+    }
+
+    @DisplayName("then all audit entries are logged correctly for IssueCredentialStatus")
+    @Test
+    void testLogIssueCredentialStatus() throws ParseException {
+        ArgumentCaptor<AuditEntry> auditEntry = ArgumentCaptor.forClass(AuditEntry.class);
+        CredentialIssueContext context = new CredentialIssueContext(
+                createAccessToken("12345678901"),
+                junitIssuerTenant(),
+                credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json")
+        );
+        List<StatusEntry> entries = List.of(
+                new StatusEntry(1, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(5, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(2, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(20, URI.create("https://status.eidas2sandkasse.no/lists/1")),
+                new StatusEntry(1, URI.create("https://status.eidas2sandkasse.no/lists/2")),
+                new StatusEntry(3, URI.create("https://status.eidas2sandkasse.no/lists/2"))
+        );
+
+        auditService.logIssueCredentialStatus(context, entries);
+
+        verify(auditLogger).log(auditEntry.capture());
+        AuditEntry actualEntry = auditEntry.getValue();
+        assertEquals(AuditID.ISSUE_CREDENTIAL_STATUS.auditIdentifier().auditId(), actualEntry.getAuditId().auditId());
+        assertEquals("junitdoc_mso_mdoc", actualEntry.getAttributes().get(AuditService.CREDENTIAL_CONFIGURATION_ID));
+
+        JSONObject compact = (JSONObject) actualEntry.getAttributes().get(AuditService.TOKEN_STATUS_LIST);
+        assertEquals(6, compact.get("count"));
+        assertFalse(compact.containsKey("status"));
+        JSONArray compactEntries = (JSONArray) compact.get("entries");
+        assertEquals(2, compactEntries.size());
+
+        JSONObject first = (JSONObject) compactEntries.get(0);
+        assertEquals("https://status.eidas2sandkasse.no/lists/1", first.get("uri"));
+        assertEquals(4, first.get("count"));
+        assertEquals(List.of(1, 5, 2, 20), first.get("indexes"));
+
+        JSONObject second = (JSONObject) compactEntries.get(1);
+        assertEquals("https://status.eidas2sandkasse.no/lists/2", second.get("uri"));
+        assertEquals(2, second.get("count"));
+        assertEquals(List.of(1, 3), second.get("indexes"));
     }
 
     @DisplayName("then JWT masking works removes signature part")
