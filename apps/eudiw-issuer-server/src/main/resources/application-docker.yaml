@@ -9,6 +9,10 @@ management:
 spring:
   application:
     environment: docker
+  datasource:
+    url: jdbc:mariadb://localhost:36307/issuer_server_db
+    username: eudiw_user
+    password: lesssecret
   data:
     redis:
       port: 6379

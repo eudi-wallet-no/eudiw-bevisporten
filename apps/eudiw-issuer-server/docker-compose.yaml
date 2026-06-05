@@ -7,6 +7,25 @@ networks:
     name: digital-lommebok
 
 services:
+  issuer-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: issuer_server_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "36307:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:alpine
     healthcheck:
@@ -28,13 +47,23 @@ services:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     depends_on:
-      - redis
-      - byob-service
-      - oauth-server
-      - authoritative-sources-connector
-      - status-list
+      issuer-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      byob-service:
+        condition: service_started
+      oauth-server:
+        condition: service_started
+      authoritative-sources-connector:
+        condition: service_started
+      status-list:
+        condition: service_started
     environment:
       spring_profiles_active: docker
+      MARIADB_URL: jdbc:mariadb://issuer-db:3306/issuer_server_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     ports:
       - "9240:9240"
