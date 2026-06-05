@@ -20,6 +20,8 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 FROM  eclipse-temurin:25-jre-noble
 
 ARG APPLICATION=issuer-server
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+ && rm -rf /var/lib/apt/lists/*
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
 WORKDIR /usr/local/webapps

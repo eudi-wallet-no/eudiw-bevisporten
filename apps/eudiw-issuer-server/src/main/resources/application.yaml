@@ -7,6 +7,20 @@ spring:
   application:
     name: digital-lommebok-issuer-server
     environment: default
+  datasource:
+    url: ${MARIADB_URL}
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+    show-sql: false
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    open-in-view: false
+  flyway:
+    table: flyway_schema_history
+    locations: classpath:/db/migration
   data:
     redis:
       timeout: 3s

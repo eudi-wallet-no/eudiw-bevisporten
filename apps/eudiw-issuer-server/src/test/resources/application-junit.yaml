@@ -2,6 +2,14 @@
 spring:
   application:
     environment: junit
+  datasource:
+    type: org.springframework.jdbc.datasource.SimpleDriverDataSource
+    url: "jdbc:h2:mem:issuer_junit;MODE=MySQL;DB_CLOSE_DELAY=-1"
+    driver-class-name: org.h2.Driver
+    username: junit
+    password: junit
+  flyway:
+    locations: classpath:/db/migration
 
 credential-issuer-server:
   credential-issuer: https://junit.eidas2sandkasse.dev
