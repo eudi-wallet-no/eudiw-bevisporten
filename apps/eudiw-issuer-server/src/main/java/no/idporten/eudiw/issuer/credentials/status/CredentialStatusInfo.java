@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.credentials.status.cache;
+package no.idporten.eudiw.issuer.credentials.status;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;

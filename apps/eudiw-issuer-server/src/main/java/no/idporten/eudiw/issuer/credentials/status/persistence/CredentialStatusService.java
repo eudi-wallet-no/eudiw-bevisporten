@@ -2,7 +2,7 @@ package no.idporten.eudiw.issuer.credentials.status.persistence;
 
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
-import no.idporten.eudiw.issuer.credentials.status.cache.CredentialStatusInfo;
+import no.idporten.eudiw.issuer.credentials.status.CredentialStatusInfo;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.springframework.stereotype.Service;
