@@ -4,8 +4,7 @@ import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
-import no.idporten.eudiw.issuer.credentials.status.cache.CredentialStatusCache;
-import no.idporten.eudiw.issuer.credentials.status.cache.CredentialStatusInfo;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusService;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerIntegration;
 import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -27,13 +25,13 @@ public class StatusIssuerService {
 
     private final StatusIssuerProperties statusIssuerProperties;
     private final StatusIssuerIntegration statusIssuerIntegration;
-    private final CredentialStatusCache credentialStatusCache;
+    private final CredentialStatusService credentialStatusService;
     private final AuditService auditService;
 
-    public StatusIssuerService(StatusIssuerProperties statusIssuerProperties, StatusIssuerIntegration statusIssuerIntegration, CredentialStatusCache credentialStatusCache, AuditService auditService) {
+    public StatusIssuerService(StatusIssuerProperties statusIssuerProperties, StatusIssuerIntegration statusIssuerIntegration, CredentialStatusService credentialStatusService, AuditService auditService) {
         this.statusIssuerProperties = statusIssuerProperties;
         this.statusIssuerIntegration = statusIssuerIntegration;
-        this.credentialStatusCache = credentialStatusCache;
+        this.credentialStatusService = credentialStatusService;
         this.auditService = auditService;
     }
 
@@ -46,11 +44,10 @@ public class StatusIssuerService {
 
     public List<CredentialStatus> allocateStatus(CredentialIssueContext context, int numberOfEntries) {
         List<StatusEntry> statusEntries = statusIssuerIntegration.allocateStatusEntries(numberOfEntries);
-        credentialStatusCache.storeCredentialStatus(
+        credentialStatusService.storeCredentialStatus(
                 context.credentialIssuerTenant(),
                 context.transactionId(),
-                new CredentialStatusInfo(context.credentialIssuerTenant().getId(), context.credentialConfiguration().getCredentialConfigurationId(), statusEntries),
-                Duration.ofDays(context.credentialConfiguration().getCredentialIssuerContext().getValidityDays() + 1));
+                new CredentialStatusInfo(context.credentialIssuerTenant().getId(), context.credentialConfiguration().getCredentialConfigurationId(), statusEntries));
         auditService.logIssueCredentialStatus(context, statusEntries);
         return statusEntries
                 .stream()
@@ -59,7 +56,7 @@ public class StatusIssuerService {
     }
 
     public void revokeStatus(CredentialRevokeContext context) {
-        CredentialStatusInfo credentialStatusInfo = credentialStatusCache.retrieveCredentialStatus(context.credentialIssuerTenant(), context.transactionId());
+        CredentialStatusInfo credentialStatusInfo = credentialStatusService.retrieveCredentialStatus(context.credentialIssuerTenant(), context.transactionId());
         final String status = STATUS_TYPE_INVALID;
         if (credentialStatusInfo != null) {
             if (!Objects.equals(context.credentialConfiguration().getCredentialConfigurationId(), credentialStatusInfo.credentialConfigurationId())) {

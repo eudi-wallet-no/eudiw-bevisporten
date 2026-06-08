@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.credentials.status.persistence;
 
-import no.idporten.eudiw.issuer.credentials.status.cache.CredentialStatusInfo;
+import no.idporten.eudiw.issuer.credentials.status.CredentialStatusInfo;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.BeforeEach;
