@@ -16,25 +16,24 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CredentialStatusService {
 
-    private final CredentialStatusDao credentialStatusDao;
+    private final CredentialIssuanceTransactionDao issuanceTransactionDao;
+    private final StatusListEntryDao statusListEntryDao;
 
     @Transactional
     public void storeCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId, CredentialStatusInfo credentialStatusInfo) {
-        long now = System.currentTimeMillis();
+        CredentialIssuanceTransactionEntity transaction = issuanceTransactionDao.findByIssuanceTransactionId(
+                        transactionId.getValue(),
+                        tenant.getId()
+                )
+                .orElseThrow(() -> new IllegalStateException("Missing issuance transaction for status entries"));
 
-        CredentialIssuanceEntity transaction = credentialStatusDao.insertTransaction(
-                transactionId.getValue(),
-                credentialStatusInfo.credentialConfigurationId(),
-                tenant.getId(),
-                now
-        );
-
-        credentialStatusDao.insertEntries(transaction.getId(), credentialStatusInfo.statusEntries());
+        statusListEntryDao.insertEntries(transaction.getId(), credentialStatusInfo.statusEntries());
+        issuanceTransactionDao.updateUpdatedMs(transaction.getId(), System.currentTimeMillis());
     }
 
     @Transactional(readOnly = true)
     public CredentialStatusInfo retrieveCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId) {
-        Optional<CredentialIssuanceEntity> transaction = credentialStatusDao.findTransactionByIssuanceTransactionId(
+        Optional<CredentialIssuanceTransactionEntity> transaction = issuanceTransactionDao.findByIssuanceTransactionId(
                 transactionId.getValue(),
                 tenant.getId()
         );
@@ -43,15 +42,15 @@ public class CredentialStatusService {
             return null;
         }
 
-        CredentialIssuanceEntity transactionEntity = transaction.get();
-        List<StatusListEntryEntity> statusListEntries = credentialStatusDao.findEntries(transactionEntity.getId());
+        CredentialIssuanceTransactionEntity transactionEntity = transaction.get();
+        List<StatusListEntryEntity> statusListEntries = statusListEntryDao.findEntries(transactionEntity.getId());
 
         return toCredentialStatusInfo(transactionEntity, statusListEntries);
     }
 
     @Transactional(readOnly = true)
     public CredentialStatusInfo retrieveCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId, String credentialConfigurationId) {
-        Optional<CredentialIssuanceEntity> transaction = credentialStatusDao.findTransaction(
+        Optional<CredentialIssuanceTransactionEntity> transaction = issuanceTransactionDao.findTransaction(
                 transactionId.getValue(),
                 credentialConfigurationId,
                 tenant.getId()
@@ -61,14 +60,14 @@ public class CredentialStatusService {
             return null;
         }
 
-        CredentialIssuanceEntity transactionEntity = transaction.get();
-        List<StatusListEntryEntity> statusListEntries = credentialStatusDao.findEntries(transactionEntity.getId());
+        CredentialIssuanceTransactionEntity transactionEntity = transaction.get();
+        List<StatusListEntryEntity> statusListEntries = statusListEntryDao.findEntries(transactionEntity.getId());
 
         return toCredentialStatusInfo(transactionEntity, statusListEntries);
     }
 
     private CredentialStatusInfo toCredentialStatusInfo(
-            CredentialIssuanceEntity transaction,
+            CredentialIssuanceTransactionEntity transaction,
             List<StatusListEntryEntity> statusListEntries
     ) {
         List<StatusEntry> statusEntries = statusListEntries
@@ -83,3 +82,4 @@ public class CredentialStatusService {
         );
     }
 }
+

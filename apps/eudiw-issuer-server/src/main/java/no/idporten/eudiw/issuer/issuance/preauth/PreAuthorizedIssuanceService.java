@@ -10,7 +10,6 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.issuance.preauth.integration.PreAuthorizationIntegration;
-import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatus;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.metrics.MetricService;
@@ -76,7 +75,7 @@ public class PreAuthorizedIssuanceService {
                                 .build())
                         .build())
                 .build();
-        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId());
+        credentialIssuanceStatusService.offerIssued(credentialIssuerTenant, issuanceTransactionId, preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         auditService.logStartCredentialIssuanceTransaction(credentialOffer.getCredentialIssuer(), preAuthorizedIssuanceRequest.getCredentialConfigurationId(), issuanceTransactionId, accessToken);
         metricService.countStartIssuance(preAuthorizedIssuanceRequest.getCredentialConfigurationId());
         return PreAuthorizedIssuanceResponse.builder()

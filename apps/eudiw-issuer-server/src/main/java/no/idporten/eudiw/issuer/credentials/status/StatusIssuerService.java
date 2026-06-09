@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 @Service
 public class StatusIssuerService {
 
@@ -43,10 +45,15 @@ public class StatusIssuerService {
     }
 
     public List<CredentialStatus> allocateStatus(CredentialIssueContext context, int numberOfEntries) {
+        var transactionId = requireNonNull(
+            context.transactionId(),
+            "Transaction id is required to allocate status."
+        );
+
         List<StatusEntry> statusEntries = statusIssuerIntegration.allocateStatusEntries(numberOfEntries);
         credentialStatusService.storeCredentialStatus(
                 context.credentialIssuerTenant(),
-                context.transactionId(),
+                transactionId,
                 new CredentialStatusInfo(context.credentialIssuerTenant().getId(), context.credentialConfiguration().getCredentialConfigurationId(), statusEntries));
         auditService.logIssueCredentialStatus(context, statusEntries);
         return statusEntries

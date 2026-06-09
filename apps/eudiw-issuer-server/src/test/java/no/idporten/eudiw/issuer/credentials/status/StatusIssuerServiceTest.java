@@ -149,4 +149,12 @@ public class StatusIssuerServiceTest {
         verifyNoInteractions(statusIssuerIntegration);
     }
 
+    @DisplayName("then allocateStatus throws NullPointerException when transaction id is null")
+    @Test
+    void testAllocateStatusThrowsNullPointerExceptionWhenTransactionIdIsNull() {
+        CredentialIssueContext context = mock(CredentialIssueContext.class);
+        when(context.transactionId()).thenReturn(null);
+        assertThrows(NullPointerException.class, () -> service.allocateStatus(context, 1));
+    }
+
 }
