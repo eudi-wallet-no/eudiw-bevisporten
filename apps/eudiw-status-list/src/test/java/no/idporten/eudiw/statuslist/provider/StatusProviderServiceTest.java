@@ -2,7 +2,7 @@ package no.idporten.eudiw.statuslist.provider;
 
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -15,23 +15,23 @@ import no.idporten.lib.keystore.KeystoreManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
-import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.util.Map;
 
 import static no.idporten.eudiw.statuslist.TestData.getKeystoreManager;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -53,15 +53,12 @@ public class StatusProviderServiceTest {
     @Mock
     StatusListService mockStatusListService;
 
-    @Spy
-    KeystoreManager keystoreManager = getKeystoreManager();
-
-    @InjectMocks
-    private StatusProviderService statusProviderService;
-
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"RSA", "EC"})
     @DisplayName("Should generate a valid Status List Token as JWT")
-    void getValidStatusListTest() throws Exception {
+    void getValidStatusListTest(String keyType) throws Exception {
+        KeystoreManager keystoreManager = getKeystoreManager(keyType);
+        StatusProviderService statusProviderService = new StatusProviderService(statusProviderProperties, keystoreManager, mockStatusListService);
         CompressedStatusList compressedStatusList = new CompressedStatusList("eNrbuRgAAhcBXQ", 1);
         when(mockStatusListService.getJsonStatusList(1)).thenReturn(compressedStatusList);
         int testId = 1;
@@ -74,14 +71,14 @@ public class StatusProviderServiceTest {
 
         assertNotNull(signedJWT.getSignature());
 
+        JWSHeader header = signedJWT.getHeader();
         Certificate certificate =  keystoreManager.getKeyProvider("status-provider").certificate();
-        RSAPublicKey publicKey = (RSAPublicKey)certificate.getPublicKey();
-        JWSVerifier verifier = new RSASSAVerifier(publicKey);
+        PublicKey publicKey = certificate.getPublicKey();
+        JWSVerifier verifier = new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey);
         assertTrue(signedJWT.verify(verifier));
 
-        JWSHeader header = signedJWT.getHeader();
         assertEquals("statuslist+jwt", header.getType().toString());
-        assertEquals("RS256", header.getAlgorithm().getName());
+        assertEquals("RSA".equals(keyType) ? "RS256" : "ES256", header.getAlgorithm().getName());
 
         // x5c test. Remove when switching to JWKS
         assertEquals(Base64.encode(certificate.getEncoded()), header.getX509CertChain().getFirst());
@@ -104,6 +101,8 @@ public class StatusProviderServiceTest {
     @Test
     @DisplayName("Should throw StatusListSigningException if certificate.getEncoded throws CertificateEncodingException")
     void trowStatusListSigningExceptionTest1() throws Exception {
+        KeystoreManager keystoreManager = spy(getKeystoreManager("RSA"));
+        StatusProviderService statusProviderService = new StatusProviderService(statusProviderProperties, keystoreManager, mockStatusListService);
         CompressedStatusList compressedStatusList = new CompressedStatusList("eNrbuRgAAhcBXQ", 1);
         when(mockStatusListService.getJsonStatusList(1)).thenReturn(compressedStatusList);
         doReturn(mockKeyProvider).when(keystoreManager).getKeyProvider(any());
