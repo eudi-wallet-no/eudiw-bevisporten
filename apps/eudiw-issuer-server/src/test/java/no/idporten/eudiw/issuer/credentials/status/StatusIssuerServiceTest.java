@@ -80,6 +80,19 @@ public class StatusIssuerServiceTest {
         verifyNoInteractions(statusIssuerIntegration, credentialStatusService);
     }
 
+    @DisplayName("then status list allocation is disabled when issuance transaction id is missing")
+    @Test
+    void testIsDisabledWithoutIssuanceTransactionId() {
+        when(statusIssuerProperties.isEnabled()).thenReturn(true);
+        CredentialIssueContext context = mock(CredentialIssueContext.class);
+        ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
+        credentialConfiguration.getCredentialIssuerContext().setIncludeStatus(true);
+        when(context.credentialConfiguration()).thenReturn(credentialConfiguration);
+        when(context.transactionId()).thenReturn(null);
+
+        assertFalse(service.isEnabled(context));
+    }
+
     @DisplayName("then status entries is allocated by integrating with the status issuer")
     @Test
     void testAllocateStatus() {
