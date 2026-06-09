@@ -6,16 +6,18 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionEntity;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionDao;
+import no.idporten.eudiw.issuer.credentials.status.persistence.StatusListEntryDao;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -28,14 +30,6 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 public class CredentialIssuanceStatusServiceTest {
 
-    @TestConfiguration
-    static class TestStatusCacheConfiguration {
-        @Bean
-        public CredentialIssuanceStatusCache credentialIssuanceStatusCache() {
-            return new InMemoryCredentialIssuanceStatusCache();
-        }
-    }
-
     @MockitoBean
     private AccessTokenValidationService accessTokenValidationService;
 
@@ -47,6 +41,18 @@ public class CredentialIssuanceStatusServiceTest {
 
     @Autowired
     private CredentialIssuerTenantService credentialIssuerTenantService;
+
+    @Autowired
+    private CredentialIssuanceTransactionDao issuanceTransactionDao;
+
+    @Autowired
+    private StatusListEntryDao statusListEntryDao;
+
+    @BeforeEach
+    void setUp() {
+        statusListEntryDao.deleteAll();
+        issuanceTransactionDao.deleteAll();
+    }
 
     private JWT createIssuanceAccessToken(IssuanceTransactionId issuanceTransactionId) {
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
@@ -61,11 +67,20 @@ public class CredentialIssuanceStatusServiceTest {
     @Test
     void createStatusWhenOfferIsIssued() {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
-        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "junitdoc_pre_mso_mdoc");
+        String credConfigId = "junitdoc_pre_mso_mdoc";
+        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.offerIssued(credentialIssuerTenantService.findTenantById("root"), issuanceTransactionId, credConfigId);
+        CredentialIssuanceTransactionEntity persisted = issuanceTransactionDao.findTransaction(
+                issuanceTransactionId.getValue(),
+                credConfigId,
+                "root"
+        ).orElseThrow();
         assertAll(
                 () -> assertEquals(issuanceTransactionId, issuanceStatus.issuanceTransactionId()),
-                () -> assertEquals("junitdoc_pre_mso_mdoc", issuanceStatus.credentialConfigurationId()),
-                () -> assertEquals("offer_issued", issuanceStatus.status())
+                () -> assertEquals(credConfigId, issuanceStatus.credentialConfigurationId()),
+                () -> assertEquals("offer_issued", issuanceStatus.status()),
+                () -> assertEquals(credConfigId, persisted.getCredentialConfigurationId()),
+                () -> assertEquals("root", persisted.getCredentialIssuerTenant()),
+                () -> assertEquals("offer_issued", persisted.getStatus())
         );
     }
 
@@ -73,15 +88,20 @@ public class CredentialIssuanceStatusServiceTest {
     @Test
     void updateStatusAndRevealNotificationIdWhenCredentialIsIssued() {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+        String credConfigId = "junitdoc_pre_mso_mdoc";
         JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
-        credentialIssuanceStatusService.offerIssued(issuanceTransactionId, "junitdoc_pre_mso_mdoc");
-        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued("junitdoc_pre_mso_mdoc", issuanceTransactionId);
+        credentialIssuanceStatusService.offerIssued(credentialIssuerTenantService.findTenantById("root"), issuanceTransactionId, credConfigId);
+        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credConfigId, issuanceTransactionId);
         CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, credentialIssuerTenantService.findTenantById("root"), issuanceTransactionId);
+        CredentialIssuanceTransactionEntity persisted = issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElseThrow();
         assertAll(
                 () -> assertEquals("credential_issued", issuanceStatus.status()),
-                () -> assertEquals("junitdoc_pre_mso_mdoc", issuanceStatus.credentialConfigurationId()),
+                () -> assertEquals(credConfigId, issuanceStatus.credentialConfigurationId()),
                 () -> assertNotNull(notificationId),
-                () -> assertNotEquals(issuanceTransactionId, notificationId)
+                () -> assertNotEquals(issuanceTransactionId, notificationId),
+                () -> assertEquals(issuanceTransactionId.getValue(), persisted.getIssuanceTransactionId()),
+                () -> assertEquals(credConfigId, persisted.getCredentialConfigurationId()),
+                () -> assertEquals("credential_issued", persisted.getStatus())
         );
     }
 
@@ -91,7 +111,7 @@ public class CredentialIssuanceStatusServiceTest {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
         String cid = "junitdoc_pre_mso_mdoc";
-        credentialIssuanceStatusService.offerIssued(issuanceTransactionId, cid);
+        credentialIssuanceStatusService.offerIssued(credentialIssuerTenantService.findTenantById("root"), issuanceTransactionId, cid);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(cid, issuanceTransactionId);
         String status = "credential_accepted";
         credentialIssuanceStatusService.walletStatusUpdated(notificationId, status);

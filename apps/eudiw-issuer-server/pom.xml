@@ -39,6 +39,7 @@
         <kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
         <idporten-log-audit.version>4.0.2</idporten-log-audit.version>
         <idporten-lib-keystore-spring-boot-4.version>2.0.1</idporten-lib-keystore-spring-boot-4.version>
+        <netty.version>4.2.15.Final</netty.version>
     </properties>
 
     <dependencies>

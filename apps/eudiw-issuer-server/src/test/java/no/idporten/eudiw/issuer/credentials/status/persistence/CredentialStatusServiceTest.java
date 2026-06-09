@@ -8,7 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.net.URI;
@@ -30,18 +29,26 @@ class CredentialStatusServiceTest {
     private CredentialStatusService credentialStatusService;
 
     @Autowired
-    private CredentialStatusDao credentialStatusDao;
+    private CredentialIssuanceTransactionDao issuanceTransactionDao;
+
+    @Autowired
+    private StatusListEntryDao statusListEntryDao;
 
     @BeforeEach
     void setUp() {
-        credentialStatusDao.deleteAllStatusListEntries();
-        credentialStatusDao.deleteAllCredentialIssuanceTransactions();
+        statusListEntryDao.deleteAll();
+        issuanceTransactionDao.deleteAll();
+    }
+
+    private void prepareIssuanceTransaction(String txId, String credentialConfigurationId, String tenantId) {
+        issuanceTransactionDao.insertTransaction(txId, credentialConfigurationId, tenantId, System.currentTimeMillis());
     }
 
     @DisplayName("then status entries are stored and retrieved by tenant, transaction and credential configuration")
     @Test
     void testStoreAndRetrieveByTripleKey() {
         IssuanceTransactionId transactionId = new IssuanceTransactionId("tx-1");
+        prepareIssuanceTransaction("tx-1", "pid", "junit");
         CredentialStatusInfo statusInfo = new CredentialStatusInfo(
                 "junit",
                 "pid",
@@ -64,41 +71,27 @@ class CredentialStatusServiceTest {
         );
     }
 
-    @DisplayName("then storing same issuance transaction id twice fails")
+    @DisplayName("then storing status entries fails when issuance transaction does not exist")
     @Test
-    void testStoreDuplicateIssuanceTransactionIdFails() {
+    void testStoreFailsWhenIssuanceTransactionIsMissing() {
         IssuanceTransactionId transactionId = new IssuanceTransactionId("tx-2");
-        credentialStatusService.storeCredentialStatus(
+
+        assertThrows(IllegalStateException.class, () -> credentialStatusService.storeCredentialStatus(
                 junitIssuerTenant(),
                 transactionId,
                 new CredentialStatusInfo(
                         "junit",
                         "pid",
-                        List.of(
-                                new StatusEntry(1, URI.create("https://status.example/lists/old")),
-                                new StatusEntry(2, URI.create("https://status.example/lists/old"))
-                        )
+                        List.of(new StatusEntry(99, URI.create("https://status.example/lists/new")))
                 )
-        );
-
-        assertThrows(
-                DataIntegrityViolationException.class,
-                () -> credentialStatusService.storeCredentialStatus(
-                        junitIssuerTenant(),
-                        transactionId,
-                        new CredentialStatusInfo(
-                                "junit",
-                                "mdl",
-                                List.of(new StatusEntry(99, URI.create("https://status.example/lists/new")))
-                        )
-                )
-        );
+        ));
     }
 
     @DisplayName("then created timestamp is stable and updated timestamp changes on update")
     @Test
     void testCreatedAndUpdatedTimestampLifecycle() {
         IssuanceTransactionId transactionId = new IssuanceTransactionId("tx-timestamps");
+        prepareIssuanceTransaction("tx-timestamps", "pid", "junit");
         credentialStatusService.storeCredentialStatus(
                 junitIssuerTenant(),
                 transactionId,
@@ -109,15 +102,15 @@ class CredentialStatusServiceTest {
                 )
         );
 
-        CredentialIssuanceEntity initial = credentialStatusDao
+        CredentialIssuanceTransactionEntity initial = issuanceTransactionDao
                 .findTransaction("tx-timestamps", "pid", "junit")
                 .orElseThrow();
         long createdOnInsert = initial.getCreatedMs();
         long updatedOnInsert = initial.getUpdatedMs();
 
-        credentialStatusDao.updateTransactionUpdatedMs(initial.getId(), updatedOnInsert + 1000);
+        issuanceTransactionDao.updateUpdatedMs(initial.getId(), updatedOnInsert + 1000);
 
-        CredentialIssuanceEntity updated = credentialStatusDao
+        CredentialIssuanceTransactionEntity updated = issuanceTransactionDao
                 .findTransaction("tx-timestamps", "pid", "junit")
                 .orElseThrow();
 
@@ -134,6 +127,7 @@ class CredentialStatusServiceTest {
     @Test
     void testRetrieveByTransactionReturnsStoredStatus() {
         IssuanceTransactionId transactionId = new IssuanceTransactionId("tx-3");
+        prepareIssuanceTransaction("tx-3", "pid", "junit");
         credentialStatusService.storeCredentialStatus(
                 junitIssuerTenant(),
                 transactionId,
@@ -162,3 +156,4 @@ class CredentialStatusServiceTest {
         assertNull(retrieved);
     }
 }
+
