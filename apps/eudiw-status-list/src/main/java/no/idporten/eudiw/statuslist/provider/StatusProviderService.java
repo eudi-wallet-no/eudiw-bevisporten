@@ -1,9 +1,7 @@
 package no.idporten.eudiw.statuslist.provider;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWT;
@@ -21,6 +19,9 @@ import java.net.URI;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
 @Service
@@ -75,14 +76,13 @@ public class StatusProviderService {
 
     private SignedJWT buildSignedJWT(JWTClaimsSet claimsSet) {
         KeyProvider keyProvider = keystoreManager.getKeyProvider(KEY_PROVIDER);
-
         List<Base64> x5c = getBase64CertificateChain(keyProvider);
 
-        JWSHeader jwsHeader = new JWSHeader.Builder(JWSAlgorithm.RS256)
+        JWSHeader jwsHeader = new JWSHeader
+                .Builder(keyProvider.publicKey() instanceof RSAPublicKey ? JWSAlgorithm.RS256 :  JWSAlgorithm.ES256)
                 .type(new JOSEObjectType("statuslist+jwt"))
                 .x509CertChain(x5c)
                 .build();
-
         return createSignedJWT(claimsSet, jwsHeader, keyProvider);
     }
 
@@ -101,14 +101,26 @@ public class StatusProviderService {
 
     private static SignedJWT createSignedJWT(JWTClaimsSet claimsSet, JWSHeader jwsHeader, KeyProvider keyProvider) {
         SignedJWT jwt = new SignedJWT(jwsHeader, claimsSet);
-
-        PrivateKey privateKey = keyProvider.privateKey();
-        RSASSASigner signer = new RSASSASigner(privateKey);
-
-        return sign(jwt, signer);
+        JWSSigner jwsSigner = createJWSSigner(keyProvider);
+        return sign(jwt, jwsSigner);
     }
 
-    private static SignedJWT sign(SignedJWT jwt, RSASSASigner signer) {
+    private static JWSSigner createJWSSigner(KeyProvider keyProvider) {
+        PrivateKey privateKey = keyProvider.privateKey();
+        if (privateKey instanceof RSAPrivateKey rsaKey) {
+            return new RSASSASigner(rsaKey);
+        } else if (privateKey instanceof ECPrivateKey ecKey) {
+            try {
+                return new ECDSASigner(ecKey);
+            } catch (JOSEException e) {
+                throw new StatusListSigningException("Failed to create JWS signer for EC key", e);
+            }
+        } else {
+            throw new StatusListSigningException("Failed to create JWS signer for unknown key type");
+        }
+    }
+
+    private static SignedJWT sign(SignedJWT jwt, JWSSigner signer) {
         try {
             jwt.sign(signer);
         } catch (JOSEException e) {
