@@ -67,3 +67,11 @@ digdir:
       ip-address: true                                    # optional - default 'true'
     prometheus:
       counter: false                                     # optional - default 'true'
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
