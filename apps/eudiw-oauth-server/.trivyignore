@@ -6,3 +6,7 @@ CVE-2026-43512 # DEPRECATED: Authentication Bypass Issues vulnerability in diges
 CVE-2026-43513 # Improper Handling of Case Sensitivity vulnerability in LockOutRealm, fixed in version 9.0.118, 10.1.55, 11.0.22
 CVE-2026-42579 # Netty. DNS Codec Input Validation Bypass (Encoder + Decoder). Fixed in 4.2.13.Final, 4.1.133.Final
 CVE-2026-43515 # Tomcat Improper Authorization vulnerability when multiple method Fixed in 11.0.21
+CVE-2026-44249 # Netty: IPv& Subnet filter bypass. Fixed in 4.2.15.Final, 4.1.135.Final
+CVE-2026-45416 # Netty: SNI handler pre-allocates up to 16 MiB from attacker bytes.. Fixed in 4.2.15.Final, 4.1.135.Final
+CVE-2026-45674 # Netty: DNS Cache poisoning. Fixed in 4.2.15.Final, 4.1.135.Final
+CVE-2026-47691 # Netty: Insufficient Bailiwick Validation for NS. Fixed in 4.2.15.Final, 4.1.135.Final

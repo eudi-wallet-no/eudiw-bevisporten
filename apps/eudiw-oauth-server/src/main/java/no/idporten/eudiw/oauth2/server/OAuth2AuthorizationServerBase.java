@@ -399,11 +399,28 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (!serverConfiguration.getClientAttestationSigningAlgValuesSupported().contains(clientAttestation.getHeader().getAlgorithm())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Unsupported JWT signing algorithm.", 401);
         }
-        X509Certificate clientAttesterCertificate = extractX509CertificateFromJWTHeader(clientAttestation);
-        ECKey clientAttesterPublicKey = extractJWKFromX509Certificate(clientAttesterCertificate);
+        ECKey clientAttesterPublicKey = extractAttesterPublicKeyFromJWTHeader(clientAttestation);
         verifyJWTSignature(clientAttestation, clientAttesterPublicKey);
         verifyJWTType(clientAttestation, "oauth-client-attestation+jwt");
         validateJWTLifetime(clientAttestation);
+    }
+
+    ECKey extractAttesterPublicKeyFromJWTHeader(SignedJWT signedJWT) {
+        JWK jwk = signedJWT.getHeader().getJWK();
+        List<com.nimbusds.jose.util.Base64> x5c = signedJWT.getHeader().getX509CertChain();
+        boolean x5cMissing = x5c == null || x5c.isEmpty();
+
+        if (jwk == null && x5cMissing) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing jwk or x5c header.", 401);
+        }
+
+        if (jwk != null && !x5cMissing) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT contains both jwk and x5c header.", 401);
+        }
+
+        return x5cMissing
+                ? extractJWKFromJWTHeader(jwk)
+                : extractJWKFromX509Certificate(extractX509CertificateFromJWTHeader(signedJWT));
     }
 
     void validateAttestationChallenge(SignedJWT clientAttestationPoP) {
@@ -474,16 +491,29 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     }
 
     X509Certificate extractX509CertificateFromJWTHeader(SignedJWT signedJWT) {
-        List<X509Certificate> x5cList = null;
+        List<com.nimbusds.jose.util.Base64> x5c = signedJWT.getHeader().getX509CertChain();
+        if (x5c == null || x5c.isEmpty()) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing x5c header.", 401);
+        }
         try {
-            x5cList = X509CertChainUtils.parse(signedJWT.getHeader().getX509CertChain());
+            List<X509Certificate> x5cList = X509CertChainUtils.parse(x5c);
             if (x5cList.isEmpty()) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing x5c header.", 401);
             }
             return x5cList.getFirst();
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT invalid x5c header.", 401, e);
         }
+    }
+
+    ECKey extractJWKFromJWTHeader(JWK jwk) {
+        if (!KeyType.EC.equals(jwk.getKeyType()) || !(jwk instanceof ECKey ecKey)) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT invalid jwk header.", 401);
+        }
+        if (ecKey.isPrivate()) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Client passed private key in jwt header.", 401);
+        }
+        return ecKey;
     }
 
     ECKey extractJWKFromX509Certificate(X509Certificate x509Certificate) {
