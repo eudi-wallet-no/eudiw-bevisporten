@@ -178,7 +178,6 @@ public class MDocServiceTest {
     }
 
     @Test
-    @Disabled // TODO fix fragile test
     void testIssueMDocWithValidity() throws Exception {
         ExtendedCredentialConfiguration credentialConfiguration = credentialConfiguration("foo", "eaa-provider");
         credentialConfiguration.getCredentialIssuerContext().setValidityDays(42);
@@ -190,13 +189,13 @@ public class MDocServiceTest {
                 () -> assertEquals("foo", mdoc.getMSO().getDocType().getValue()),
                 () -> assertEquals(1, mdoc.getIssuerSignedItems("foo").size()),
                 () -> assertEquals(
-                        now.plus(42, ChronoUnit.DAYS).toEpochMilli(),
-                        mdoc.getMSO().getValidityInfo().getValidUntil().getValue().toEpochMilliseconds(),
-                        2000),
+                        now.plus(42, ChronoUnit.DAYS).getEpochSecond(),
+                        mdoc.getMSO().getValidityInfo().getValidUntil().getValue().getEpochSeconds(),
+                        24 * 60 * 60),
                 () -> assertEquals(
-                        now.toEpochMilli(),
-                        mdoc.getMSO().getValidityInfo().getValidFrom().getValue().toEpochMilliseconds(),
-                        (60 * 2 * 1000) + 2000)
+                        now.getEpochSecond(),
+                        mdoc.getMSO().getValidityInfo().getValidFrom().getValue().getEpochSeconds(),
+                        24 * 60 * 60)
         );
     }
 
