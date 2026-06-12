@@ -3,6 +3,7 @@ package no.idporten.eudiw.oauth2.server;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -146,17 +147,22 @@ public class TestUtils {
     }
 
     public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey) throws ParseException, JOSEException {
+        return createClientAttestation(clientId, walletName, walletLink, clientKey, false, true);
+    }
+
+    public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey, boolean includeJwk, boolean includeX5c) throws ParseException, JOSEException {
         ECKey clientAttesterJWK = clientAttesterJWK();
+        JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
+                .type(new JOSEObjectType("oauth-client-attestation+jwt"));
+        if (includeJwk) {
+            headerBuilder.jwk(clientAttesterJWK.toPublicJWK());
+        }
+        if (includeX5c) {
+            headerBuilder.x509CertChain(clientAttesterJWK.getX509CertChain());
+        }
         SignedJWT clientAttestation =
                 new SignedJWT(
-                        JWSHeader.parse("""
-                                {
-                                  "typ": "oauth-client-attestation+jwt",
-                                  "alg": "ES256",
-                                  "x5c": [
-                                    "%s"
-                                  ]
-                                }""".formatted(clientAttesterJWK.getX509CertChain().getFirst())),
+                        headerBuilder.build(),
                         new JWTClaimsSet.Builder()
                                 .issuer("client-attester")
                                 .audience("anyone")
@@ -190,5 +196,4 @@ public class TestUtils {
     }
 
 }
-
 
