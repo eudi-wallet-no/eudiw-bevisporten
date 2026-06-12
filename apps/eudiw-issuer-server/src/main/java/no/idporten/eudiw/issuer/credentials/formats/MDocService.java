@@ -76,9 +76,19 @@ public class MDocService {
             mDocBuilder.addItemToSign(entry.getPath().getFirst(), entry.getPath().getLast(), data);
         }
         // TODO hack for iOS wallet mdoc issue timestamp validation failure
-        Instant signedAt = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().minus(1, ChronoUnit.MINUTES).toEpochMilli());
+        Instant signedAt = Instant.Companion.fromEpochSeconds(
+                Clock.systemUTC()
+                        .instant()
+                        .truncatedTo(ChronoUnit.SECONDS)
+                        .minus(1, ChronoUnit.MINUTES)
+                        .getEpochSecond(), 0);
         Instant validFrom = signedAt;
-        Instant validTo = Instant.Companion.fromEpochMilliseconds(Clock.systemUTC().instant().plus(credentialConfiguration.getCredentialIssuerContext().getValidityDays(), ChronoUnit.DAYS).toEpochMilli());
+        Instant validTo = Instant.Companion.fromEpochSeconds(
+                Clock.systemUTC()
+                        .instant()
+                        .truncatedTo(ChronoUnit.SECONDS)
+                        .plus(credentialConfiguration.getCredentialIssuerContext().getValidityDays(), ChronoUnit.DAYS)
+                        .getEpochSecond(), 0);
         Instant expectedUpdateAt = validTo;
         Status mdocStatus = credentialStatus != null ? MDocStatusBridge.create(credentialStatus) : null;
         return mDocBuilder.sign(
