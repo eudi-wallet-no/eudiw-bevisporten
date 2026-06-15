@@ -3,7 +3,9 @@ server:
   port: 8080
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     name: digital-lommebok-issuer-server
     environment: default
@@ -46,8 +48,7 @@ management:
 credential-issuer-server:
   metadata-refresh-rate-in-millis: 30000 # 30 seconds (must be > cache TTL)
   features:
-    pid-signing-keystore: pid-provider
-    status-list-enabled: false
+    status-list-enabled: true
   cryptographic-bindings:
     - jwk
   proof-signing-algorithms:
@@ -61,65 +62,11 @@ credential-issuer-server:
     status-issuer:
       enabled: ${credential-issuer-server.features.status-list-enabled}
       api:
-        uri: https://status.test.eidas2sandkasse.net
+        uri: http://digital-lommebok-status-list-service:8080
         api-key: ${STATUS_ISSUER_API_KEY}
         api-key-header: X-API-KEY
         connect-timeout: 2s
         read-timeout: 2s
-  authoritative-sources:
-    krr:
-      api:
-        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/krr/credentialdata/retrieve
-        api-key-header: X-API-KEY
-        api-key: ${AUTH_SOURCE_KRR_API_KEY}
-    freg:
-      api:
-        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/freg/credentialdata/retrieve
-        api-key-header: X-API-KEY
-        api-key: ${AUTH_SOURCE_FREG_API_KEY}
-    skatteetaten:
-      api:
-        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/skatteetaten/credentialdata/retrieve
-        api-key-header: X-API-KEY
-        api-key: ${AUTH_SOURCE_SKATTEETATEN_API_KEY}
-    advokatregisteret:
-      api:
-        uri: http://digital-lommebok-auth-sources-connector-service:8080/api/v1/advokatregisteret/credentialdata/retrieve
-        api-key-header: X-API-KEY
-        api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
-  tenants:
-    bevisgenerator:
-      display-names:
-        "no": "Digdir bevisgenerator"
-      credential-configuration-sources-properties:
-        - local:
-            paths:
-              - classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
-              - classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
-              - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
-              - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
-              - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
-        - api:
-            uri: ${byob-service.uri}
-            api-key-header: X-API-KEY
-            api-key: ${byob-service.api-key}
-            connect-timeout: 2s
-            read-timeout: 2s
-    pid:
-      display-names:
-        "no": "PID-utsteder (Norsk ID-bevis)"
-      credential-configuration-sources-properties:
-        - local:
-            paths:
-              - classpath:credential-configurations/pid/pid_mso_mdoc.json
-              - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
-    minid:
-      display-names:
-        "no": "MinID bevisutsteder"
-      credential-configuration-sources-properties:
-        - local:
-            paths:
-              - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
 
 # Digdir standard logging
 digdir:
@@ -138,32 +85,12 @@ digdir:
     prometheus:
       counter: false                                     # optional - default 'true'
 
-## byob-service: Bring your own bevis service properties
-byob-service:
-  uri: http://digital-lommebok-byob-service-service:8080/v1/admin/credential-configurations
-  api-key: ${API_KEY}
-  connect-timeout: 2s
-  read-timeout: 2s
-  cache-ttl: 28s
 
 
-idporten-key-manager:
-  keystores:
-    pid-provider:
-      key-store-type: ${PID_PROVIDER_KEYSTORE_TYPE}
-      key-store-location: ${PID_PROVIDER_KEYSTORE_LOCATION}
-      key-store-password: ${PID_PROVIDER_KEYSTORE_PASSWORD}
-      key-alias: ${PID_PROVIDER_KEYSTORE_KEY_ALIAS}
-      key-password: ${PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
-    eaa-provider:
-      key-store-type: ${EAA_PROVIDER_KEYSTORE_TYPE}
-      key-store-location: ${EAA_PROVIDER_KEYSTORE_LOCATION}
-      key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
-      key-alias: ${EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
-      key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
-    minid-provider:
-      key-store-type: ${MINID_PROVIDER_KEYSTORE_TYPE}
-      key-store-location: ${MINID_PROVIDER_KEYSTORE_LOCATION}
-      key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
-      key-alias: ${MINID_PROVIDER_KEYSTORE_KEY_ALIAS}
-      key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
