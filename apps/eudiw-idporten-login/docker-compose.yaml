@@ -1,0 +1,65 @@
+# NB: Login to Azure Container Registery : az login && az acr login -n crutvikling --subscription 9c0d7873-b8aa-4042-96f8-b8ce5c9888d0
+# https://portal.azure.com/#@Nasjonalfelleslosning.onmicrosoft.com/resource/subscriptions/9c0d7873-b8aa-4042-96f8-b8ce5c9888d0/resourceGroups/rg-eid-systest-cr/providers/Microsoft.ContainerRegistry/registries/crutvikling/overview
+
+name: digital-lommebok-idporten-login
+networks:
+  digital-lommebok:
+    name: digital-lommebok
+
+services:
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      start_period: 3s
+      timeout: 2s
+      retries: 20
+    ports:
+      - "9262:6379"
+    networks:
+      - digital-lommebok
+    command: redis-server --maxmemory-policy allkeys-lru
+
+
+  eudiw-idporten-login:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9283:9283"
+      - "9284:9284"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9284 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9261/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  testclient:
+    image: "crutvikling.azurecr.io/idporten-oidc-test-client"
+    # image: "idporten-testclient"
+    environment:
+      spring_profiles_active: eudiw-docker
+    ports:
+      - "8888:8888"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -jar application.war

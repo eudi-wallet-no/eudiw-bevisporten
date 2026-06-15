@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<header th:replace="~{fragments/toppanel :: header}">...</header>
+<main>
+    <div class="box" id="main-content">
+        <div class="box__header">
+            <h1 class="title-bar">
+                <span class="title-bar__name" th:text="#{eudiw_title}"></span>
+            </h1>
+        </div>
+        <div class="box__body">
+            <p th:text="#{eudiw_description}"></p>
+            <p id="temp-status"></p>
+            <span id="interaction-id" style="display: none">${walletInteractionId}</span>
+            <div id="cross-device-request">
+                <img th:src="@{/login/qrcode/{walletInteractionId}(walletInteractionId=${walletInteractionId})}" th:alt="#{eudiw_qrcode_alt}" id="qrcode-cross-device" width="100%" />
+            </div>
+            <form action="/login" method="POST" id="login-form">
+                <div class="btn-group">
+                    <a href="/cancel"><button class="button button--secondary" id="btn-cancel" type="button" th:text="#{eudiw_cancel}"></button></a>
+                    <a th:href="${sameDeviceRequest}"><button class="button" id="btn-same-device" type="button" th:text="#{eudiw_open}"></button></a>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+
+</html>
