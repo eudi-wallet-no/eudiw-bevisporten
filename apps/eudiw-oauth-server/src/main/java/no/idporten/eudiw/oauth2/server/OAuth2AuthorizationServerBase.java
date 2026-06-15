@@ -309,9 +309,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
     @Override
     public ChallengeResponse process(ChallengeRequest challengeRequest) throws OAuth2Exception {
-        Challenge challenge = new Challenge(generateId(), serverConfiguration.getChallengeLifetimeSeconds());
-        serverConfiguration.getCache().putChallenge(challenge);
-        ChallengeResponse challengeResponse = new ChallengeResponse(challenge.challenge());
+        ChallengeResponse challengeResponse = new ChallengeResponse(issueAttestationChallenge());
         serverConfiguration.getAuditLogger().auditChallengeResponse(challengeResponse);
         return challengeResponse;
     }
@@ -428,14 +426,14 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         try {
             challenge = clientAttestationPoP.getJWTClaimsSet().getStringClaim("challenge");
             if (! StringUtils.hasText(challenge)) {
-                throw new OAuth2Exception(OAuth2Exception.USE_ATTESTATION_CHALLENGE, "Invalid client authentication. Missing challenge in attestation pop.", 401);
+                throw new UseAttestationChallengeOAuth2Exception("Invalid client authentication. Missing challenge in attestation pop.", issueAttestationChallenge());
             }
             Challenge serverIssuedChallenge = serverConfiguration.getCache().getChallenge(challenge);
             if (serverIssuedChallenge == null) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Unknown challenge in attestation pop.", 401);
+                throw new UseAttestationChallengeOAuth2Exception("Invalid client authentication. Unknown challenge in attestation pop.", issueAttestationChallenge());
             }
             if (! serverIssuedChallenge.isValidNow()) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Expired challenge in attestation pop.", 401);
+                throw new UseAttestationChallengeOAuth2Exception("Invalid client authentication. Expired challenge in attestation pop.", issueAttestationChallenge());
             }
         } catch (ParseException e) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Failed to parse attestation pop.", 401);
@@ -896,6 +894,12 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
     protected String signJwt(JWTClaimsSet jwtClaimsSet) throws JOSEException {
         return signJwt(null, jwtClaimsSet);
+    }
+
+    private String issueAttestationChallenge() {
+        Challenge challenge = new Challenge(generateId(), serverConfiguration.getChallengeLifetimeSeconds());
+        serverConfiguration.getCache().putChallenge(challenge);
+        return challenge.challenge();
     }
 
     protected String signJwt(String type, JWTClaimsSet jwtClaimsSet) throws JOSEException {
