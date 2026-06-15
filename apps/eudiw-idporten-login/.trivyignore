@@ -1,0 +1,12 @@
+# <CVE> # <package/affected code>. Fixed in <version>.
+CVE-2026-42579 # Netty: High integrity impact due to improper DNS domain name constraint (fixed in 4.2.13.Final, 4.1.133.Final)
+CVE-2026-44249 # Netty has an IPv6 Subnet Filter Bypass via Incorrect Comparator Masking (fixed in 4.2.15.Final, 4.1.135.Final)
+CVE-2026-45416 # Netty: SNI handler pre-allocates up to 16 MiB from nine attacker bytes (fixed in 4.2.15.Final, 4.1.135.Final)
+CVE-2026-45674 # Netty Vulnerable to DNS Cache Poisoning via Missing Bailiwick Checks in CNAME (fixed in 4.2.15.Final, 4.1.135.Final)
+CVE-2026-47691 # Netty has Insufficient Bailiwick Validation for NS Records (fixed in 4.2.15.Final, 4.1.135.Final)
+CVE-2026-41293 # Apache Tomcat: HTTP/2 request headers not validated (fixed in 9.0.118, 10.1.55, 11.0.22)
+CVE-2026-43512 # Apache Tomcat: Authentication bypass via digest authentication (fixed in 9.0.118, 10.1.55, 11.0.22)
+CVE-2026-43515 # Improper Authorization vulnerability when multiple method constraints (fixed in 9.0.118, 10.1.55, 11.0.22)
+CVE-2026-41284 # Allocation of Resources Without Limits or Throttling vulnerability (fixed in 9.0.118, 10.1.55, 11.0.22)
+CVE-2026-42498 # Exposure of HTTP Authentication Header to unexpected hosts during WebSocket (fixed in 9.0.118, 10.1.55, 11.0.22)
+CVE-2026-43513 # Improper Handling of Case Sensitivity in LockOutRealm (fixed in 9.0.118, 10.1.55, 11.0.22)
