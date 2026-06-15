@@ -20,8 +20,6 @@ spring:
 
 credential-issuer-server:
   credential-issuer: http://issuer-server:9240
-  features:
-    status-list-enabled: true
   authorization-servers:
     - id: auth-eidas2sandkasse
       issuer: http://oauth-server:9260
@@ -60,10 +58,39 @@ credential-issuer-server:
         uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
         api-key-header: X-API-KEY
         api-key: eudiw
-
-byob-service:
-  uri: http://byob-service:9296/v1/admin/credential-configurations
-  api-key: invalid
+  tenants:
+    bevisgenerator:
+      display-names:
+        "no": "Digdir bevisgenerator"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
+              - classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
+              - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
+              - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
+              - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
+        - api:
+            uri: http://byob-service:9296/v1/admin/credential-configurations
+            api-key-header: X-API-KEY
+            api-key: invalid
+            connect-timeout: 2s
+            read-timeout: 2s
+    pid:
+      display-names:
+        "no": "PID-utsteder (Norsk ID-bevis)"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/pid/pid_mso_mdoc.json
+              - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+    minid:
+      display-names:
+        "no": "MinID bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
 
 idporten-key-manager:
   keystores:

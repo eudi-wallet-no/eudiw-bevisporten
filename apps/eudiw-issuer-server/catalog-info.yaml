@@ -13,4 +13,4 @@ spec:
   dependsOn:
     - component:digital-lommebok-oauth-server
     - resource:digital-lommebok-redis
-
+    - component:digital-lommebok-status-list
