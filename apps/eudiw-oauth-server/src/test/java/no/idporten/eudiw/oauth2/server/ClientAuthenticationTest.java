@@ -188,6 +188,83 @@ public class ClientAuthenticationTest {
                     () -> assertTrue(e.errorDescription().contains("Invalid client authentication. JWT contains both jwk and x5c header"))
             );
         }
+
+        @Test
+        public void testAttestationWithUnknownChallengeReturnsUseAttestationChallenge() throws Exception {
+            final String clientId = "eudiw-abca";
+            final ECKey clientKey = TestUtils.createECPrivateKey();
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
+            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
+                    clientId,
+                    "unknown-challenge",
+                    authorizationServer.getConfiguration().getIssuer().toString(),
+                    clientKey);
+            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
+                    .clientId(clientId)
+                    .clientAttestation(clientAttestation.serialize())
+                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
+                    .build();
+            UseAttestationChallengeOAuth2Exception exception = assertThrows(UseAttestationChallengeOAuth2Exception.class, () -> authorizationServer.authenticateClient(authenticatedRequest));
+            assertAll(
+                    () -> assertInstanceOf(UseAttestationChallengeOAuth2Exception.class, exception),
+                    () -> assertEquals(OAuth2Exception.USE_ATTESTATION_CHALLENGE, exception.error()),
+                    () -> assertTrue(exception.errorDescription().contains("Unknown challenge in attestation pop")),
+                    () -> assertNotNull(exception.getAttestationChallenge()),
+                    () -> assertNotNull(authorizationServer.getConfiguration().getCache().getChallenge(exception.getAttestationChallenge()))
+            );
+       }
+
+        @Test
+        public void testAttestationWithoutChallengeReturnsUseAttestationChallenge() throws Exception {
+            final String clientId = "eudiw-abca";
+            final ECKey clientKey = TestUtils.createECPrivateKey();
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
+            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoPWithoutChallenge(
+                    clientId,
+                    authorizationServer.getConfiguration().getIssuer().toString(),
+                    clientKey);
+            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
+                    .clientId(clientId)
+                    .clientAttestation(clientAttestation.serialize())
+                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
+                    .build();
+            UseAttestationChallengeOAuth2Exception exception = assertThrows(UseAttestationChallengeOAuth2Exception.class, () -> authorizationServer.authenticateClient(authenticatedRequest));
+            assertAll(
+                    () -> assertInstanceOf(UseAttestationChallengeOAuth2Exception.class, exception),
+                    () -> assertEquals(OAuth2Exception.USE_ATTESTATION_CHALLENGE, exception.error()),
+                    () -> assertTrue(exception.errorDescription().contains("Missing challenge in attestation pop")),
+                    () -> assertNotNull(exception.getAttestationChallenge()),
+                    () -> assertNotNull(authorizationServer.getConfiguration().getCache().getChallenge(exception.getAttestationChallenge()))
+            );
+        }
+
+        @Test
+        public void testAttestationWithExpiredChallengeReturnsUseAttestationChallenge() throws Exception {
+            final String clientId = "eudiw-abca";
+            final ECKey clientKey = TestUtils.createECPrivateKey();
+            String challengeString = "dgsdjhagdhjaj";
+            final Challenge challenge = new Challenge(challengeString, -1);
+            authorizationServer.getConfiguration().getCache().putChallenge(challenge);
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
+            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
+                    clientId,
+                    challengeString,
+                    authorizationServer.getConfiguration().getIssuer().toString(),
+                    clientKey);
+            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
+                    .clientId(clientId)
+                    .clientAttestation(clientAttestation.serialize())
+                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
+                    .build();
+            UseAttestationChallengeOAuth2Exception exception = assertThrows(UseAttestationChallengeOAuth2Exception.class, () -> authorizationServer.authenticateClient(authenticatedRequest));
+            assertAll(
+                    () -> assertInstanceOf(UseAttestationChallengeOAuth2Exception.class, exception),
+                    () -> assertEquals(OAuth2Exception.USE_ATTESTATION_CHALLENGE, exception.error()),
+                    () -> assertTrue(exception.errorDescription().contains("Expired challenge in attestation pop")),
+                    () -> assertNotNull(exception.getAttestationChallenge()),
+                    () -> assertNotNull(authorizationServer.getConfiguration().getCache().getChallenge(exception.getAttestationChallenge()))
+            );
+        }
     }
 
     @DisplayName("without using client authentication (none)")

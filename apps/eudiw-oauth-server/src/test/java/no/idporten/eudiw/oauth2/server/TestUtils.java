@@ -195,5 +195,21 @@ public class TestUtils {
         return clientAttestationPop;
     }
 
+    public static SignedJWT createClientAttestationPoPWithoutChallenge(String clientId, String audience, ECKey clientKey) throws ParseException, JOSEException {
+        SignedJWT clientAttestationPop =
+                new SignedJWT(
+                        JWSHeader.parse("""
+                                {
+                                  "typ": "oauth-client-attestation-pop+jwt",
+                                  "alg": "ES256"
+                                }"""),
+                        new JWTClaimsSet.Builder()
+                                .issuer(clientId)
+                                .audience(audience)
+                                .jwtID(UUID.randomUUID().toString())
+                                .build());
+        clientAttestationPop.sign(new ECDSASigner(clientKey.toECPrivateKey()));
+        return clientAttestationPop;
+    }
 }
 
