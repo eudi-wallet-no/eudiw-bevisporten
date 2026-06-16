@@ -4,7 +4,9 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import no.digdir.oidc.redis.service.RedisOpenIDConnectCache;
+import no.idporten.lib.keystore.KeystoreConfig;
 import no.idporten.lib.keystore.KeystoreManager;
+import no.idporten.lib.keystore.spring.KeystoreConfigurationProperties;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegrationBase;
 import no.idporten.sdk.oidcserver.client.ClientMetadata;
@@ -14,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.security.KeyStore;
 import java.util.UUID;
 
 @Configuration
@@ -22,10 +23,13 @@ public class OIDCServerConfiguration {
 
     private final RedisOpenIDConnectCache cache;
     private final KeystoreManager keystoreManager;
+    private final KeystoreConfigurationProperties keystoreConfigurationProperties;
+    private static final String OIDC_PROVIDER_KEYSTORE_NAME = "oidc-provider";
 
-    public OIDCServerConfiguration(RedisOpenIDConnectCache cache, KeystoreManager keystoreManager) {
+    public OIDCServerConfiguration(RedisOpenIDConnectCache cache, KeystoreManager keystoreManager, KeystoreConfigurationProperties keystoreConfigurationProperties) {
         this.cache = cache;
         this.keystoreManager = keystoreManager;
+        this.keystoreConfigurationProperties = keystoreConfigurationProperties;
     }
 
     @Bean
@@ -50,7 +54,12 @@ public class OIDCServerConfiguration {
                         .authorizationEndpoint(endpointUri(oidcServerProperties, "authorize"))
                         .tokenEndpoint(endpointUri(oidcServerProperties, "token"))
                         .cache(cache);
-        builder.jwk(generateServerKeys());
+        if (isLoadKeyStore(OIDC_PROVIDER_KEYSTORE_NAME)) {
+            KeystoreConfig keystoreConfig = keystoreConfigurationProperties.getKeystore(OIDC_PROVIDER_KEYSTORE_NAME);
+            builder.keystore(keystoreManager.getKeystore(OIDC_PROVIDER_KEYSTORE_NAME), keystoreConfig.keyAlias(), keystoreConfig.keyPassword());
+        } else {
+            builder.jwk(generateServerKeys());
+        }
         return builder.build();
     }
 
@@ -65,9 +74,8 @@ public class OIDCServerConfiguration {
                 .generate();
     }
 
-    // TODO sdk er ikke helt kompatibelt med key store manager.  Det må vi fikse/ta via ID-porten-teamet.
-    private KeyStore loadKeyStore() throws Exception {
-        return keystoreManager.getKeystore("oidc-provider");
+    private boolean isLoadKeyStore(String keystoreName) {
+        return keystoreManager.getKeystoreNames().contains(keystoreName);
     }
 
     @Bean

@@ -22,7 +22,7 @@ spring:
 
 eudiw-idporten-login:
   oidc-sdk:
-    issuer: http://idporten-login:9283/
+    issuer: http://eudiw-idporten-login:9283/
     keystore:
       type: auto
     clients:
@@ -35,8 +35,8 @@ eudiw-idporten-login:
           - http://localhost:8888/authorize/response
           - http://127.0.0.1:8888/authorize/response
   openid4vp:
-    siop2-client-id: eudiw-integration.idporten.dev
-    base-uri: http://eudiw-integration:7076
+    siop2-client-id: eudiw-idporten-login
+    base-uri: http://eudiw-idporten-login:9283
 idporten-key-manager:
   keystores:
     openid4vp:

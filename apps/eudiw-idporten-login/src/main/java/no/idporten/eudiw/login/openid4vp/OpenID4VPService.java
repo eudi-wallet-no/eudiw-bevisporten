@@ -27,12 +27,16 @@ import id.walt.mdoc.issuersigned.IssuerSigned;
 import lombok.SneakyThrows;
 import no.idporten.eudiw.login.openid4vp.protocol.*;
 import no.idporten.lib.keystore.KeyProvider;
+import no.idporten.lib.keystore.KeystoreConfig;
 import no.idporten.lib.keystore.KeystoreManager;
+import no.idporten.lib.keystore.spring.KeystoreConfigurationProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.interfaces.ECPrivateKey;
 import java.text.ParseException;
@@ -45,20 +49,23 @@ import java.util.*;
 @Service
 public class OpenID4VPService {
 
+    public static final String OPENID4VP_ACCESS_KEYSTORE_NAME = "openid4vp";
     private final OpenID4VPProperties openID4VPProperties;
-    private final KeystoreManager  keystoreManager;
+    private final KeystoreManager keystoreManager;
+    private final KeystoreConfigurationProperties keystoreConfigurationProperties;
 
     public static final String JWT_TYPE_OAUTH_AUTHZ_REQ = "oauth-authz-req+jwt";
 
-    public OpenID4VPService(OpenID4VPProperties openID4VPProperties, KeystoreManager keystoreManager) {
+    public OpenID4VPService(OpenID4VPProperties openID4VPProperties, KeystoreManager keystoreManager, KeystoreConfigurationProperties keystoreConfigurationProperties) {
         this.openID4VPProperties = openID4VPProperties;
         this.keystoreManager = keystoreManager;
+        this.keystoreConfigurationProperties = keystoreConfigurationProperties;
     }
 
     @SneakyThrows
-    private String x509SanDnsClientId(String x) {
+    private String x509HashClientId(Certificate certificate) {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(keystoreManager.getKeyProvider("openid4vp").certificate().getEncoded());
+        md.update(certificate.getEncoded());
         String clientId = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest());
         return "x509_hash:" + clientId;
     }
@@ -68,17 +75,18 @@ public class OpenID4VPService {
         URI authorizeEndpoint = URI.create("eudi-openid4vp://" + openID4VPProperties.getSiop2ClientId());
         return new AuthorizationRequest.Builder(
                 requestUri,
-                new ClientID(x509SanDnsClientId(openID4VPProperties.getSiop2ClientId())))
+                new ClientID(x509HashClientId(keystoreManager.getKeyProvider(OPENID4VP_ACCESS_KEYSTORE_NAME).certificate())))
                 .endpointURI(authorizeEndpoint)
                 .build();
     }
 
     public SignedJWT createPresentationRequest(OpenID4VPFlow flow, String state) throws JOSEException, CertificateEncodingException {
         URI responseUri = UriComponentsBuilder.fromUriString(openID4VPProperties.getBaseUri()).pathSegment("openid4vp", "response", flow.name().toLowerCase(), state).build().toUri();
+        KeyProvider keyProvider = keystoreManager.getKeyProvider(OPENID4VP_ACCESS_KEYSTORE_NAME);
         AuthorizationRequest authorizationRequest =
                 new AuthorizationRequest.Builder(
                         new ResponseType("vp_token"),
-                        new ClientID(x509SanDnsClientId(openID4VPProperties.getSiop2ClientId())))
+                        new ClientID(x509HashClientId(keyProvider.certificate())))
                         .responseMode(new ResponseMode("direct_post.jwt"))
                         .state(new State(state))
                         .customParameter("nonce", new Nonce().getValue())
@@ -94,7 +102,6 @@ public class OpenID4VPService {
                 .issueTime(new Date(Clock.systemUTC().millis()))
                 .expirationTime(new Date(Clock.systemUTC().millis() + 120000));
         JWTClaimsSet claims = builder.build();
-        KeyProvider keyProvider = keystoreManager.getKeyProvider("openid4vp");
         JWSSigner signer = new ECDSASigner((ECPrivateKey) keyProvider.privateKey());
         SignedJWT jar = new SignedJWT(
                 new JWSHeader.Builder(JWSAlgorithm.ES256)
@@ -124,9 +131,9 @@ public class OpenID4VPService {
     public ClientMetadata makeClientMetadata() {
         OIDCClientMetadata metadata = new OIDCClientMetadata();
         // TODO burde bruke flyktige nøkler her - her hardkodes et alias og password for å tweake rundt
-        KeyProvider keyProvider = keystoreManager.getKeyProvider("openid4vp");
-//        ECKey ecKey = new ECKey.Builder(keyProvider.privateKey()).keyUse(KeyUse.ENCRYPTION).algorithm(JWEAlgorithm.ECDH_ES).build();
-        ECKey ecKey = new ECKey.Builder(ECKey.load(keystoreManager.getKeystore("openid4vp"),"rp-access", "changeit".toCharArray())).keyUse(KeyUse.ENCRYPTION).algorithm(JWEAlgorithm.ECDH_ES).build();
+        KeyStore keyStore = keystoreManager.getKeystore(OPENID4VP_ACCESS_KEYSTORE_NAME);
+        KeystoreConfig keystoreConfig = keystoreConfigurationProperties.getKeystore(OPENID4VP_ACCESS_KEYSTORE_NAME);
+        ECKey ecKey = new ECKey.Builder(ECKey.load(keyStore,keystoreConfig.keyAlias(), keystoreConfig.keyPassword().toCharArray())).keyUse(KeyUse.ENCRYPTION).algorithm(JWEAlgorithm.ECDH_ES).build();
         metadata.setJWKSet(new JWKSet(List.of(ecKey)).toPublicJWKSet());
         metadata.setCustomField("encrypted_response_enc_values_supported",
                 List.of(
