@@ -47,7 +47,9 @@ public class OpenID4VPResponseService {
         }
         final String vpToken = extractVpToken(verifierTransactionId, claimsFromJwePayload);
         final Map<String, Object> claims;
-        if ("dc+sd-jwt".equals(verificationTransaction.getCredentialConfiguration().getFormat())) {
+        // TODO hent format fra dcql query
+        String format = "mso_mdoc";
+        if ("dc+sd-jwt".equals(format)) {
             claims = retrieveClaimsFromSDJwtCredential(vpToken);
         } else {
             claims = retrieveClaimsFromMDocCredential(vpToken);
@@ -60,7 +62,8 @@ public class OpenID4VPResponseService {
     private static String extractVpToken(String verifierTransactionId, Map<String, Object> claimsFromJwePayload) {
         final String vpToken;
         Map<String, Object> credentialsMap = (Map<String, Object>) claimsFromJwePayload.get("vp_token");
-        Object vpTokenObject = credentialsMap.get(verifierTransactionId);
+        // TODO hent id fra dcql query
+        Object vpTokenObject = credentialsMap.get("pid");
         vpToken = ((List<String>) vpTokenObject).getFirst();
         return vpToken;
     }

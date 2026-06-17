@@ -17,10 +17,9 @@ import net.minidev.json.JSONObject;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.ClaimsDescription;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -62,7 +61,7 @@ public class OpenID4VPRequestService {
                 .toUri();
     }
 
-    protected URI createAuthorizationRequest(String requestId) {
+    protected URI createOpenID4VPAuthorizationRequest(String requestId) {
         return UriComponentsBuilder.newInstance()
                 .scheme("eudi-openid4vp")
                 .host(verifierProxyProperties.getSiop2ClientId())
@@ -87,10 +86,10 @@ public class OpenID4VPRequestService {
     }
 
     @SneakyThrows
-    public URI createAuthorizationRequest(CredentialConfiguration credentialConfiguration, String verifierTransactionId) {
+    public URI createAuthorizationRequest(String verifierTransactionId) {
         String requestId = UUID.randomUUID().toString();
         requestId2verificationTransactionId.put(requestId, verifierTransactionId);
-        return createAuthorizationRequest(requestId);
+        return createOpenID4VPAuthorizationRequest(requestId);
     }
 
     @SneakyThrows
@@ -107,25 +106,25 @@ public class OpenID4VPRequestService {
         JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(JWEAlgorithm.ECDH_ES).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
         verificationTransaction.setState(state);
         verificationTransaction.setEncryptionKey(encryptionKey);
-        JWT authorizationRequest = makeRequestJwt(verificationTransaction.getCredentialConfiguration(), verificationTransactionId, encryptionKey, state);
+        JWT authorizationRequest = makeRequestJwt(verificationTransaction, verificationTransactionId);
         return authorizationRequest.serialize();
     }
 
-    public JWT makeRequestJwt(CredentialConfiguration credentialConfiguration, String verifierTransactionId, JWK encryptionKey, String state) throws Exception {
+    private JWT makeRequestJwt(VerificationTransaction verificationTransaction, String verificationTransactionId) throws Exception {
         KeyProvider keyProvider = keystoreManager.getKeyProvider("access");
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .audience("https://self-issued.me/v2")
                 .issuer(verifierProxyProperties.getExternalBaseUri())
-                .claim("response_uri", createResponseUri(verifierTransactionId).toString())
+                .claim("response_uri", createResponseUri(verificationTransactionId).toString())
                 .claim("response_type", "vp_token")
                 .claim("response_mode", "direct_post.jwt")
                 .claim("nonce", UUID.randomUUID().toString())
-                .claim("state", state)
+                .claim("state", verificationTransaction.getState())
                 .claim("client_id", makeClientId())
-                .claim("dcql_query", makeDCQLQuery(credentialConfiguration, verifierTransactionId))
-                .claim("client_metadata", makeClientMetadata(encryptionKey))
+                .claim("dcql_query", convertDcqlQuery(verificationTransaction))
+                .claim("client_metadata", makeClientMetadata(verificationTransaction.getEncryptionKey()))
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
                 .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
                 .expirationTime(new Date(Clock.systemUTC().millis() + 120000));
@@ -141,6 +140,12 @@ public class OpenID4VPRequestService {
         signedJWT.sign(signer);
         return signedJWT;
     }
+
+    private static @NonNull Map<String, Object> convertDcqlQuery(VerificationTransaction verificationTransaction) {
+        //return new JSONObject(verificationTransaction.getDcqlQuery());
+        return verificationTransaction.getDcqlQuery();
+    }
+
 
     private JSONObject makeVpFormatsSupported() {
         JSONObject mdoc = new JSONObject();
@@ -162,35 +167,6 @@ public class OpenID4VPRequestService {
         metadata.appendField("encrypted_response_enc_values_supported", encryptedResponseAlgs);
         metadata.appendField("vp_formats_supported", makeVpFormatsSupported());
         return metadata;
-    }
-
-    @SneakyThrows
-    public JSONObject makeDCQLQuery(CredentialConfiguration credentialConfiguration, String id) {
-        JSONObject credential = new JSONObject()
-                .appendField("id", id)
-                .appendField("format", credentialConfiguration.getFormat())
-                .appendField("meta",
-                        "dc+sd-jwt".equals(credentialConfiguration.getFormat())
-                                ?
-                                new JSONObject().appendField("vct_values", List.of(credentialConfiguration.getVct()))
-                                :
-                                new JSONObject().appendField("doctype_value", credentialConfiguration.getDoctype()))
-                .appendField("claims",
-                        credentialConfiguration.getCredentialMetadata().getClaimsDescriptions().stream()
-                                .map(cd -> new JSONObject().appendField("path", calculatePath(credentialConfiguration.getFormat(), cd)))
-                                .toList());
-        return new JSONObject().appendField("credentials", new JSONArray().appendElement(credential));
-    }
-
-    protected List<String> calculatePath(String credentialFormat, ClaimsDescription claimsDescription) {
-        if ("dc+sd-jwt".equals(credentialFormat)) {
-            return claimsDescription.getPath();
-        }
-        // do not ask for map or list elements in mdoc credentials
-        if (claimsDescription.getPath().size() == 2) {
-            return claimsDescription.getPath();
-        }
-        return claimsDescription.getPath().subList(0, 2);
     }
 
 }
