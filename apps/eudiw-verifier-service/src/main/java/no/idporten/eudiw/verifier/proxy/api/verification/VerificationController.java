@@ -9,10 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * API acting as a verification proxy.  Supports start verification, poll for status, and retrieve verification result,
+ * API acting as a verification backend.  Supports start verification, poll for status, and retrieve verification result,
  */
 @Tag(name = ApiDocProperties.API_TAG, description = ApiDocProperties.API_DESCRIPTION)
 @RestController
+@RequestMapping("/api/v1/{client_application_id}")
 public class VerificationController {
 
     private final VerificationService verificationService;
@@ -28,8 +29,9 @@ public class VerificationController {
             summary = "Start verification.",
             description = "Start verification by asking for a credential type (doctype or vct) or credential configuration id from a credential issuer's metadata.",
             tags = {ApiDocProperties.API_TAG})
-    @PostMapping("/v1/verify/start")
-    public ResponseEntity<StartVerificationResponse> startVerification(@RequestBody StartVerificationRequest startVerificationRequest) throws Exception {
+    @PostMapping("/verify/start/")
+    public ResponseEntity<StartVerificationResponse> startVerification(@RequestBody StartVerificationRequest startVerificationRequest,
+            @PathVariable("client_application_id") String clientApplicationId) throws Exception {
         return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest));
     }
 
@@ -40,8 +42,10 @@ public class VerificationController {
             summary = " Retrieve verification status.",
             description = " Retrieve verification status using the verifier transaction id.",
             tags = {ApiDocProperties.API_TAG})
-    @GetMapping(value = "/v1/verify/status/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/verify/status/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VerificationStatusResponse> retrieveStatus(
+            @PathVariable("client_application_id") String clientApplicationId,
+
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
             @PathVariable("verifier_transaction_id") String verifierTransactionId) {
         return ResponseEntity.ok(verificationService.verifierStatus(verifierTransactionId));
@@ -54,8 +58,10 @@ public class VerificationController {
             summary = " Retrieve verification result.",
             description = " Retrieve verification result using the verifier transaction id.",
             tags = {ApiDocProperties.API_TAG})
-    @GetMapping(value = "/v1/verify/result/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/verify/result/{verifier_transaction_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<VerificationResultResponse> retrieveVerifiedCredentials(
+            @PathVariable("client_application_id") String clientApplicationId,
+
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
             @PathVariable("verifier_transaction_id") String verifierTransactionId) {
         return ResponseEntity.ok(verificationService.retrieveVerificationData(verifierTransactionId));

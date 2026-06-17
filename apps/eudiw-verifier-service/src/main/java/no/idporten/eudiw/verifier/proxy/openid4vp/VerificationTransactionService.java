@@ -1,7 +1,6 @@
 package no.idporten.eudiw.verifier.proxy.openid4vp;
 
 import no.idporten.eudiw.verifier.proxy.VerificationException;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.CredentialConfiguration;
 import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +16,10 @@ public class VerificationTransactionService {
 
     private final Map<String, VerificationTransaction> verificationTransactions = new HashMap<>();
 
-    public void initTransaction(String verifierTransactionId, CredentialConfiguration credentialConfiguration) {
+    public void initTransaction(Map<String, Object> dcqlQuery, String verifierTransactionId) {
         VerificationTransaction verificationTransaction = new VerificationTransaction();
+        verificationTransaction.setDcqlQuery(dcqlQuery);
         verificationTransaction.setStatus(STATUS_WAIT);
-        verificationTransaction.setCredentialConfiguration(credentialConfiguration);
         verificationTransactions.put(verifierTransactionId, verificationTransaction);
     }
 

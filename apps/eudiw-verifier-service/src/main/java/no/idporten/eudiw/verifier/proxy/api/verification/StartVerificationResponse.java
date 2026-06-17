@@ -12,9 +12,6 @@ public record StartVerificationResponse(
         @Schema(description = "Authorization request. Embed in qr code or link.", example = "eudi-openid4vp://...")
         @JsonProperty("authorization_request") URI authorizationRequest,
 
-        @Schema(description = "Authorization request with HAIP scheme. Embed in qr code or link.", example = "haip-vp://...")
-        @JsonProperty("haip_authorization_request") URI haipAuthorizationRequest,
-
         @Schema(description = "Verification transaction id. Use for status and result retrieval.", example = "xyz...")
         @JsonProperty("verifier_transaction_id") String verifierTransactionId
 ) {
