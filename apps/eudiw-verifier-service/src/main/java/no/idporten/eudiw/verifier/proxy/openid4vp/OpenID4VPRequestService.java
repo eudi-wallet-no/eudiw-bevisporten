@@ -17,11 +17,12 @@ import net.minidev.json.JSONObject;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
+import no.idporten.eudiw.verifier.proxy.openid4vp.dcql.DcqlQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
-import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
 import java.security.MessageDigest;
@@ -35,14 +36,16 @@ public class OpenID4VPRequestService {
     private final VerifierProxyProperties verifierProxyProperties;
     private final KeystoreManager keystoreManager;
     private final VerificationTransactionService verificationTransactionService;
+    private final JsonMapper jsonMapper;
 
     // Cache request_id -> verification_transaction_id
     private Map<String, String> requestId2verificationTransactionId = new HashMap<>();
 
-    public OpenID4VPRequestService(VerifierProxyProperties verifierProxyProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService) {
+    public OpenID4VPRequestService(VerifierProxyProperties verifierProxyProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper) {
         this.verifierProxyProperties = verifierProxyProperties;
         this.keystoreManager = keystoreManager;
         this.verificationTransactionService = verificationTransactionService;
+        this.jsonMapper = jsonMapper;
     }
 
     protected URI createRequestUri(String requestId) {
@@ -123,7 +126,7 @@ public class OpenID4VPRequestService {
                 .claim("nonce", UUID.randomUUID().toString())
                 .claim("state", verificationTransaction.getState())
                 .claim("client_id", makeClientId())
-                .claim("dcql_query", convertDcqlQuery(verificationTransaction))
+                .claim("dcql_query", convertDcqlQuery(verificationTransaction.getDcqlQuery()))
                 .claim("client_metadata", makeClientMetadata(verificationTransaction.getEncryptionKey()))
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
                 .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
@@ -141,11 +144,9 @@ public class OpenID4VPRequestService {
         return signedJWT;
     }
 
-    private static @NonNull Map<String, Object> convertDcqlQuery(VerificationTransaction verificationTransaction) {
-        //return new JSONObject(verificationTransaction.getDcqlQuery());
-        return verificationTransaction.getDcqlQuery();
+    private Map<String, Object> convertDcqlQuery(DcqlQuery dcqlQuery) {
+        return jsonMapper.convertValue(dcqlQuery, new HashMap<String, Object>().getClass());
     }
-
 
     private JSONObject makeVpFormatsSupported() {
         JSONObject mdoc = new JSONObject();

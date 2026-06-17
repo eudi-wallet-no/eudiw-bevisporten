@@ -3,8 +3,7 @@ package no.idporten.eudiw.verifier.proxy.api.verification;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-
-import java.util.Map;
+import no.idporten.eudiw.verifier.proxy.openid4vp.dcql.DcqlQuery;
 
 @Schema(title = "Start verification request", description = "Start credential verification request.  Use either credential_configuration_id or credential types vct or doctype", type = "object")
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -12,7 +11,7 @@ public record StartVerificationRequest(
 
         @Schema(description= "dcql query.", example= "")
         @JsonProperty("dcql_query")
-        Map<String, Object> dcqlQuery,
+        DcqlQuery dcqlQuery,
 
         // TODO Delete properties below
         @Schema(description = "Credential issuer identifier.", example = "https://utsteder.test.eidas2sandkasse.net")
