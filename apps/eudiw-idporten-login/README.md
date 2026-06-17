@@ -36,7 +36,7 @@ The `dev` and `docker` profiles runs the application with the same configuration
 
 The local hosts file should include:
 ```
-127.0.0.1 xxx
+127.0.0.1 eudiw-idporten-login
 ```
 
 The application can be started with Maven:
@@ -49,4 +49,5 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://xxx:yyy/.
+The application will run on http://eudiw-idporten-login:9283/ .
+An OIDC test client can be found at http://localhost:8888/ .
