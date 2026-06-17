@@ -15,9 +15,7 @@ spring:
 
 eudiw-idporten-login:
   oidc-sdk:
-    issuer: https://idpprten-login.eidas2sandkasse.dev
-    keystore:
-      type: auto
+    issuer: https://idporten-login.eidas2sandkasse.dev
     clients:
       - client-id: idporten
         client-secret: ${IDPORTEN_CLIENT_SECRET}
@@ -25,6 +23,12 @@ eudiw-idporten-login:
           - openid
         redirect-uris:
           - https://login.idporten.dev/authorize/callback/eudiw
+      - client-id: testclient
+        client-secret: ${TESTCLIENT_CLIENT_SECRET}
+        scopes:
+          - openid
+        redirect-uris:
+          - https://test-client.tools.idporten.dev/authorize/response
   openid4vp:
-    siop2-client-id: idpprten-login.eidas2sandkasse.dev
-    base-uri: https://idpprten-login.eidas2sandkasse.dev
+    siop2-client-id: idporten-login.eidas2sandkasse.dev
+    base-uri: https://idporten-login.eidas2sandkasse.dev

@@ -72,8 +72,6 @@ digdir:
 eudiw-idporten-login:
   oidc-sdk:
     issuer:
-    keystore:
-      type: auto
     par-lifetime-seconds: 60
     authorization-lifetime-seconds: 60
     response-modes-supported:

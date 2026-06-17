@@ -23,8 +23,6 @@ spring:
 eudiw-idporten-login:
   oidc-sdk:
     issuer: http://eudiw-idporten-login:9283/
-    keystore:
-      type: auto
     clients:
       - client-id: testclient
         client-secret: secret
