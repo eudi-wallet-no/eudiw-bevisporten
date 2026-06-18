@@ -19,6 +19,10 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 
 FROM  eclipse-temurin:25-jre-noble
 
+# To enable health check of docker container since it needs wget to poll the health endpoint.
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+ && rm -rf /var/lib/apt/lists/*
+
 ARG APPLICATION=authoritativ-sources-connector
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
@@ -28,4 +32,3 @@ COPY --from=builder /home/app/target/${APPLICATION}-DEV-SNAPSHOT.jar application
 
 ENV TZ=Europe/Oslo
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
