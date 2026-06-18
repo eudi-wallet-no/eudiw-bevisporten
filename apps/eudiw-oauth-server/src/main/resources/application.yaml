@@ -69,6 +69,7 @@ oauth-authorization-server:
   features:
     allow-real-person-identifiers: false
     allow-synthetic-person-identifiers: true
+    allow-missing-challenge: false
   scopes-supported:
     - openid
     - eudiw:no:pid

@@ -42,7 +42,7 @@ class PreAuthorizedCodeFlowTest {
         OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .auditLogger(auditLogger)
                 .build();
-        openID4VCIAuthorizationServer = new OpenID4VCIAuthorizationServer(serverConfiguration);
+        openID4VCIAuthorizationServer = new OpenID4VCIAuthorizationServer(serverConfiguration, false);
         cache = (SimpleOpenIDConnectCache) serverConfiguration.getCache();
     }
 
