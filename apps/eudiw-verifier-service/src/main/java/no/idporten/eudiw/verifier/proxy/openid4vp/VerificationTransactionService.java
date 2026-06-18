@@ -2,7 +2,6 @@ package no.idporten.eudiw.verifier.proxy.openid4vp;
 
 import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.openid4vp.dcql.DcqlQuery;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

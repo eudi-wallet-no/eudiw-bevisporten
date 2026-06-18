@@ -17,7 +17,6 @@ import no.idporten.eudiw.verifier.proxy.VerificationException;
 import no.idporten.eudiw.verifier.proxy.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
 import no.idporten.eudiw.verifier.proxy.openid4vp.dcql.DcqlCredentialQuery;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
@@ -46,54 +45,79 @@ public class OpenID4VPResponseService {
         if (!Objects.equals(state, verificationTransaction.getState())) {
             throw new VerificationException("invalid_request", "Invalid state in authorization response");
         }
-        DcqlCredentialQuery firstCredentialQuery = getFirstCredentialQuery(verificationTransaction);
-        final String vpToken = extractVpToken(claimsFromJwePayload, firstCredentialQuery.getId());
-        final Map<String, Object> claims;
-        String format = firstCredentialQuery.getFormat();
-        if (format == null || format.isBlank()) {
-            throw new VerificationException("invalid_request", "Missing format in dcql_query credential");
+        List<DcqlCredentialQuery> requestedCredentials = getRequestedCredentialQueries(verificationTransaction);
+        VpToken vpToken = extractVpToken(claimsFromJwePayload);
+        Map<String, List<VerifiedCredential>> allCredentials = new LinkedHashMap<>();
+        for (DcqlCredentialQuery credentialQuery : requestedCredentials) {
+            String credentialId = credentialQuery.getId();
+            List<VerifiablePresentation> verifiablePresentations = vpToken.getVerifiablePresentation(credentialId);
+            if (verifiablePresentations.isEmpty()) {
+                allCredentials.put(credentialId, List.of(new VerifiedCredential(Map.of())));
+                continue;
+            }
+            String format = credentialQuery.getFormat();
+            List<VerifiedCredential> parsedCredentials = new ArrayList<>();
+            for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
+                Map<String, Object> claims;
+                if ("dc+sd-jwt".equals(format)) {
+                    claims = retrieveClaimsFromSDJwtCredential(verifiablePresentation.value());
+                } else if ("mso_mdoc".equals(format)) {
+                    claims = retrieveClaimsFromMDocCredential(verifiablePresentation.value());
+                } else {
+                    throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
+                }
+                parsedCredentials.add(new VerifiedCredential(claims));
+            }
+            allCredentials.put(credentialId, parsedCredentials);
         }
-        if ("dc+sd-jwt".equals(format)) {
-            claims = retrieveClaimsFromSDJwtCredential(vpToken);
-        } else {
-            claims = retrieveClaimsFromMDocCredential(vpToken);
-        }
-        VerifiedCredentials verifiedCredentials = new VerifiedCredentials(vpToken, claims);
+        VerifiedCredentials verifiedCredentials = new VerifiedCredentials(allCredentials);
         verificationTransactionService.addVerifiedCredentials(verifierTransactionId, verifiedCredentials);
     }
 
     @SuppressWarnings("unchecked")
-    private String extractVpToken(Map<String, Object> claimsFromJwePayload, String credentialId) {
-        Map<String, Object> credentialsMap = (Map<String, Object>) claimsFromJwePayload.get("vp_token");
-        if (credentialsMap == null) {
-            throw new VerificationException("invalid_request", "Missing vp_token in authorization response");
-        }
-        Object vpTokenObject = credentialsMap.get(credentialId);
-        if (vpTokenObject == null) {
-            throw new VerificationException("invalid_request", "Missing credential in vp_token for id: " + credentialId);
-        }
-        if (vpTokenObject instanceof List<?> vpTokens && !vpTokens.isEmpty()) {
-            Object firstToken = vpTokens.getFirst();
-            if (firstToken instanceof String token) {
-                return token;
+    private VpToken extractVpToken(Map<String, Object> claimsFromJwePayload) {
+        Object vpTokenObject = claimsFromJwePayload.get("vp_token");
+        if (vpTokenObject instanceof Map<?, ?> vpTokenMap) {
+            Map<String, List<VerifiablePresentation>> verifiablePresentations = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : vpTokenMap.entrySet()) {
+                if (!(entry.getKey() instanceof String credentialId)) {
+                    throw new VerificationException("invalid_request", "Unsupported vp_token key type");
+                }
+                verifiablePresentations.put(credentialId, toVerifiablePresentations(entry.getValue(), credentialId));
             }
+            return new VpToken(verifiablePresentations);
         }
-        if (vpTokenObject instanceof String token) {
-            return token;
+        return new VpToken(Map.of());
+    }
+
+    private List<VerifiablePresentation> toVerifiablePresentations(Object vpTokenValue, String credentialId) {
+        if (vpTokenValue instanceof List<?> presentations) {
+            List<VerifiablePresentation> verifiablePresentations = new ArrayList<>();
+            for (Object presentation : presentations) {
+                if (!(presentation instanceof String)) {
+                    throw new VerificationException("invalid_request", "Unsupported vp_token value type for credential id: " + credentialId);
+                }
+                verifiablePresentations.add(new VerifiablePresentation((String) presentation));
+            }
+            return verifiablePresentations;
+        }
+        if (vpTokenValue instanceof String presentation) {
+            return List.of(new VerifiablePresentation(presentation));
         }
         throw new VerificationException("invalid_request", "Unsupported vp_token structure for credential id: " + credentialId);
     }
 
-    private static DcqlCredentialQuery getFirstCredentialQuery(VerificationTransaction verificationTransaction) {
+    private static List<DcqlCredentialQuery> getRequestedCredentialQueries(VerificationTransaction verificationTransaction) {
         if (verificationTransaction.getDcqlQuery() == null || verificationTransaction.getDcqlQuery().getCredentials() == null
                 || verificationTransaction.getDcqlQuery().getCredentials().isEmpty()) {
             throw new VerificationException("invalid_request", "Missing credentials in dcql_query");
         }
-        DcqlCredentialQuery firstCredential = verificationTransaction.getDcqlQuery().getCredentials().getFirst();
-        if (firstCredential.getId() == null || firstCredential.getId().isBlank()) {
-            throw new VerificationException("invalid_request", "Missing id in first dcql_query credential");
+        for (DcqlCredentialQuery credential : verificationTransaction.getDcqlQuery().getCredentials()) {
+            if (credential.getId() == null || credential.getId().isBlank()) {
+                throw new VerificationException("invalid_request", "Missing id in dcql_query credential");
+            }
         }
-        return firstCredential;
+        return verificationTransaction.getDcqlQuery().getCredentials();
     }
 
     private Map<String, Object> decryptAndDeserializeJweResponse(String response, JWK encryptionKey) throws ParseException, JOSEException {
