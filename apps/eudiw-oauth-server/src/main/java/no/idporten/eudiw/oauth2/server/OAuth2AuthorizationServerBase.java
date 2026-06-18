@@ -39,11 +39,18 @@ import static no.idporten.eudiw.oauth2.server.util.StringUtils.hasText;
 public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer {
 
     private final OAuth2ServerConfiguration serverConfiguration;
+    private final boolean allowMissingChallenge;
 
     public OAuth2AuthorizationServerBase(OAuth2ServerConfiguration serverConfiguration) {
+        this(serverConfiguration, false);
+    }
+
+    public OAuth2AuthorizationServerBase(OAuth2ServerConfiguration serverConfiguration, boolean allowMissingChallenge) {
         serverConfiguration.validate();
         this.serverConfiguration = serverConfiguration;
+        this.allowMissingChallenge = allowMissingChallenge;
     }
+
 
     @Override
     public JWKSet getPublicJWKSet() {
@@ -425,6 +432,9 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         String challenge = null;
         try {
             challenge = clientAttestationPoP.getJWTClaimsSet().getStringClaim("challenge");
+            if (allowMissingChallenge) {
+                return;
+            }
             if (! StringUtils.hasText(challenge)) {
                 throw new UseAttestationChallengeOAuth2Exception("Invalid client authentication. Missing challenge in attestation pop.", issueAttestationChallenge());
             }
