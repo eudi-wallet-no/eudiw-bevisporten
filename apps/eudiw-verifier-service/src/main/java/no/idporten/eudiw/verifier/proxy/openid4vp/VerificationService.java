@@ -5,7 +5,6 @@ import no.idporten.eudiw.verifier.proxy.api.verification.StartVerificationRespon
 import no.idporten.eudiw.verifier.proxy.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.proxy.api.verification.VerificationStatusResponse;
 import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
-import no.idporten.eudiw.verifier.proxy.openid4vp.metadata.VerifiedCredentials;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -39,7 +38,7 @@ public class VerificationService {
 
     public VerificationResultResponse retrieveVerificationData(String verifierTransactionId) {
         VerifiedCredentials verifiedCredentials = verificationTransactionService.retrieveVerifiedCredentials(verifierTransactionId);
-        return new VerificationResultResponse(verifierTransactionId, verifiedCredentials.vpToken(), verifiedCredentials.credentials());
+        return new VerificationResultResponse(verifierTransactionId, verifiedCredentials.credentials());
     }
 
 }
