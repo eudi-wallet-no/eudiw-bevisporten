@@ -147,16 +147,13 @@ public class TestUtils {
     }
 
     public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey) throws ParseException, JOSEException {
-        return createClientAttestation(clientId, walletName, walletLink, clientKey, false, true);
+        return createClientAttestation(clientId, walletName, walletLink, clientKey, true);
     }
 
-    public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey, boolean includeJwk, boolean includeX5c) throws ParseException, JOSEException {
+    public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey, boolean includeX5c) throws ParseException, JOSEException {
         ECKey clientAttesterJWK = clientAttesterJWK();
         JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .type(new JOSEObjectType("oauth-client-attestation+jwt"));
-        if (includeJwk) {
-            headerBuilder.jwk(clientAttesterJWK.toPublicJWK());
-        }
         if (includeX5c) {
             headerBuilder.x509CertChain(clientAttesterJWK.getX509CertChain());
         }
