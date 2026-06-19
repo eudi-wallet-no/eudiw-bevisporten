@@ -146,7 +146,7 @@ public class OpenID4VPResponseService {
         return claims;
     }
 
-    protected Map<String, Object> retrieveClaimsFromMDocCredential(String vpToken) throws Exception {
+    protected Map<String, Object> retrieveClaimsFromMDocCredential(String vpToken) {
         DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
         Map<String, Object> claims = new HashMap<>();
         for (MDoc mDoc : deviceResponse.getDocuments()) {

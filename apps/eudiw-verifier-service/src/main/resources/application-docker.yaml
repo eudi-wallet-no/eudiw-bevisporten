@@ -13,4 +13,4 @@ management:
     port: 9285
 
 
-verifier-proxy:
+verifier-service:
