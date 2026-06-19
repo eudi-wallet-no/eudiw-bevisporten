@@ -120,33 +120,12 @@ public class ClientAuthenticationTest {
         }
 
         @Test
-        public void testValidAttestationWithJwkHeader() throws Exception {
+        public void testAttestationMissingX5cHeader() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
             final Challenge challenge = new Challenge("dgsdjhagdhjaj", 120);
             authorizationServer.getConfiguration().getCache().putChallenge(challenge);
-            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey, true, false);
-            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
-                    clientId,
-                    challenge.challenge(),
-                    authorizationServer.getConfiguration().getIssuer().toString(),
-                    clientKey);
-            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
-                    .clientId(clientId)
-                    .clientAttestation(clientAttestation.serialize())
-                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
-                    .build();
-            ClientMetadata clientMetadata = authorizationServer.authenticateClient(authenticatedRequest);
-            assertEquals(clientId, clientMetadata.getClientId());
-        }
-
-        @Test
-        public void testAttestationMissingJwkAndX5cHeader() throws Exception {
-            final String clientId = "eudiw-abca";
-            final ECKey clientKey = TestUtils.createECPrivateKey();
-            final Challenge challenge = new Challenge("dgsdjhagdhjaj", 120);
-            authorizationServer.getConfiguration().getCache().putChallenge(challenge);
-            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey, false, false);
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey, false);
             SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
                     clientId,
                     challenge.challenge(),
@@ -160,31 +139,7 @@ public class ClientAuthenticationTest {
             OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.authenticateClient(authenticatedRequest));
             assertAll(
                     () -> assertEquals(OAuth2Exception.INVALID_CLIENT_ATTESTATION, e.error()),
-                    () -> assertTrue(e.errorDescription().contains("missing jwk or x5c header"))
-            );
-        }
-
-        @Test
-        public void testAttestationWithBothJwkAndX5cHeader() throws Exception {
-            final String clientId = "eudiw-abca";
-            final ECKey clientKey = TestUtils.createECPrivateKey();
-            final Challenge challenge = new Challenge("dgsdjhagdhjaj", 120);
-            authorizationServer.getConfiguration().getCache().putChallenge(challenge);
-            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey, true, true);
-            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
-                    clientId,
-                    challenge.challenge(),
-                    authorizationServer.getConfiguration().getIssuer().toString(),
-                    clientKey);
-            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
-                    .clientId(clientId)
-                    .clientAttestation(clientAttestation.serialize())
-                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
-                    .build();
-            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.authenticateClient(authenticatedRequest));
-            assertAll(
-                    () -> assertEquals(OAuth2Exception.INVALID_CLIENT_ATTESTATION, e.error()),
-                    () -> assertTrue(e.errorDescription().contains("Invalid client authentication. JWT contains both jwk and x5c header"))
+                    () -> assertTrue(e.errorDescription().contains("Invalid client authentication. JWT missing x5c header"))
             );
         }
 
