@@ -1,5 +1,3 @@
-# See https://github.com/felleslosninger/github-workflows for reusable workflows used.
-
 name: Build/publish Docker image & update image version in config
 
 on:
@@ -15,20 +13,26 @@ on:
 
 jobs:
   build-publish-image:
-    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
+    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
     with:
-      image-name: digital-lommebok-verifier-proxy
+      image-name: digital-lommebok-verifier-backend
       java-version: 25
     secrets: inherit
 
   call-update-image:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
+    permissions:
+      pull-requests: read
     needs: build-publish-image
     with:
-      application-name: digital-lommebok-verifier-proxy
       deployment-environment: systest
+      image-name: digital-lommebok-verifier-backend
+      application-name: digital-lommebok-verifier-backend
       image-digest: ${{ needs.build-publish-image.outputs.image-digest }}
-      image-name: digital-lommebok-verifier-proxy
       image-version: ${{ needs.build-publish-image.outputs.image-version }}
       kubernetes-repo: digital-lommebok-cd
       product-name: digital-lommebok
