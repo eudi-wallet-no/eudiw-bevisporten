@@ -40,10 +40,35 @@ management:
     health:
       probes:
         enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: readinessState,db,redis,statusListServiceHealthCheck,oauthServerHealthCheck
+      liveness:
+        include: livenessState
   metrics:
     tags:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
+
+external-dependency-health-checks:
+  health-endpoints:
+    status-list-service:
+      name: statusListService
+      base-uri: http://digital-lommebok-status-list-service-actuator:8090
+      endpoint: /health/readiness
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: EXTERNAL_DEPENDENCY_DOWN
+    oauth-server:
+      name: oauthServer
+      base-uri: http://digital-lommebok-oauth-server-service-actuator:8090
+      endpoint: /health/readiness
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: EXTERNAL_DEPENDENCY_DOWN
 
 credential-issuer-server:
   metadata-refresh-rate-in-millis: 30000 # 30 seconds (must be > cache TTL)
@@ -84,8 +109,6 @@ digdir:
       ip-address: true                                    # optional - default 'true'
     prometheus:
       counter: false                                     # optional - default 'true'
-
-
 
 ---
 spring:
