@@ -17,8 +17,8 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
 
     public final static String X_API_KEY_HEADER = "X-API-KEY";
 
-    public OpenID4VCIAuthorizationServer(OAuth2ServerConfiguration serverConfiguration, boolean allowMissingChallenge) {
-        super(serverConfiguration, allowMissingChallenge);
+    public OpenID4VCIAuthorizationServer(OAuth2ServerConfiguration serverConfiguration) {
+        super(serverConfiguration);
     }
 
     @Override

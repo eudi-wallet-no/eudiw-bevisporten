@@ -17,7 +17,6 @@ public class FeatureSwitches implements InitializingBean {
 
     private boolean allowRealPersonIdentifiers = true;
     private boolean allowSyntheticPersonIdentifiers = false;
-    private boolean allowMissingChallenge = false;
 
     @Override
     public void afterPropertiesSet() throws Exception {
