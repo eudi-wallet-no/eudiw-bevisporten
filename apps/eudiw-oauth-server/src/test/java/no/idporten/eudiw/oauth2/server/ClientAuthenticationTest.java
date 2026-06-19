@@ -102,7 +102,6 @@ public class ClientAuthenticationTest {
                     authorizationServer.getConfiguration().getIssuer().toString(),
                     clientKey);
             AuthenticatedRequest authenticatedRequest = TestRequest.builder()
-                    .clientId(clientId)
                     .clientAttestation(clientAttestation.serialize())
                     .clientAttestationPoP(clientAttestationPoPJwt.serialize())
                     .build();

@@ -339,9 +339,9 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
         final ClientMetadata clientMetadata;
         if (authenticatedRequest instanceof PushedAuthorizationRequest) {
-            clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId()).redirectUri(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()).build();
+            clientMetadata = ClientMetadata.builder().clientId(clientAuthentication.getClientId()).redirectUri(((PushedAuthorizationRequest) authenticatedRequest).getRedirectUri()).build();
         } else {
-            clientMetadata = ClientMetadata.builder().clientId(authenticatedRequest.getClientId()).build();
+            clientMetadata = ClientMetadata.builder().clientId(clientAuthentication.getClientId()).build();
         }
         if (hasText(authenticatedRequest.getClientId()) && !Objects.equals(authenticatedRequest.getClientId(), clientMetadata.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client authentication does not match parameter client_id.", 401);
@@ -373,19 +373,23 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
         protected ClientAuthentication authenticateClientByAttestation(AuthenticatedRequest authenticatedRequest) {
         try {
-            final String clientId = authenticatedRequest.getClientId();
+            final String requestedClientId = authenticatedRequest.getClientId();
             final SignedJWT clientAttestationJWT = SignedJWT.parse(authenticatedRequest.getClientAttestation());
             final SignedJWT clientAttestationPoPJWT = SignedJWT.parse(authenticatedRequest.getClientAttestationPoP());
             validateClientAttestation(clientAttestationJWT);
             validateClientAttestationPoP(clientAttestationJWT, clientAttestationPoPJWT);
-            if (!Objects.equals(clientId, clientAttestationJWT.getJWTClaimsSet().getSubject())) {
+            final String attestedClientId = clientAttestationJWT.getJWTClaimsSet().getSubject();
+            if (!StringUtils.hasText(attestedClientId)) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing subject.", 401);
+            }
+            if (StringUtils.hasText(requestedClientId) && !requestedClientId.equals(attestedClientId)) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid subject.", 401);
             }
-            if (!Objects.equals(clientId, clientAttestationPoPJWT.getJWTClaimsSet().getIssuer())) {
+            if (!Objects.equals(attestedClientId, clientAttestationPoPJWT.getJWTClaimsSet().getIssuer())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Invalid issuer.", 401);
             }
             return ClientAuthentication.builder()
-                    .clientId(clientId)
+                    .clientId(attestedClientId)
                     .tokenEndpointAuthMethod("attest_jwt_client_auth")
                     .clientAttestation(authenticatedRequest.getClientAttestation())
                     .clientAttestationPoP(authenticatedRequest.getClientAttestationPoP())
