@@ -40,11 +40,13 @@ The local hosts file should include:
 127.0.0.1 oauth-server
 ```
 
+### Maven
 The application can be started with Maven:
 ```
-mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
+### Docker
 The application can be started with Docker compose:
 ```
 docker-compose up --build
