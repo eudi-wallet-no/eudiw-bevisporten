@@ -15,7 +15,8 @@ import lombok.SneakyThrows;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import no.idporten.eudiw.verifier.proxy.VerificationException;
-import no.idporten.eudiw.verifier.proxy.config.VerifierProxyProperties;
+import no.idporten.eudiw.verifier.proxy.config.ClientApplication;
+import no.idporten.eudiw.verifier.proxy.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.proxy.crypto.ECUtils;
 import no.idporten.eudiw.verifier.proxy.openid4vp.dcql.DcqlQuery;
 import no.idporten.lib.keystore.KeyProvider;
@@ -33,7 +34,7 @@ import java.util.*;
 @Service
 public class OpenID4VPRequestService {
 
-    private final VerifierProxyProperties verifierProxyProperties;
+    private final VerifierServiceProperties verifierProxyProperties;
     private final KeystoreManager keystoreManager;
     private final VerificationTransactionService verificationTransactionService;
     private final JsonMapper jsonMapper;
@@ -41,7 +42,7 @@ public class OpenID4VPRequestService {
     // Cache request_id -> verification_transaction_id
     private Map<String, String> requestId2verificationTransactionId = new HashMap<>();
 
-    public OpenID4VPRequestService(VerifierProxyProperties verifierProxyProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper) {
+    public OpenID4VPRequestService(VerifierServiceProperties verifierProxyProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper) {
         this.verifierProxyProperties = verifierProxyProperties;
         this.keystoreManager = keystoreManager;
         this.verificationTransactionService = verificationTransactionService;
@@ -64,35 +65,29 @@ public class OpenID4VPRequestService {
                 .toUri();
     }
 
-    protected URI createOpenID4VPAuthorizationRequest(String requestId) {
+    protected URI createOpenID4VPAuthorizationRequest(String requestId, ClientApplication clientApplication) {
         return UriComponentsBuilder.newInstance()
                 .scheme("eudi-openid4vp")
                 .host(verifierProxyProperties.getSiop2ClientId())
-                .queryParam("client_id", makeClientId())
+                .queryParam("client_id", makeClientId(clientApplication))
                 .queryParam("request_uri", createRequestUri(requestId).toString())
                 .build()
                 .toUri();
     }
 
     @SneakyThrows
-    private String makeClientId() {
-        if ("x509_san_dns".equals(verifierProxyProperties.getClientIdentifierScheme())) {
-            return "x509_san_dns:" + verifierProxyProperties.getSiop2ClientId();
-        }
-        if ("x509_hash".equals(verifierProxyProperties.getClientIdentifierScheme())) {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(keystoreManager.getKeyProvider("access").certificate().getEncoded());
-            String clientId = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest());
-            return "x509_hash:" + clientId;
-        }
-        throw new IllegalStateException("Unknown client identifier scheme: " + verifierProxyProperties.getClientIdentifierScheme());
+    private String makeClientId(ClientApplication clientApplication) {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(keystoreManager.getKeyProvider(clientApplication.getKeystoreName()).certificate().getEncoded());
+        String clientId = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest());
+        return "x509_hash:" + clientId;
     }
 
     @SneakyThrows
-    public URI createAuthorizationRequest(String verifierTransactionId) {
+    public URI createAuthorizationRequest(String verifierTransactionId, ClientApplication clientApplication) {
         String requestId = UUID.randomUUID().toString();
         requestId2verificationTransactionId.put(requestId, verifierTransactionId);
-        return createOpenID4VPAuthorizationRequest(requestId);
+        return createOpenID4VPAuthorizationRequest(requestId, clientApplication);
     }
 
     @SneakyThrows
@@ -114,7 +109,7 @@ public class OpenID4VPRequestService {
     }
 
     private JWT makeRequestJwt(VerificationTransaction verificationTransaction, String verificationTransactionId) throws Exception {
-        KeyProvider keyProvider = keystoreManager.getKeyProvider("access");
+        KeyProvider keyProvider = keystoreManager.getKeyProvider(verificationTransaction.getClientApplication().getKeystoreName());
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
@@ -125,7 +120,7 @@ public class OpenID4VPRequestService {
                 .claim("response_mode", "direct_post.jwt")
                 .claim("nonce", UUID.randomUUID().toString())
                 .claim("state", verificationTransaction.getState())
-                .claim("client_id", makeClientId())
+                .claim("client_id", makeClientId(verificationTransaction.getClientApplication()))
                 .claim("dcql_query", convertDcqlQuery(verificationTransaction.getDcqlQuery()))
                 .claim("client_metadata", makeClientMetadata(verificationTransaction.getEncryptionKey()))
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
@@ -148,6 +143,7 @@ public class OpenID4VPRequestService {
         return jsonMapper.convertValue(dcqlQuery, new HashMap<String, Object>().getClass());
     }
 
+
     private JSONObject makeVpFormatsSupported() {
         JSONObject mdoc = new JSONObject();
         JSONObject format = new JSONObject();
@@ -159,7 +155,7 @@ public class OpenID4VPRequestService {
         return format;
     }
 
-    private JSONObject makeClientMetadata(JWK encryptionKey) throws Exception {
+    private JSONObject makeClientMetadata(JWK encryptionKey) {
         JSONObject metadata = new JSONObject();
         metadata.appendField("jwks", new JWKSet(encryptionKey).toPublicJWKSet().toJSONObject());
         JSONArray encryptedResponseAlgs = new JSONArray();
