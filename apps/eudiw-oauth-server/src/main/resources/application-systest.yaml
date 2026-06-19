@@ -17,5 +17,3 @@ spring:
 oauth-authorization-server:
   issuer: https://auth.eidas2sandkasse.dev
   access-token-default-audience: https://utsteder.eidas2sandkasse.dev
-  features:
-    allow-missing-challenge: true

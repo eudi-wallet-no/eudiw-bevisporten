@@ -10,7 +10,6 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import no.idporten.eudiw.oauth2.server.FeatureSwitches;
 import no.idporten.eudiw.oauth2.server.audit.AuditService;
 import no.idporten.eudiw.oauth2.server.crypto.KeyStoreProperties;
 import no.idporten.eudiw.oauth2.server.crypto.KeyStoreProvider;
@@ -84,8 +83,8 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
     }
 
     @Bean
-    public OpenID4VCIAuthorizationServer authorizationServer(OAuth2ServerConfiguration serverConfiguration, FeatureSwitches featureSwitches) {
-        return new OpenID4VCIAuthorizationServer(serverConfiguration, featureSwitches.isAllowMissingChallenge());
+    public OpenID4VCIAuthorizationServer authorizationServer(OAuth2ServerConfiguration serverConfiguration) {
+        return new OpenID4VCIAuthorizationServer(serverConfiguration);
     }
 
     @Bean
