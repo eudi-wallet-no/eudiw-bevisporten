@@ -94,6 +94,12 @@ credential-issuer-server:
             paths:
               - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
 
+external-dependency-health-checks:
+  health-endpoints:
+    status-list-service:
+      base-uri: http://status-list:9288
+    oauth-server:
+      base-uri: http://oauth-server:9261
 
 idporten-key-manager:
   keystores:

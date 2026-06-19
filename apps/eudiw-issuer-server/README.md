@@ -33,17 +33,27 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 issuer-server
+127.0.0.1 issuer-server oauth-server byob-service authoritative-sources-connector status-list
+```
+
+## Maven
+
+Run requirements with Docker
+```
+docker-compose up --scale issuer-server=0 -d
 ```
 
 The application can be started with Maven:
 ```
-mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-The application can be started with Docker compose:
+The application will run on http://localhost:9240 with the `dev` profile.
+
+## Docker
+The application and requirements can be started with Docker compose
 ```
 docker-compose up --build
 ```
 
-The application will run on http://issuer-server:9240 .
+The application will run on http://issuer-server:9240 with the `docker` profile.
