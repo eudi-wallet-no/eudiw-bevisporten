@@ -4,5 +4,5 @@ spring:
     environment: prod
 
 verifier-service:
-  siop2-client-id: verifier-proxy.eidas2sandkasse.no
-  external-base-uri: https://verifier-proxy.eidas2sandkasse.no
+  siop2-client-id: verifier-service.eidas2sandkasse.no
+  external-base-uri: https://verifier-service.eidas2sandkasse.no

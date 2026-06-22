@@ -4,8 +4,8 @@ spring:
     environment: systest
 
 verifier-service:
-  siop2-client-id: verifier-proxy.eidas2sandkasse.dev
-  external-base-uri: https://verifier-proxy.eidas2sandkasse.dev
+  siop2-client-id: verifier-service.eidas2sandkasse.dev
+  external-base-uri: https://verifier-service.eidas2sandkasse.dev
   client-applications:
     idporten-login:
       keystore-name: idporten-login-access

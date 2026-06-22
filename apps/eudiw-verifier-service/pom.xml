@@ -8,10 +8,10 @@
         <version>4.1.0</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
-    <artifactId>eudiw-verifier-backend</artifactId>
+    <artifactId>eudiw-verifier-service</artifactId>
     <version>DEV-SNAPSHOT</version>
-    <name>eudiw-verifier-backend</name>
-    <description>EUDIW verifier-backend</description>
+    <name>eudiw-verifier-service</name>
+    <description>EUDIW verifier-service</description>
     <properties>
         <java.version>25</java.version>
         <maven.compiler.proc>full</maven.compiler.proc>
