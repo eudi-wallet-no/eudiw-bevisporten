@@ -4,5 +4,5 @@ spring:
     environment: test
 
 verifier-service:
-  siop2-client-id: verifier-proxy.test.eidas2sandkasse.net
-  external-base-uri: https://verifier-proxy.test.eidas2sandkasse.net
+  siop2-client-id: verifier-service.test.eidas2sandkasse.net
+  external-base-uri: https://verifier-service.test.eidas2sandkasse.net

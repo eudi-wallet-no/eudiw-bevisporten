@@ -24,7 +24,7 @@ FROM  eclipse-temurin:25-jre-noble
 RUN apt-get update && apt-get install -y --no-install-recommends wget \
  && rm -rf /var/lib/apt/lists/*
 
-ARG APPLICATION=eudiw-verifier-proxy
+ARG APPLICATION=eudiw-verifier-service
 RUN mkdir /var/log/${APPLICATION}
 RUN mkdir /usr/local/webapps
 WORKDIR /usr/local/webapps

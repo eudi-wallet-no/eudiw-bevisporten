@@ -1,5 +1,5 @@
 # eudiw-verifier-backend
-EUDI wallet: verifier-backend for eidas2sandkasse.
+EUDI wallet: verifier-service for eidas2sandkasse.
 
 ## Requirements
 - Java 25
@@ -24,7 +24,7 @@ The `dev` and `docker` profiles runs the application with similar configuration.
 
 The local hosts file should include:
 ```
-127.0.0.1 verifier-backend
+127.0.0.1 verifier-service
 ```
 
 The application can be started with Maven:
@@ -37,4 +37,4 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
-The application will run on http://verifier-backend:9285.
+The application will run on http://verifier-service:9285.
