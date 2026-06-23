@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.statuslist.exceptions.ErrorResponse;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
+import no.idporten.eudiw.statuslist.metrics.MetricService;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,13 @@ public class StatusListIssuerApiController {
 
     private final StatusIssuerProperties properties;
     private final StatusListService statuslistService;
+    private final MetricService metricService;
     private static final Logger log = LoggerFactory.getLogger(StatusListIssuerApiController.class);
 
-    public StatusListIssuerApiController(StatusIssuerProperties properties, StatusListService statusListService) {
+    public StatusListIssuerApiController(StatusIssuerProperties properties, StatusListService statusListService, MetricService metricService) {
         this.properties = properties;
         this.statuslistService = statusListService;
+        this.metricService = metricService;
     }
 
     @Operation(
@@ -50,6 +53,7 @@ public class StatusListIssuerApiController {
     public ResponseEntity<StatusCreateResponse> allocateStatus(@RequestBody @Valid StatusCreateRequest request, @RequestHeader(value = "X-API-KEY", required = false) String apiKey) {
         verifyApiKey(properties.apiKey(), apiKey);
         StatusCreateResponse response = new StatusCreateResponse(statuslistService.allocateToStatusList(request.numberOfEntries()));
+        metricService.countStatusAllocation(request.numberOfEntries());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
