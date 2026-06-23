@@ -58,7 +58,6 @@ public class OIDCProxyService {
                     .responseMode(ResponseMode.QUERY_JWT)
                     .prompt(new Prompt(Prompt.Type.LOGIN)
                     );
-            applyHeadlessLoginIfEnabled(requestBuilder, clientAuthorizationRequest);
             AuthenticationRequest authenticationRequest = requestBuilder.build();
             authenticationRequest = pushAuthorizationRequest(authenticationRequest);
             return authenticationRequest;
@@ -67,17 +66,6 @@ public class OIDCProxyService {
         } catch (Exception e) {
             throw new OIDCProxyException(OAuth2Exception.SERVER_ERROR, "Failed to create and push authorization request to OIDC server", HttpStatus.INTERNAL_SERVER_ERROR, e);
         }
-    }
-
-    private void applyHeadlessLoginIfEnabled(AuthenticationRequest.Builder requestBuilder, PushedAuthorizationRequest clientAuthorizationRequest) {
-        OIDCProxyProperties.HeadlessLoginProperties headlessLogin = oidcProxyProperties.getHeadlessLogin();
-        if (!headlessLogin.isEnabled()) {
-            return;
-        }
-        if (!headlessLogin.getClientIds().contains(clientAuthorizationRequest.getClientId())) {
-            return;
-        }
-        requestBuilder.customParameter("login_hint", "testid:%s_%s".formatted(headlessLogin.getSyntheticPid(), headlessLogin.getAcr()));
     }
 
     protected AuthenticationRequest pushAuthorizationRequest(AuthenticationRequest authenticationRequest) throws Exception {
@@ -155,7 +143,7 @@ public class OIDCProxyService {
                 .attribute("xid", oidcTokens.getIDTokenString())
                 .attribute("xat", oidcTokens.getAccessToken().getValue());
         if(authorizationRequest.getResolvedDpopJkt() != null) {
-             builder.dpopJkt(authorizationRequest.getResolvedDpopJkt());
+             builder.dpopJkt(authorizationRequest.getDpopJkt());
         }
         return builder.build();
     }
