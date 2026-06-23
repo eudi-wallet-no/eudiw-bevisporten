@@ -91,6 +91,14 @@ public class StatusListRepository {
         return allocatedIndexes;
     }
 
+    public int getFreeListCount() {
+        return dbIntegration.getFreeListCount();
+    }
+
+    public int getFullListCount() {
+        return dbIntegration.getFullListCount();
+    }
+
     private FreeIndexList getOrCreateFreeIndexList(StatusListDto statusListDto) {
         FreeIndexKey key = new FreeIndexKey(statusListDto.id(), statusListDto.size(), statusListDto.seed());
         return freeIndexLists.computeIfAbsent(

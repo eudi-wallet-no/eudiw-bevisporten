@@ -140,4 +140,24 @@ public class MariaDbIntegration {
             );
         }
     }
+
+    public int getFreeListCount() {
+        Integer count = jdbc.queryForObject("""
+                SELECT COUNT(*) 
+                FROM status_list 
+                WHERE next_index < list_size
+                """, Integer.class);
+
+        return count != null ? count : 0;
+    }
+
+    public int getFullListCount() {
+       Integer count = jdbc.queryForObject("""
+               SELECT COUNT(*) 
+               FROM status_list 
+               WHERE next_index >= list_size
+               """, Integer.class);
+
+        return count != null ? count : 0;
+    }
 }
