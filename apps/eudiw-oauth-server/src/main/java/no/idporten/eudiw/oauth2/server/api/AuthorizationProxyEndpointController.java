@@ -4,7 +4,6 @@ package no.idporten.eudiw.oauth2.server.api;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.proxy.OIDCProxyService;
 import no.idporten.eudiw.oauth2.server.proxy.ProtocolVerifiers;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Handles OAuth2 authorization request from client application, interacts with remote OIDC server, and creates authorization
  * response to client.
  */
-@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class AuthorizationProxyEndpointController {
