@@ -1,13 +1,13 @@
 # See https://github.com/felleslosninger/github-workflows for reusable workflows used.
 
-name: Build/publish Docker image & update image version in config
+name: Deploy to systest from feature branch
 
 on:
   workflow_dispatch: # manual trigger
 
 jobs:
   build-publish-image:
-    uses: felleslosninger/github-workflows/.github/workflows/ci-spring-boot-build-publish-image.yml@main
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-image.yml@main
     permissions:
       contents: write
       packages: write
