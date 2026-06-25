@@ -6,3 +6,16 @@ spring:
 verifier-service:
   siop2-client-id: verifier-service.test.eidas2sandkasse.net
   external-base-uri: https://verifier-service.test.eidas2sandkasse.net
+  client-applications:
+    idporten-login:
+      keystore-name: idporten-login-access
+
+
+idporten-key-manager:
+  keystores:
+    idporten-login-access:
+      key-store-type: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${IDPORTEN_LOGIN_ACCESS_KEY_ALIAS}
+      key-password: ${IDPORTEN_LOGIN_ACCESS_KEY_PASSWORD}
