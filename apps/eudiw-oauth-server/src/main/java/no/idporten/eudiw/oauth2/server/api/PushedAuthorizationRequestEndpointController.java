@@ -4,6 +4,9 @@ package no.idporten.eudiw.oauth2.server.api;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.oauth2.server.OAuth2AuthorizationServer;
+import no.idporten.eudiw.oauth2.server.UseAttestationChallengeOAuth2Exception;
+import no.idporten.eudiw.oauth2.server.protocol.ChallengeRequest;
+import no.idporten.eudiw.oauth2.server.protocol.ChallengeResponse;
 import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationRequest;
 import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationResponse;
 import org.springframework.http.MediaType;
@@ -29,7 +32,12 @@ public class PushedAuthorizationRequestEndpointController {
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<PushedAuthorizationResponse> par(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters) {
         PushedAuthorizationResponse pushedAuthorizationResponse = authorizationServer.process(new PushedAuthorizationRequest(headers, parameters));
-        return ResponseEntity.status(pushedAuthorizationResponse.getHttpStatusCode()).body(pushedAuthorizationResponse);
+        ChallengeResponse nextChallenge = authorizationServer.process(new ChallengeRequest(headers));
+
+        return ResponseEntity
+                .status(pushedAuthorizationResponse.getHttpStatusCode())
+                .header(UseAttestationChallengeOAuth2Exception.OAUTH_CLIENT_ATTESTATION_CHALLENGE_HEADER, nextChallenge.getAttestationChallenge())
+                .body(pushedAuthorizationResponse);
     }
 
 }
