@@ -2,6 +2,7 @@ package no.idporten.eudiw.oauth2.server.protocol;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.opentelemetry.api.trace.Span;
 import lombok.Builder;
 import lombok.Data;
 import no.idporten.eudiw.oauth2.server.util.JsonUtils;
@@ -26,7 +27,7 @@ public class ErrorResponse implements JsonResponse {
     @Builder
     ErrorResponse(String error, String errorDescription, String state) {
         this.error = error;
-        this.errorDescription = (errorDescription == null ? "" : errorDescription);
+        this.errorDescription ="%s (trace_id=%s)".formatted(errorDescription == null ? "" : errorDescription, Span.current().getSpanContext().getTraceId());
         this.state = state;
     }
 
