@@ -5,31 +5,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 
-@Schema(title = "Start verification request", description = "Start credential verification request.  Use either credential_configuration_id or credential types vct or doctype", type = "object")
+@Schema(title = "Start verification request", description = "Start credential verification request.  Use client application id and define dcql query", type = "object")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record StartVerificationRequest(
 
-        @Schema(description= "dcql query.", example= "")
+        @Schema(description= "dcql query.", example= "{\n" +
+                "  \"credentials\" : [ {\n" +
+                "    \"meta\" : {\n" +
+                "      \"vct_values\" : [ \"no:kontaktregisteret:kontaktinformasjon:1\" ]\n" +
+                "    },\n" +
+                "    \"format\" : \"dc+sd-jwt\",\n" +
+                "    \"claims\" : [ {\n" +
+                "      \"path\" : [ \"personidentifikator\" ]\n" +
+                "    }, {\n" +
+                "      \"path\" : [ \"epostadresse\" ]\n" +
+                "    }, {\n" +
+                "      \"path\" : [ \"mobiltelefonnummer\" ]\n" +
+                "    } ],\n" +
+                "    \"id\" : \"kontaktregisteret\"\n" +
+                "  } ]\n" +
+                "}")
         @JsonProperty("dcql_query")
-        DcqlQuery dcqlQuery,
-
-        // TODO Delete properties below
-        @Schema(description = "Credential issuer identifier.", example = "https://utsteder.test.eidas2sandkasse.net")
-        @JsonProperty("credential_issuer")
-        String credentialIssuer,
-
-        @Schema(description = "Credential configuration id.", example = "no.digdir.eudiw.pid_mso_mdoc")
-        @JsonProperty("credential_configuration_id")
-        String credentialConfigurationId,
-
-        @Schema(description = "Credential type (vct).", example = "urn:eudi:pid:1")
-        @JsonProperty("vct")
-        String vct,
-
-        @Schema(description = "Credential type (doctype).", example = "eu.europa.ec.eudi.pid.1")
-        @JsonProperty("doctype")
-        String doctype
-
+        DcqlQuery dcqlQuery
 ) {
 
 }
