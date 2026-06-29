@@ -6,8 +6,7 @@ import no.idporten.eudiw.oauth2.server.protocol.ErrorResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ExceptionControllerAdviceTest {
 
@@ -25,5 +24,7 @@ class ExceptionControllerAdviceTest {
         );
         assertNotNull(response.getBody());
         assertEquals(OAuth2Exception.USE_ATTESTATION_CHALLENGE, response.getBody().getError());
+        assertTrue(response.getBody().getErrorDescription().contains("(trace_id="));
     }
+
 }
