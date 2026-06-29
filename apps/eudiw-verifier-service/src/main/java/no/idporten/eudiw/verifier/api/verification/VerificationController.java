@@ -30,7 +30,7 @@ public class VerificationController {
      */
     @Operation(
             summary = "Start verification.",
-            description = "Start verification by asking for a credential type (doctype or vct) or credential configuration id from a credential issuer's metadata.",
+            description = "Start verification by inserting the client application id, and insert dcql query.",
             tags = {ApiDocProperties.API_TAG})
     @PostMapping("/verify/start/")
     public ResponseEntity<StartVerificationResponse> startVerification(@RequestBody StartVerificationRequest startVerificationRequest,
