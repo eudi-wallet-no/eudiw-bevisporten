@@ -3,6 +3,7 @@ package no.idporten.eudiw.oauth2.server;
 import no.idporten.eudiw.oauth2.server.cache.SimpleOpenIDConnectCache;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
+import no.idporten.eudiw.oauth2.server.protocol.Authorization;
 import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationRequest;
 import org.junit.jupiter.api.*;
 
@@ -29,8 +30,9 @@ public class PushedAuthorizationRequestProcessingTest {
                 .authorizationDetailsTypeSupported("foo")
                 .tokenEndpoint(new URI(TOKEN_ENDPOINT_URI))
                 .pushedAuthorizationRequestEndpoint(new URI(PAR_ENDPOINT_URI))
+                .authorizationDetailsTypeSupported("openid_credential")
                 .build();
-        authorizationServer = new OAuth2AuthorizationServerBase(serverConfiguration);
+        authorizationServer = new OpenID4VCIAuthorizationServer(serverConfiguration);
         cache = (SimpleOpenIDConnectCache) serverConfiguration.getCache();
     }
 
@@ -408,6 +410,80 @@ public class PushedAuthorizationRequestProcessingTest {
 
     }
 
+
+    @Test
+    @DisplayName("then more than one openid_credential entry in authorization_details is rejected")
+    public void testMultipleOpenidCredentialEntriesRejected() {
+        MockRequest request = new MockRequest();
+        request.addParameter("authorization_details", "[{\"type\": \"openid_credential\"}, {\"type\": \"openid_credential\"}]");
+        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateAuthorizationDetails(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        assertAll(
+                () -> assertEquals("invalid_authorization_details", e.error()),
+                () -> assertTrue(e.errorDescription().contains("At most one entry of type openid_credential is supported"))
+        );
+    }
+
+    @Test
+    @DisplayName("then exactly one openid_credential entry in authorization_details is accepted")
+    public void testSingleOpenidCredentialEntryAccepted() throws Exception {
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
+                .client(client1)
+                .authorizationDetailsTypeSupported("openid_credential")
+                .build();
+        OAuth2AuthorizationServerBase server = new OAuth2AuthorizationServerBase(serverConfiguration);
+        MockRequest request = new MockRequest();
+        request.addParameter("authorization_details", "[{\"type\": \"openid_credential\"}]");
+        assertDoesNotThrow(() -> server.validateAuthorizationDetails(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+    }
+
+    @Nested
+    @DisplayName("When calculating audience")
+    class CalcAudienceTests {
+
+        @Test
+        @DisplayName("then the audience is derived from the single location of an openid_credential authorization detail")
+        public void testAudienceFromOpenidCredentialLocation() {
+            MockRequest request = new MockRequest();
+            request.addParameter("client_id", "client1");
+            request.addParameter("authorization_details", "[{\"type\": \"openid_credential\", \"locations\": [\"https://credential-issuer.example.com\"]}]");
+            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            Authorization authorization = Authorization.builder().sub("p").build();
+            authorizationServer.authorize(pushedAuthorizationRequest, authorization);
+            assertEquals("https://credential-issuer.example.com", authorization.getAud());
+        }
+
+        @Test
+        @DisplayName("then the resource indicator takes precedence over openid_credential locations for audience")
+        public void testResourceIndicatorTakesPrecedenceOverLocation() {
+            MockRequest request = new MockRequest();
+            request.addParameter("client_id", "client1");
+            request.addParameter("resource", "https://api.example.com");
+            request.addParameter("authorization_details", "[{\"type\": \"openid_credential\", \"locations\": [\"https://credential-issuer.example.com\"]}]");
+            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            Authorization authorization = Authorization.builder().sub("p").build();
+            authorizationServer.authorize(pushedAuthorizationRequest, authorization);
+            assertEquals("https://api.example.com", authorization.getAud());
+        }
+
+        @Test
+        @DisplayName("then multiple distinct locations in openid_credential are not used as audience")
+        public void testMultipleDistinctLocationsNotUsedAsAudience() throws Exception {
+            client1 = ClientMetadata.builder().clientId("client1").scope("openid").redirectUri("https://junit.idporten.no/").build();
+            OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
+                    .client(client1)
+                    .accessTokenDefaultAudience(new java.net.URI("https://default-audience.example.com"))
+                    .build();
+            OAuth2AuthorizationServerBase server = new OAuth2AuthorizationServerBase(serverConfiguration);
+            MockRequest request = new MockRequest();
+            request.addParameter("client_id", "client1");
+            request.addParameter("authorization_details", "[{\"type\": \"openid_credential\", \"locations\": [\"https://issuer1.example.com\", \"https://issuer2.example.com\"]}]");
+            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            Authorization authorization = Authorization.builder().sub("p").build();
+            server.authorize(pushedAuthorizationRequest, authorization);
+            assertEquals("https://default-audience.example.com", authorization.getAud());
+        }
+
+    }
 
     @Test
     @DisplayName("then a valid request is accepted")
