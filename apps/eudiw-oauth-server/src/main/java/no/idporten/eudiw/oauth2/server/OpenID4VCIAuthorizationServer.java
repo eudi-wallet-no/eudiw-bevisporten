@@ -5,6 +5,7 @@ import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
 import no.idporten.eudiw.oauth2.server.util.MultiValuedMapUtils;
 import no.idporten.eudiw.oauth2.server.util.StringUtils;
+import org.jspecify.annotations.NonNull;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -155,5 +156,45 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
         }
     }
 
+    @Override
+    protected void validateAuthorizationDetails(PushedAuthorizationRequest authorizationRequest,  ClientMetadata clientMetadata) {
+        super.validateAuthorizationDetails(authorizationRequest, clientMetadata);
+
+        long openidCredentialCount = authorizationRequest.getAuthorizationDetails().stream()
+                .filter(d -> AuthorizationDetail.TYPE_OPENID_CREDENTIAL.equals(d.getType()))
+                .count();
+
+        if (openidCredentialCount > 1) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_AUTHORIZATION_DETAILS, "Invalid parameter authorization_details. At most one entry of type openid_credential is supported.", 400);
+        }
+    }
+
+    @Override
+    protected String calcAudience(PushedAuthorizationRequest request) {
+        if (request.hasResourceIndicator()) {
+            return request.getResource();
+        }
+
+        if (request.getAuthorizationDetails() != null) {
+            List<String> locations = getLocationsFromAuthDetails(request);
+
+            if (locations.size() == 1) {
+                return locations.getFirst();
+            }
+        }
+
+        return super.calcAudience(request);
+    }
+
+    private static @NonNull List<String> getLocationsFromAuthDetails(PushedAuthorizationRequest request) {
+        return request.getAuthorizationDetails().stream()
+                .filter(d -> AuthorizationDetail.TYPE_OPENID_CREDENTIAL.equals(d.getType()))
+                .map(AuthorizationDetail::getLocations)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .toList();
+    }
 
 }

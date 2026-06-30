@@ -572,7 +572,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         return pushedAuthorizationRequest;
     }
 
-    protected String calcAudience(ResourceIndicatorSupport request) {
+    protected String calcAudience(PushedAuthorizationRequest request) {
         if (request.hasResourceIndicator()) {
             return request.getResource();
         }

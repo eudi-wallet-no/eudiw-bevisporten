@@ -2,6 +2,7 @@ package no.idporten.eudiw.oauth2.server.protocol;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -11,6 +12,8 @@ public class AuthorizationDetail extends HashMap<String, Serializable> {
 
     public static final String ATTRIBUTE_TYPE = "type";
     public static final String ATTRIBUTE_RESOURCE = "resource";
+    public static final String ATTRIBUTE_LOCATIONS = "locations";
+    public static final String TYPE_OPENID_CREDENTIAL = "openid_credential";
 
     public AuthorizationDetail() {
         super();
@@ -46,6 +49,14 @@ public class AuthorizationDetail extends HashMap<String, Serializable> {
 
     public void setResource(String resource) {
         setAttribute(ATTRIBUTE_RESOURCE, resource);
+    }
+
+    public List<String> getLocations() {
+        Serializable raw = get(ATTRIBUTE_LOCATIONS);
+        if (raw instanceof List<?> list && list.stream().allMatch(String.class::isInstance)) {
+            return list.stream().map(String.class::cast).toList();
+        }
+        return null;
     }
 
     /**
