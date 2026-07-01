@@ -1,7 +1,7 @@
 package no.idporten.eudiw.statuslist.repository;
 
+import no.idporten.eudiw.statuslist.domain.Status;
 import no.idporten.eudiw.statuslist.repository.models.StatusListDto;
-import no.idporten.eudiw.statuslist.service.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,10 +63,26 @@ public class MariaDbIntegrationTest {
     @DisplayName("Should create new status_list_entry")
     void shouldCreateNewStatusListEntry() {
         StatusListDto sl1 = dbIntegration.createNewStatusList();
-        dbIntegration.createStatusListEntry(sl1.id(), sl1.next(), Status.INVALID);
+        dbIntegration.upsertStatusListEntry(sl1.id(), sl1.next(), Status.INVALID);
 
         List<Integer> status = jdbc.query("SELECT (status_value) FROM status_list_entry WHERE status_list_id=?", (rs, i) -> rs.getInt(1),  sl1.id());
         assertEquals(Status.INVALID, status.getFirst());
     }
-}
 
+    @Test
+    @DisplayName("Should upsert existing status_list_entry")
+    void shouldUpsertExistingStatusListEntry() {
+        StatusListDto sl1 = dbIntegration.createNewStatusList();
+        int index = sl1.next();
+        dbIntegration.upsertStatusListEntry(sl1.id(), index, Status.INVALID);
+        dbIntegration.upsertStatusListEntry(sl1.id(), index, Status.VALID);
+
+        Integer status = jdbc.queryForObject(
+                "SELECT status_value FROM status_list_entry WHERE status_list_id = ? AND list_index = ?",
+                Integer.class,
+                sl1.id(),
+                index
+        );
+        assertEquals(Status.VALID, status);
+    }
+}

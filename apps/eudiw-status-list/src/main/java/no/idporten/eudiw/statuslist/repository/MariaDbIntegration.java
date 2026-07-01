@@ -1,14 +1,11 @@
 package no.idporten.eudiw.statuslist.repository;
 
-import no.idporten.eudiw.statuslist.exceptions.ErrorCodes;
-import no.idporten.eudiw.statuslist.exceptions.StatusListBadRequestException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.repository.models.StatusListDto;
 import no.idporten.eudiw.statuslist.repository.models.StatusListWithEntriesDto;
 import no.idporten.eudiw.statuslist.repository.rowmapper.StatusListRowMapper;
 import no.idporten.eudiw.statuslist.repository.rowmapper.StatusListWithEntriesRowMapper;
 import org.jspecify.annotations.NonNull;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -117,28 +114,32 @@ public class MariaDbIntegration {
         return new StatusListDto(generatedId, tmp.size(), tmp.seed(), tmp.next());
     }
 
-    public void createStatusListEntry(int listId, int index, int status) {
-        try {
-            long nowMs = System.currentTimeMillis();
-            jdbc.update("""
-                             INSERT INTO status_list_entry
-                             	(status_list_id,
-                             	list_index,
-                             	status_value,
-                             	created_ms,
-                             	updated_ms)
-                             VALUES
-                             	(?, ?, ?, ?, ?)
-                            """,
-                    listId, index, status, nowMs, nowMs
-            );
-        } catch (DuplicateKeyException ex) {
-            throw new StatusListBadRequestException(
-                    ErrorCodes.INVALID_REQUEST,
-                    "Status at index %d is already revoked in status list with id %d".formatted(index, listId),
-                    ex
-            );
-        }
+    public Optional<Integer> getStatusListEntry(int listId, int index) {
+        return jdbc.query("""
+                SELECT status_value
+                FROM status_list_entry
+                WHERE status_list_id = ? AND list_index = ?
+                FOR UPDATE
+                """, (rs, rowNum) -> rs.getInt(1), listId, index).stream().findFirst();
+    }
+
+    public void upsertStatusListEntry(int listId, int index, int status) {
+        long nowMs = System.currentTimeMillis();
+        jdbc.update("""
+                         INSERT INTO status_list_entry
+                         	(status_list_id,
+                         	list_index,
+                         	status_value,
+                         	created_ms,
+                         	updated_ms)
+                         VALUES
+                         	(?, ?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE
+                         	status_value = VALUES(status_value),
+                         	updated_ms = VALUES(updated_ms)
+                        """,
+                listId, index, status, nowMs, nowMs
+        );
     }
 
     public int getFreeListCount() {

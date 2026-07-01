@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
 
-import static no.idporten.eudiw.statuslist.service.Status.INVALID;
-import static no.idporten.eudiw.statuslist.service.Status.VALID;
+import static no.idporten.eudiw.statuslist.domain.Status.INVALID;
+import static no.idporten.eudiw.statuslist.domain.Status.VALID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 

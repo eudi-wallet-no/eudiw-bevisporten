@@ -1,10 +1,10 @@
 package no.idporten.eudiw.statuslist.repository;
 
+import no.idporten.eudiw.statuslist.domain.Status;
 import no.idporten.eudiw.statuslist.exceptions.StatusListBadRequestException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListNotFoundException;
 import no.idporten.eudiw.statuslist.repository.models.AllocatedIndexDto;
 import no.idporten.eudiw.statuslist.repository.models.StatusListWithEntriesDto;
-import no.idporten.eudiw.statuslist.service.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -160,7 +160,7 @@ class StatusListRepositoryTest {
         assertEquals(0, statusList.entries().size());
 
         for (AllocatedIndexDto entry : allocatedIndexes) {
-            repository.createStatusEntry(listId, entry.index(), Status.INVALID);
+            repository.updateStatusEntry(listId, entry.index(), Status.INVALID);
         }
 
         statusList = repository.getStatusList(listId);
@@ -192,8 +192,8 @@ class StatusListRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should throw StatusEntryException when status already revoked")
-    void shouldThrowStatusEntryExceptionWhenStatusAlreadyRevoked() {
+    @DisplayName("Should allow idempotent revoke when status is already revoked")
+    void shouldAllowIdempotentRevokeWhenStatusAlreadyRevoked() {
         int size = 100;
         seedDbWithDummyStatusList(size);
         int allocatedCount = 5;
@@ -204,9 +204,31 @@ class StatusListRepositoryTest {
         int listId = allocatedIndexes.getFirst().listId();
         int index = allocatedIndexes.getFirst().index();
 
-        repository.createStatusEntry(listId, index, Status.INVALID);
+        repository.updateStatusEntry(listId, index, Status.INVALID);
+        assertDoesNotThrow(() -> repository.updateStatusEntry(listId, index, Status.INVALID));
 
-        StatusListBadRequestException exception = assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(listId, index, Status.INVALID));
+        StatusListWithEntriesDto statusList = repository.getStatusList(listId);
+        assertEquals(Status.INVALID, statusList.entries().get(index));
+    }
+
+@Test
+@DisplayName("Should throw StatusListBadRequestException when changing revoked status back to valid")
+void shouldThrowStatusEntryExceptionWhenChangingRevokedStatusBackToValid() {
+        int size = 100;
+        seedDbWithDummyStatusList(size);
+        int allocatedCount = 5;
+
+        List<AllocatedIndexDto> allocatedIndexes = repository.allocateToStatusList(allocatedCount);
+        assertEquals(allocatedCount, allocatedIndexes.size());
+
+        int listId = allocatedIndexes.getFirst().listId();
+        int index = allocatedIndexes.getFirst().index();
+        repository.updateStatusEntry(listId, index, Status.INVALID);
+
+        StatusListBadRequestException exception = assertThrows(
+                StatusListBadRequestException.class,
+                () -> repository.updateStatusEntry(listId, index, Status.VALID)
+        );
         assertEquals("Status at index %d is already revoked in status list with id %d".formatted(index, listId), exception.getMessage());
         assertEquals("invalid_request", exception.getErrorCode());
     }
@@ -217,7 +239,7 @@ class StatusListRepositoryTest {
         int size = 20;
         seedDbWithDummyStatusList(size);
 
-        StatusListBadRequestException exception = assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(1, 0, Status.INVALID));
+        StatusListBadRequestException exception = assertThrows(StatusListBadRequestException.class, () -> repository.updateStatusEntry(1, 0, Status.INVALID));
         assertEquals("Status at index %d is not allocated in status list with id %d".formatted(0, 1),  exception.getMessage());
         assertEquals("invalid_request", exception.getErrorCode());
     }
@@ -228,13 +250,13 @@ class StatusListRepositoryTest {
         List<AllocatedIndexDto> allocatedIndexes = repository.allocateToStatusList(50);
 
         for (AllocatedIndexDto entry : allocatedIndexes) {
-            repository.createStatusEntry(entry.listId(), entry.index(), Status.INVALID);
+            repository.updateStatusEntry(entry.listId(), entry.index(), Status.INVALID);
         }
 
         AllocatedIndexDto first = allocatedIndexes.getFirst();
         AllocatedIndexDto lastRevoked = allocatedIndexes.get(49);
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(first.listId(), first.index(), Status.INVALID));
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(lastRevoked.listId(), lastRevoked.index(), Status.INVALID));
+        assertDoesNotThrow(() -> repository.updateStatusEntry(first.listId(), first.index(), Status.INVALID));
+        assertDoesNotThrow(() -> repository.updateStatusEntry(lastRevoked.listId(), lastRevoked.index(), Status.INVALID));
 
         assertNotEquals(first.listId(), lastRevoked.listId());
     }
@@ -245,38 +267,37 @@ class StatusListRepositoryTest {
         int listSize = properties.listSize();
         List<AllocatedIndexDto> allocated1 = repository.allocateToStatusList(listSize - 1);
         for  (AllocatedIndexDto entry : allocated1) {
-            repository.createStatusEntry(entry.listId(), entry.index(), Status.INVALID);
+            repository.updateStatusEntry(entry.listId(), entry.index(), Status.INVALID);
         }
 
         AllocatedIndexDto f1 = allocated1.getFirst();
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(f1.listId(), f1.index(), Status.INVALID));
+        assertDoesNotThrow(() -> repository.updateStatusEntry(f1.listId(), f1.index(), Status.INVALID));
 
         AllocatedIndexDto l1 = allocated1.getLast();
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(l1.listId(), l1.index(), Status.INVALID));
+        assertDoesNotThrow(() -> repository.updateStatusEntry(l1.listId(), l1.index(), Status.INVALID));
 
 
         // Last in current list
         List<AllocatedIndexDto> allocated2 = repository.allocateToStatusList(1);
         AllocatedIndexDto f2 = allocated2.getFirst();
-        repository.createStatusEntry(f2.listId(), f2.index(), Status.INVALID);
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(f2.listId(), f2.index(), Status.INVALID));
+        repository.updateStatusEntry(f2.listId(), f2.index(), Status.INVALID);
+        assertDoesNotThrow(() -> repository.updateStatusEntry(f2.listId(), f2.index(), Status.INVALID));
 
         // First in next list
         List<AllocatedIndexDto> allocated4 = repository.allocateToStatusList(1);
         AllocatedIndexDto l2 = allocated4.getLast();
-        repository.createStatusEntry(l2.listId(), l2.index(), Status.INVALID);
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(l2.listId(), l2.index(), Status.INVALID));
+        repository.updateStatusEntry(l2.listId(), l2.index(), Status.INVALID);
+        assertDoesNotThrow(() -> repository.updateStatusEntry(l2.listId(), l2.index(), Status.INVALID));
 
 
         List<AllocatedIndexDto> allocated3 = repository.allocateToStatusList(listSize / 2 - 1);
         for  (AllocatedIndexDto entry : allocated3) {
-            repository.createStatusEntry(entry.listId(), entry.index(), Status.INVALID);
+            repository.updateStatusEntry(entry.listId(), entry.index(), Status.INVALID);
         }
         AllocatedIndexDto f3 = allocated3.getFirst();
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(f3.listId(), f3.index(), Status.INVALID));
+        assertDoesNotThrow(() -> repository.updateStatusEntry(f3.listId(), f3.index(), Status.INVALID));
 
         AllocatedIndexDto l3 = allocated2.getLast();
-        assertThrows(StatusListBadRequestException.class, () -> repository.createStatusEntry(l3.listId(), l3.index(), Status.INVALID));
+        assertDoesNotThrow(() -> repository.updateStatusEntry(l3.listId(), l3.index(), Status.INVALID));
     }
 }
-

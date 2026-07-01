@@ -1,5 +1,6 @@
 package no.idporten.eudiw.statuslist.service;
 
+import no.idporten.eudiw.statuslist.domain.Status;
 import no.idporten.eudiw.statuslist.domain.StatusEntry;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
@@ -96,7 +97,7 @@ public class StatusListService {
             throw new UnsupportedStatusException(status);
         }
 
-        statusListRepository.createStatusEntry(id, index, status);
+        statusListRepository.updateStatusEntry(id, index, status);
     }
 
     private byte[] packStatuses(StatusListWithEntriesDto statusList) {
