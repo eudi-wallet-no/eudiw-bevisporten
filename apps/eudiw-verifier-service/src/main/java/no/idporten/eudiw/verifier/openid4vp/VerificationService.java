@@ -22,13 +22,19 @@ public class VerificationService {
         this.verificationTransactionService = verificationTransactionService;
     }
 
-    public StartVerificationResponse startVerification(@RequestBody StartVerificationRequest startVerificationRequest, ClientApplication clientApplication)  {
-
-        String verifierTransactionId = UUID.randomUUID().toString();
-        URI requestUri = openID4VPRequestService.createAuthorizationRequest(verifierTransactionId, clientApplication);
-        verificationTransactionService.initTransaction(startVerificationRequest.dcqlQuery(), verifierTransactionId, clientApplication);
-        return new StartVerificationResponse(requestUri, verifierTransactionId);
+    public StartVerificationResponse startVerification(@RequestBody StartVerificationRequest startVerificationRequest, ClientApplication clientApplication) throws Exception {
+        String verifierTransactionId = createVerifierTransactionId();
+        String requestId = openID4VPRequestService.createRequestId(verifierTransactionId);
+        URI authorizationRequestSameDevice = openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "same_device");
+        URI qrCodeDataUriCrossDevice = openID4VPRequestService.createQrCodeDataURI(openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "cross_device"));
+        verificationTransactionService.initTransaction(startVerificationRequest.dcqlQuery(), startVerificationRequest.redirectUri(), verifierTransactionId, clientApplication);
+        return new StartVerificationResponse(authorizationRequestSameDevice, qrCodeDataUriCrossDevice, verifierTransactionId);
     }
+
+    private String createVerifierTransactionId() {
+        return UUID.randomUUID().toString();
+    }
+
     public VerificationStatusResponse verifierStatus(String verifierTransactionId, ClientApplication clientApplication)  {
         return new VerificationStatusResponse(
                 verificationTransactionService.retrieveStatus(clientApplication, verifierTransactionId),

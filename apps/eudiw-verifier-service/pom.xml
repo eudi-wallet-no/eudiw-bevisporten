@@ -24,6 +24,7 @@
         <waltid-mdoc-credentials-jvm.version>0.21.2</waltid-mdoc-credentials-jvm.version>
         <waltid-sdjwt-jvm.version>0.21.0</waltid-sdjwt-jvm.version>
         <cose-java.version>1.1.1-WALT-SNAPSHOT</cose-java.version>
+        <zxing.javase.version>3.5.4</zxing.javase.version>
         <springdoc.version>3.0.3</springdoc.version>
         <opentelemetry-api.version>1.63.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
@@ -78,7 +79,16 @@
             <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>${zxing.javase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>${zxing.javase.version}</version>
+        </dependency>
         <dependency>
             <groupId>id.walt.mdoc-credentials</groupId>
             <artifactId>waltid-mdoc-credentials-jvm</artifactId>
