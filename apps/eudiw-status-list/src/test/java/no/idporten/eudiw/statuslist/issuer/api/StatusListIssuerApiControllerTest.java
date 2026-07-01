@@ -1,9 +1,9 @@
 package no.idporten.eudiw.statuslist.issuer.api;
 
+import no.idporten.eudiw.statuslist.domain.Status;
 import no.idporten.eudiw.statuslist.issuer.config.StatusIssuerProperties;
 import no.idporten.eudiw.statuslist.logging.audit.AuditService;
 import no.idporten.eudiw.statuslist.repository.StatusListRepository;
-import no.idporten.eudiw.statuslist.service.Status;
 import no.idporten.eudiw.statuslist.service.StatusListService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -122,7 +122,7 @@ class StatusListIssuerApiControllerTest {
         int listId = 1;
         int index = 0;
         doReturn(true).when(statusListRepository).isStatusAllocated(listId, index);
-        doNothing().when(statusListRepository).createStatusEntry(listId, index, Status.INVALID);
+        doNothing().when(statusListRepository).updateStatusEntry(listId, index, Status.INVALID);
 
         StatusEntryUpdateRequest statusToRevoke = new StatusEntryUpdateRequest(index, URI.create("https://junit.eidas2sandkasse.dev/%d".formatted(listId)), "INVALID");
 

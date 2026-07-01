@@ -1,5 +1,6 @@
 package no.idporten.eudiw.statuslist.repository;
 
+import no.idporten.eudiw.statuslist.domain.Status;
 import no.idporten.eudiw.statuslist.exceptions.ErrorCodes;
 import no.idporten.eudiw.statuslist.exceptions.StatusListBadRequestException;
 import no.idporten.eudiw.statuslist.exceptions.StatusListException;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static no.idporten.eudiw.statuslist.util.StatusListUtil.createFreeIndexList;
@@ -40,7 +42,7 @@ public class StatusListRepository {
     }
 
     @Transactional()
-    public void createStatusEntry(int listId, int index, int status) {
+    public void updateStatusEntry(int listId, int index, int status) {
         if (!isStatusAllocated(listId, index)) {
             throw new StatusListBadRequestException(
                     ErrorCodes.INVALID_REQUEST,
@@ -48,7 +50,22 @@ public class StatusListRepository {
             );
         }
 
-        dbIntegration.createStatusListEntry(listId, index, status);
+        Optional<Integer> currentStatus = dbIntegration.getStatusListEntry(listId, index);
+
+        if (currentStatus.isPresent()) {
+            if (currentStatus.get() == status) {
+                return;
+            }
+
+            if (currentStatus.get() == Status.INVALID) {
+                throw new StatusListBadRequestException(
+                        ErrorCodes.INVALID_REQUEST,
+                        "Status at index %d is already revoked in status list with id %d".formatted(index, listId)
+                );
+            }
+        }
+
+        dbIntegration.upsertStatusListEntry(listId, index, status);
     }
 
     public boolean isStatusAllocated(int listId, int index) {

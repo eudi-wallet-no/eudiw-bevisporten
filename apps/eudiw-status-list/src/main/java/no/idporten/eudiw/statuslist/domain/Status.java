@@ -1,4 +1,4 @@
-package no.idporten.eudiw.statuslist.service;
+package no.idporten.eudiw.statuslist.domain;
 
 import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.statuslist.exceptions.UnsupportedStatusException;
