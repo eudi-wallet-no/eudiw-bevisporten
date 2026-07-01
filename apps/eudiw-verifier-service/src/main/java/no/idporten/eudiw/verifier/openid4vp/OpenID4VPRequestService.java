@@ -1,5 +1,9 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
@@ -25,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.interfaces.ECPrivateKey;
@@ -49,10 +54,11 @@ public class OpenID4VPRequestService {
         this.jsonMapper = jsonMapper;
     }
 
-    protected URI createRequestUri(String requestId) {
+    protected URI createRequestUri(String requestId, String flow) {
         return UriComponentsBuilder
                 .fromUriString(verifierServiceProperties.getExternalBaseUri())
                 .pathSegment("openid4vp", "authz-request", requestId)
+                .queryParam("flow", flow)
                 .build()
                 .toUri();
     }
@@ -65,12 +71,12 @@ public class OpenID4VPRequestService {
                 .toUri();
     }
 
-    protected URI createOpenID4VPAuthorizationRequest(String requestId, ClientApplication clientApplication) {
+    protected URI createOpenID4VPAuthorizationRequest(String requestId, ClientApplication clientApplication, String flow) {
         return UriComponentsBuilder.newInstance()
                 .scheme("eudi-openid4vp")
                 .host(verifierServiceProperties.getSiop2ClientId())
                 .queryParam("client_id", makeClientId(clientApplication))
-                .queryParam("request_uri", createRequestUri(requestId).toString())
+                .queryParam("request_uri", createRequestUri(requestId, flow).toString())
                 .build()
                 .toUri();
     }
@@ -83,15 +89,28 @@ public class OpenID4VPRequestService {
         return "x509_hash:" + clientId;
     }
 
-    @SneakyThrows
-    public URI createAuthorizationRequest(String verifierTransactionId, ClientApplication clientApplication) {
+    public String createRequestId(String verifierTransactionId) {
         String requestId = UUID.randomUUID().toString();
         requestId2verificationTransactionId.put(requestId, verifierTransactionId);
-        return createOpenID4VPAuthorizationRequest(requestId, clientApplication);
+        return requestId;
+    }
+
+    public URI createAuthorizationRequest(String requestId, ClientApplication clientApplication, String flow) {
+        return createOpenID4VPAuthorizationRequest(requestId, clientApplication, flow);
+    }
+
+    public URI createQrCodeDataURI(URI crossDeviceAuthorizationRequest) throws Exception {
+        QRCodeWriter barcodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = barcodeWriter.encode(crossDeviceAuthorizationRequest.toString(), BarcodeFormat.QR_CODE, 200, 200);
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
+            byte[] qrBytes = outputStream.toByteArray();
+            return URI.create("data:image/png;base64," + java.util.Base64.getEncoder().encodeToString(qrBytes));
+        }
     }
 
     @SneakyThrows
-    public String retrieveAuthorizationRequest(String requestId) {
+    public String retrieveAuthorizationRequest(String requestId, String flow) {
         String verificationTransactionId = requestId2verificationTransactionId.remove(requestId);
         if (verificationTransactionId == null) {
             throw new VerificationException("invalid_request", "Unknown authorization request");
@@ -104,6 +123,7 @@ public class OpenID4VPRequestService {
         JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(JWEAlgorithm.ECDH_ES).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
         verificationTransaction.setState(state);
         verificationTransaction.setEncryptionKey(encryptionKey);
+        verificationTransaction.setFlow(flow);
         JWT authorizationRequest = makeRequestJwt(verificationTransaction, verificationTransactionId);
         return authorizationRequest.serialize();
     }

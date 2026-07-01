@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -18,9 +19,10 @@ public class VerificationTransactionService {
 
     private final Map<String, VerificationTransaction> verificationTransactions = new HashMap<>();
 
-    public void initTransaction(DcqlQuery dcqlQuery, String verifierTransactionId, ClientApplication clientApplication) {
+    public void initTransaction(DcqlQuery dcqlQuery, URI redirectUri, String verifierTransactionId, ClientApplication clientApplication) {
         VerificationTransaction verificationTransaction = new VerificationTransaction();
         verificationTransaction.setDcqlQuery(dcqlQuery);
+        verificationTransaction.setRedirectUri(redirectUri);
         verificationTransaction.setClientApplication(clientApplication);
         verificationTransaction.setStatus(STATUS_WAIT);
         verificationTransactions.put(verifierTransactionId, verificationTransaction);

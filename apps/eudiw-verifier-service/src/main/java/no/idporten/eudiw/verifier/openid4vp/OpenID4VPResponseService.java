@@ -15,6 +15,7 @@ import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
+import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ public class OpenID4VPResponseService {
         this.verificationTransactionService = verificationTransactionService;
     }
 
-    public void receiveResponse(String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
+    public WalletCallback receiveResponse(String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(verifierTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
@@ -72,6 +73,11 @@ public class OpenID4VPResponseService {
         }
         VerifiedCredentials verifiedCredentials = new VerifiedCredentials(allCredentials);
         verificationTransactionService.addVerifiedCredentials(verifierTransactionId, verifiedCredentials);
+        WalletCallback walletCallback = new WalletCallback();
+        if ("same_device".equals(verificationTransaction.getFlow()) && verificationTransaction.getRedirectUri() != null) {
+            walletCallback.setRedirectUri(verificationTransaction.getRedirectUri());
+        }
+        return walletCallback;
     }
 
     @SuppressWarnings("unchecked")
