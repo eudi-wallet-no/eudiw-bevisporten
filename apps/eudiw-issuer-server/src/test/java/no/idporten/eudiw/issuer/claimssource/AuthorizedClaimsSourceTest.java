@@ -4,6 +4,7 @@ package no.idporten.eudiw.issuer.claimssource;
 import no.idporten.eudiw.issuer.TestData;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.StringValue;
+import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -31,7 +32,13 @@ public class AuthorizedClaimsSourceTest {
     public void testIssueClaimsSource() {
         AuthorizedClaimsSource claimsSource = spy(new AuthorizedJUnitClaimsSource());
         String fnr = "12345678910";
-        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(TestData.accessToken(fnr), credentialIssuerTenant("junit"),null));
+        List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(
+                TestData.accessToken(fnr),
+                credentialIssuerTenant("junit"),
+                null,
+                null,
+                CredentialIssuanceType.AUTHORIZATION_CODE
+        ));
         assertAll(
                 () -> assertEquals(1, claims.size()),
                 () -> assertEquals("c", claims.getFirst().getPath().getFirst()),

@@ -42,8 +42,7 @@ public class StatusIssuerService {
      */
     public boolean isEnabled(CredentialIssueContext credentialIssueContext) {
         return statusIssuerProperties.isEnabled()
-                && credentialIssueContext.credentialConfiguration().getCredentialIssuerContext().isIncludeStatus()
-                && credentialIssueContext.transactionId() != null;
+                && credentialIssueContext.credentialConfiguration().getCredentialIssuerContext().isIncludeStatus();
     }
 
     public List<CredentialStatus> allocateStatus(CredentialIssueContext context, int numberOfEntries) {

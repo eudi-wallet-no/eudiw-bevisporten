@@ -5,6 +5,7 @@ import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSourceService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +59,7 @@ public class AuthoritativeSourcePullClaimsSourceTest {
         when(authoritativeSourceService.retrieveCredentialData(eq("advokatregisteret"), eq("no.advokattilsynet.advokatregisteret.1"), eq(personIdentifier))).thenReturn(testCredentialData);
         claimsSource.preAuthorize(issuanceContext, null);
         JWT walletAccessToken = preAuthAccessToken(personIdentifier, transactionId);
-        CredentialIssueContext issuerContext = new CredentialIssueContext(walletAccessToken, junitIssuerTenant(), credentialConfiguration);
+        CredentialIssueContext issuerContext = new CredentialIssueContext(walletAccessToken, junitIssuerTenant(), credentialConfiguration, transactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE);
         List<Claim> claims = claimsSource.issueClaims(issuerContext);
         assertAll(
                 () -> assertEquals("FOT", findClaimValue(claims, "etternavn")),
@@ -82,7 +83,13 @@ public class AuthoritativeSourcePullClaimsSourceTest {
         );
         when(authoritativeSourceService.retrieveCredentialData(eq("freg"), eq("eu.europa.ec.av.1"), eq(personIdentifier))).thenReturn(testCredentialData);
         JWT walletAccessToken = accessToken(personIdentifier);
-        CredentialIssueContext issuerContext = new CredentialIssueContext(walletAccessToken, junitIssuerTenant(), credentialConfiguration);
+        CredentialIssueContext issuerContext = new CredentialIssueContext(
+                walletAccessToken,
+                junitIssuerTenant(),
+                credentialConfiguration,
+                null,
+                CredentialIssuanceType.AUTHORIZATION_CODE
+        );
         List<Claim> claims = claimsSource.issueClaims(issuerContext);
         assertAll(
                 () -> assertEquals(true, findClaimValue(claims, "age_over_15")),
