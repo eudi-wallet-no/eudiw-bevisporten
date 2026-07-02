@@ -16,3 +16,7 @@ spring:
 oauth-authorization-server:
   issuer: https://auth.eidas2sandkasse.net
   access-token-default-audience: https://utsteder.eidas2sandkasse.net
+
+oidc-proxy:
+  headless-login:
+    enabled: false # should always be false in production
