@@ -5,7 +5,9 @@ server:
     context-path: /
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     name: digital-lommebok-bevisgenerator
     environment: default
@@ -178,3 +180,11 @@ digdir:
     logging:
       filtering:
         static-resources: true
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
