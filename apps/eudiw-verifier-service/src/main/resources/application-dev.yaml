@@ -6,6 +6,12 @@ spring:
   application:
     environment: dev
 
+  data:
+    redis:
+      port: 9282
+      host: localhost
+
+
 
 # Spring Boot Actuator
 management:

@@ -8,6 +8,14 @@ spring:
   application:
     name: digital-lommebok-verifier-service
     environment: default
+  cache:
+    redis:
+      time-to-live: 10m
+
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
 
 
 # Spring Boot Actuator
