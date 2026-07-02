@@ -21,7 +21,7 @@
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.1</idporten-access-log.version>
-        <opentelemetry-api.version>1.62.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.63.0</opentelemetry-api.version>
         <idporten-log-audit.version>4.0.2</idporten-log-audit.version>
         <springdoc.version>3.0.3</springdoc.version>
         <maskinporten.client.version>6.0.1</maskinporten.client.version>
