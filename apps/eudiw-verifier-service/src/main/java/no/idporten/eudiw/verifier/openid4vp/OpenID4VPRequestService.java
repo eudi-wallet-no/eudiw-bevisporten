@@ -19,6 +19,7 @@ import lombok.SneakyThrows;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
@@ -43,30 +44,29 @@ public class OpenID4VPRequestService {
     private final KeystoreManager keystoreManager;
     private final VerificationTransactionService verificationTransactionService;
     private final JsonMapper jsonMapper;
+    private final CacheService cacheService;
 
-    // Cache request_id -> verification_transaction_id
-    private Map<String, String> requestId2verificationTransactionId = new HashMap<>();
-
-    public OpenID4VPRequestService(VerifierServiceProperties verifierServiceProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper) {
+    public OpenID4VPRequestService(VerifierServiceProperties verifierServiceProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper, CacheService cacheService) {
         this.verifierServiceProperties = verifierServiceProperties;
         this.keystoreManager = keystoreManager;
         this.verificationTransactionService = verificationTransactionService;
         this.jsonMapper = jsonMapper;
+        this.cacheService = cacheService;
     }
 
-    protected URI createRequestUri(String requestId, String flow) {
+    protected URI createRequestUri(ClientApplication clientApplication, String requestId, String flow) {
         return UriComponentsBuilder
                 .fromUriString(verifierServiceProperties.getExternalBaseUri())
-                .pathSegment("openid4vp", "authz-request", requestId)
+                .pathSegment("openid4vp", "authz-request", clientApplication.getId(),  requestId)
                 .queryParam("flow", flow)
                 .build()
                 .toUri();
     }
 
-    protected URI createResponseUri(String verifierTransactionId) {
+    protected URI createResponseUri(ClientApplication clientApplication, String verifierTransactionId) {
         return UriComponentsBuilder
                 .fromUriString(verifierServiceProperties.getExternalBaseUri())
-                .pathSegment("openid4vp", "authz-response", verifierTransactionId)
+                .pathSegment("openid4vp", "authz-response", clientApplication.getId(), verifierTransactionId)
                 .build()
                 .toUri();
     }
@@ -76,7 +76,7 @@ public class OpenID4VPRequestService {
                 .scheme("eudi-openid4vp")
                 .host(verifierServiceProperties.getSiop2ClientId())
                 .queryParam("client_id", makeClientId(clientApplication))
-                .queryParam("request_uri", createRequestUri(requestId, flow).toString())
+                .queryParam("request_uri", createRequestUri(clientApplication, requestId, flow).toString())
                 .build()
                 .toUri();
     }
@@ -89,10 +89,30 @@ public class OpenID4VPRequestService {
         return "x509_hash:" + clientId;
     }
 
-    public String createRequestId(String verifierTransactionId) {
+    public String createRequestId(ClientApplication clientApplication, String verifierTransactionId) {
         String requestId = UUID.randomUUID().toString();
-        requestId2verificationTransactionId.put(requestId, verifierTransactionId);
+        cacheService.putAuthorizationRequest(clientApplication, requestId, verifierTransactionId);
         return requestId;
+    }
+
+    @SneakyThrows
+    public String retrieveAuthorizationRequest(ClientApplication clientApplication, String requestId, String flow) {
+        String verificationTransactionId = cacheService.retrieveAuthorizationRequest(clientApplication, requestId);
+        if (verificationTransactionId == null) {
+            throw new VerificationException("invalid_request", "Unknown authorization request");
+        }
+        VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verificationTransactionId);
+        if (verificationTransaction == null) {
+            throw new VerificationException("invalid_request", "Unknown verification transaction");
+        }
+        String state = UUID.randomUUID().toString();
+        JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(JWEAlgorithm.ECDH_ES).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
+        verificationTransaction.setState(state);
+        verificationTransaction.setEncryptionKey(encryptionKey);
+        verificationTransaction.setFlow(flow);
+        cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
+        JWT authorizationRequest = makeRequestJwt(verificationTransaction, clientApplication, verificationTransactionId);
+        return authorizationRequest.serialize();
     }
 
     public URI createAuthorizationRequest(String requestId, ClientApplication clientApplication, String flow) {
@@ -109,33 +129,14 @@ public class OpenID4VPRequestService {
         }
     }
 
-    @SneakyThrows
-    public String retrieveAuthorizationRequest(String requestId, String flow) {
-        String verificationTransactionId = requestId2verificationTransactionId.remove(requestId);
-        if (verificationTransactionId == null) {
-            throw new VerificationException("invalid_request", "Unknown authorization request");
-        }
-        VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(verificationTransactionId);
-        if (verificationTransaction == null) {
-            throw new VerificationException("invalid_request", "Unknown verification transaction");
-        }
-        String state = UUID.randomUUID().toString();
-        JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(JWEAlgorithm.ECDH_ES).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
-        verificationTransaction.setState(state);
-        verificationTransaction.setEncryptionKey(encryptionKey);
-        verificationTransaction.setFlow(flow);
-        JWT authorizationRequest = makeRequestJwt(verificationTransaction, verificationTransactionId);
-        return authorizationRequest.serialize();
-    }
-
-    private JWT makeRequestJwt(VerificationTransaction verificationTransaction, String verificationTransactionId) throws Exception {
+    private JWT makeRequestJwt(VerificationTransaction verificationTransaction, ClientApplication clientApplication, String verificationTransactionId) throws Exception {
         KeyProvider keyProvider = keystoreManager.getKeyProvider(verificationTransaction.getClientApplication().getKeystoreName());
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .audience("https://self-issued.me/v2")
                 .issuer(verifierServiceProperties.getExternalBaseUri())
-                .claim("response_uri", createResponseUri(verificationTransactionId).toString())
+                .claim("response_uri", createResponseUri(clientApplication, verificationTransactionId).toString())
                 .claim("response_type", "vp_token")
                 .claim("response_mode", "direct_post.jwt")
                 .claim("nonce", UUID.randomUUID().toString())

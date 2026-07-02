@@ -6,10 +6,11 @@ import no.idporten.eudiw.verifier.config.ClientApplication;
 
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 
+import java.io.Serializable;
 import java.net.URI;
 
 @Data
-public class VerificationTransaction {
+public class VerificationTransaction implements Serializable {
 
     private ClientApplication clientApplication;
     private DcqlQuery dcqlQuery;

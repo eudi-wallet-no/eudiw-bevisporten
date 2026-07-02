@@ -24,7 +24,7 @@ public class VerificationService {
 
     public StartVerificationResponse startVerification(@RequestBody StartVerificationRequest startVerificationRequest, ClientApplication clientApplication) throws Exception {
         String verifierTransactionId = createVerifierTransactionId();
-        String requestId = openID4VPRequestService.createRequestId(verifierTransactionId);
+        String requestId = openID4VPRequestService.createRequestId(clientApplication, verifierTransactionId);
         URI authorizationRequestSameDevice = openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "same_device");
         URI qrCodeDataUriCrossDevice = openID4VPRequestService.createQrCodeDataURI(openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "cross_device"));
         verificationTransactionService.initTransaction(startVerificationRequest.dcqlQuery(), startVerificationRequest.redirectUri(), verifierTransactionId, clientApplication);
