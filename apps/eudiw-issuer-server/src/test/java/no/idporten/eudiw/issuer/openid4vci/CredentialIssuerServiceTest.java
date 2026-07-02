@@ -11,8 +11,10 @@ import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionDao;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.credentials.types.StringValue;
+import no.idporten.eudiw.issuer.issuance.authz.SubjectCredentialTransactionDao;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -58,6 +61,12 @@ public class CredentialIssuerServiceTest {
 
     @Mock
     private CredentialCreateService credentialCreateService;
+
+    @Mock
+    private CredentialIssuanceTransactionDao credentialIssuanceTransactionDao;
+
+    @Mock
+    private SubjectCredentialTransactionDao subjectCredentialTransactionDao;
 
     @Mock
     private AuditService auditService;
@@ -134,6 +143,45 @@ public class CredentialIssuerServiceTest {
                     () -> assertEquals("foo:bar", credentialIssueContextCaptor.getValue().credentialConfiguration().getScope()),
                     () -> assertEquals(accessToken, credentialIssueContextCaptor.getValue().accessToken())
             );
+        }
+
+        @DisplayName("then authorization code flow starts transaction before credentials are created")
+        @Test
+        void testAuthorizationCodeFlowStartsTransactionBeforeCredentialCreation() {
+            JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                    .issuer("https://junit.idporten.no")
+                    .claim("scope", "openid profile foo:bar")
+                    .subject("12345678901")
+                    .build();
+            PlainJWT accessToken = new PlainJWT(jwtClaimsSet);
+            CredentialRequest credentialRequest = CredentialRequest.builder().credentialConfigurationId("cid").build();
+            ClaimsSource claimsSource = mock(JUnitClaimsSource.class);
+            ExtendedCredentialConfiguration credentialConfiguration = ExtendedCredentialConfiguration.builder()
+                    .scope("foo:bar")
+                    .format(CredentialFormat.SD_JWT_VC)
+                    .credentialType("foodoc")
+                    .credentialIssuerContext(CredentialIssuerContext.builder()
+                            .authorizationServer("junit")
+                            .credentialDataSourceUri(URI.create("class://" + claimsSource.getClass().getName()))
+                            .build())
+                    .build();
+            CredentialIssuerTenant credentialIssuerTenant = spy(CredentialIssuerTenant.builder().credentialIssuer(URI.create("https://junit.idporten.no")).build());
+            doReturn(credentialConfiguration).when(credentialIssuerTenant).findCredentialConfiguration(eq("cid"));
+
+            when(claimsSource.issueClaims(any())).thenReturn(List.of(Claim.builder().path("n1").value(new StringValue("v1")).build()));
+            when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
+            when(credentialCreateService.createCredentials(any(), anyList(), anyList()))
+                    .thenReturn(List.of(Credential.builder().credential("{credential}").build()));
+            when(credentialIssuanceStatusService.credentialIssued(eq("cid"), any(IssuanceTransactionId.class)))
+                    .thenReturn(new NotificationId("nid"));
+
+            credentialIssuerService.issueCredentials(credentialIssuerTenant, credentialRequest, accessToken);
+
+            InOrder inOrder = inOrder(credentialIssuanceTransactionDao, credentialCreateService);
+            inOrder.verify(credentialIssuanceTransactionDao).insertTransaction(anyString(), eq("cid"), isNull(), anyLong());
+            inOrder.verify(credentialCreateService).createCredentials(any(), anyList(), anyList());
+            verify(subjectCredentialTransactionDao).insertSubjectCredentialTransaction(eq("12345678901"), anyString(), anyLong());
+            verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
         }
 
     }

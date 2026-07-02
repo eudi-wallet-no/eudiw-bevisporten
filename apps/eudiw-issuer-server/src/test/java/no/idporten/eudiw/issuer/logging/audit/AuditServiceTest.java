@@ -13,6 +13,7 @@ import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
+import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.logging.audit.AuditEntry;
@@ -84,7 +85,13 @@ class AuditServiceTest {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId("33");
         NotificationId notificationId = new NotificationId("222");
         JWT jwt = createAccessToken("12345678901");
-        CredentialIssueContext context = new CredentialIssueContext(jwt, junitIssuerTenant(), credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"));
+        CredentialIssueContext context = new CredentialIssueContext(
+                jwt,
+                junitIssuerTenant(),
+                credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"),
+                issuanceTransactionId,
+                CredentialIssuanceType.AUTHORIZATION_CODE
+        );
 
         auditService.logIssueCredentials(context, issuanceTransactionId, 2, notificationId);
 
@@ -174,10 +181,13 @@ class AuditServiceTest {
     @Test
     void testLogIssueCredentialStatus() throws ParseException {
         ArgumentCaptor<AuditEntry> auditEntry = ArgumentCaptor.forClass(AuditEntry.class);
+        IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId("44");
         CredentialIssueContext context = new CredentialIssueContext(
                 createAccessToken("12345678901"),
                 junitIssuerTenant(),
-                credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json")
+                credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"),
+                issuanceTransactionId,
+                CredentialIssuanceType.PRE_AUTHORIZED_CODE
         );
         List<StatusEntry> entries = List.of(
                 new StatusEntry(1, URI.create("https://status.eidas2sandkasse.no/lists/1")),

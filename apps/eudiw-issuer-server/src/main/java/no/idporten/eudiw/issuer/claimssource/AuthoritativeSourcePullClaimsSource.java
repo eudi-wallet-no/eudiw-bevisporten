@@ -2,6 +2,7 @@ package no.idporten.eudiw.issuer.claimssource;
 
 import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSourceService;
+import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ public class AuthoritativeSourcePullClaimsSource extends AbstractPreAuthorizedCl
     }
 
     public List<Claim> issueClaims(CredentialIssueContext credentialIssueContext) {
-        if (credentialIssueContext.transactionId() != null) {
+        if (credentialIssueContext.issuanceType() == CredentialIssuanceType.PRE_AUTHORIZED_CODE) {
             return super.issueClaims(credentialIssueContext);
         }
         CredentialData credentialData = pull(credentialIssueContext);

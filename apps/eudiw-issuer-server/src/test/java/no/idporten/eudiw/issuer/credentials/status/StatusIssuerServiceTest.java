@@ -9,6 +9,7 @@ import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerIntegration;
 import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusService;
+import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,10 +57,13 @@ public class StatusIssuerServiceTest {
     ArgumentCaptor<List<StatusEntry>> statusEntryListCaptor;
 
     private CredentialIssueContext testContext() {
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
         return new CredentialIssueContext(
-                preAuthAccessToken(syntheticPersonIdentifier(), new IssuanceTransactionId()),
+                preAuthAccessToken(syntheticPersonIdentifier(), transactionId),
                 junitIssuerTenant(),
-                junitCredentialConfiguration());
+                junitCredentialConfiguration(),
+                transactionId,
+                CredentialIssuanceType.PRE_AUTHORIZED_CODE);
     }
 
     @BeforeEach
@@ -78,19 +82,6 @@ public class StatusIssuerServiceTest {
         properties.setEnabled(true);
         assertTrue(service.isEnabled(context));
         verifyNoInteractions(statusIssuerIntegration, credentialStatusService);
-    }
-
-    @DisplayName("then status list allocation is disabled when issuance transaction id is missing")
-    @Test
-    void testIsDisabledWithoutIssuanceTransactionId() {
-        when(statusIssuerProperties.isEnabled()).thenReturn(true);
-        CredentialIssueContext context = mock(CredentialIssueContext.class);
-        ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
-        credentialConfiguration.getCredentialIssuerContext().setIncludeStatus(true);
-        when(context.credentialConfiguration()).thenReturn(credentialConfiguration);
-        when(context.transactionId()).thenReturn(null);
-
-        assertFalse(service.isEnabled(context));
     }
 
     @DisplayName("then status entries is allocated by integrating with the status issuer")
