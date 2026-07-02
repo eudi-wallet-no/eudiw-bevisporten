@@ -5,7 +5,9 @@ server:
     context-path: /
 
 spring:
-  thread-executor: virtual
+  threads:
+    virtual:
+      enabled: true
   application:
     name: digital-lommebok-issuer-ui
     environment: default
@@ -57,3 +59,11 @@ digdir:
       filtering:
         static-resources: true
 
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
