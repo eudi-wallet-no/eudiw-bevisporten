@@ -47,3 +47,14 @@ digdir:
 # byob-service: Bring your own bevis service properties
 byob-service:
   api_key: ${BYOB_SERVICE_API_KEY}
+
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
+
+
