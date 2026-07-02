@@ -13,4 +13,5 @@ spec:
   dependsOn:
     - component:digital-lommebok-issuer-server
     - component:digital-lommebok-oauth-server
+    - component:digital-lommebok-byob-service
 
