@@ -103,6 +103,15 @@ oauth-authorization-server:
 oidc-proxy:
   connect-timeout-millis: 5000
   read-timeout-millis: 5000
+
+  # webuild
+  headless-login:
+    enabled: false
+    synthetic_pid:
+    acr:
+    amr:
+    client-ids: [ ]
+
   redirect-uri: ${oauth-authorization-server.issuer}/callback
   oidc-issuer:
     issuer: https://test.idporten.no

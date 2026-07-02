@@ -585,6 +585,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     @Override
     public AuthorizationResponse authorize(PushedAuthorizationRequest pushedAuthorizationRequest, Authorization authorization) {
         String code = generateId();
+
         authorization.setNonce(pushedAuthorizationRequest.getNonce());
         authorization.setCodeChallenge(pushedAuthorizationRequest.getCodeChallenge());
         authorization.setLifetimeSeconds(serverConfiguration.getAuthorizationLifetimeSeconds());
@@ -592,15 +593,17 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         authorization.setAud(calcAudience(pushedAuthorizationRequest));
         authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
         authorization.setIssuerState(pushedAuthorizationRequest.getIssuerState());
+        authorization.setDpopJkt(pushedAuthorizationRequest.getResolvedDpopJkt()); // parse og sjekk også dpop_jkt
+
         if (!hasText(authorization.getAcr())) {
             authorization.setAcr(pushedAuthorizationRequest.getResolvedAcrValue());
         }
 
-        authorization.setDpopJkt(pushedAuthorizationRequest.getResolvedDpopJkt()); // parse og sjekk også dpop_jkt
         validateAuthorization(authorization);
 
         serverConfiguration.getCache().putAuthorization(code, authorization);
         serverConfiguration.getAuditLogger().auditAuthorization(authorization);
+
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
                 .redirectUri(pushedAuthorizationRequest.getRedirectUri())
                 .aud(pushedAuthorizationRequest.getClientId())
@@ -625,7 +628,9 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .errorDescription(errorDescription)
                 .state(pushedAuthorizationRequest.getState())
                 .build();
+
         serverConfiguration.getAuditLogger().auditAuthorizationResponse(authorizationResponse);
+
         return authorizationResponse;
     }
 

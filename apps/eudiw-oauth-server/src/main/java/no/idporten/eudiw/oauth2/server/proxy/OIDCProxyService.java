@@ -143,7 +143,7 @@ public class OIDCProxyService {
                 .attribute("xid", oidcTokens.getIDTokenString())
                 .attribute("xat", oidcTokens.getAccessToken().getValue());
         if(authorizationRequest.getResolvedDpopJkt() != null) {
-             builder.dpopJkt(authorizationRequest.getDpopJkt());
+             builder.dpopJkt(authorizationRequest.getResolvedDpopJkt());
         }
         return builder.build();
     }
