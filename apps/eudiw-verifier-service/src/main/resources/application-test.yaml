@@ -3,6 +3,17 @@ spring:
   application:
     environment: test
 
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-redis-ha-server-0.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-1.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
+
 verifier-service:
   siop2-client-id: verifier-service.test.eidas2sandkasse.net
   external-base-uri: https://verifier-service.test.eidas2sandkasse.net
