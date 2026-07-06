@@ -19,16 +19,15 @@
         <idporten-access-log.version>4.0.1</idporten-access-log.version>
         <idporten-audit-version>4.0.2</idporten-audit-version>
         <idporten-validators.version>1.6.1</idporten-validators.version>
-        <idporten-lib-keystore-spring-boot-4.version>2.0.1</idporten-lib-keystore-spring-boot-4.version>
+        <idporten-lib-keystore-spring-boot-4.version>3.0.0</idporten-lib-keystore-spring-boot-4.version>
         <opentelemetry-api.version>1.63.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <idporten-oidc-server-redis-cache-starter.version>2.0.0</idporten-oidc-server-redis-cache-starter.version>
         <oauth2-oidc-sdk.version>11.37.2</oauth2-oidc-sdk.version>
-        <waltid-mdoc-credentials-jvm.version>0.20.4</waltid-mdoc-credentials-jvm.version>
+        <waltid-mdoc-credentials-jvm.version>0.21.2</waltid-mdoc-credentials-jvm.version>
         <cose-java.version>1.1.1-WALT-SNAPSHOT</cose-java.version>
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
-        <zxing.javase.version>3.5.4</zxing.javase.version>
         <lombok.version>1.18.46</lombok.version>
     </properties>
     <dependencies>
@@ -107,16 +106,6 @@
             <groupId>com.nimbusds</groupId>
             <artifactId>oauth2-oidc-sdk</artifactId>
             <version>${oauth2-oidc-sdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>core</artifactId>
-            <version>${zxing.javase.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-            <version>${zxing.javase.version}</version>
         </dependency>
         <dependency>
             <groupId>id.walt.mdoc-credentials</groupId>

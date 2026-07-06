@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class WalletInteractionService {
 
-    private final WalletInteractionRedisCache openID4VPCache;
+    private final WalletInteractionCache openID4VPCache;
 
-    public WalletInteractionService(WalletInteractionRedisCache openID4VPCache) {
+    public WalletInteractionService(WalletInteractionCache openID4VPCache) {
         this.openID4VPCache = openID4VPCache;
     }
 

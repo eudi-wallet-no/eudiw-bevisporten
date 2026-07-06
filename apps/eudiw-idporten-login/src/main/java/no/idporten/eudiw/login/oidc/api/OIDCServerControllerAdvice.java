@@ -1,4 +1,4 @@
-package no.idporten.eudiw.login.api;
+package no.idporten.eudiw.login.oidc.api;
 
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.protocol.ErrorResponse;

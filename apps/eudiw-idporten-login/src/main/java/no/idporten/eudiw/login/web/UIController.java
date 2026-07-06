@@ -1,19 +1,16 @@
 package no.idporten.eudiw.login.web;
 
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import no.idporten.eudiw.login.openid4vp.OpenID4VPFlow;
+import no.idporten.eudiw.login.openid4vp.OpenID4VPAuthorizationRequests;
 import no.idporten.eudiw.login.openid4vp.OpenID4VPService;
 import no.idporten.eudiw.login.openid4vp.WalletInteraction;
 import no.idporten.eudiw.login.openid4vp.WalletInteractionService;
+import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -22,16 +19,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.awt.image.BufferedImage;
 import java.util.UUID;
 
 /**
- * Handle browser interaction: OIDC frontchannel, OpenID4VP frontchannel, UI.
+ * Handle browser interaction: OIDC front channel, UI with OpenID4VP authorization requests.
  */
 @Controller
 public class UIController {
 
-    private static final String SESSION_ATTRIBUTE_REF = "requri";
+    private static final String SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST = PushedAuthorizationRequest.class.getName();
 
     private final OpenIDConnectIntegration openIDConnectServer;
     private final OpenID4VPService openID4VPService;
@@ -48,41 +44,33 @@ public class UIController {
      */
     @GetMapping("/authorize")
     public String authorize(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request, HttpSession session) {
-        PushedAuthorizationRequest pushedAuthorizationRequest = openIDConnectServer.process(new AuthorizationRequest(headers, parameters));
-        String ref = UUID.randomUUID().toString();
-        openIDConnectServer.getSDKConfiguration().getCache().putAuthorizationRequest(ref, pushedAuthorizationRequest);
+        PushedAuthorizationRequest pushedAuthorizationRequest = openIDConnectServer.process(new no.idporten.sdk.oidcserver.protocol.AuthorizationRequest(headers, parameters));
+        session.setAttribute(SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST, pushedAuthorizationRequest);
         String walletInteractionId = UUID.randomUUID().toString();
-        session.setAttribute(SESSION_ATTRIBUTE_REF , ref);
+        walletInteractionService.removeWalletInteraction(walletInteractionId);
         return "redirect:/login/" + walletInteractionId;
     }
 
     /**
      * Render login page and start polling for wallet result.
      */
-    @GetMapping(path = "/login/{id}", produces = MediaType.TEXT_HTML_VALUE)
-    public String login(@PathVariable String id, Model model, HttpSession session) {
-        // sjekk om har ein session (ref cookie)
-        String ref = (String) session.getAttribute(SESSION_ATTRIBUTE_REF);
-        final WalletInteraction walletInteraction = walletInteractionService.getWalletInteraction(id);
+    @GetMapping(path = "/login/{walletInteractionId}", produces = MediaType.TEXT_HTML_VALUE)
+    public String login(@PathVariable String walletInteractionId, Model model, HttpSession session) throws Exception {
+        PushedAuthorizationRequest pushedAuthorizationRequest = (PushedAuthorizationRequest) session.getAttribute(SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST);
+        if (pushedAuthorizationRequest == null) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid application session", HttpStatus.BAD_REQUEST.value());
+        }
+        final WalletInteraction walletInteraction = walletInteractionService.getWalletInteraction(walletInteractionId);
         if (walletInteraction == null) {
-            walletInteractionService.startWalletInteraction(id);
-            com.nimbusds.oauth2.sdk.AuthorizationRequest sameDeviceRequest = openID4VPService.createAuthorizationRequest(OpenID4VPFlow.same_device, id);
-            model.addAttribute("sameDeviceRequest", sameDeviceRequest.toURI().toString());
-            model.addAttribute("walletInteractionId", id);
+            walletInteractionService.startWalletInteraction(walletInteractionId);
+            OpenID4VPAuthorizationRequests authorizationRequests = openID4VPService.startVerification(walletInteractionId);
+            model.addAttribute("authorizationRequests", authorizationRequests);
+            model.addAttribute("walletInteractionId", walletInteractionId);
             return "login";
         } else {
-            PushedAuthorizationRequest pushedAuthorizationRequest = openIDConnectServer.getSDKConfiguration().getCache().getAuthorizationRequest(ref);
-            Authorization authorization = Authorization.builder()
-                    .sub(walletInteraction.getPersonIdentifier())
-                    .acr(pushedAuthorizationRequest.getResolvedAcrValue())
-                    .amr("EUDIW")
-                    .build();
-            AuthorizationResponse authorizationResponse = openIDConnectServer.authorize(pushedAuthorizationRequest, authorization);
-            RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(authorizationResponse);
-
-            walletInteractionService.removeWalletInteraction(id);
-            // return Response.status(302).location(response.toQueryRedirectUri()).cookie(null).build();
-            return "redirect:" + response.toQueryRedirectUri();
+            RedirectedResponse clientResponse = (RedirectedResponse) openID4VPService.completeAuthentication(pushedAuthorizationRequest, walletInteraction);
+            session.invalidate();
+            return "redirect:" + clientResponse.toQueryRedirectUri();
         }
     }
 
@@ -91,27 +79,15 @@ public class UIController {
      */
     @GetMapping(path = "/cancel", produces = MediaType.TEXT_HTML_VALUE)
     public String cancel(HttpSession session) {
-        String ref = (String) session.getAttribute(SESSION_ATTRIBUTE_REF);
-        PushedAuthorizationRequest pushedAuthorizationRequest = openIDConnectServer.getSDKConfiguration().getCache().getAuthorizationRequest(ref);
+        PushedAuthorizationRequest pushedAuthorizationRequest = (PushedAuthorizationRequest) session.getAttribute(SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST);
+        session.invalidate();
+        if (pushedAuthorizationRequest == null) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid application session", HttpStatus.BAD_REQUEST.value());
+        }
         AuthorizationResponse errorResponse = openIDConnectServer.errorResponse(pushedAuthorizationRequest, "access_denied", "User cancelled authentication with EU Digital Identity Wallet");
         RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(errorResponse);
         return "redirect:" + response.toQueryRedirectUri();
     }
 
-    /**
-     * Create a QR code for cross-device login request.
-     */
-    @GetMapping(path = "/login/qrcode/{id}", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<BufferedImage> qrCode(@PathVariable("id") String id) throws Exception {
-        com.nimbusds.oauth2.sdk.AuthorizationRequest crossDeviceRequest = openID4VPService.createAuthorizationRequest(OpenID4VPFlow.cross_device, id);
-        return ResponseEntity.ok(createQRCodeImage(crossDeviceRequest.toURI().toString(), 200, 200, "PNG"));
-    }
-
-    private BufferedImage createQRCodeImage(String text, int width, int height, String format) throws Exception {
-        QRCodeWriter barcodeWriter = new QRCodeWriter();
-        BitMatrix bitMatrix =
-                barcodeWriter.encode(text, BarcodeFormat.QR_CODE, width, height);
-        return MatrixToImageWriter.toBufferedImage(bitMatrix);
-    }
 
 }
