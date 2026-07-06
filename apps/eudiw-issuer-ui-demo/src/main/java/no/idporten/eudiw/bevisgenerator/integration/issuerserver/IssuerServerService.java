@@ -6,6 +6,7 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeRequest;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
 import no.idporten.lib.maskinporten.client.AccessTokenRequestOverrides;
@@ -85,6 +86,16 @@ public class IssuerServerService {
                 .getValue();
     }
 
+    private String createAccessToken(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+        return maskinportenClient.getAccessToken(
+                AccessTokenRequestOverrides.builder()
+                        .personIdentifier(StringUtils.hasText(subjectIdentifier) ? subjectIdentifier : null)
+                        .scopes(List.of(credentialConfiguration.scope()))
+                        .resources(Collections.singletonList(credentialConfiguration.credentialIssuer()))
+                        .build())
+                .getValue();
+    }
+
     public IssuanceResponse startIssuance(CredentialConfiguration credentialConfiguration, StartIssuanceForm json) {
         String issuanceEndpoint = credentialConfiguration.credentialIssuer() + issuerServerProperties.issuanceEndpoint();
         String accessToken = createAccessToken(credentialConfiguration, json);
@@ -128,6 +139,34 @@ public class IssuerServerService {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
         } catch (HttpServerErrorException e) {
             throw new IssuerServerException("Revoke credential failed for issuance_transaction_id=" + issuanceTransactionId, e);
+        }
+    }
+
+    public void revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke/by-subject";
+        String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
+        RevokeBySubjectRequest request = new RevokeBySubjectRequest(
+                credentialConfiguration.credentialConfigurationId(),
+                subjectIdentifier
+        );
+
+        try {
+            restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException(
+                    "Revoke credential by subject failed for credential_configuration_id="
+                            + credentialConfiguration.credentialConfigurationId(),
+                    e
+            );
         }
     }
 
