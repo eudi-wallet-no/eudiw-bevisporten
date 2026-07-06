@@ -4,10 +4,10 @@ import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
 import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
-import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusService;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerIntegration;
 import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,5 +82,4 @@ public class StatusIssuerService {
             auditService.logRevokeCredential(context, Collections.emptyList(), status);
         }
     }
-
 }

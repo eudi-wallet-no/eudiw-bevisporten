@@ -20,7 +20,7 @@ public class IssuerServerException extends RuntimeException {
         this(errorCode, errorDescription, logMessage, null);
     }
 
-    private IssuerServerException(ErrorCode errorCode, String errorDescription, String logMessage, Throwable cause) {
+    protected IssuerServerException(ErrorCode errorCode, String errorDescription, String logMessage, Throwable cause) {
         super(errorDescription, cause);
         this.error = errorCode.error();
         this.httpStatus = errorCode.httpStatus();
