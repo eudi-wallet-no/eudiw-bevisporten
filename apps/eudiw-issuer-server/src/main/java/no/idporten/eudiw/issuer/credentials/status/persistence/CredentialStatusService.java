@@ -66,6 +66,12 @@ public class CredentialStatusService {
         return toCredentialStatusInfo(transactionEntity, statusListEntries);
     }
 
+    @Transactional
+    public void markCredentialRevoked(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId) {
+        long now = System.currentTimeMillis();
+        issuanceTransactionDao.updateRevokedMs(transactionId.getValue(), tenant.getId(), now, now);
+    }
+
     private CredentialStatusInfo toCredentialStatusInfo(
             CredentialIssuanceTransactionEntity transaction,
             List<StatusListEntryEntity> statusListEntries
@@ -82,4 +88,3 @@ public class CredentialStatusService {
         );
     }
 }
-

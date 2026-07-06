@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.api.issuance;
+package no.idporten.eudiw.issuer.api.revoke;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @Schema(description = "Credential revoke request", title = "Credential revoke request", type = "object")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record CredentialRevokeRequest(
+public record PreAuthCredentialRevokeRequest(
         @Schema(description = "Credential configuration identifier.  See credential issuer metadata.", example = "some.known.credential_mso_mdoc")
         @JsonProperty("credential_configuration_id")
         @NotBlank(message = "credential_configuration_id must have a value")

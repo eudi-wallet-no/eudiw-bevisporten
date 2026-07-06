@@ -23,7 +23,7 @@ public class CredentialIssuanceTransactionDao {
             String credentialIssuerTenant
     ) {
         return jdbc.query("""
-                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id
+                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id, revoked_ms
                         FROM credential_issuance_transaction
                         WHERE issuance_transaction_id = ?
                           AND credential_configuration_id = ?
@@ -41,7 +41,7 @@ public class CredentialIssuanceTransactionDao {
             String credentialIssuerTenant
     ) {
         return jdbc.query("""
-                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id
+                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id, revoked_ms
                         FROM credential_issuance_transaction
                         WHERE issuance_transaction_id = ?
                           AND credential_issuer_tenant = ?
@@ -54,7 +54,7 @@ public class CredentialIssuanceTransactionDao {
 
     public Optional<CredentialIssuanceTransactionEntity> findByNotificationId(String notificationId) {
         return jdbc.query("""
-                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id
+                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id, revoked_ms
                         FROM credential_issuance_transaction
                         WHERE notification_id = ?
                         """,
@@ -111,6 +111,20 @@ public class CredentialIssuanceTransactionDao {
         );
     }
 
+    public void updateRevokedMs(String issuanceTransactionId, String credentialIssuerTenant, long revokedMs, long updatedMs) {
+        jdbc.update("""
+                        UPDATE credential_issuance_transaction
+                        SET revoked_ms = ?, updated_ms = ?
+                        WHERE issuance_transaction_id = ?
+                          AND credential_issuer_tenant = ?
+                        """,
+                revokedMs,
+                updatedMs,
+                issuanceTransactionId,
+                credentialIssuerTenant
+        );
+    }
+
     public void updateUpdatedMs(long id, long updatedMs) {
         int updatedRows = jdbc.update("""
                         UPDATE credential_issuance_transaction
@@ -135,7 +149,8 @@ public class CredentialIssuanceTransactionDao {
                 rs.getLong("created_ms"),
                 rs.getLong("updated_ms"),
                 rs.getString("status"),
-                rs.getString("notification_id")
+                rs.getString("notification_id"),
+                rs.getObject("revoked_ms", Long.class)
         );
     }
 
@@ -143,7 +158,7 @@ public class CredentialIssuanceTransactionDao {
     
     public Optional<CredentialIssuanceTransactionEntity> findByIssuanceTransactionId(String issuanceTransactionId) {
         return jdbc.query("""
-                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id
+                        SELECT id, issuance_transaction_id, credential_configuration_id, credential_issuer_tenant, created_ms, updated_ms, status, notification_id, revoked_ms
                         FROM credential_issuance_transaction
                         WHERE issuance_transaction_id = ?
                         """,

@@ -66,6 +66,16 @@ public class StatusIssuerServiceTest {
                 CredentialIssuanceType.PRE_AUTHORIZED_CODE);
     }
 
+    private CredentialIssueContext authorizationCodeContext() {
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        return new CredentialIssueContext(
+                accessToken(syntheticPersonIdentifier()),
+                junitIssuerTenant(),
+                junitCredentialConfiguration(),
+                transactionId,
+                CredentialIssuanceType.AUTHORIZATION_CODE);
+    }
+
     @BeforeEach
     void setUp() {
         reset(statusIssuerIntegration, credentialStatusService);
@@ -77,6 +87,19 @@ public class StatusIssuerServiceTest {
         StatusIssuerProperties properties = new StatusIssuerProperties();
         StatusIssuerService service = new StatusIssuerService(properties, null, credentialStatusService, auditService);
         CredentialIssueContext context = testContext();
+        context.credentialConfiguration().getCredentialIssuerContext().setIncludeStatus(true);
+        assertFalse(service.isEnabled(context));
+        properties.setEnabled(true);
+        assertTrue(service.isEnabled(context));
+        verifyNoInteractions(statusIssuerIntegration, credentialStatusService);
+    }
+
+    @DisplayName("then feature switch also applies to authorization code flow")
+    @Test
+    void testFeatureSwitchForAuthorizationCodeFlow() {
+        StatusIssuerProperties properties = new StatusIssuerProperties();
+        StatusIssuerService service = new StatusIssuerService(properties, null, credentialStatusService, auditService);
+        CredentialIssueContext context = authorizationCodeContext();
         context.credentialConfiguration().getCredentialIssuerContext().setIncludeStatus(true);
         assertFalse(service.isEnabled(context));
         properties.setEnabled(true);
@@ -126,6 +149,7 @@ public class StatusIssuerServiceTest {
         );
         verify(auditService).logRevokeCredential(any(), statusEntryListCaptor.capture(), eq("INVALID"));
         assertEquals(1, statusEntryListCaptor.getValue().size());
+        verify(credentialStatusService).markCredentialRevoked(tenant, transactionId);
     }
 
     @DisplayName("then revoking with a non-matching credential configuration id is not allowed")

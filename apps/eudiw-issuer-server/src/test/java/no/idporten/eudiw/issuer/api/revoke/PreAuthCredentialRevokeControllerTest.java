@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.api.issuance;
+package no.idporten.eudiw.issuer.api.revoke;
 
 import no.idporten.eudiw.issuer.context.CredentialRevokeContext;
 import no.idporten.eudiw.issuer.credentials.status.StatusIssuerService;
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("junit")
 @SpringBootTest
 @ExtendWith(MockitoExtension.class)
-public class CredentialRevokeControllerTest {
+public class PreAuthCredentialRevokeControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

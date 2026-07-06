@@ -64,6 +64,17 @@ class CredentialIssuanceTransactionDaoTest {
         assertEquals("tx-notif", found.getIssuanceTransactionId());
     }
 
+    @DisplayName("then revoked_ms is stored when revoke is marked")
+    @Test
+    void updateRevokedMs() {
+        long now = System.currentTimeMillis();
+        dao.insertTransaction("tx-revoked", "pid", "junit", now);
+        dao.updateRevokedMs("tx-revoked", "junit", now + 5, now + 5);
+
+        CredentialIssuanceTransactionEntity entity = dao.findByIssuanceTransactionId("tx-revoked").orElseThrow();
+        assertEquals(now + 5, entity.getRevokedMs());
+    }
+
     @DisplayName("then lookup returns empty for unknown notification_id")
     @Test
     void lookupUnknownNotificationId() {

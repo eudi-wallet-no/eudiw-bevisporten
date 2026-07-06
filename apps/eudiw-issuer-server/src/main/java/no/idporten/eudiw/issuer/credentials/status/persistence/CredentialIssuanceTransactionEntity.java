@@ -15,6 +15,7 @@ public class CredentialIssuanceTransactionEntity {
     private long updatedMs;
     private String status;
     private String notificationId;
+    private Long revokedMs;
 
     public CredentialIssuanceTransactionEntity(
             Long id,
@@ -24,7 +25,8 @@ public class CredentialIssuanceTransactionEntity {
             long createdMs,
             long updatedMs,
             String status,
-            String notificationId
+            String notificationId,
+            Long revokedMs
     ) {
         this.id = id;
         this.issuanceTransactionId = issuanceTransactionId;
@@ -34,9 +36,10 @@ public class CredentialIssuanceTransactionEntity {
         this.updatedMs = updatedMs;
         this.status = status;
         this.notificationId = notificationId;
+        this.revokedMs = revokedMs;
     }
 
     public CredentialIssuanceTransactionEntity(String issuanceTransactionId, String credentialConfigurationId, String credentialIssuerTenant, long createdMs, long updatedMs) {
-        this(null, issuanceTransactionId, credentialConfigurationId, credentialIssuerTenant, createdMs, updatedMs, null, null);
+        this(null, issuanceTransactionId, credentialConfigurationId, credentialIssuerTenant, createdMs, updatedMs, null, null, null);
     }
 }

@@ -4,6 +4,8 @@
     "credential_datasource_uri": "authoritative-source://freg",
     "credential_signing_keystore": "pid-provider",
     "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "include_status": true,
     "grant_type": "authorization_code"
   },
   "credential_type": "urn:eudi:pid:1",

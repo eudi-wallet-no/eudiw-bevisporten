@@ -76,6 +76,7 @@ public class StatusIssuerService {
                             .stream()
                             .map(entry -> new UpdatedStatusEntry(entry, status))
                             .toList());
+            credentialStatusService.markCredentialRevoked(context.credentialIssuerTenant(), context.transactionId());
             auditService.logRevokeCredential(context, credentialStatusInfo.statusEntries(), status);
         } else {
             log.info("No credential status info found for transaction id {}, cannot revoke status", context.transactionId());

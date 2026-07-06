@@ -4,6 +4,7 @@
     "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.JUnitClaimsSource",
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "junit",
+    "include_status": true,
     "grant_type": "authorization_code"
   },
   "credential_type": "junitdoc",

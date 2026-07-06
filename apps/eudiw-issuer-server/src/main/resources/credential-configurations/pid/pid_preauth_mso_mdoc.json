@@ -9,7 +9,7 @@
   },
   "credential_type": "eu.europa.ec.eudi.pid.1",
   "format": "mso_mdoc",
-  "scope": "eudiw:eidas2sandkasse:dynamicvc",
+  "scope": "eudiw:no:pid",
   "credential_metadata": {
     "display": [
       {

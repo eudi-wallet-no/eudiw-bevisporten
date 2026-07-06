@@ -1,4 +1,4 @@
-package no.idporten.eudiw.issuer.api.issuance;
+package no.idporten.eudiw.issuer.api.revoke;
 
 import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,14 +30,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = SwaggerConfiguration.API_TAG, description = SwaggerConfiguration.API_DESCRIPTION)
 @RestController
-public class CredentialRevokeController {
+public class PreAuthCredentialRevokeController {
 
     private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final StatusIssuerService statusIssuerService;
 
-    public CredentialRevokeController(CredentialIssuerTenantService credentialIssuerTenantService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, StatusIssuerService statusIssuerService) {
+    public PreAuthCredentialRevokeController(CredentialIssuerTenantService credentialIssuerTenantService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, StatusIssuerService statusIssuerService) {
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
@@ -45,27 +45,70 @@ public class CredentialRevokeController {
     }
 
     @Operation(
-            summary = "Revoke credential",
-            description = "Revoke credential.",
+            summary = "Revoke credential for pre-authorized code flow",
+            description = "Revoke credential in the pre-authorized code flow.",
             tags = {SwaggerConfiguration.API_TAG},
             security = {@SecurityRequirement(name = "Maskinporten")}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Credential revoked."),
     })
-    @PutMapping(path = {Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_ENDPOINT, Endpoints.CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> revokeEndpoint(
+    @PutMapping(path = {Endpoints.PRE_AUTH_CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_ENDPOINT, Endpoints.PRE_AUTH_CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> revokePreAuthEndpoint(
             @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
-            @Valid @RequestBody CredentialRevokeRequest credentialRevokeRequest,
+            @Valid @RequestBody PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest,
             HttpServletRequest request) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
-        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forBearerToken(request, authorizationServerService.getPreAuthorizationServers(), credentialIssuerTenant.getCredentialIssuer()));
-        ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(credentialRevokeRequest.credentialConfigurationId());
-        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forPreAuthorization(credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer(), credentialConfiguration.getScope()));
-        CredentialRevokeContext context = new CredentialRevokeContext(accessToken, credentialIssuerTenant, credentialConfiguration, new IssuanceTransactionId(credentialRevokeRequest.issuanceTransactionId()));
+        ValidatedPreAuthRevokeRequestContext validatedPreAuthRevokeRequestContext = validatePreAuthRevokeRequest(
+                request,
+                credentialIssuerTenant,
+                preAuthCredentialRevokeRequest
+        );
+
+        CredentialRevokeContext context = new CredentialRevokeContext(
+                validatedPreAuthRevokeRequestContext.accessToken(),
+                credentialIssuerTenant,
+                validatedPreAuthRevokeRequestContext.credentialConfiguration(),
+                new IssuanceTransactionId(preAuthCredentialRevokeRequest.issuanceTransactionId())
+        );
+
         statusIssuerService.revokeStatus(context);
+
         return ResponseEntity.noContent().build();
+    }
+
+    /* private */
+
+    private ValidatedPreAuthRevokeRequestContext validatePreAuthRevokeRequest(
+            HttpServletRequest request,
+            CredentialIssuerTenant credentialIssuerTenant,
+            PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest
+    ) {
+        JWT accessToken = accessTokenValidationService.validateAccessToken(
+                AccessTokenValidationContext.forBearerToken(
+                        request,
+                        authorizationServerService.getPreAuthorizationServers(),
+                        credentialIssuerTenant.getCredentialIssuer()
+                )
+        );
+        ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(
+                preAuthCredentialRevokeRequest.credentialConfigurationId()
+        );
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(
+                accessToken,
+                AccessTokenCredentialValidationContext.forPreAuthorization(
+                        credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationServer(),
+                        credentialConfiguration.getScope()
+                )
+        );
+        return new ValidatedPreAuthRevokeRequestContext(accessToken, credentialConfiguration);
+    }
+
+    private record ValidatedPreAuthRevokeRequestContext(
+            JWT accessToken,
+            ExtendedCredentialConfiguration credentialConfiguration
+    ) {
     }
 
 }

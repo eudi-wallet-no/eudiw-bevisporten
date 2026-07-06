@@ -36,6 +36,9 @@ public class AuthorizationServerService implements InitializingBean {
      * Find an authorization server by id/logical name.
      */
     public AuthorizationServer findAuthorizationServerById(String id) {
+        if (id == null) {
+            throw new InvalidAccessTokenException("Missing authorization server id.");
+        }
         return findAuthorizationServer((authorizationServer) -> id.equals(authorizationServer.getId()), credentialIssuerServerProperties.getAuthorizationServers());
     }
 
@@ -43,6 +46,9 @@ public class AuthorizationServerService implements InitializingBean {
      * Find a pre-authorization server by id/logical name.
      */
     public AuthorizationServer findPreAuthorizationServerById(String id) {
+        if (id == null) {
+            throw new InvalidAccessTokenException("Missing pre-authorization server id.");
+        }
         return findAuthorizationServer((authorizationServer) -> id.equals(authorizationServer.getId()), credentialIssuerServerProperties.getPreAuthorizationServers());
     }
 

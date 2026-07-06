@@ -22,7 +22,7 @@ public class SwaggerConfiguration {
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
                                 .description("Maskinporten access token.  Must have credential issuer as single audience, be end-user restricted, and contain scope for credential configuration.")))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                .addSecurityItem(new SecurityRequirement().addList("Maskinporten"));
     }
 
 }
