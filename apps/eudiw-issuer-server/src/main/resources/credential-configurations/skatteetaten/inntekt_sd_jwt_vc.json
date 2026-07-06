@@ -4,6 +4,7 @@
     "credential_datasource_uri": "authoritative-source://skatteetaten",
     "credential_signing_keystore": "eaa-provider",
     "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
     "grant_type": "authorization_code",
     "validity_days": 180
   },
