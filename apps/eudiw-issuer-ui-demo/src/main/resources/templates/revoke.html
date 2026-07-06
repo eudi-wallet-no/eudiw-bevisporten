@@ -16,10 +16,10 @@
     </div>
 
     <div class="ds-card" style="max-width: 900px">
-        <h2 class="ds-heading" data-size="sm">Manuell revokering</h2>
+        <h2 class="ds-heading" data-size="sm">Manuell revokering med tx_id</h2>
 
-        <p th:if="${successMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${successMessage}"></p>
-        <p th:if="${errorMessage}" class="ds-validation-message" th:text="${errorMessage}"></p>
+        <p th:if="${txIdSuccessMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${txIdSuccessMessage}"></p>
+        <p th:if="${txIdErrorMessage}" class="ds-validation-message" th:text="${txIdErrorMessage}"></p>
 
         <form id="revoke-form"
               class="form-container"
@@ -61,6 +61,56 @@
                       class="ds-validation-message"
                       th:errors="*{issuanceTransactionId}"></span>
             </div>
+            <div class="button-group">
+                <button class="ds-button"
+                        type="submit"
+                        data-variant="primary">
+                    Revoker
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="ds-card" style="max-width: 900px; margin-top: var(--ds-size-5);">
+        <h2 class="ds-heading" data-size="sm">Manuell revokering med subject</h2>
+
+        <p th:if="${subjectSuccessMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${subjectSuccessMessage}"></p>
+        <p th:if="${subjectErrorMessage}" class="ds-validation-message" th:text="${subjectErrorMessage}"></p>
+
+        <form id="revoke-by-subject-form"
+              class="form-container"
+              th:object="${revokeBySubjectForm}"
+              th:action="@{/revoke/by-subject}"
+              method="POST">
+
+            <div class="ds-field">
+                <label for="subjectCredentialConfigurationId"
+                       data-weight="medium"
+                       class="ds-label">
+                    Credential configuration
+                </label>
+                <select id="subjectCredentialConfigurationId"
+                        class="ds-input"
+                        th:field="*{credentialConfigurationId}">
+                    <option value="">Velg</option>
+                    <option th:each="credentialConfiguration : ${credentialConfigurations}"
+                            th:value="${credentialConfiguration.credentialConfigurationId()}"
+                            th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="ds-field">
+                <label for="subjectIdentifier"
+                       data-weight="medium"
+                       class="ds-label">
+                    Subject
+                </label>
+                <input id="subjectIdentifier"
+                       class="ds-input"
+                       th:field="*{subjectIdentifier}" />
+            </div>
+
             <div class="button-group">
                 <button class="ds-button"
                         type="submit"
