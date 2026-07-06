@@ -1,7 +1,6 @@
 package no.idporten.eudiw.login.openid4vp;
 
 import no.idporten.eudiw.login.openid4vp.verifier.VerifierServiceIntegration;
-import no.idporten.eudiw.login.openid4vp.verifier.model.DcqlQuery;
 import no.idporten.eudiw.login.openid4vp.verifier.model.StartVerificationRequest;
 import no.idporten.eudiw.login.openid4vp.verifier.model.StartVerificationResponse;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationResultResponse;
@@ -9,6 +8,8 @@ import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 /**
  * Service creating and verifying OpenID4VP requests and responses.
@@ -30,30 +31,17 @@ public class OpenID4VPService {
     /**
      * Creates OpenID4VP authorization request for EUDIW PID presentation.  Users verifier service.
      *
-     * @param state
+     * @param verificationHandler verification handler
+     * @param walletInteractionId
      * @return OpenID4VP authorization request
      * @throws Exception
      */
-    public OpenID4VPAuthorizationRequests startVerification(String state) throws Exception {
-        String dcqlQueryJson = """
-                {
-                  "credentials" : [ {
-                    "meta" : {
-                      "doctype_value" : "eu.europa.ec.eudi.pid.1"
-                    },
-                    "format" : "mso_mdoc",
-                    "claims" : [ {
-                      "path" : [ "eu.europa.ec.eudi.pid.1", "personal_administrative_number" ]
-                    } ],
-                    "id" : "pid"
-                  }
-                 ]
-                }""";
+    public OpenID4VPAuthorizationRequests startVerification(VerificationHandler verificationHandler, String walletInteractionId) throws Exception {
         StartVerificationRequest startVerificationRequest = new StartVerificationRequest(
-                DcqlQuery.parse(dcqlQueryJson),
-                UriComponentsBuilder.fromUri(openIDConnectServer.getSDKConfiguration().getIssuer()).pathSegment("login", state).build().toUri());
+                verificationHandler.createDcqlQuery(walletInteractionId),
+                createRedirectUri(walletInteractionId));
         StartVerificationResponse startVerificationResponse = verifierServiceIntegration.startVerification(VERIFIER_CLIENT_APPLICATION_ID, startVerificationRequest);
-        WalletInteraction walletInteraction = walletInteractionService.getWalletInteraction(state);
+        WalletInteraction walletInteraction = walletInteractionService.getWalletInteraction(walletInteractionId);
         walletInteraction.setVerifierTransactionId(startVerificationResponse.verifierTransactionId());
         walletInteractionService.updateWalletInteraction(walletInteraction);
         return new OpenID4VPAuthorizationRequests(
@@ -62,22 +50,18 @@ public class OpenID4VPService {
         );
     }
 
+    private URI createRedirectUri(String walletInteractionId) {
+        return UriComponentsBuilder.fromUri(openIDConnectServer.getSDKConfiguration().getIssuer()).pathSegment("login", walletInteractionId).build().toUri();
+    }
+
     /**
      * Fetches result of PID presentation and authorizes the user with the embedded OIDC server.
      *
      * @return OIDC authorization response for client application
      */
-    public ClientResponse completeAuthentication(PushedAuthorizationRequest pushedAuthorizationRequest, WalletInteraction walletInteraction) throws Exception {
+    public Authorization completeVerification(VerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
         VerificationResultResponse verificationResultResponse = verifierServiceIntegration.retrieveVerifiedCredentials(VERIFIER_CLIENT_APPLICATION_ID, walletInteraction.getVerifierTransactionId());
-        Authorization authorization = Authorization.builder()
-                .sub(verificationResultResponse.credentials().get("pid").getFirst().claims().get("personal_administrative_number").toString())
-                .acr(pushedAuthorizationRequest.getResolvedAcrValue())
-                .amr("EUDIW")
-                .build();
-        AuthorizationResponse authorizationResponse = openIDConnectServer.authorize(pushedAuthorizationRequest, authorization);
-        RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(authorizationResponse);
-        walletInteractionService.removeWalletInteraction(walletInteraction.getId());
-        return response;
+        return verificationHandler.completeVerification(verificationResultResponse.credentials().get(walletInteraction.getId()).getFirst());
     }
 
 }
