@@ -2,10 +2,8 @@ package no.idporten.eudiw.login.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import no.idporten.eudiw.login.openid4vp.OpenID4VPAuthorizationRequests;
-import no.idporten.eudiw.login.openid4vp.OpenID4VPService;
-import no.idporten.eudiw.login.openid4vp.WalletInteraction;
-import no.idporten.eudiw.login.openid4vp.WalletInteractionService;
+import no.idporten.eudiw.login.AcrValue;
+import no.idporten.eudiw.login.openid4vp.*;
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.*;
@@ -63,14 +61,17 @@ public class UIController {
         final WalletInteraction walletInteraction = walletInteractionService.getWalletInteraction(walletInteractionId);
         if (walletInteraction == null) {
             walletInteractionService.startWalletInteraction(walletInteractionId);
-            OpenID4VPAuthorizationRequests authorizationRequests = openID4VPService.startVerification(walletInteractionId);
+            OpenID4VPAuthorizationRequests authorizationRequests = openID4VPService.startVerification(VerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteractionId);
             model.addAttribute("authorizationRequests", authorizationRequests);
             model.addAttribute("walletInteractionId", walletInteractionId);
             return "login";
         } else {
-            RedirectedResponse clientResponse = (RedirectedResponse) openID4VPService.completeAuthentication(pushedAuthorizationRequest, walletInteraction);
+            Authorization authorization = openID4VPService.completeVerification(VerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
+            AuthorizationResponse authorizationResponse = openIDConnectServer.authorize(pushedAuthorizationRequest, authorization);
+            RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(authorizationResponse);
+            walletInteractionService.removeWalletInteraction(walletInteraction.getId());
             session.invalidate();
-            return "redirect:" + clientResponse.toQueryRedirectUri();
+            return "redirect:" + response.toQueryRedirectUri();
         }
     }
 

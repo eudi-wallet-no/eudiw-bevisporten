@@ -25,8 +25,6 @@ public class OIDCServerProperties {
 
     List<String> uiLocales = List.of("nb", "nn", "en", "se");
 
-    List<String> acrValues = List.of("idporten-loa-substantial", "idporten-loa-high");
-
     List<String> scopesSupported = List.of("openid");
 
     List<String> responseModesSupported = List.of("query", "query.jwt");

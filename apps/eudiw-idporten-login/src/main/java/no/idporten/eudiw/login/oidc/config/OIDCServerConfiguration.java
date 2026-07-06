@@ -4,6 +4,7 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import no.digdir.oidc.redis.service.RedisOpenIDConnectCache;
+import no.idporten.eudiw.login.AcrValue;
 import no.idporten.lib.keystore.KeystoreConfig;
 import no.idporten.lib.keystore.KeystoreManager;
 import no.idporten.lib.keystore.spring.KeystoreConfigurationProperties;
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Configuration
@@ -45,7 +47,7 @@ public class OIDCServerConfiguration {
                                         .redirectUris(clientMetadataProperties.getRedirectUris())
                                         .scopes(clientMetadataProperties.getScopes())
                                         .build()).toList())
-                        .acrValues(oidcServerProperties.getAcrValues())
+                        .acrValues(Arrays.stream(AcrValue.values()).map(AcrValue::value).toList())
                         .responseModes(oidcServerProperties.getResponseModesSupported())
                         .scopesSupported(oidcServerProperties.getScopesSupported())
                         .uiLocales(oidcServerProperties.getUiLocales())

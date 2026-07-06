@@ -79,9 +79,6 @@ eudiw-idporten-login:
       - query.jwt
     scopes-supported:
       - openid
-    acr-values:
-      - idporten-loa-substantial
-      - idporten-loa-high
     ui-locales:
       - nb
     clients:
