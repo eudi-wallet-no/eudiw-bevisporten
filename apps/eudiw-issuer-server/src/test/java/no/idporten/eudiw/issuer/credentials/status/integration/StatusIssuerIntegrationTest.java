@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.credentials.status.integration;
 
-import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
+import no.idporten.eudiw.issuer.claimssource.exception.StatusListException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -79,12 +79,13 @@ public class StatusIssuerIntegrationTest {
 
         @DisplayName("then error responses will deny credential issuance")
         @Test
-        void test4xxResponseGivesCredentialRequestDeniedException() {
+        void test4xxResponseGivesStatusListException() {
             final String errorResponse = """
                     {
                         "error": "invalid_something",
                         "error_description": "Something"
                     }""";
+
             customizer.getServer()
                     .expect(requestTo("/status-issuer/api/v1/entries"))
                     .andExpect(method(HttpMethod.POST))
@@ -93,13 +94,15 @@ public class StatusIssuerIntegrationTest {
                             withStatus(HttpStatus.BAD_REQUEST)
                                     .body(errorResponse).
                                     contentType(MediaType.APPLICATION_JSON));
-            CredentialRequestDeniedException e = assertThrows(
-                    CredentialRequestDeniedException.class,
+
+            StatusListException e = assertThrows(
+                    StatusListException.class,
                     () -> statusIssuerIntegration.allocateStatusEntries(100));
+
             customizer.getServer().verify();
             assertAll(
                     () -> assertEquals("credential_request_denied", e.getError()),
-                    () -> assertTrue(e.getMessage().contains("Failed to allocate status entry from status issuer"))
+                    () -> assertTrue(e.getMessage().contains("Failed to allocate status for credential"))
             );
         }
 
@@ -129,6 +132,35 @@ public class StatusIssuerIntegrationTest {
             statusIssuerIntegration.updateStatusEntries(statusEntries);
             customizer.getServer().verify();
         }
-    }
 
+        @DisplayName("then updating a status entry from INVALID to VALID throws exception")
+        @Test
+        void testUpdateStatusEntriesThrowsWhenUpdatingPreviouslyInvalidStatusToValid() {
+            UpdatedStatusEntry validStatusEntry = new UpdatedStatusEntry(
+                    1,
+                    URI.create("https://junit.status.eidas2sandkasse.dev/lists/1"),
+                    "VALID"
+            );
+
+            customizer.getServer()
+                    .expect(requestTo("/status-issuer/api/v1/entries"))
+                    .andExpect(method(HttpMethod.PUT))
+                    .andExpect(jsonPath("$.status_list_entries[0].idx").value(1))
+                    .andExpect(jsonPath("$.status_list_entries[0].uri").value("https://junit.status.eidas2sandkasse.dev/lists/1"))
+                    .andExpect(jsonPath("$.status_list_entries[0].status_type").value("VALID"))
+                    .andRespond(withStatus(HttpStatus.BAD_REQUEST)
+                            .contentType(MediaType.APPLICATION_JSON));
+
+            StatusListException e = assertThrows(
+                    StatusListException.class,
+                    () -> statusIssuerIntegration.updateStatusEntries(List.of(validStatusEntry))
+            );
+
+            customizer.getServer().verify();
+            assertAll(
+                    () -> assertEquals("credential_request_denied", e.getError()),
+                    () -> assertTrue(e.getMessage().contains("Failed to update status for credential"))
+            );
+        }
+    }
 }

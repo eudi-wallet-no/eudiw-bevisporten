@@ -1,6 +1,6 @@
 package no.idporten.eudiw.issuer.credentials.status.integration;
 
-import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
+import no.idporten.eudiw.issuer.claimssource.exception.StatusListException;
 import no.idporten.eudiw.issuer.credentials.status.StatusIssuerProperties;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.HttpStatusCode;
@@ -32,15 +32,15 @@ public class StatusIssuerIntegration implements InitializingBean {
                     .uri("/status-issuer/api/v1/entries")
                     .body(statusEntriesRequest)
                     .retrieve()
-                    .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(response))
-                    .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleErrorResponse(response))
+                    .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleAllocationErrorResponse(response))
+                    .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleAllocationErrorResponse(response))
                     .body(StatusEntriesResponse.class);
             if (statusEntriesResponse == null || CollectionUtils.isEmpty(statusEntriesResponse.statusEntries())) {
-                throw new CredentialRequestDeniedException("Failed to allocate status for credential", "Status issuer did not return any status entries");
+                throw new StatusListException("Failed to allocate status for credential", "Status issuer did not return any status entries");
             }
             return statusEntriesResponse.statusEntries();
         } catch (RestClientException e) {
-            throw new CredentialRequestDeniedException("Failed to allocate status for credential", "IO exception when calling status issuer", e);
+            throw new StatusListException("Failed to allocate status for credential", "IO exception when calling status issuer", e);
         }
     }
 
@@ -51,18 +51,24 @@ public class StatusIssuerIntegration implements InitializingBean {
                     .uri("/status-issuer/api/v1/entries")
                     .body(updateStatusEntriesRequest)
                     .retrieve()
-                    .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleErrorResponse(response))
-                    .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleErrorResponse(response))
+                    .onStatus(HttpStatusCode::is5xxServerError, (_, response) -> handleStatusUpdateErrorResponse(response))
+                    .onStatus(HttpStatusCode::is4xxClientError, (_, response) -> handleStatusUpdateErrorResponse(response))
                     .toBodilessEntity();
         } catch (RestClientException e) {
-            throw new CredentialRequestDeniedException("Failed to update status for credential", "IO exception when calling status issuer", e);
+            throw new StatusListException("Failed to update status for credential", "IO exception when calling status issuer", e);
         }
     }
 
-    void handleErrorResponse(ClientHttpResponse response) throws IOException {
+    void handleAllocationErrorResponse(ClientHttpResponse response) throws IOException {
         final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
         String logMessage = "Failed to allocate status entry from status issuer: status: [%s], message: [%s]".formatted(response.getStatusCode(), body);
-        throw new CredentialRequestDeniedException("Failed to allocate status for credential", logMessage);
+        throw new StatusListException("Failed to allocate status for credential", logMessage);
+    }
+
+    void handleStatusUpdateErrorResponse(ClientHttpResponse response) throws IOException {
+        final String body = StreamUtils.copyToString(response.getBody(), Charset.defaultCharset());
+        String logMessage = "Failed to update status entry from status issuer: status: [%s], message: [%s]".formatted(response.getStatusCode(), body);
+        throw new StatusListException("Failed to update status for credential", logMessage);
     }
 
     @Override
