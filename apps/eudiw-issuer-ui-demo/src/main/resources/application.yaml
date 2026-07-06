@@ -90,13 +90,13 @@ bevisgenerator:
             }
           }
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-pid}
         description: Norsk ID-bevis (mdoc push)
-        scope: eudiw:eidas2sandkasse:dynamicvc
+        scope: eudiw:no:pid
         person-identifier: 05821098825
         json-request: |
           {
-            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer}",
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-pid}",
             "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
             "subject": {
               "identifier": "05821098825"
@@ -160,7 +160,7 @@ maskinporten:
         audience:
           - ${maskinporten.lib.issuer}
         token-endpoint: ${maskinporten.lib.issuer}token
-        scope: eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:eidas2sandkasse:dynamicvc
+        scope: eudiw:no:pid eudiw:no:skatteetaten:nnid eudiw:no:minid:mpid eudiw:no:advokattilsynet:advokatregisteret eudiw:no:kontaktregisteret:kontaktinformasjon eudiw:no:vegvesen:mdl eudiw:eidas2sandkasse:dynamicvc
         connect-timeout-ms: 5000
         read-timeout-ms: 2000
         key-store-name: default

@@ -69,6 +69,7 @@ class RevokeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
                 .andExpect(model().attributeExists("revokeForm"))
+                .andExpect(model().attributeExists("revokeBySubjectForm"))
                 .andExpect(model().attributeExists("credentialConfigurations"));
     }
 
@@ -81,7 +82,7 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
-                .andExpect(model().attribute("successMessage", "Beviset blei revokert dersom det eksisterte."));
+                .andExpect(model().attribute("txIdSuccessMessage", "Beviset er revokert dersom det eksisterte."));
 
         verify(issuerServerService).revokeCredential(eq(credentialConfiguration), eq("tx-123"));
     }
@@ -116,7 +117,56 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
-                .andExpect(model().attributeExists("errorMessage"));
+                .andExpect(model().attributeExists("txIdErrorMessage"));
+    }
+
+    @Test
+    void postRevokeBySubjectReturnsSuccessMessageWithArbitrarySubjectInput() throws Exception {
+        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
+
+        mockMvc.perform(post("/revoke/by-subject")
+                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
+                        .param("subjectIdentifier", "abc-123-anything"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("revoke"))
+                .andExpect(model().attribute("subjectSuccessMessage", "Beviset er revokert dersom det eksisterte."));
+
+        verify(issuerServerService).revokeCredentialBySubject(eq(credentialConfiguration), eq("abc-123-anything"));
+    }
+
+    @Test
+    void postRevokeBySubjectReturnsErrorWhenCredentialConfigurationIsUnknown() throws Exception {
+        when(issuerServerService.getById("unknown")).thenReturn(null);
+
+        mockMvc.perform(post("/revoke/by-subject")
+                        .param("credentialConfigurationId", "unknown")
+                        .param("subjectIdentifier", "some-subject"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("revoke"))
+                .andExpect(model().attribute("subjectErrorMessage", "Credential configuration finnes ikkje"));
+    }
+
+    @Test
+    void postRevokeBySubjectReturnsErrorWhenIssuerServerFails() throws Exception {
+        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
+
+        HttpClientErrorException cause = HttpClientErrorException.create(
+                HttpStatus.BAD_REQUEST,
+                "Bad Request",
+                null,
+                new byte[0],
+                null
+        );
+        doThrow(new IssuerServerException("revoke by subject failed", cause))
+                .when(issuerServerService)
+                .revokeCredentialBySubject(eq(credentialConfiguration), anyString());
+
+        mockMvc.perform(post("/revoke/by-subject")
+                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
+                        .param("subjectIdentifier", "05821098825"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("revoke"))
+                .andExpect(model().attributeExists("subjectErrorMessage"));
     }
 
 }
