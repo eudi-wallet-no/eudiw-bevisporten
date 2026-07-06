@@ -18,12 +18,12 @@
             <p id="temp-status"></p>
             <span id="interaction-id" style="display: none">${walletInteractionId}</span>
             <div id="cross-device-request">
-                <img th:src="@{/login/qrcode/{walletInteractionId}(walletInteractionId=${walletInteractionId})}" th:alt="#{eudiw_qrcode_alt}" id="qrcode-cross-device" width="100%" />
+                <img th:src="${authorizationRequests.crossDeviceQRCodeDataUri()}" th:alt="#{eudiw_qrcode_alt}" id="qrcode-cross-device" width="100%" />
             </div>
             <form action="/login" method="POST" id="login-form">
                 <div class="btn-group">
                     <a href="/cancel"><button class="button button--secondary" id="btn-cancel" type="button" th:text="#{eudiw_cancel}"></button></a>
-                    <a th:href="${sameDeviceRequest}"><button class="button" id="btn-same-device" type="button" th:text="#{eudiw_open}"></button></a>
+                    <a th:href="${authorizationRequests.sameDeviceRequest()}"><button class="button" id="btn-same-device" type="button" th:text="#{eudiw_open}"></button></a>
                 </div>
             </form>
         </div>

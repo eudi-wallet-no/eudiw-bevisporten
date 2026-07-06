@@ -1,4 +1,4 @@
-package no.idporten.eudiw.login.config;
+package no.idporten.eudiw.login.oidc.config;
 
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;

@@ -1,4 +1,4 @@
-package no.idporten.eudiw.login.config;
+package no.idporten.eudiw.login.oidc.config;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

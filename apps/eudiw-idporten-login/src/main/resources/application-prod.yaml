@@ -23,6 +23,3 @@ eudiw-idporten-login:
           - openid
         redirect-uris:
           - https://login.idporten.no/authorize/callback/eudiw
-  openid4vp:
-    siop2-client-id: idporten-login.eidas2sandkasse.net
-    base-uri: https://idporten-login.eidas2sandkasse.net

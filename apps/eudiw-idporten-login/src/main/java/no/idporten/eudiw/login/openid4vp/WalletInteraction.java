@@ -4,31 +4,16 @@ import no.idporten.sdk.oidcserver.cache.Cacheable;
 
 import java.time.Instant;
 
-
 public class WalletInteraction implements Cacheable {
 
     private long createdAtEpochMillis;
     private long expiresAtEpochMillis;
-    private OpenID4VPFlow flow;
     private String id;
-    private String personIdentifier;
-
-    public OpenID4VPFlow getFlow() {
-        return flow;
-    }
+    private String verifierTransactionId;
 
     public String getId() {
         return id;
     }
-
-    public void setPersonIdentifier(String personIdentifier) {
-        this.personIdentifier = personIdentifier;
-    }
-
-    public String getPersonIdentifier() {
-        return personIdentifier;
-    }
-
 
     public WalletInteraction(String id) {
         setLifetimeSeconds(60 * 10); // 10 minutes
@@ -51,8 +36,11 @@ public class WalletInteraction implements Cacheable {
         return expiresAtEpochMillis;
     }
 
-    public void setFlow(OpenID4VPFlow flow) {
-        this.flow = flow;
+    public String getVerifierTransactionId() {
+        return verifierTransactionId;
     }
 
+    public void setVerifierTransactionId(String verifierTransactionId) {
+        this.verifierTransactionId = verifierTransactionId;
+    }
 }

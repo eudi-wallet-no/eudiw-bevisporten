@@ -85,16 +85,20 @@ eudiw-idporten-login:
     ui-locales:
       - nb
     clients:
+  openid4vp-verifier-service:
+    uri: http://digital-lommebok-verifier-service-service:8080
+    connect-timeout: 3s
+    read-timeout: 3s
 
-
-idporten-key-manager:
-  keystores:
-    openid4vp:
-      key-store-type: ${SIOP2_KEYSTORE_TYPE}
-      key-store-location: ${SIOP2_KEYSTORE_LOCATION}
-      key-store-password: ${SIOP2_KEYSTORE_PASSWORD}
-      key-alias: ${SIOP2_KEYSTORE_KEY_ALIAS}
-      key-password: ${SIOP2_KEYSTORE_KEY_PASSWORD}
+external-dependency-health-checks:
+  health-endpoints:
+    verifier-service:
+      name: verifierService
+      base-uri: http://digital-lommebok-verifier-service-service-actuator:8090
+      endpoint: /health/readiness
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: EXTERNAL_DEPENDENCY_DOWN
 
 ---
 spring:

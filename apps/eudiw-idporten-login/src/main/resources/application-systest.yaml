@@ -29,6 +29,3 @@ eudiw-idporten-login:
           - openid
         redirect-uris:
           - https://test-client.tools.idporten.dev/authorize/response
-  openid4vp:
-    siop2-client-id: idporten-login.eidas2sandkasse.dev
-    base-uri: https://idporten-login.eidas2sandkasse.dev
