@@ -67,7 +67,7 @@ public class RevokeController {
         if (bindingResult.hasErrors()) {
             return baseView(new RevokeForm(), revokeBySubjectForm);
         }
-        CredentialConfiguration credentialConfiguration = issuerServerService.getById(revokeBySubjectForm.credentialConfigurationId());
+        CredentialConfiguration credentialConfiguration = issuerServerService.getSubjectCredentialConfigurationById(revokeBySubjectForm.credentialConfigurationId());
         if (credentialConfiguration == null) {
             return baseView(new RevokeForm(), revokeBySubjectForm)
                     .addObject("subjectErrorMessage", "Credential configuration finnes ikkje");
@@ -89,6 +89,7 @@ public class RevokeController {
         return new ModelAndView("revoke")
                 .addObject("revokeForm", revokeForm)
                 .addObject("revokeBySubjectForm", revokeBySubjectForm)
-                .addObject("credentialConfigurations", issuerServerService.getAll());
+                .addObject("credentialConfigurations", issuerServerService.getAll())
+                .addObject("subjectCredentialConfigurations", issuerServerService.getAllSubjectCredentialConfigurations());
     }
 }
