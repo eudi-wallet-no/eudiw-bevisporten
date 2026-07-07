@@ -51,7 +51,10 @@ public class IssuerServerService {
      * Gets all credential configurations that can be issued.  Combines application config with dynamic configurations from BYOB.
      */
     public List<CredentialConfiguration> getAll() {
-        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>(issuerServerProperties.credentialConfigurations());
+        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>();
+        if (issuerServerProperties.credentialConfigurations() != null) {
+            credentialConfigurations.addAll(issuerServerProperties.credentialConfigurations());
+        }
         credentialConfigurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
         return credentialConfigurations;
     }
@@ -66,6 +69,20 @@ public class IssuerServerService {
         return credentialIssuerService.getCredentialConfigurationById(id);
     }
 
+    /**
+     * Gets all credential configurations that can be revoked by subject. Issued in Bevisporten
+     */
+
+    public List<CredentialConfiguration> getAllSubjectCredentialConfigurations() {
+        if (issuerServerProperties.subjectCredentialConfigurations() == null) {
+            return List.of();
+        }
+        return issuerServerProperties.subjectCredentialConfigurations();
+    }
+
+    public CredentialConfiguration getSubjectCredentialConfigurationById(String id) {
+        return issuerServerProperties.findSubjectCredentialConfigurationById(id);
+    }
 
     private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
         return maskinportenClient.getAccessToken(
