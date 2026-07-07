@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("junit")
-class ConnectorApplicationTest {
+class AuthSourceConnectorApplicationTest {
 
     @Test
     void contextLoads() {

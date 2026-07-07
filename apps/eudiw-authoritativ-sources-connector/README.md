@@ -25,6 +25,8 @@ Profiles in the [resources](/src/main/resources) folder:
 | systest | Systest environment                        |
 | test    | Test environment                           |
 
+## Secrets
+Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
 
 ## Running the application locally
 

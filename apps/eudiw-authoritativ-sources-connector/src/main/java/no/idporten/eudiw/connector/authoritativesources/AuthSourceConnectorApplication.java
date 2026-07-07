@@ -5,10 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
 @SpringBootApplication
-public class ConnectorApplication {
+public class AuthSourceConnectorApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ConnectorApplication.class, args);
+        SpringApplication.run(AuthSourceConnectorApplication.class, args);
 
     }
 }
