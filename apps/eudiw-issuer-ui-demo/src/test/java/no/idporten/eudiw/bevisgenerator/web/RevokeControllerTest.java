@@ -32,6 +32,7 @@ class RevokeControllerTest {
     private MockMvc mockMvc;
     private IssuerServerService issuerServerService;
     private CredentialConfiguration credentialConfiguration;
+    private CredentialConfiguration subjectCredentialConfiguration;
 
     @BeforeEach
     void setUp() {
@@ -46,9 +47,18 @@ class RevokeControllerTest {
                 "PID",
                 "{\"a\":\"b\"}"
         );
+        subjectCredentialConfiguration = new CredentialConfiguration(
+                "http://issuer",
+                "proof_of_age",
+                "proof_of_age",
+                null,
+                "Aldersbevis",
+                null
+        );
 
         when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
         when(issuerServerService.getAll()).thenReturn(List.of(credentialConfiguration));
+        when(issuerServerService.getAllSubjectCredentialConfigurations()).thenReturn(List.of(subjectCredentialConfiguration));
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -70,7 +80,8 @@ class RevokeControllerTest {
                 .andExpect(view().name("revoke"))
                 .andExpect(model().attributeExists("revokeForm"))
                 .andExpect(model().attributeExists("revokeBySubjectForm"))
-                .andExpect(model().attributeExists("credentialConfigurations"));
+                .andExpect(model().attributeExists("credentialConfigurations"))
+                .andExpect(model().attributeExists("subjectCredentialConfigurations"));
     }
 
     @Test
@@ -122,21 +133,22 @@ class RevokeControllerTest {
 
     @Test
     void postRevokeBySubjectReturnsSuccessMessageWithArbitrarySubjectInput() throws Exception {
-        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
+        when(issuerServerService.getSubjectCredentialConfigurationById(subjectCredentialConfiguration.credentialConfigurationId()))
+                .thenReturn(subjectCredentialConfiguration);
 
         mockMvc.perform(post("/revoke/by-subject")
-                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
+                        .param("credentialConfigurationId", subjectCredentialConfiguration.credentialConfigurationId())
                         .param("subjectIdentifier", "abc-123-anything"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
                 .andExpect(model().attribute("subjectSuccessMessage", "Beviset er revokert dersom det eksisterte."));
 
-        verify(issuerServerService).revokeCredentialBySubject(eq(credentialConfiguration), eq("abc-123-anything"));
+        verify(issuerServerService).revokeCredentialBySubject(eq(subjectCredentialConfiguration), eq("abc-123-anything"));
     }
 
     @Test
     void postRevokeBySubjectReturnsErrorWhenCredentialConfigurationIsUnknown() throws Exception {
-        when(issuerServerService.getById("unknown")).thenReturn(null);
+        when(issuerServerService.getSubjectCredentialConfigurationById("unknown")).thenReturn(null);
 
         mockMvc.perform(post("/revoke/by-subject")
                         .param("credentialConfigurationId", "unknown")
@@ -148,7 +160,8 @@ class RevokeControllerTest {
 
     @Test
     void postRevokeBySubjectReturnsErrorWhenIssuerServerFails() throws Exception {
-        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
+        when(issuerServerService.getSubjectCredentialConfigurationById(subjectCredentialConfiguration.credentialConfigurationId()))
+                .thenReturn(subjectCredentialConfiguration);
 
         HttpClientErrorException cause = HttpClientErrorException.create(
                 HttpStatus.BAD_REQUEST,
@@ -159,10 +172,10 @@ class RevokeControllerTest {
         );
         doThrow(new IssuerServerException("revoke by subject failed", cause))
                 .when(issuerServerService)
-                .revokeCredentialBySubject(eq(credentialConfiguration), anyString());
+                .revokeCredentialBySubject(eq(subjectCredentialConfiguration), anyString());
 
         mockMvc.perform(post("/revoke/by-subject")
-                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
+                        .param("credentialConfigurationId", subjectCredentialConfiguration.credentialConfigurationId())
                         .param("subjectIdentifier", "05821098825"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))

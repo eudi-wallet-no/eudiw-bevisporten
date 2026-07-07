@@ -147,7 +147,18 @@ bevisgenerator:
               "expiry_date": "2027-03-12"
             }
           }
-# Maskinporten
+
+    # Bevis utstedt i Bevisporten
+    subject-credential-configurations:
+      - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-pid}
+        description: Norsk ID-bevis (mdoc)
+        scope: eudiw:no:pid
+      - credential-configuration-id: no.digdir.eudiw.pid_sd_jwt_vc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-pid}
+        description: Norsk ID-bevis (SD-JWT VC)
+        scope: eudiw:no:pid
+
 maskinporten:
   lib:
     enabled: true
