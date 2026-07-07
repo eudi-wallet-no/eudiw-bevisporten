@@ -93,10 +93,10 @@
                         class="ds-input"
                         th:field="*{credentialConfigurationId}">
                     <option value="">Velg</option>
-                    <option value="proof_of_age">Aldersbevis (proof_of_age)</option>
-                    <option value="no.digdir.eudiw.pid_mso_mdoc">Norsk ID-bevis (no.digdir.eudiw.pid_mso_mdoc)</option>
-                    <option value="no.digdir.eudiw.pid_sd_jwt_vc">Norsk ID-bevis (no.digdir.eudiw.pid_sd_jwt_vc)</option>
-                    <option value="no.skatteetaten.inntekt_sd_jwt_vc">Inntektsbevis (no.skatteetaten.inntekt_sd_jwt_vc)</option>
+                    <option th:each="credentialConfiguration : ${subjectCredentialConfigurations}"
+                            th:value="${credentialConfiguration.credentialConfigurationId()}"
+                            th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
+                    </option>
                 </select>
             </div>
 
