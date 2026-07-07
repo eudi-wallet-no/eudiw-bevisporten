@@ -14,7 +14,7 @@ management:
       show-details: always
 spring:
   config:
-    import: file:.env[.properties]
+    import: optional:file:${EUDIW_OAUTH_SERVER_ENV}[.properties]
   application:
     environment: dev
   data:
