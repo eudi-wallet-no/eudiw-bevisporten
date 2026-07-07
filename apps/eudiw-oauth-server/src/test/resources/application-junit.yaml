@@ -1,7 +1,7 @@
 ---
 spring:
   config:
-    import: file:.env[.properties]
+    import: optional:file:${EUDIW_OAUTH_SERVER_ENV}[.properties]
 
 # EUDIW auth server
 oauth-authorization-server:
@@ -17,3 +17,21 @@ oauth-authorization-server:
   scopes-supported:
     - ra
   api-key: junit
+
+oidc-proxy:
+  redirect-uri: http://my-test-server/callback
+  oidc-issuer:
+    issuer: https://example.test.issuer
+    authorization-endpoint: https://example.test.issuer/authorize
+    pushed-authorization-request-endpoint: https://example.test.issuer/par
+    token-endpoint: https://example.test.issuer/token
+    jwks-uri: https://example.test.issuer/jwks.json
+  oidc-client:
+    client-id: junit-client
+    client-authentication-method: private_key_jwt
+    keystore:
+      type: JKS
+      location: classpath:./junit.jks
+      password: secret
+      key-alias: junit
+      key-password: secret

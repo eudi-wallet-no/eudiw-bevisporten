@@ -26,6 +26,8 @@ services:
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_OAUTH_SERVER_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
@@ -38,7 +40,6 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        set -a && . /usr/local/webapps/.env && set +a
         cd /usr/local/tomcat/webapps/
         java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9265 -jar application.jar
     healthcheck:
