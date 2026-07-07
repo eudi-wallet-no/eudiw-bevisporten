@@ -3,7 +3,5 @@ spring:
   application:
     environment: systest
 
-
-
 status-list:
   uri: https://status.eidas2sandkasse.dev

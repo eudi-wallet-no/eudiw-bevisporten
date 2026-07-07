@@ -33,8 +33,12 @@ services:
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_STATUS_LIST_ENV}
     environment:
       spring_profiles_active: docker
+      MARIADB_URL: jdbc:mariadb://status-list-db:3306/status_list_db
+      MARIADB_USER: eudiw_user
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     ports:
       - "9288:9288"
