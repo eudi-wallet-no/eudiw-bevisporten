@@ -8,7 +8,10 @@ import java.util.Objects;
 
 @EnableConfigurationProperties(IssuerServerProperties.class)
 @ConfigurationProperties(prefix = "bevisgenerator.issuer-server")
-public record IssuerServerProperties (String credentialIssuer, String issuanceEndpoint, List<CredentialConfiguration> credentialConfigurations) {
+public record IssuerServerProperties (String credentialIssuer,
+                                      String issuanceEndpoint,
+                                      List<CredentialConfiguration> credentialConfigurations,
+                                      List<CredentialConfiguration> subjectCredentialConfigurations) {
 
     public String getIssuanceEndpoint() {
         return issuanceEndpoint();
@@ -19,7 +22,23 @@ public record IssuerServerProperties (String credentialIssuer, String issuanceEn
     }
 
     public CredentialConfiguration findCredentialConfiguration(String credentialConfigurationId) {
+        if (credentialConfigurations() == null) {
+            return null;
+        }
+
         return credentialConfigurations()
+                .stream()
+                .filter(credentialConfiguration -> Objects.equals(credentialConfigurationId, credentialConfiguration.credentialConfigurationId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public CredentialConfiguration findSubjectCredentialConfigurationById(String credentialConfigurationId) {
+        if (subjectCredentialConfigurations() == null) {
+            return null;
+        }
+
+        return subjectCredentialConfigurations()
                 .stream()
                 .filter(credentialConfiguration -> Objects.equals(credentialConfigurationId, credentialConfiguration.credentialConfigurationId()))
                 .findFirst()
