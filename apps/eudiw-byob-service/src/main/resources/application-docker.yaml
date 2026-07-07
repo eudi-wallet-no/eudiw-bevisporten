@@ -10,6 +10,8 @@ management:
       show-details: always
 
 spring:
+  config:
+    import: optional:file:${EUDIW_BYOB_SERVICE_ENV}[.properties]
   application:
     environment: docker
 
@@ -19,4 +21,4 @@ spring:
       port: 6379
 
 byob-service:
-  api_key: my-not-so-secret-token
+  api_key: ${BYOB_SERVICE_API_KEY}
