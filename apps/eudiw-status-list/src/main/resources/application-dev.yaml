@@ -7,24 +7,10 @@ management:
     port: 9288
 
 spring:
+  config:
+    import: optional:file:${EUDIW_STATUS_LIST_ENV}[.properties]
   application:
     environment: dev
-  datasource:
-    url: jdbc:mariadb://status-list:36306/status_list_db
-    username: eudiw_user
-    password: lesssecret
-    driver-class-name: org.mariadb.jdbc.Driver
 
 status-list:
   uri: http://status-list:9288
-  issuer:
-    api-key: secret
-
-idporten-key-manager:
-  keystores:
-    status-provider:
-      key-store-type: pkcs12
-      key-store-location: base64:MIIEMgIBAzCCA9wGCSqGSIb3DQEHAaCCA80EggPJMIIDxTCCATwGCSqGSIb3DQEHAaCCAS0EggEpMIIBJTCCASEGCyqGSIb3DQEMCgECoIG9MIG6MGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBT4no1JWPCmOsgDHqzdTncop4Z3rgICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEPdzg0/f8RbkEKvyIYowpQoEUFEsT2hpe2x7kcvhgBMWyu4Q3NGqcOZrNK8uDihIK75J5zDwKjENFQyXGuRqGVef3H7AmUhWZ8grwl3KAK+cCdDmdbeNuj4QuTQp1NLDdDTyMVIwLQYJKoZIhvcNAQkUMSAeHgBzAHQAYQB0AHUAcwAtAHAAcgBvAHYAaQBkAGUAcjAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzgwOTk0MTAzOTM0MIICgQYJKoZIhvcNAQcGoIICcjCCAm4CAQAwggJnBgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFIiGdtb53f53/dWQXe11kUCstRNtAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQBtqcoH7MqUrf+xTq278UEoCCAfBElN2hWVvL2FgNoiQQPkDlUkWMw6vTM478b/H9XsvtCB6kq+sKOBveeyxPupfDxEaBKr1fdIzye6M4xOmh1++WUkbctMHleftdzptKWRjPib3kjZoxAOGCi6Pv19uRFZTnrx1JsBaysyo+O8LIDe6/YCIGeH4b3eIUHrjlYThOplOtROaqDzZnGbaP3inM2czjixZvxoZ70cf6uZcXK6mXfxtLP+irzxyrB/47DsJsx+mMsTDSrtICUB2oFVfLfjJY+w/cl7FRl4Qru/asy74f5kfU7ghGqqQQte4L7hA3DePDi2v0oWADpbAVxBEZMFr0NiTsCVp7Gy2tqquh8P4pAsk9CWReyKNACNVsBIAcp0cp9GO93DlWe1VpbYOYxVJlRZ7Zd4r6xd7S9bRNlkOPM0LLPe7eT3UG5A5U3nAR8/lGkB/bbo9R53B9tPYurpaxDB4XcXIQ6inFXlChYOhelfYvR9G1Aah39bwPcfnMp1ggMlJMnJebduVBKMmeicwoTrS5zuRWxhZGI+joYdxtiNRxfX9Mj6Sjnq1iBzxwMj/m+D4qiXf50N9cu+QMzKYOyE3sn7ML8pKpAuoPWTUarnsncuUk4OmomrdPe9qM23lryOpitM44rGlShR0f7RMG76b0SVEenrEGD2YzGY0mME0wMTANBglghkgBZQMEAgEFAAQg8AgnPXgQCzSG4zfj3p4CGKR+jmQsY/cTGFelKXfbGjEEFITy25YyMgqXXaz1Epsz6PdQc33MAgInEA==",
-      key-store-password: changeit
-      key-alias: status-provider
-      key-password: changeit
