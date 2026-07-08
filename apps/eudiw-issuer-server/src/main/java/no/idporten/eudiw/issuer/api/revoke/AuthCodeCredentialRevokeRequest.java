@@ -3,7 +3,10 @@ package no.idporten.eudiw.issuer.api.revoke;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.issuer.openid4vci.protocol.Subject;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
@@ -14,8 +17,9 @@ public record AuthCodeCredentialRevokeRequest(
         @JsonProperty("credential_configuration_id")
         @NotBlank(message = "credential_configuration_id must have a value")
         String credentialConfigurationId,
-        @Schema(description = "Subject identifier (fnr) for credentials to revoke", example = "05821098825")
-        @JsonProperty("subject_identifier")
-        @NotBlank(message = "subject_identifier must have a value")
-        String subjectIdentifier) {
+        @Schema(description = "Subject for credentials to revoke")
+        @JsonProperty("subject")
+        @Valid
+        @NotNull(message = "subject must have a value")
+        Subject subject) {
 }

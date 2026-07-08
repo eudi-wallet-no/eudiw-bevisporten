@@ -80,7 +80,7 @@ public class AuthCodeCredentialRevokeController {
         );
 
         List<SubjectCredentialIssuanceTransactionEntity> subjectCredentialIssuanceTransactions = subjectCredentialTransactionDao.findBySubjectAndType(
-                revokeRequest.subjectIdentifier(),
+                revokeRequest.subject().getIdentifier(),
                 revokeRequest.credentialConfigurationId(),
                 credentialIssuerTenant.getId()
         );
@@ -132,7 +132,7 @@ public class AuthCodeCredentialRevokeController {
                         credentialConfiguration.getScope()
                 )
         );
-        accessTokenValidationService.validateAccessTokenBoundToSubject(accessToken, revokeRequest.subjectIdentifier());
+        accessTokenValidationService.validateAccessTokenBoundToSubject(accessToken, revokeRequest.subject().getIdentifier());
     }
 
     private record ValidatedAuthCodeRevokeRequestContext(
