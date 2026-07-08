@@ -70,6 +70,9 @@ digdir:
 
 # Application config
 eudiw-idporten-login:
+  features:
+    allow-synthetic-person-identifiers: false
+    allow-real-person-identifiers: true
   oidc-sdk:
     issuer:
     par-lifetime-seconds: 60

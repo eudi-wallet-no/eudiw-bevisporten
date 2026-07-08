@@ -4,6 +4,7 @@ import no.idporten.eudiw.login.AcrValue;
 import no.idporten.eudiw.login.openid4vp.verifier.model.DcqlQuery;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerifiedCredential;
 import no.idporten.sdk.oidcserver.protocol.Authorization;
+import no.idporten.validators.identifier.PersonIdentifierValidator;
 
 /**
  * Handler for Norwegian PID verification.
@@ -37,12 +38,20 @@ public class NOVerificationHandler implements VerificationHandler {
     @Override
     public Authorization completeVerification(VerifiedCredential verifiedCredential) {
         return Authorization.builder()
-                .sub((String) verifiedCredential.getStringClaim("personal_administrative_number", true))
+                .sub(getPersonIdentifier(verifiedCredential))
                 .acr(AcrValue.IDPORTEN_LOA_HIGH.value())
                 .amr(AMR_EUDIW)
                 .attribute("family_name", verifiedCredential.getStringClaim("family_name", true))
                 .attribute("given_name", verifiedCredential.getStringClaim("given_name",  true))
                 .build();
+    }
+
+    private String getPersonIdentifier(VerifiedCredential verifiedCredential) {
+        String personIdentifier = verifiedCredential.getStringClaim("personal_administrative_number", true);
+        if (! PersonIdentifierValidator.isValid(personIdentifier)) {
+            throw new InvalidVerificationException("Invalid person identifier");
+        }
+        return personIdentifier;
     }
 
 }

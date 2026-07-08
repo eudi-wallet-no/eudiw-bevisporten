@@ -1,9 +1,10 @@
 package no.idporten.eudiw.login.openid4vp;
 
 import no.idporten.eudiw.login.AcrValue;
-import no.idporten.eudiw.login.TestData;
+import static no.idporten.eudiw.login.TestData.*;
 import no.idporten.eudiw.login.openid4vp.verifier.model.DcqlQuery;
 import no.idporten.sdk.oidcserver.protocol.Authorization;
+import no.idporten.validators.identifier.PersonIdentifierValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -15,6 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class NOVerificationHandlerTest {
 
     private NOVerificationHandler handler = new NOVerificationHandler();
+
+    @BeforeEach
+    void setUp() {
+        PersonIdentifierValidator.setRealPersonIdentifiersAllowed(false);
+        PersonIdentifierValidator.setExpandedPersonIdentifiersAllowed(false);
+        PersonIdentifierValidator.setSyntheticPersonIdentifiersAllowed(true);
+    }
 
     @DisplayName("When creating a DCQL query for Norwegian PID")
     @Nested
@@ -88,13 +96,19 @@ class NOVerificationHandlerTest {
 
         @BeforeEach
         void completeVerification() {
-            authorization = handler.completeVerification(TestData.verifiedCredentialNO());
+            authorization = handler.completeVerification(verifiedCredentialNO(syntheticPersonIdentifier()));
         }
 
         @DisplayName("then sub is set to the personal administrative number")
         @Test
         void testSubIsPersonalAdministrativeNumber() {
-            assertEquals(TestData.syntheticPersonIdentifier(), authorization.getSub());
+            assertEquals(syntheticPersonIdentifier(), authorization.getSub());
+        }
+
+        @DisplayName("then an invalid person identifier is rejected")
+        @Test
+        void testInvalidPersonIdentifierInPersonalAdministrativeNumber() {
+            assertThrows(InvalidVerificationException.class, () -> handler.completeVerification(verifiedCredentialNO(invalidPersonIdentifier())));
         }
 
         @DisplayName("then acr is idporten-loa-high")

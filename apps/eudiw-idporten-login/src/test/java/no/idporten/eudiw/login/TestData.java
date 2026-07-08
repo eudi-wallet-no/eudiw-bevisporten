@@ -11,9 +11,13 @@ public class TestData {
         return "08868797275";
     }
 
-    public static VerifiedCredential verifiedCredentialNO() {
+    public static String invalidPersonIdentifier() {
+        return "08868797277";
+    }
+
+    public static VerifiedCredential verifiedCredentialNO(String personIdentifier) {
         Map<String, Object> claims = Map.of(
-                "personal_administrative_number", syntheticPersonIdentifier(),
+                "personal_administrative_number", personIdentifier,
                 "family_name", "LOMMEBOK",
                 "given_name", "LEGITIM"
         );
