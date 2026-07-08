@@ -20,4 +20,5 @@ public interface VerificationHandler {
     DcqlQuery createDcqlQuery(String walletInteraction);
 
     Authorization completeVerification(VerifiedCredential verifiedCredential);
+
 }
