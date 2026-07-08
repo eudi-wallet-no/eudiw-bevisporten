@@ -6,6 +6,7 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceSubject;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeRequest;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
@@ -164,7 +165,7 @@ public class IssuerServerService {
         String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
         RevokeBySubjectRequest request = new RevokeBySubjectRequest(
                 credentialConfiguration.credentialConfigurationId(),
-                subjectIdentifier
+                new IssuanceSubject(subjectIdentifier)
         );
 
         try {
