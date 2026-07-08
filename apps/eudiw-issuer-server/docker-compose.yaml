@@ -59,11 +59,12 @@ services:
         condition: service_started
       status-list:
         condition: service_started
+    env_file:
+      - ${EUDIW_ISSUER_SERVER_ENV}
     environment:
       spring_profiles_active: docker
       MARIADB_URL: jdbc:mariadb://issuer-db:3306/issuer_server_db
       MARIADB_USER: eudiw_user
-      MARIADB_PASSWORD: lesssecret
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
     ports:
       - "9240:9240"
@@ -87,6 +88,8 @@ services:
 #    image: "digital-lommebok-issuer-oauth-server" # Uncomment this line if you want to use the local image instead
     depends_on:
       - redis
+    env_file:
+      - ${EUDIW_OAUTH_SERVER_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
@@ -99,7 +102,6 @@ services:
     entrypoint: "/bin/bash -c"
     command:
       - |
-        set -a && . /usr/local/webapps/.env && set +a
         cd /usr/local/tomcat/webapps/
         java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9265 -jar application.jar
     healthcheck:
@@ -114,6 +116,8 @@ services:
 #    image: "digital-lommebok-issuer-issuer-ui" # Uncomment this line if you want to use the local image instead
     depends_on:
       - issuer-server
+    env_file:
+      - ${EUDIW_ISSUER_UI_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
@@ -139,6 +143,9 @@ services:
 #    image: "digital-lommebok-issuer-bevisgenerator" # Uncomment this line if you want to use the local image instead
     depends_on:
       - issuer-server
+      - byob-service
+    env_file:
+      - ${EUDIW_ISSUER_UI_DEMO_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
@@ -164,6 +171,8 @@ services:
     #    image: "digital-lommebok-issuer-byob-service" # Uncomment this line if you want to use the local image instead
     depends_on:
       - redis
+    env_file:
+      - ${EUDIW_BYOB_SERVICE_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
@@ -187,6 +196,8 @@ services:
   authoritative-sources-connector:
     image: "crutvikling.azurecr.io/eudiw-authoritativ-sources-connector"
     #image: "digital-lommebok-issuer-auth-sources-connector" # Uncomment this line if you want to use the local image instead
+    env_file:
+      - ${EUDIW_AUTHORITATIV_SOURCES_CONNECTOR_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
@@ -231,8 +242,12 @@ services:
     depends_on:
       status-list-db:
         condition: service_healthy
+    env_file:
+      - ${EUDIW_STATUS_LIST_ENV}
     environment:
       spring_profiles_active: docker
+      MARIADB_URL: jdbc:mariadb://status-list-db:3306/status_list_db
+      MARIADB_USER: eudiw_user
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
     ports:
       - "9288:9288"
