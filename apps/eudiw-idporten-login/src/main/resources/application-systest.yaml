@@ -14,6 +14,9 @@ spring:
           - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
 
 eudiw-idporten-login:
+  features:
+    allow-synthetic-person-identifiers: true
+    allow-real-person-identifiers: false
   oidc-sdk:
     issuer: https://idporten-login.eidas2sandkasse.dev
     clients:

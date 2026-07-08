@@ -21,6 +21,9 @@ spring:
       host: localhost
 
 eudiw-idporten-login:
+  features:
+    allow-synthetic-person-identifiers: true
+    allow-real-person-identifiers: false
   oidc-sdk:
     issuer: http://eudiw-idporten-login:9283/
     clients:

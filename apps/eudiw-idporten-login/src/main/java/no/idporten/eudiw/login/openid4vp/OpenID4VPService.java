@@ -4,12 +4,15 @@ import no.idporten.eudiw.login.openid4vp.verifier.VerifierServiceIntegration;
 import no.idporten.eudiw.login.openid4vp.verifier.model.StartVerificationRequest;
 import no.idporten.eudiw.login.openid4vp.verifier.model.StartVerificationResponse;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationResultResponse;
+import no.idporten.eudiw.login.openid4vp.verifier.model.VerifiedCredential;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * Service creating and verifying OpenID4VP requests and responses.
@@ -61,7 +64,14 @@ public class OpenID4VPService {
      */
     public Authorization completeVerification(VerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
         VerificationResultResponse verificationResultResponse = verifierServiceIntegration.retrieveVerifiedCredentials(VERIFIER_CLIENT_APPLICATION_ID, walletInteraction.getVerifierTransactionId());
-        return verificationHandler.completeVerification(verificationResultResponse.credentials().get(walletInteraction.getId()).getFirst());
+        if (CollectionUtils.isEmpty(verificationResultResponse.credentials())) {
+            throw new InvalidVerificationException("Invalid verified credentials", "No credentials shared");
+        }
+        List<VerifiedCredential> verifiedCredentials = verificationResultResponse.credentials().get(walletInteraction.getId());
+        if (verifiedCredentials.size() != 1) {
+            throw new InvalidVerificationException("Invalid verified credentials", "Recieived %d credentials".formatted(verifiedCredentials.size()));
+        }
+        return verificationHandler.completeVerification(verifiedCredentials.getFirst());
     }
 
 }

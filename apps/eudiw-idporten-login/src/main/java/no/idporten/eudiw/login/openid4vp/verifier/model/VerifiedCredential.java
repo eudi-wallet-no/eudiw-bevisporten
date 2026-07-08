@@ -2,8 +2,8 @@ package no.idporten.eudiw.login.openid4vp.verifier.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import no.idporten.sdk.oidcserver.OAuth2Exception;
-import org.springframework.http.HttpStatus;
+import no.idporten.eudiw.login.openid4vp.InvalidVerificationException;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
@@ -14,7 +14,11 @@ public record VerifiedCredential(
 ) {
 
     public String getStringClaim(String path, boolean mandatory) {
-        return getClaim(path, mandatory);
+        String value = getClaim(path, mandatory);
+        if (mandatory && ! StringUtils.hasText(value)) {
+            throw new InvalidVerificationException("Missing mandatory claim", "Missing mandatory claim for path %s".formatted(path));
+        }
+        return value;
     }
 
     public <T> T getClaim(String path, boolean mandatory) {
@@ -22,14 +26,12 @@ public record VerifiedCredential(
         try {
             value = (T) claims().get(path);
         } catch (Exception e) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid claim format", HttpStatus.BAD_REQUEST.value(), e);
+            throw new InvalidVerificationException("Invalid claim format", "Invalid claim format for path %s".formatted(path));
         }
         if (mandatory && value == null) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing mandatory claim", HttpStatus.BAD_REQUEST.value());
+            throw new InvalidVerificationException("Missing mandatory claim", "Missing mandatory claim for path %s".formatted(path));
         }
         return value;
     }
-
-
 
 }
