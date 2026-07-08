@@ -1,3 +1,5 @@
 package no.idporten.eudiw.bevisgenerator.integration.issuerserver.model;
 
-public record IssuanceSubject(String identifier) { }
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record IssuanceSubject(@JsonProperty("identifier") String identifier) { }

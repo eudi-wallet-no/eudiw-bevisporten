@@ -15,15 +15,16 @@ class RevokeBySubjectRequestContractTest {
     void serializesWithIssuerServerFieldNames() {
         RevokeBySubjectRequest revokeBySubjectRequest = new RevokeBySubjectRequest(
                 "no.digdir.eudiw.pid_mso_mdoc",
-                "05821098825"
+                new IssuanceSubject("05821098825")
         );
 
         String jsonPayload = objectMapper.writeValueAsString(revokeBySubjectRequest);
         JsonNode jsonNode = objectMapper.readTree(jsonPayload);
 
         assertTrue(jsonNode.has("credential_configuration_id"));
-        assertTrue(jsonNode.has("subject_identifier"));
-        assertEquals("no.digdir.eudiw.pid_mso_mdoc", jsonNode.get("credential_configuration_id").asText());
-        assertEquals("05821098825", jsonNode.get("subject_identifier").asText());
+        assertTrue(jsonNode.has("subject"));
+        assertTrue(jsonNode.get("subject").has("identifier"));
+        assertEquals("no.digdir.eudiw.pid_mso_mdoc", jsonNode.get("credential_configuration_id").asString());
+        assertEquals("05821098825", jsonNode.get("subject").get("identifier").asString());
     }
 }
