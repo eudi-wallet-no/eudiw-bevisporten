@@ -11,7 +11,9 @@ import java.util.List;
 public record DcqlCredentialQuery(
         String id,
         String format,
+        boolean multiple,
         DcqlCredentialMeta meta,
+        boolean require_cryptographic_holder_binding,
         List<DcqlClaimQuery> claims,
         @JsonProperty("claim_sets")
         List<List<String>> claimSets
