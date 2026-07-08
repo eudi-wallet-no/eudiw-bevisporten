@@ -12,6 +12,8 @@ services:
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_ISSUER_UI_DEMO_ENV}
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
