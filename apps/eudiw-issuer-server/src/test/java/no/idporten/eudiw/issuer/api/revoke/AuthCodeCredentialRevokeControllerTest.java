@@ -69,9 +69,11 @@ class AuthCodeCredentialRevokeControllerTest {
     private String revokeRequestBody(String credentialConfigurationId, String subjectIdentifier) {
         return """
                 {
-                    "credential_configuration_id": "%s",
-                    "subject_identifier": "%s"
-                }""".formatted(credentialConfigurationId, subjectIdentifier);
+                   "credential_configuration_id": "%s",
+                   "subject": {
+                     "identifier": "%s"
+                   }
+                 }""".formatted(credentialConfigurationId, subjectIdentifier);
     }
 
     @Nested
