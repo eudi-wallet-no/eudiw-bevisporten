@@ -30,6 +30,13 @@
                 Utsted eit bevis ved å skrive inn noko dummy-data og deretter overføre det til ei lommebok
             </p>
         </a>
+        <a th:href="@{/verification-start}" class="ds-card"
+            data-variant="neutral" style="max-width: 500px">
+            <h2 class="ds-heading">Presenter bevis</h2>
+            <p class="ds-paragraph" data-variant="neutral">
+                Presenter eit bevis ved å velje ein bevistype og simulere ein presentasjon til ein verifikator
+            </p>
+        </a>
         <a th:href="@{/revoke}" class="ds-card"
            data-variant="neutral" style="max-width: 500px">
             <h2 class="ds-heading">Revoker utstedte bevis</h2>
@@ -37,7 +44,7 @@
                 Her kan du revokere utstedte bevis manuelt
             </p>
         </a>
-    </div>
+   </div>
     <div>
         <p class="ds-paragraph">
             Denne tenesta er eit GUI foran "extended APIet" til BYOB-utstedaren (Bring-Your-Own-Bevis)
