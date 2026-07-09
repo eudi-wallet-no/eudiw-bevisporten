@@ -29,6 +29,39 @@
         </div>
     </div>
 </main>
+<script lang="javascript">
+
+    async function waitForWallet(interval, timeout) {
+        const endtime = Date.now() + timeout;
+
+        async function poll() {
+            if (Date.now() >= endtime) {
+                window.location.replace("/cancel")
+                return;
+            }
+            try {
+                const response = await fetch(window.location + '/status');
+                if (response.status === 200) {
+                    window.location.reload();
+                    return;
+                }
+                if (response.status === 202) {
+                    setTimeout(poll, interval);
+                    return;
+                }
+                if (response.status === 404) {
+                    window.location.replace("/cancel")
+                    return;
+                }
+            } catch (error) {
+                window.location.replace("/cancel")
+                return;
+            }
+        }
+        return poll();
+    }
+    waitForWallet(5000, 5 * 60 * 1000);
+</script>
 
 <footer th:replace="~{fragments/footer :: footer}">...</footer>
 </body>

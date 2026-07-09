@@ -8,8 +8,9 @@ public class WalletInteraction implements Cacheable {
 
     private long createdAtEpochMillis;
     private long expiresAtEpochMillis;
-    private String id;
+    private final String id;
     private String verifierTransactionId;
+    private boolean started;
 
     public String getId() {
         return id;
@@ -42,5 +43,11 @@ public class WalletInteraction implements Cacheable {
 
     public void setVerifierTransactionId(String verifierTransactionId) {
         this.verifierTransactionId = verifierTransactionId;
+        this.started = true;
     }
+
+    public boolean isStarted() {
+        return started;
+    }
+
 }
