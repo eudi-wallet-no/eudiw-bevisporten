@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
- * Cache string wallet interactions.
+ * Cache wallet interactions.
  */
 @Component
 public class WalletInteractionCache {

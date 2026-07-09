@@ -19,6 +19,7 @@ import org.springframework.web.client.RestClient;
 public class VerifierServiceIntegration {
 
     private final RestClient restClient;
+    public static final String VERIFIER_CLIENT_APPLICATION_ID = "idporten-login";
 
     public VerifierServiceIntegration(VerifierServiceProperties verifierServiceProperties) {
         this.restClient = RestClient.builder()
@@ -30,10 +31,10 @@ public class VerifierServiceIntegration {
     /**
      * Start a verification process.
      */
-    public StartVerificationResponse startVerification(String clientApplicationId, StartVerificationRequest request) {
+    public StartVerificationResponse startVerification(StartVerificationRequest request) {
         try {
             return restClient.post()
-                    .uri("/api/v1/{clientApplicationId}/verify/start/", clientApplicationId)
+                    .uri("/api/v1/{clientApplicationId}/verify/start/", VERIFIER_CLIENT_APPLICATION_ID)
                     .body(request)
                     .retrieve()
                     .body(StartVerificationResponse.class);
@@ -47,10 +48,10 @@ public class VerifierServiceIntegration {
     /**
      * Check a verification process status.
      */
-    public VerificationStatusResponse retrieveStatus(String clientApplicationId, String verifierTransactionId) {
+    public VerificationStatusResponse retrieveStatus(String verifierTransactionId) {
         try {
             return restClient.get()
-                    .uri("/api/v1/{clientApplicationId}/verify/status/{verifierTransactionId}", clientApplicationId, verifierTransactionId)
+                    .uri("/api/v1/{clientApplicationId}/verify/status/{verifierTransactionId}", VERIFIER_CLIENT_APPLICATION_ID, verifierTransactionId)
                     .retrieve()
                     .body(VerificationStatusResponse.class);
         } catch (HttpClientErrorException e) {
@@ -63,10 +64,10 @@ public class VerifierServiceIntegration {
     /**
      * Retrieve verification process result.
      */
-    public VerificationResultResponse retrieveVerifiedCredentials(String clientApplicationId, String verifierTransactionId) {
+    public VerificationResultResponse retrieveVerifiedCredentials(String verifierTransactionId) {
         try {
             return restClient.get()
-                    .uri("/api/v1/{clientApplicationId}/verify/result/{verifierTransactionId}", clientApplicationId, verifierTransactionId)
+                    .uri("/api/v1/{clientApplicationId}/verify/result/{verifierTransactionId}", VERIFIER_CLIENT_APPLICATION_ID, verifierTransactionId)
                     .retrieve()
                     .body(VerificationResultResponse.class);
         } catch (HttpClientErrorException e) {

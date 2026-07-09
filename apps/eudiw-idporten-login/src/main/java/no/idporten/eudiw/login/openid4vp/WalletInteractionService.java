@@ -2,34 +2,43 @@ package no.idporten.eudiw.login.openid4vp;
 
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
- * Service tracking wallet interactions.  Stores interaction progress in cache.
+ * Service tracking wallet interactions.  Used for polling.
  */
 @Service
 public class WalletInteractionService {
 
-    private final WalletInteractionCache openID4VPCache;
+    private final WalletInteractionCache walletInteractionCache;
 
-    public WalletInteractionService(WalletInteractionCache openID4VPCache) {
-        this.openID4VPCache = openID4VPCache;
+    public WalletInteractionService(WalletInteractionCache walletInteractionCache) {
+        this.walletInteractionCache = walletInteractionCache;
     }
 
-    public WalletInteraction startWalletInteraction(String id) {
-        WalletInteraction walletInteraction = new WalletInteraction(id);
-        openID4VPCache.putWalletInteraction(id, walletInteraction);
+    protected String createWalletInteractionId() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Starts a new wallet interaction.  Generates id.
+     */
+    public WalletInteraction createWalletInteraction() {
+        WalletInteraction walletInteraction = new WalletInteraction(createWalletInteractionId());
+        walletInteractionCache.putWalletInteraction(walletInteraction.getId(), walletInteraction);
         return walletInteraction;
     }
 
     public WalletInteraction updateWalletInteraction(WalletInteraction walletInteraction) {
-        openID4VPCache.putWalletInteraction(walletInteraction.getId(), walletInteraction);
+        walletInteractionCache.putWalletInteraction(walletInteraction.getId(), walletInteraction);
         return walletInteraction;
     }
 
-    public WalletInteraction getWalletInteraction(String id) {
-        return openID4VPCache.getWalletInteraction(id);
+    public WalletInteraction retrieveWalletInteraction(String id) {
+        return walletInteractionCache.getWalletInteraction(id);
     }
 
     public void removeWalletInteraction(String state) {
-        openID4VPCache.removeWalletInteraction(state);
+        walletInteractionCache.removeWalletInteraction(state);
     }
 }
