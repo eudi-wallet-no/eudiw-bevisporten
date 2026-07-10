@@ -1,4 +1,4 @@
-package no.idporten.eudiw.login.oidc.api;
+package no.idporten.eudiw.login.web;
 
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.protocol.ErrorResponse;
@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-public class OIDCServerControllerAdvice {
+public class LoginExceptionHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(OIDCServerControllerAdvice.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoginExceptionHandler.class);
 
     @ExceptionHandler(OAuth2Exception.class)
     public ResponseEntity<ErrorResponse> handleOAuth2Exception(OAuth2Exception exception) {

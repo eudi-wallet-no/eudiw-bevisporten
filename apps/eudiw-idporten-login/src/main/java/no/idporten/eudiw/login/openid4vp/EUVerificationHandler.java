@@ -8,7 +8,7 @@ import no.idporten.sdk.oidcserver.protocol.Authorization;
 /**
  * Handler for EU PID verification.
  */
-public class EUVerificationHandler implements VerificationHandler {
+public class EUVerificationHandler implements OpenID4VPVerificationHandler {
 
     @Override
     public DcqlQuery createDcqlQuery(String walletInteractionId) {

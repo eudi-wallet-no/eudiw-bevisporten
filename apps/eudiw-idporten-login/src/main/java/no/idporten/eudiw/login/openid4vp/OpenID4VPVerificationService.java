@@ -1,7 +1,8 @@
 package no.idporten.eudiw.login.openid4vp;
 
-import no.idporten.eudiw.login.openid4vp.verifier.VerifierServiceIntegration;
+import no.idporten.eudiw.login.openid4vp.verifier.OpenID4VPVerifierServiceApiClient;
 import no.idporten.eudiw.login.openid4vp.verifier.model.*;
+import no.idporten.eudiw.login.openid4vp.wallet.WalletInteraction;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.*;
 import org.springframework.stereotype.Service;
@@ -15,13 +16,13 @@ import java.util.List;
  * Service creating and verifying OpenID4VP requests and responses.
  */
 @Service
-public class OpenID4VPService {
+public class OpenID4VPVerificationService {
 
-    private final VerifierServiceIntegration verifierServiceIntegration;
+    private final OpenID4VPVerifierServiceApiClient openID4VPVerifierServiceApiClient;
     private final OpenIDConnectIntegration openIDConnectServer;
 
-    public OpenID4VPService(VerifierServiceIntegration verifierServiceIntegration, OpenIDConnectIntegration openIDConnectServer) {
-        this.verifierServiceIntegration = verifierServiceIntegration;
+    public OpenID4VPVerificationService(OpenID4VPVerifierServiceApiClient openID4VPVerifierServiceApiClient, OpenIDConnectIntegration openIDConnectServer) {
+        this.openID4VPVerifierServiceApiClient = openID4VPVerifierServiceApiClient;
         this.openIDConnectServer = openIDConnectServer;
     }
 
@@ -32,11 +33,11 @@ public class OpenID4VPService {
      * @param walletInteraction wallet interaction
      * @return OpenID4VP authorization request
      */
-    public OpenID4VPAuthorizationRequests startVerification(VerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
+    public OpenID4VPAuthorizationRequests startVerification(OpenID4VPVerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
         StartVerificationRequest startVerificationRequest = new StartVerificationRequest(
                 verificationHandler.createDcqlQuery(walletInteraction.getId()),
                 createRedirectUri(walletInteraction.getId()));
-        StartVerificationResponse startVerificationResponse = verifierServiceIntegration.startVerification(startVerificationRequest);
+        StartVerificationResponse startVerificationResponse = openID4VPVerifierServiceApiClient.startVerification(startVerificationRequest);
         walletInteraction.setVerifierTransactionId(startVerificationResponse.verifierTransactionId());
         return new OpenID4VPAuthorizationRequests(
                 startVerificationResponse.authorizationRequest(),
@@ -53,8 +54,8 @@ public class OpenID4VPService {
      *
      * @return OIDC authorization response for client application
      */
-    public Authorization completeVerification(VerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
-        VerificationResultResponse verificationResultResponse = verifierServiceIntegration.retrieveVerifiedCredentials(walletInteraction.getVerifierTransactionId());
+    public Authorization completeVerification(OpenID4VPVerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
+        VerificationResultResponse verificationResultResponse = openID4VPVerifierServiceApiClient.retrieveVerifiedCredentials(walletInteraction.getVerifierTransactionId());
         if (CollectionUtils.isEmpty(verificationResultResponse.credentials())) {
             throw new InvalidVerificationException("Invalid verified credentials", "No credentials shared");
         }
@@ -72,7 +73,7 @@ public class OpenID4VPService {
         if (walletInteraction.getVerifierTransactionId() == null) {
             return false;
         }
-        VerificationStatusResponse verificationStatusResponse = verifierServiceIntegration.retrieveStatus(walletInteraction.getVerifierTransactionId());
+        VerificationStatusResponse verificationStatusResponse = openID4VPVerifierServiceApiClient.retrieveStatus(walletInteraction.getVerifierTransactionId());
         if ("AVAILABLE".equals(verificationStatusResponse.status())) {
             return true;
         }

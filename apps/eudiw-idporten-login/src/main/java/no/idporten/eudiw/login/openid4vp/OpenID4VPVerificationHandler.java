@@ -5,15 +5,15 @@ import no.idporten.eudiw.login.openid4vp.verifier.model.DcqlQuery;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerifiedCredential;
 import no.idporten.sdk.oidcserver.protocol.Authorization;
 
-public interface VerificationHandler {
+public interface OpenID4VPVerificationHandler {
 
    String AMR_EUDIW = "EUDIW";
 
-    static VerificationHandler forAcrValue(AcrValue acrValue) {
+    static OpenID4VPVerificationHandler forAcrValue(AcrValue acrValue) {
         if (acrValue.isEuLogin()) {
             return new EUVerificationHandler();
         } else {
-            return new NOVerificationHandler();
+            return new NorwegianVerificationHandler();
         }
     }
 

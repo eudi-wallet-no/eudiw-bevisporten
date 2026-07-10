@@ -116,7 +116,7 @@ class EUVerificationHandlerTest {
         @DisplayName("then amr is EUDIW")
         @Test
         void testAmrIsEudiw() {
-            assertEquals(VerificationHandler.AMR_EUDIW, authorization.getAmr());
+            assertEquals(OpenID4VPVerificationHandler.AMR_EUDIW, authorization.getAmr());
         }
 
         @DisplayName("then family_name attribute is set from credential")

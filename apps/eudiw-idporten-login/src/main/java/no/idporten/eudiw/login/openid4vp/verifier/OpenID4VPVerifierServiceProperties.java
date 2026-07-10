@@ -8,7 +8,7 @@ import java.net.URI;
 import java.time.Duration;
 
 @ConfigurationProperties(prefix = "eudiw-idporten-login.openid4vp-verifier-service")
-public record VerifierServiceProperties(
+public record OpenID4VPVerifierServiceProperties(
         @NotNull URI uri,
         @NotNull @DefaultValue("3s") Duration connectTimeout,
         @NotNull @DefaultValue("3s") Duration readTimeout
