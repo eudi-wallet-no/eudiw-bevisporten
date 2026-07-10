@@ -2,15 +2,13 @@ package no.idporten.eudiw.login.web;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import lombok.extern.slf4j.Slf4j;
 import no.idporten.eudiw.login.AcrValue;
 import no.idporten.eudiw.login.openid4vp.*;
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
-import no.idporten.sdk.oidcserver.protocol.Authorization;
-import no.idporten.sdk.oidcserver.protocol.AuthorizationResponse;
-import no.idporten.sdk.oidcserver.protocol.PushedAuthorizationRequest;
-import no.idporten.sdk.oidcserver.protocol.RedirectedResponse;
+import no.idporten.sdk.oidcserver.protocol.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,10 +22,10 @@ import java.util.Objects;
 /**
  * Handle browser interaction: OIDC front channel, UI with OpenID4VP authorization requests.
  */
-@Slf4j
 @Controller
 public class UIController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UIController.class);
     private static final String SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST = PushedAuthorizationRequest.class.getName();
     private static final String SESSION_ATTRIBUTE_WALLET_INTERACTION_ID = "WALLET_INTERACTION_ID";
 
@@ -80,6 +78,8 @@ public class UIController {
             OpenID4VPAuthorizationRequests authorizationRequests = openID4VPService.startVerification(VerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
             model.addAttribute("authorizationRequests", authorizationRequests);
             model.addAttribute("walletInteractionId", walletInteractionId);
+            model.addAttribute("pollingInterval", walletInteractionService.getWalletInteractionProperties().pollingInterval().toMillis());
+            model.addAttribute("pollingTimeout", walletInteractionService.getWalletInteractionProperties().pollingTimeout().toMillis());
             walletInteractionService.updateWalletInteraction(walletInteraction);
             return "login";
         } else {
@@ -128,7 +128,7 @@ public class UIController {
 
     @ExceptionHandler(InvalidVerificationException.class)
     public String handleInvalidVerificationException(InvalidVerificationException exception, HttpSession session) {
-        log.warn(exception.getLogMessage(), exception);
+        logger.warn(exception.getLogMessage(), exception);
         return cancel(session);
     }
 

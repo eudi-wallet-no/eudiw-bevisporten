@@ -23,7 +23,7 @@ public class VerifierServiceIntegration {
 
     public VerifierServiceIntegration(VerifierServiceProperties verifierServiceProperties) {
         this.restClient = RestClient.builder()
-                .baseUrl(verifierServiceProperties.getUri().toString())
+                .baseUrl(verifierServiceProperties.uri().toString())
                 .requestFactory(createRequestFactory(verifierServiceProperties))
                 .build();
     }
@@ -79,8 +79,8 @@ public class VerifierServiceIntegration {
 
     private SimpleClientHttpRequestFactory createRequestFactory(VerifierServiceProperties verifierServiceProperties) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Math.toIntExact(verifierServiceProperties.getConnectTimeout().toMillis()));
-        requestFactory.setReadTimeout(Math.toIntExact(verifierServiceProperties.getReadTimeout().toMillis()));
+        requestFactory.setConnectTimeout(Math.toIntExact(verifierServiceProperties.connectTimeout().toMillis()));
+        requestFactory.setReadTimeout(Math.toIntExact(verifierServiceProperties.readTimeout().toMillis()));
         return requestFactory;
     }
 
