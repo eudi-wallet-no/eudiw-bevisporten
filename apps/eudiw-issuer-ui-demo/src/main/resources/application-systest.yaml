@@ -10,6 +10,8 @@ bevisgenerator:
     credential-issuer: https://utsteder.eidas2sandkasse.dev/bevisgenerator
     credential-issuer-pid: https://utsteder.eidas2sandkasse.dev/pid
     credential-issuer-minid: https://utsteder.eidas2sandkasse.dev/minid
+  verifier-service:
+    base-url: https://verifier-service.eidas2sandkasse.dev
 
 maskinporten:
   lib:

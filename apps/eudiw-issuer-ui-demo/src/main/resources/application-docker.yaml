@@ -19,6 +19,8 @@ bevisgenerator:
     credential-issuer: http://issuer-server:9240/bevisgenerator
     credential-issuer-pid: http://issuer-server:9240/pid
     credential-issuer-minid: http://issuer-server:9240/minid
+  verifier-service:
+    base-url: http://verifier-service:9285
 
 maskinporten:
   lib:

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<main>
+    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
+        <h1 class="ds-heading" data-size="lg">
+            Presenter bevis
+        </h1>
+    </div>
+    <div class="ds-card" style="max-width: 600px">
+        <div id="cross-device-request">
+            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" width="100%"/>
+        </div>
+        <div class="flex-container" style="min-width: unset">
+            <a th:href="${authorizationRequest}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+                Opne på mobilen
+            </a>
+            <a th:href="@{/verification-result(transactionId=${transactionId})}" class="ds-button" type="button" data-variant="primary">
+                Sjå resultat
+            </a>
+            <a th:href="@{/verification-start}" class="ds-button" type="button" data-variant="secondary">
+                Tilbake
+            </a>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>
