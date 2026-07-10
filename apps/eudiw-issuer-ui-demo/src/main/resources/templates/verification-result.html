@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<main>
+    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
+        <h1 class="ds-heading" data-size="lg">
+            Resultat av verifikasjon
+        </h1>
+    </div>
+    <div class="ds-card" style="max-width: 600px">
+        <div th:if="${result != null}">
+            <p><strong>Transaction ID:</strong> <span th:text="${result.verifierTransactionId}"></span></p>
+            <p><strong>Result (JSON):</strong></p>
+            <pre th:text="${resultJson}"></pre>
+        </div>
+        <div th:if="${result == null}">
+            <p>Ingen resultat funne.</p>
+        </div>
+        <div class="flex-container" style="min-width: unset; margin-top: var(--ds-size-4)">
+            <a th:href="@{ / }" class="ds-button" type="button" data-variant="secondary">
+                Heim
+            </a>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>
