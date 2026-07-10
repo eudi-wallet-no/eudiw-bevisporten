@@ -1,11 +1,14 @@
-# eudiw-oauth2-server
+# eudiw-idporten-login
 
 > [!NOTE]
 > This application is part of the National Sandbox for Digital Wallet.
 > See https://docs.digdir.no/docs/lommebok/lommebok_om.html for more information.
 
-EUDIW ID-porten login is an OpenID Connect Provider for authentication users through OpenID 4 Verifiable Presentation of EUDI Wallet PID documents.
+EUDIW ID-porten login authenticates Norwegian and European users through OpenID 4 Verifiable Presentation of EUDI Wallet PID documents.
 
+The application is an OpenID Connect Provider implementing the OIDC profile for ID-portens internal login orchestration.
+
+The EUDIW verifier service is used to handle the OpenID4VP protocol with wallets.  This application handles the browser interaction same device and cross device presentation flows.
 
 ## Requirements
 - Java 25

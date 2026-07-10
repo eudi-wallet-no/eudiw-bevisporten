@@ -29,9 +29,11 @@
         </div>
     </div>
 </main>
-<script lang="javascript">
+<script th:inline="javascript">
 
-    async function waitForWallet(interval, timeout) {
+    async function waitForWallet() {
+        const timeout = /*[[${pollingTimeout}]]*/ 10 * 60 * 1000;
+        const interval = /*[[${pollingInterval}]]*/ 5 * 1000;
         const endtime = Date.now() + timeout;
 
         async function poll() {
@@ -60,7 +62,7 @@
         }
         return poll();
     }
-    waitForWallet(5000, 5 * 60 * 1000);
+    waitForWallet();
 </script>
 
 <footer th:replace="~{fragments/footer :: footer}">...</footer>

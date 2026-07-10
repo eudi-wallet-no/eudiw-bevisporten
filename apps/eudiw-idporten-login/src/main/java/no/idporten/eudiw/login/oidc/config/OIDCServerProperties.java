@@ -2,8 +2,8 @@ package no.idporten.eudiw.login.oidc.config;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.net.URI;
 import java.util.List;
@@ -12,29 +12,14 @@ import java.util.List;
  * Properties for OIDC server.
  */
 @ConfigurationProperties(prefix = "eudiw-idporten-login.oidc-sdk")
-@Data
-public class OIDCServerProperties {
-
-    String internalId = "idporten-eudiw";
-
-    @NotNull
-    URI issuer;
-
-    @NotNull
-    List<ClientMetadataProperties> clients;
-
-    List<String> uiLocales = List.of("nb", "nn", "en", "se");
-
-    List<String> scopesSupported = List.of("openid");
-
-    List<String> responseModesSupported = List.of("query", "query.jwt");
-
-    @Min(1)
-    int parLifetimeSeconds = 60;
-
-    @Min(1)
-    int authorizationLifetimeSeconds = 60;
-
-    boolean requirePkce = true;
-
-}
+public record OIDCServerProperties(
+        @DefaultValue("idporten-eudiw") String internalId,
+        @NotNull URI issuer,
+        @NotNull List<ClientMetadataProperties> clients,
+        @DefaultValue("nb,nn,en,se") List<String> uiLocales,
+        @DefaultValue("openid") List<String> scopesSupported,
+        @DefaultValue("query,query.jwt") List<String> responseModesSupported,
+        @Min(1) @DefaultValue("60") int parLifetimeSeconds,
+        @Min(1) @DefaultValue("60") int authorizationLifetimeSeconds,
+        @DefaultValue("true") boolean requirePkce
+) {}

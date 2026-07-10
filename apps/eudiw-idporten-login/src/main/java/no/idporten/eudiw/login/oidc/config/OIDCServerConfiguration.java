@@ -38,19 +38,19 @@ public class OIDCServerConfiguration {
     public OpenIDConnectSdkConfiguration openIDConnectSdkConfig(OIDCServerProperties oidcServerProperties) throws Exception {
         OpenIDConnectSdkConfiguration.OpenIDConnectSdkConfigurationBuilder builder =
                 OpenIDConnectSdkConfiguration.builder()
-                        .issuer(oidcServerProperties.getIssuer())
-                        .internalId(oidcServerProperties.getInternalId())
-                        .clients(oidcServerProperties.getClients().stream().map(clientMetadataProperties ->
+                        .issuer(oidcServerProperties.issuer())
+                        .internalId(oidcServerProperties.internalId())
+                        .clients(oidcServerProperties.clients().stream().map(clientMetadataProperties ->
                                 ClientMetadata.builder()
-                                        .clientId(clientMetadataProperties.getClientId())
-                                        .clientSecret(clientMetadataProperties.getClientSecret())
-                                        .redirectUris(clientMetadataProperties.getRedirectUris())
-                                        .scopes(clientMetadataProperties.getScopes())
+                                        .clientId(clientMetadataProperties.clientId())
+                                        .clientSecret(clientMetadataProperties.clientSecret())
+                                        .redirectUris(clientMetadataProperties.redirectUris())
+                                        .scopes(clientMetadataProperties.scopes())
                                         .build()).toList())
                         .acrValues(Arrays.stream(AcrValue.values()).map(AcrValue::value).toList())
-                        .responseModes(oidcServerProperties.getResponseModesSupported())
-                        .scopesSupported(oidcServerProperties.getScopesSupported())
-                        .uiLocales(oidcServerProperties.getUiLocales())
+                        .responseModes(oidcServerProperties.responseModesSupported())
+                        .scopesSupported(oidcServerProperties.scopesSupported())
+                        .uiLocales(oidcServerProperties.uiLocales())
                         .jwksUri(endpointUri(oidcServerProperties, "jwks"))
                         .pushedAuthorizationRequestEndpoint(endpointUri(oidcServerProperties, "par"))
                         .authorizationEndpoint(endpointUri(oidcServerProperties, "authorize"))
@@ -66,7 +66,7 @@ public class OIDCServerConfiguration {
     }
 
     private URI endpointUri(OIDCServerProperties oidcServerProperties, String endpoint) {
-        return UriComponentsBuilder.fromUri(oidcServerProperties.getIssuer()).path(endpoint).build().toUri();
+        return UriComponentsBuilder.fromUri(oidcServerProperties.issuer()).path(endpoint).build().toUri();
     }
 
     private RSAKey generateServerKeys() throws Exception {

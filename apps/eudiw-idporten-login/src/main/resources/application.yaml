@@ -89,6 +89,9 @@ eudiw-idporten-login:
     uri: http://digital-lommebok-verifier-service-service:8080
     connect-timeout: 3s
     read-timeout: 3s
+  wallet-interaction:
+    polling-interval: 5s
+    polling-timeout: 10m
 
 external-dependency-health-checks:
   health-endpoints:

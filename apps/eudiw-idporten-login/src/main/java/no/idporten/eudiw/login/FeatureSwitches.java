@@ -1,18 +1,15 @@
 package no.idporten.eudiw.login;
 
-import lombok.Data;
 import no.idporten.validators.identifier.PersonIdentifierValidator;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
-@Configuration
-@Data
 @ConfigurationProperties(prefix = "eudiw-idporten-login.features")
-public class FeatureSwitches implements InitializingBean {
-
-    private boolean allowRealPersonIdentifiers = true;
-    private boolean allowSyntheticPersonIdentifiers = false;
+public record FeatureSwitches(
+        @DefaultValue("true") boolean allowRealPersonIdentifiers,
+        @DefaultValue("false") boolean allowSyntheticPersonIdentifiers
+) implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {

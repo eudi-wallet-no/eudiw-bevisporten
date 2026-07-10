@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -19,12 +21,16 @@ class WalletInteractionServiceTest {
 
     @Mock
     private WalletInteractionCache walletInteractionCache;
-
+    private  WalletInteractionProperties walletInteractionProperties;
     private WalletInteractionService service;
 
     @BeforeEach
     void setUp() {
-        service = new WalletInteractionService(walletInteractionCache);
+        walletInteractionProperties = new WalletInteractionProperties(
+                Duration.ofSeconds(5),
+                Duration.ofMinutes(5)
+        );
+        service = new WalletInteractionService(walletInteractionCache, walletInteractionProperties);
     }
 
     @DisplayName("When creating a new wallet interaction")
@@ -60,10 +66,10 @@ class WalletInteractionServiceTest {
             assertTrue(walletInteraction.createdAtEpochMillis() <= System.currentTimeMillis());
         }
 
-        @DisplayName("then expiresAtEpochMillis is set to 10 minutes after creation")
+        @DisplayName("then expiresAtEpochMillis is set to n minutes after creation")
         @Test
         void testExpiresAtIsTenMinutesAfterCreation() {
-            long expectedExpiry = walletInteraction.createdAtEpochMillis() + (10 * 60 * 1000L);
+            long expectedExpiry = walletInteraction.createdAtEpochMillis() + (5 * 60 * 1000L);
             assertEquals(expectedExpiry, walletInteraction.expiresAtEpochMillis());
         }
 

@@ -11,9 +11,11 @@ import java.util.UUID;
 public class WalletInteractionService {
 
     private final WalletInteractionCache walletInteractionCache;
+    private final WalletInteractionProperties walletInteractionProperties;
 
-    public WalletInteractionService(WalletInteractionCache walletInteractionCache) {
+    public WalletInteractionService(WalletInteractionCache walletInteractionCache, WalletInteractionProperties walletInteractionProperties) {
         this.walletInteractionCache = walletInteractionCache;
+        this.walletInteractionProperties = walletInteractionProperties;
     }
 
     protected String createWalletInteractionId() {
@@ -25,6 +27,7 @@ public class WalletInteractionService {
      */
     public WalletInteraction createWalletInteraction() {
         WalletInteraction walletInteraction = new WalletInteraction(createWalletInteractionId());
+        walletInteraction.setLifetimeSeconds(walletInteractionProperties.pollingTimeout().toSeconds());
         walletInteractionCache.putWalletInteraction(walletInteraction.getId(), walletInteraction);
         return walletInteraction;
     }
@@ -41,4 +44,9 @@ public class WalletInteractionService {
     public void removeWalletInteraction(String state) {
         walletInteractionCache.removeWalletInteraction(state);
     }
+
+    public WalletInteractionProperties getWalletInteractionProperties() {
+        return walletInteractionProperties;
+    }
+
 }
