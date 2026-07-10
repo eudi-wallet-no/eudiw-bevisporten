@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("When handling Norwegian users")
-class NOVerificationHandlerTest {
+class NorwegianVerificationHandlerTest {
 
-    private NOVerificationHandler handler = new NOVerificationHandler();
+    private NorwegianVerificationHandler handler = new NorwegianVerificationHandler();
 
     @BeforeEach
     void setUp() {
@@ -120,7 +120,7 @@ class NOVerificationHandlerTest {
         @DisplayName("then amr is EUDIW")
         @Test
         void testAmrIsEudiw() {
-            assertEquals(VerificationHandler.AMR_EUDIW, authorization.getAmr());
+            assertEquals(OpenID4VPVerificationHandler.AMR_EUDIW, authorization.getAmr());
         }
 
         @DisplayName("then family_name attribute is set from credential")

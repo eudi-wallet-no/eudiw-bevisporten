@@ -1,4 +1,4 @@
-package no.idporten.eudiw.login.openid4vp;
+package no.idporten.eudiw.login.openid4vp.wallet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +21,7 @@ class WalletInteractionServiceTest {
 
     @Mock
     private WalletInteractionCache walletInteractionCache;
-    private  WalletInteractionProperties walletInteractionProperties;
+    private WalletInteractionProperties walletInteractionProperties;
     private WalletInteractionService service;
 
     @BeforeEach

@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.login.AcrValue;
 import no.idporten.eudiw.login.openid4vp.*;
+import no.idporten.eudiw.login.openid4vp.wallet.WalletInteraction;
+import no.idporten.eudiw.login.openid4vp.wallet.WalletInteractionService;
 import no.idporten.sdk.oidcserver.OAuth2Exception;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
 import no.idporten.sdk.oidcserver.protocol.*;
@@ -20,22 +22,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Objects;
 
 /**
- * Handle browser interaction: OIDC front channel, UI with OpenID4VP authorization requests.
+ * Handle browser interaction: OIDC front channel, UI with OpenID4VP authorization requests, polling.
  */
 @Controller
-public class UIController {
+public class LoginController {
 
-    private static final Logger logger = LoggerFactory.getLogger(UIController.class);
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     private static final String SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST = PushedAuthorizationRequest.class.getName();
     private static final String SESSION_ATTRIBUTE_WALLET_INTERACTION_ID = "WALLET_INTERACTION_ID";
 
     private final OpenIDConnectIntegration openIDConnectServer;
-    private final OpenID4VPService openID4VPService;
+    private final OpenID4VPVerificationService openId4VpVerificationService;
     private final WalletInteractionService walletInteractionService;
 
-    public UIController(OpenIDConnectIntegration openIDConnectServer, OpenID4VPService openID4VPService, WalletInteractionService walletInteractionService) {
+    public LoginController(OpenIDConnectIntegration openIDConnectServer, OpenID4VPVerificationService openId4VpVerificationService, WalletInteractionService walletInteractionService) {
         this.openIDConnectServer = openIDConnectServer;
-        this.openID4VPService = openID4VPService;
+        this.openId4VpVerificationService = openId4VpVerificationService;
         this.walletInteractionService = walletInteractionService;
     }
 
@@ -46,7 +48,7 @@ public class UIController {
     public String authorize(@RequestHeader MultiValueMap<String, String> headers, @RequestParam MultiValueMap<String, String> parameters, HttpServletRequest request, HttpSession session) {
         PushedAuthorizationRequest pushedAuthorizationRequest = openIDConnectServer.process(new no.idporten.sdk.oidcserver.protocol.AuthorizationRequest(headers, parameters));
         session.setAttribute(SESSION_ATTRIBUTE_PUSHED_AUTHORIZATION_REQUEST, pushedAuthorizationRequest);
-        WalletInteraction  walletInteraction = walletInteractionService.createWalletInteraction();
+        WalletInteraction walletInteraction = walletInteractionService.createWalletInteraction();
         session.setAttribute(SESSION_ATTRIBUTE_WALLET_INTERACTION_ID, walletInteraction.getId());
         return "redirect:/login/" + walletInteraction.getId();
     }
@@ -75,7 +77,7 @@ public class UIController {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid wallet interaction", HttpStatus.BAD_REQUEST.value());
         }
         if (! walletInteraction.isStarted()) {
-            OpenID4VPAuthorizationRequests authorizationRequests = openID4VPService.startVerification(VerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
+            OpenID4VPAuthorizationRequests authorizationRequests = openId4VpVerificationService.startVerification(OpenID4VPVerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
             model.addAttribute("authorizationRequests", authorizationRequests);
             model.addAttribute("walletInteractionId", walletInteractionId);
             model.addAttribute("pollingInterval", walletInteractionService.getWalletInteractionProperties().pollingInterval().toMillis());
@@ -83,7 +85,7 @@ public class UIController {
             walletInteractionService.updateWalletInteraction(walletInteraction);
             return "login";
         } else {
-            Authorization authorization = openID4VPService.completeVerification(VerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
+            Authorization authorization = openId4VpVerificationService.completeVerification(OpenID4VPVerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
             AuthorizationResponse authorizationResponse = openIDConnectServer.authorize(pushedAuthorizationRequest, authorization);
             RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(authorizationResponse);
             walletInteractionService.removeWalletInteraction(walletInteraction.getId());
@@ -120,7 +122,7 @@ public class UIController {
         if (! walletInteraction.isStarted()) {
             return ResponseEntity.accepted().build();
         }
-        if (openID4VPService.isVerificationComplete(walletInteraction)) {
+        if (openId4VpVerificationService.isVerificationComplete(walletInteraction)) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.accepted().build();

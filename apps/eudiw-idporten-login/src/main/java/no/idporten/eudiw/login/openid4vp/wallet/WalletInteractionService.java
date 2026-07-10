@@ -1,4 +1,4 @@
-package no.idporten.eudiw.login.openid4vp;
+package no.idporten.eudiw.login.openid4vp.wallet;
 
 import org.springframework.stereotype.Service;
 

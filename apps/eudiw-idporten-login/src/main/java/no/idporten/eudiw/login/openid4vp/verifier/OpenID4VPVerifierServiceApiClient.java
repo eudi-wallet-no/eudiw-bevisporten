@@ -16,12 +16,12 @@ import org.springframework.web.client.RestClient;
  * Integration with verification service REST API.
  */
 @Service
-public class VerifierServiceIntegration {
+public class OpenID4VPVerifierServiceApiClient {
 
     private final RestClient restClient;
     public static final String VERIFIER_CLIENT_APPLICATION_ID = "idporten-login";
 
-    public VerifierServiceIntegration(VerifierServiceProperties verifierServiceProperties) {
+    public OpenID4VPVerifierServiceApiClient(OpenID4VPVerifierServiceProperties verifierServiceProperties) {
         this.restClient = RestClient.builder()
                 .baseUrl(verifierServiceProperties.uri().toString())
                 .requestFactory(createRequestFactory(verifierServiceProperties))
@@ -77,7 +77,7 @@ public class VerifierServiceIntegration {
         }
     }
 
-    private SimpleClientHttpRequestFactory createRequestFactory(VerifierServiceProperties verifierServiceProperties) {
+    private SimpleClientHttpRequestFactory createRequestFactory(OpenID4VPVerifierServiceProperties verifierServiceProperties) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(Math.toIntExact(verifierServiceProperties.connectTimeout().toMillis()));
         requestFactory.setReadTimeout(Math.toIntExact(verifierServiceProperties.readTimeout().toMillis()));

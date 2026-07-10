@@ -9,7 +9,7 @@ import no.idporten.validators.identifier.PersonIdentifierValidator;
 /**
  * Handler for Norwegian PID verification.
  */
-public class NOVerificationHandler implements VerificationHandler {
+public class NorwegianVerificationHandler implements OpenID4VPVerificationHandler {
 
     @Override
     public DcqlQuery createDcqlQuery(String walletInteractionId) {
