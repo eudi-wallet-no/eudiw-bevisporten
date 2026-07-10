@@ -34,6 +34,7 @@ management:
 bevisgenerator:
   features:
     allow-bevistyper-v2: true
+    allow-verification: true
   byob-service:
     create-endpoint: /v1/public/credential-configurations
     get-all-edit-endpoint: /v1/public/credential-configurations
@@ -147,7 +148,6 @@ bevisgenerator:
               "expiry_date": "2027-03-12"
             }
           }
-
     # Bevis utstedt i Bevisporten
     subject-credential-configurations:
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
@@ -158,6 +158,11 @@ bevisgenerator:
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-pid}
         description: Norsk ID-bevis (SD-JWT VC)
         scope: eudiw:no:pid
+  verifier-service:
+    verification-start-endpoint: /api/v1/{client_application_id}/verify/start/
+    verification-status-endpoint: /api/v1/{client_application_id}/verify/status/{verifier_transaction_id}
+    verification-result-endpoint: /api/v1/{client_application_id}/verify/result/{verifier_transaction_id}
+    client-application-id: idporten-login
 
 maskinporten:
   lib:

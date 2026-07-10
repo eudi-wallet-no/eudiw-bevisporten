@@ -6,12 +6,15 @@ spring:
 bevisgenerator:
   features:
     allow-bevistyper-v2: false
+    allow-verification: false
   byob-service:
     base-url: https://byob-service.test.eidas2sandkasse.net
   issuer-server:
     credential-issuer: https://utsteder.test.eidas2sandkasse.net/bevisgenerator
     credential-issuer-pid: https://utsteder.test.eidas2sandkasse.net/pid
     credential-issuer-minid: https://utsteder.test.eidas2sandkasse.net/minid
+  verifier-service:
+    base-url: https://verifier-service.test.eidas2sandkasse.net
 
 maskinporten:
   lib:

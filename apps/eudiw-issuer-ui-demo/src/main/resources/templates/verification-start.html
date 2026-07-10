@@ -48,13 +48,13 @@
                 <textarea id="dcql"
                           class="ds-input"
                           rows="12"
-                          th:field="*{dcqlQuery}"
-                          th:attr="aria-invalid=${#fields.hasErrors('dcqlQuery')}"
+                          th:field="*{dcql}"
+                          th:attr="aria-invalid=${#fields.hasErrors('dcql')}"
                           placeholder='{"credentials":[{"id":"my-query"}]}'>
                 </textarea>
-                <span th:if="${#fields.hasErrors('dcqlQuery')}"
+                <span th:if="${#fields.hasErrors('dcql')}"
                       class="ds-validation-message"
-                      th:errors="*{dcqlQuery}"></span>
+                      th:errors="*{dcql}"></span>
             </div>
             <div class="button-group">
                 <button class="ds-button"

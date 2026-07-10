@@ -30,7 +30,7 @@
                 Utsted eit bevis ved å skrive inn noko dummy-data og deretter overføre det til ei lommebok
             </p>
         </a>
-        <a th:href="@{/verification-start}" class="ds-card"
+        <a  th:href="@{/verification-start}" class="ds-card" th:if="${allowVerification}"
             data-variant="neutral" style="max-width: 500px">
             <h2 class="ds-heading">Presenter bevis</h2>
             <p class="ds-paragraph" data-variant="neutral">
