@@ -51,6 +51,22 @@ public class IssuerUiExceptionHandler {
         return getModelAndView("error/error").addObject("errorMessage", "Integration with Maskinporten failed").addObject("statusCode", HttpStatus.INTERNAL_SERVER_ERROR).addObject("details", e.getMessage());
     }
 
+
+    @ExceptionHandler(VerifierServiceException.class)
+    public ModelAndView handleVerifierServiceException(VerifierServiceException e) {
+        log.error("Unexpected error from verifier-service", e);
+        return getModelAndView("error/error")
+                .addObject("errorMessage", "Verifier-service call failed")
+                .addObject("statusCode", e.getHttpStatusCode())
+                .addObject("details", e.getMessage());
+    }
+
+    @ExceptionHandler(VerifierServiceIOException.class)
+    public ModelAndView handleVerifierServiceIOException(VerifierServiceIOException e) {
+        log.error("Failed to connect with verifier-service", e);
+        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with verifier-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
+    }
+
     @ExceptionHandler(ByobServiceException.class)
     public ModelAndView handleByobServiceException(ByobServiceException e) {
         log.error("Unexpected error from byob-service", e);

@@ -8,11 +8,6 @@ public class ByobServiceException extends RuntimeException {
 
     private final RestClientException restClientResponseException;
 
-    public ByobServiceException(String message) {
-        super(message);
-        restClientResponseException = null;
-    }
-
      public ByobServiceException(String message, RestClientException cause) {
         super(message, cause);
         restClientResponseException = cause;
