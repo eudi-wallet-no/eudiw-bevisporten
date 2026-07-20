@@ -27,7 +27,7 @@
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <springdoc.version>3.0.3</springdoc.version>
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
         <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
         <oauth2-oidc-sdk.version>11.38.1</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>0.22.0</waltid-mdoc-credentials-jvm.version>
