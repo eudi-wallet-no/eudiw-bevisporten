@@ -19,6 +19,8 @@ verifier-service:
   client-applications:
     idporten-login:
       keystore-name: idporten-login-access
+    bevisgenerator-login:
+      keystore-name: bevisgenerator-login-access
 
 
 idporten-key-manager:
@@ -29,3 +31,9 @@ idporten-key-manager:
       key-store-password: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_PASSWORD}
       key-alias: ${IDPORTEN_LOGIN_ACCESS_KEY_ALIAS}
       key-password: ${IDPORTEN_LOGIN_ACCESS_KEY_PASSWORD}
+    bevisgenerator-login-access:
+      key-store-type: ${BEVISGENERATOR_LOGIN_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${BEVISGENERATOR_LOGIN_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${BEVISGENERATOR_LOGIN_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${BEVISGENERATOR_LOGIN_ACCESS_KEY_ALIAS}
+      key-password: ${BEVISGENERATOR_LOGIN_ACCESS_KEY_PASSWORD}
