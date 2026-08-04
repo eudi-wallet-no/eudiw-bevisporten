@@ -162,7 +162,7 @@ bevisgenerator:
     verification-start-endpoint: /api/v1/{client_application_id}/verify/start/
     verification-status-endpoint: /api/v1/{client_application_id}/verify/status/{verifier_transaction_id}
     verification-result-endpoint: /api/v1/{client_application_id}/verify/result/{verifier_transaction_id}
-    client-application-id: idporten-login
+    client-application-id: bevisgenerator-login
 
 maskinporten:
   lib:
