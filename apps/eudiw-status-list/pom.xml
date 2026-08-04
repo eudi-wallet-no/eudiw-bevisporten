@@ -20,7 +20,7 @@
         <lombok.version>1.18.44</lombok.version>
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
-        <idporten-access-log.version>4.0.1</idporten-access-log.version>
+        <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <idporten-log-audit.version>4.0.4</idporten-log-audit.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
         <bcpkix-jdk18on.version>1.85</bcpkix-jdk18on.version>
