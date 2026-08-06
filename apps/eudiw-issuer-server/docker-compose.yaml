@@ -238,7 +238,7 @@ services:
 
   status-list:
     image: "crutvikling.azurecr.io/eudiw-status-list"
-    # image: "digital-lommebok-status-list" # Uncomment this line if you want to use the local image instead
+    #image: "digital-lommebok-status-list" # Uncomment this line if you want to use the local image instead
     depends_on:
       status-list-db:
         condition: service_healthy
