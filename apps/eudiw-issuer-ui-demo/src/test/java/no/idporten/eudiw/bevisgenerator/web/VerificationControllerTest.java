@@ -1,12 +1,18 @@
 package no.idporten.eudiw.bevisgenerator.web;
 
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
-import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.ClaimMetadata;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfiguration;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfigurationMetadata;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLServiceImpl;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStartResponse;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
+import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -17,12 +23,12 @@ import org.springframework.web.servlet.view.RedirectView;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,8 +41,7 @@ class VerificationControllerTest {
 
     private MockMvc mockMvc;
     private VerifierService verifierService;
-    private CredentialConfiguration issuanceConfig;
-    private CredentialConfiguration subjectConfig;
+    private String issuanceDefinitionId;
 
     @BeforeEach
     void setUp() {
@@ -44,27 +49,51 @@ class VerificationControllerTest {
         IssuerServerProperties issuerServerProperties = mock(IssuerServerProperties.class);
         verifierService = mock(VerifierService.class);
         ObjectMapper objectMapper = new ObjectMapper();
+        DCQLService dcqlService = new DCQLServiceImpl(objectMapper);
 
-        issuanceConfig = new CredentialConfiguration(
-                "http://issuer",
-                "no.digdir.eudiw.pid_mso_mdoc",
-                "scope",
-                "12345678910",
-                "PID",
-                "{\"a\":\"b\"}"
-        );
-        subjectConfig = new CredentialConfiguration(
-                "http://issuer",
-                "proof_of_age",
-                "proof_of_age",
+        issuanceDefinitionId = "pid";
+        String subjectDefinitionId = "proof_of_age";
+        CredentialConfiguration issuanceConfig = new CredentialConfiguration(
                 null,
-                "Aldersbevis",
-                null
+                "no:kontaktregisteret:kontaktinformasjon:1",
+                "scope",
+                "dc+sd-jwt",
+                List.of(),
+                List.of(),
+                new CredentialConfigurationMetadata(
+                        List.of(new Display("PID")),
+                        List.of(
+                                new ClaimMetadata(List.of("personidentifikator"), true, List.of(new Display("Personidentifikator"))),
+                                new ClaimMetadata(List.of("epostadresse"), false, List.of(new Display("E-postadresse")))
+                        )
+                ),
+                Map.of()
+        );
+        CredentialConfiguration subjectConfig = new CredentialConfiguration(
+                "eu.europa.ec.eudiw.age_over_18",
+                null,
+                "proof_of_age",
+                "mso_mdoc",
+                List.of(),
+                List.of(),
+                new CredentialConfigurationMetadata(
+                        List.of(new Display("Aldersbevis")),
+                        List.of(new ClaimMetadata(List.of("age_over_18"), true, List.of(new Display("Over 18"))))
+                ),
+                Map.of()
+        );
+        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata(
+                "http://issuer",
+                List.of(),
+                "http://issuer/credential",
+                null,
+                null,
+                Map.of(issuanceDefinitionId, issuanceConfig, subjectDefinitionId, subjectConfig),
+                List.of()
         );
 
         when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
-        when(issuerServerService.getAll()).thenReturn(List.of(issuanceConfig));
-        when(issuerServerService.getAllSubjectCredentialConfigurations()).thenReturn(List.of(subjectConfig));
+        when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(credentialIssuerMetadata));
         when(verifierService.startVerification(anyString())).thenReturn(
                 new VerificationTransactionData(
                 new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id"),
@@ -84,7 +113,7 @@ class VerificationControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new VerificationController(issuerServerService, issuerServerProperties, verifierService, objectMapper))
+        mockMvc = MockMvcBuilders.standaloneSetup(new VerificationController(issuerServerService, issuerServerProperties, verifierService, objectMapper, dcqlService))
                 .setValidator(validator)
                 .setViewResolvers((viewName, locale) -> {
                     if (viewName.startsWith("redirect:")) {
@@ -103,28 +132,35 @@ class VerificationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-start"))
                 .andExpect(model().attributeExists("verificationForm"))
-                .andExpect(model().attributeExists("credentialConfigurations"));
+                .andExpect(model().attributeExists("credentialDefinitions"))
+                .andExpect(model().attributeExists("credentialDefinitionsJson"))
+                .andExpect(model().attributeExists("selectedClaimPathsJson"));
     }
 
     @Test
-    void getVerificationStartCombinesBothCredentialConfigurationLists() throws Exception {
+    void getVerificationStartContainsAllCredentialDefinitions() throws Exception {
         mockMvc.perform(get("/verification-start"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("credentialConfigurations", hasSize(2)))
-                .andExpect(model().attribute("credentialConfigurations",
-                        hasItems(issuanceConfig, subjectConfig)));
+                .andExpect(model().attribute("credentialDefinitions", hasSize(2)));
     }
 
     @Test
     void postVerificationStartWithValidInputRedirectsToPresentation() throws Exception {
         mockMvc.perform(post("/verification-start")
-                        .param("credentialConfigurationId", issuanceConfig.credentialConfigurationId())
-                        .param("dcql", "{\"credentials\":[{\"id\":\"pid\"}]}"))
+                        .param("credentialConfigurationId", issuanceDefinitionId)
+                        .param("selectedClaimPaths", "epostadresse"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/verification-presentation"))
                 .andExpect(flash().attributeExists("qrCode"))
                 .andExpect(flash().attributeExists("authorizationRequest"))
                 .andExpect(flash().attribute("transactionId", "tx-id"));
+
+        verify(verifierService).startVerification(argThat(dcql ->
+                dcql.contains("\"id\"")
+                        && dcql.contains("\"format\":\"dc+sd-jwt\"")
+                        && !dcql.contains("\"personidentifikator\"")
+                        && dcql.contains("\"epostadresse\"")
+        ));
     }
 
     @Test
@@ -150,7 +186,7 @@ class VerificationControllerTest {
     void postVerificationStartWithBlankCredentialConfigurationIdFailsValidation() throws Exception {
         mockMvc.perform(post("/verification-start")
                         .param("credentialConfigurationId", "")
-                        .param("dcql", "{\"credentials\":[{\"id\":\"pid\"}]}"))
+                        .param("selectedClaimPaths", "personidentifikator"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-start"))
                 .andExpect(model().attributeHasFieldErrors("verificationForm", "credentialConfigurationId"))
@@ -158,32 +194,29 @@ class VerificationControllerTest {
     }
 
     @Test
-    void postVerificationStartWithBlankDcqlFailsValidation() throws Exception {
+    void postVerificationStartWithBlankSelectedClaimsFailsValidation() throws Exception {
         mockMvc.perform(post("/verification-start")
-                        .param("credentialConfigurationId", issuanceConfig.credentialConfigurationId())
-                        .param("dcql", ""))
+                        .param("credentialConfigurationId", issuanceDefinitionId))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-start"))
-                .andExpect(model().attributeHasFieldErrors("verificationForm", "dcql"))
+                .andExpect(model().attributeHasFieldErrors("verificationForm", "selectedClaimPaths"))
                 .andExpect(model().attributeDoesNotExist("verificationSuccessMessage"));
     }
 
     @Test
     void postVerificationStartWithBothFieldsBlankFailsValidationOnBoth() throws Exception {
         mockMvc.perform(post("/verification-start")
-                        .param("credentialConfigurationId", "")
-                        .param("dcql", ""))
+                        .param("credentialConfigurationId", ""))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-start"))
-                .andExpect(model().attributeHasFieldErrors("verificationForm", "credentialConfigurationId", "dcql"));
+                .andExpect(model().attributeHasFieldErrors("verificationForm", "credentialConfigurationId", "selectedClaimPaths"));
     }
 
     @Test
-    void postVerificationStartReturnsCredentialConfigurationsOnValidationError() throws Exception {
+    void postVerificationStartReturnsCredentialDefinitionsOnValidationError() throws Exception {
         mockMvc.perform(post("/verification-start")
-                        .param("credentialConfigurationId", "")
-                        .param("dcql", ""))
+                        .param("credentialConfigurationId", ""))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("credentialConfigurations", hasSize(2)));
+                .andExpect(model().attribute("credentialDefinitions", hasSize(2)));
     }
 }
