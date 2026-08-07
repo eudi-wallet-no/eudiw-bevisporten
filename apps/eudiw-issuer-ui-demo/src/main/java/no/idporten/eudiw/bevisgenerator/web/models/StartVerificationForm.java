@@ -1,44 +1,17 @@
 package no.idporten.eudiw.bevisgenerator.web.models;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+
+import java.util.List;
 
 public record StartVerificationForm(
         @NotBlank(message = "Credential configuration må velgast")
         String credentialConfigurationId,
-        @NotBlank(message = "DCQL må ha verdi")
-        String dcql
+        @NotEmpty(message = "Minst eitt claim må velgast")
+        List<@NotBlank(message = "Minst eitt claim må velgast") String> selectedClaimPaths
 ) {
     public StartVerificationForm() {
-        this("", """
-                 {
-                    "credentials": [
-                      {
-                        "meta": {
-                          "vct_values": [
-                            "no:kontaktregisteret:kontaktinformasjon:1"
-                          ]
-                        },
-                        "format": "dc+sd-jwt",
-                        "claims": [
-                          {
-                            "path": [
-                              "personidentifikator"
-                            ]
-                          },
-                          {
-                            "path": [
-                              "epostadresse"
-                            ]
-                          },
-                          {
-                            "path": [
-                              "mobiltelefonnummer"
-                            ]
-                          }
-                        ],
-                        "id": "kontaktregisteret"
-                      }
-                    ]
-                  }""");
+        this("", List.of());
     }
 }

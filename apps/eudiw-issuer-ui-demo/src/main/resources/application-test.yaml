@@ -13,6 +13,10 @@ bevisgenerator:
     credential-issuer: https://utsteder.test.eidas2sandkasse.net/bevisgenerator
     credential-issuer-pid: https://utsteder.test.eidas2sandkasse.net/pid
     credential-issuer-minid: https://utsteder.test.eidas2sandkasse.net/minid
+    well-known-urls:
+      - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/pid
+      - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/minid
+      - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/bevisgenerator
   verifier-service:
     base-url: https://verifier-service.test.eidas2sandkasse.net
 
