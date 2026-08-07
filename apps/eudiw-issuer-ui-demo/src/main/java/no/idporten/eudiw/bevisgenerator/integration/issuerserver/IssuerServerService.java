@@ -5,6 +5,7 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerServerException;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceSubject;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
@@ -46,6 +47,37 @@ public class IssuerServerService {
         this.restClient = restClient;
         this.maskinportenClient = maskinportenClient;
         this.credentialIssuerService = credentialIssuerService;
+    }
+
+    public List<CredentialIssuerMetadata> getAllCredentialIssuerMetadata() {
+        List<String> wellKnownUrls = issuerServerProperties.wellKnownUrls();
+        List<CredentialIssuerMetadata> credentialIssuerMetadata = new ArrayList<>();
+        for (String wellKnownUrl : wellKnownUrls) {
+            if (wellKnownUrl == null || wellKnownUrl.isBlank()) {
+                continue;
+            }
+
+            try {
+                CredentialIssuerMetadata metadata = restClient.get()
+                        .uri(wellKnownUrl)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(CredentialIssuerMetadata.class);
+
+                if (metadata != null) {
+                    credentialIssuerMetadata.add(metadata);
+                }
+            } catch (HttpClientErrorException e) {
+                log.error("Configuration error fetching .well-known endpoint: {}",
+                        wellKnownUrl, e);
+                throw new IssuerServerException("Failed to fetch credential issuer metadata", e);
+            } catch (HttpServerErrorException e) {
+                log.error("Server error fetching .well-known endpoint", e);
+                throw new IssuerServerException("Issuer server returned error fetching metadata", e);
+            }
+        }
+
+        return credentialIssuerMetadata;
     }
 
     /**
