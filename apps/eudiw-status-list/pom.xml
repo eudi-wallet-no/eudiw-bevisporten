@@ -24,7 +24,7 @@
         <idporten-log-audit.version>4.0.4</idporten-log-audit.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
         <bcpkix-jdk18on.version>1.85</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.85</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.85.2</bcprov-jdk18on.version>
         <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
         <springdoc.version>3.1.0</springdoc.version>
     </properties>
