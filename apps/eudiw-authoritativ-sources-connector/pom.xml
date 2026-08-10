@@ -23,7 +23,7 @@
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
         <idporten-log-audit.version>4.0.4</idporten-log-audit.version>
-        <springdoc.version>3.0.3</springdoc.version>
+        <springdoc.version>3.1.0</springdoc.version>
         <maskinporten.client.version>6.0.1</maskinporten.client.version>
         <log-event.version>2.0.4</log-event.version>
         <freg-integration-lib.version>2.0.3</freg-integration-lib.version>
