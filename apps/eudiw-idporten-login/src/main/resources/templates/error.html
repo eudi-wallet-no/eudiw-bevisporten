@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<header th:replace="~{fragments/toppanel :: header}">...</header>
+<main>
+    <div class="box" id="main-content">
+        <div class="box__body">
+            <div class="notification">
+                <h1 th:text="#{error_title}">Service unavailable</h1>
+                <p th:text="#{error_text}">Login is not available for the moment.</p>
+            </div>
+        </div>
+        <div class="box__footer">
+            <div class="section">
+                <p>
+                    <span th:text="${status}"></span>
+                    -
+                    <span th:text="${error.error}"></span>
+                    -
+                    <span th:text="${error.errorDescription}"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+
+</html>
