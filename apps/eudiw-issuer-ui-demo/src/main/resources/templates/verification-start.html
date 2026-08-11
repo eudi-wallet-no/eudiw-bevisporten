@@ -81,12 +81,31 @@
         return definitions.find(definition => definition.id === selectedId);
     }
 
+    function selectAllClaims() {
+        const selectedDefinition = getSelectedDefinition();
+        if (!selectedDefinition || !selectedDefinition.claims) {
+            return;
+        }
+
+        selectedClaimPaths.clear();
+        
+        selectedDefinition.claims.forEach((claim) => {
+            if (!Array.isArray(claim.path) || claim.path.length === 0) {
+                return;
+            }
+            const pathText = claim.path.join(".");
+            selectedClaimPaths.add(pathText);
+        });
+    }
+
     function renderClaims() {
         const selectedDefinition = getSelectedDefinition();
+
         if (!selectedDefinition) {
             claimsContainer.innerHTML = "Vel credential configuration for å sjå claims.";
             return;
         }
+
         if (!selectedDefinition.claims || selectedDefinition.claims.length === 0) {
             claimsContainer.innerHTML = "Ingen claims funne i credential definition.";
             return;
@@ -105,7 +124,26 @@
             .join("");
     }
 
-    configurationSelect.addEventListener("change", renderClaims);
+    function configurationSelectChangeHandler() {
+        selectAllClaims();
+        renderClaims();
+    }
+
+    function claimSelectionChangeHandler(event) {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || target.name !== "selectedClaimPaths") {
+            return;
+        }
+
+        if (target.checked) {
+            selectedClaimPaths.add(target.value);
+        } else {
+            selectedClaimPaths.delete(target.value);
+        }
+    }
+
+    configurationSelect.addEventListener("change", configurationSelectChangeHandler);
+    claimsContainer.addEventListener("change", claimSelectionChangeHandler);
     renderClaims();
 </script>
 </body>
