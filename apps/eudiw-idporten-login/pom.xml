@@ -25,7 +25,7 @@
         <idporten-oidc-server-redis-cache-starter.version>2.0.0</idporten-oidc-server-redis-cache-starter.version>
         <oauth2-oidc-sdk.version>11.37.2</oauth2-oidc-sdk.version>
         <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.84</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.85.2</bcprov-jdk18on.version>
     </properties>
     <dependencies>
         <dependency>
