@@ -153,6 +153,12 @@ public class OpenID4VPResponseService {
         return claims;
     }
 
+    /**
+     * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
+     * to a map of element identifier to value.
+     * @param vpToken
+     * @return extracted data
+     */
     protected Map<String, Object> retrieveClaimsFromMDocCredential(String vpToken) {
         DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
         Map<String, Object> claims = new HashMap<>();
@@ -179,7 +185,8 @@ public class OpenID4VPResponseService {
                             elementValue = extractValue(elementMap.get(mapKey));
                         }
                     }
-                    claims.put(elementIdentifier, elementValue);
+                    Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
+                    nameSpaceMap.put(elementIdentifier, elementValue);
                 }
             }
         }
