@@ -16,3 +16,11 @@ idporten-key-manager:
       key-alias: rp-access
       key-password: changeit
 
+trustlists:
+  environments:
+    eidas2sandkasse:
+      pid: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
+      attestations: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
+    webuild:
+      pid: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
+      attestations: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl

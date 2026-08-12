@@ -6,3 +6,12 @@ spring:
 verifier-service:
   siop2-client-id: verifier-service.eidas2sandkasse.no
   external-base-uri: https://verifier-service.eidas2sandkasse.no
+
+trustlists:
+  environments:
+    eidas2sandkasse:
+      pid: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_pid.jws
+      attestations: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_tsl.xtsl
+    webuild:
+      pid: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_pid.jws
+      attestations: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_tsl.xtsl
