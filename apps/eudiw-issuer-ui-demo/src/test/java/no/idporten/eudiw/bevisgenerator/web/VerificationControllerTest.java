@@ -96,7 +96,12 @@ class VerificationControllerTest {
         when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(credentialIssuerMetadata));
         when(verifierService.startVerification(anyString())).thenReturn(
                 new VerificationTransactionData(
-                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id"),
+                        new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id"),
+                        URI.create("http://verifier/start"),
+                        """
+                        {
+                          "dcql_query": {"credentials":[]}
+                        }""",
                         URI.create("http://verifier/status/tx-id"),
                         URI.create("http://verifier/result/tx-id")
                 ));
@@ -153,7 +158,13 @@ class VerificationControllerTest {
                 .andExpect(redirectedUrl("/verification-presentation"))
                 .andExpect(flash().attributeExists("qrCode"))
                 .andExpect(flash().attributeExists("authorizationRequest"))
-                .andExpect(flash().attribute("transactionId", "tx-id"));
+                .andExpect(flash().attribute("transactionId", "tx-id"))
+                .andExpect(flash().attribute("requestBody", """
+                        {
+                          "dcql_query" : {
+                            "credentials" : [ ]
+                          }
+                        }"""));
 
         verify(verifierService).startVerification(argThat(dcql ->
                 dcql.contains("\"id\"")
