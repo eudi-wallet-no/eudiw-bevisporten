@@ -83,6 +83,17 @@ public class VerifierServiceTest {
         assertNotNull(result);
         assertEquals("tx-id", result.verificationStartResponse().verifierTransactionId());
         assertEquals(
+                URI.create("http://verifier/verifier/client-123/start"),
+                result.requestUri()
+        );
+        assertEquals(
+                """
+                {
+                  "dcql_query": {"credentials":[]}
+                }""",
+                result.requestBody()
+        );
+        assertEquals(
                 URI.create("http://verifier/verifier/client-123/status/tx-id"),
                 result.statusUri()
         );

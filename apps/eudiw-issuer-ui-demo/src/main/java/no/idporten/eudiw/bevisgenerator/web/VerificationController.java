@@ -88,6 +88,9 @@ public class VerificationController {
         redirectAttributes.addFlashAttribute("authorizationRequest", verificationTransactionData.verificationStartResponse().authorizationRequest());
         redirectAttributes.addFlashAttribute("transactionId", verificationTransactionData.verificationStartResponse().verifierTransactionId());
         redirectAttributes.addFlashAttribute("statusUri", verificationTransactionData.statusUri());
+        redirectAttributes.addFlashAttribute("requestBody", toJsonString(verificationTransactionData.requestBody()));
+        redirectAttributes.addFlashAttribute("requestUri", verificationTransactionData.requestUri());
+        redirectAttributes.addFlashAttribute("responseBody", toJsonString(verificationTransactionData.verificationStartResponse()));
 
         return new ModelAndView("redirect:/verification-presentation");
     }
@@ -106,7 +109,7 @@ public class VerificationController {
         VerificationResult result = verifierService.retrieveVerificationResult(transactionId);
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("resultJson", toJsonString(result.credentials(), true));
+                .addObject("resultJson", toJsonString(result.credentials()));
     }
 
     private ModelAndView baseView(StartVerificationForm form) {
@@ -124,8 +127,15 @@ public class VerificationController {
                 .addObject("selectedClaimPathsJson", toJsonString(form.selectedClaimPaths(), false));
     }
 
+    private String toJsonString(Object object) {
+       return toJsonString(object, true);
+    }
+
     private String toJsonString(Object object, boolean pretty) {
         try {
+            if (object instanceof String) {
+                object = objectMapper.readTree((String) object);
+            }
             String text = pretty
                     ? objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object)
                     : objectMapper.writeValueAsString(object);
