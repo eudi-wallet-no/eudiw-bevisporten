@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Service
@@ -42,8 +43,15 @@ public class VerificationService {
     }
 
     public VerificationResultResponse retrieveVerificationData(String verifierTransactionId, ClientApplication clientApplication) {
-        VerifiedCredentials verifiedCredentials = verificationTransactionService.retrieveVerifiedCredentials(clientApplication, verifierTransactionId);
-        return new VerificationResultResponse(verifierTransactionId, verifiedCredentials.credentials());
+        VerificationTransaction verificationTransaction = verificationTransactionService.retrieveVerifiedCredentials(clientApplication, verifierTransactionId);
+        if (verificationTransaction.getResponse() == null) { // TODO remove response object from verificationTransaction? what do we need here?
+            HashMap<String, Object> response = new HashMap<>();
+            response.put("response_uri", verificationTransaction.getRedirectUri().toString());
+            response.put("client_id", verificationTransaction.getClientApplication().getId());
+            response.put("dcql_query", verificationTransaction.getDcqlQuery());
+            verificationTransaction.setResponse(response);
+        }
+        return new VerificationResultResponse(verifierTransactionId, verificationTransaction.getVerifiedCredentials().credentials(), verificationTransaction.getRequest(), verificationTransaction.getResponse());
     }
 
 }

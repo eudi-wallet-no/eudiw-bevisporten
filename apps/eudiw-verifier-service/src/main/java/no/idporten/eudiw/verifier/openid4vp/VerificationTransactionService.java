@@ -2,13 +2,11 @@ package no.idporten.eudiw.verifier.openid4vp;
 
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
-import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
-import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -49,17 +47,18 @@ public class VerificationTransactionService {
         return verificationTransaction.getStatus();
     }
 
-    public void addVerifiedCredentials(ClientApplication clientApplication, String verifierTransactionId, VerifiedCredentials verifiedCredentials) {
+    public void addVerifiedCredentials(ClientApplication clientApplication, String verifierTransactionId, VerifiedCredentials verifiedCredentials, Map<String, Object> vpTokenResponse) {
         VerificationTransaction verificationTransaction = cacheService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verifier transaction");
         }
         verificationTransaction.setStatus(STATUS_AVAILABLE);
         verificationTransaction.setVerifiedCredentials(verifiedCredentials);
+        verificationTransaction.setResponse(vpTokenResponse);
         cacheService.updateVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
     }
 
-    public VerifiedCredentials retrieveVerifiedCredentials(ClientApplication clientApplication, String verifierTransactionId) {
+    public VerificationTransaction retrieveVerifiedCredentials(ClientApplication clientApplication, String verifierTransactionId) {
         if(clientApplication == null) {
             throw new VerificationException("invalid_request", "Unknown client application");
         }
@@ -73,9 +72,8 @@ public class VerificationTransactionService {
         if(!Objects.equals(clientApplication.getKeystoreName(), verificationTransaction.getClientApplication().getKeystoreName())) {
             throw new VerificationException("invalid_request", "client application name does not match transactions client application name");
         }
-        VerifiedCredentials verifiedCredentials = verificationTransaction.getVerifiedCredentials();
         cacheService.removeVerificationTransaction(clientApplication, verifierTransactionId);
-        return verifiedCredentials;
+        return verificationTransaction;
     }
 
 }

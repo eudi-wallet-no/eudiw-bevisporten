@@ -13,6 +13,10 @@ public record VerificationResultResponse(
         @Schema(description = "Verification transaction id.", example = "xyz...")
         @JsonProperty("verifier_transaction_id") String verifierTransactionId,
         @Schema(description = "Verified credentials.")
-        @JsonProperty("credentials") Map<String, List<VerifiedCredential>> credentials
+        @JsonProperty("credentials") Map<String, List<VerifiedCredential>> credentials,
+        @Schema(description = "Request", example = "{json}")
+        @JsonProperty("authorization_request") Map<String, Object> authorizationRequest,
+        @Schema(description = "Decrypted JWE payload", example = "{json}")
+        @JsonProperty("authorization_response") Map<String, Object> authorizationResponse
         ) {
 }
