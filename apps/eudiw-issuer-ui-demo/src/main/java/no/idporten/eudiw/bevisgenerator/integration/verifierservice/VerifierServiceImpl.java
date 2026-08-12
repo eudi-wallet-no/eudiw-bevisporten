@@ -33,12 +33,16 @@ public class VerifierServiceImpl implements VerifierService {
 
     @Override
     public VerificationTransactionData startVerification(String dcql) {
-        VerificationStartResponse response = getVerificationStartResponse(dcql);
+        String apiRequest = buildApiRequest(dcql);
+        VerificationStartResponse response = getVerificationStartResponse(apiRequest);
 
         if (response == null) {
             throw new VerifierServiceException("Verifier service returned null response when starting verification");
         }
 
+        URI requestUri = URI.create(verificationProperties.baseUrl() +
+                verificationProperties.verificationStartEndpoint()
+                        .replace("{client_application_id}", verificationProperties.clientApplicationId()));
         URI statusUri = URI.create(verificationProperties.baseUrl() +
                 verificationProperties.verificationStatusEndpoint()
                         .replace("{client_application_id}", verificationProperties.clientApplicationId())
@@ -48,7 +52,7 @@ public class VerifierServiceImpl implements VerifierService {
                         .replace("{client_application_id}", verificationProperties.clientApplicationId())
                         .replace("{verifier_transaction_id}", response.verifierTransactionId()));
 
-        return new VerificationTransactionData(response, statusUri, responseUri);
+        return new VerificationTransactionData(response, requestUri, apiRequest, statusUri, responseUri);
 
     }
 
@@ -76,9 +80,7 @@ public class VerifierServiceImpl implements VerifierService {
         return result;
     }
 
-    private VerificationStartResponse getVerificationStartResponse(String dcql) {
-        String apiRequest = buildApiRequest(dcql);
-
+    private VerificationStartResponse getVerificationStartResponse(String apiRequest) {
         try {
             return restClient
                     .post()
