@@ -1,9 +1,7 @@
 package no.idporten.eudiw.login;
 
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerifiedCredential;
-
-import java.util.List;
-import java.util.Map;
+import tools.jackson.databind.json.JsonMapper;
 
 public class TestData {
 
@@ -15,24 +13,41 @@ public class TestData {
         return "08868797277";
     }
 
+
     public static VerifiedCredential verifiedCredentialNO(String personIdentifier) {
-        Map<String, Object> claims = Map.of(
-                "personal_administrative_number", personIdentifier,
-                "family_name", "LOMMEBOK",
-                "given_name", "LEGITIM"
-        );
-        return new VerifiedCredential(claims);
+        String json = """
+                {
+                  "claims": {
+                    "eu.europa.ec.eudi.pid.1": {
+                      "given_name": "LEGITIM",
+                      "family_name": "LOMMEBOK",
+                      "personal_administrative_number": "%s"
+                    }
+                  }
+                }
+                """.formatted(personIdentifier);
+        return new JsonMapper().readValue(json, VerifiedCredential.class);
     }
 
     public static VerifiedCredential verifiedCredentialEU() {
-        Map<String, Object> claims = Map.of(
-                "family_name", "LOMMEBOK",
-                "given_name", "UFUNKSJONELL",
-                "birth_date", "996-09-25",
-                "place_of_birth", Map.of("country", "FI"),
-                "nationality", List.of("FI")
-        );
-        return new VerifiedCredential(claims);
+        String json = """
+                {
+                  "claims": {
+                    "eu.europa.ec.eudi.pid.1": {
+                      "place_of_birth": {
+                        "country": "FI"
+                      },
+                      "nationality": [
+                        "FI"
+                      ],
+                      "birth_date": "1996-09-25",
+                      "given_name": "UFUNKSJONELL",
+                      "family_name": "LOMMEBOK"
+                    }
+                  }
+                }
+                """;
+        return new JsonMapper().readValue(json, VerifiedCredential.class);
     }
 
 }

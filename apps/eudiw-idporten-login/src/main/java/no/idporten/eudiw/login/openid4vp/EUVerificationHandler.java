@@ -44,9 +44,9 @@ public class EUVerificationHandler implements OpenID4VPVerificationHandler {
                 .sub("TODO") // TODO finne sub for eu login uten norsk personidentifikator
                 .acr(AcrValue.EIDAS_LOA_HIGH.value())
                 .amr(AMR_EUDIW)
-                .attribute("family_name", verifiedCredential.getStringClaim("family_name", true))
-                .attribute("given_name", verifiedCredential.getStringClaim("given_name", true))
-                .attribute("birthdate", verifiedCredential.getStringClaim("birth_date", true))
+                .attribute("family_name", verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "family_name"))
+                .attribute("given_name", verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "given_name"))
+                .attribute("birthdate", verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "birth_date"))
                 .build();
     }
 

@@ -41,13 +41,13 @@ public class NorwegianVerificationHandler implements OpenID4VPVerificationHandle
                 .sub(getPersonIdentifier(verifiedCredential))
                 .acr(AcrValue.IDPORTEN_LOA_HIGH.value())
                 .amr(AMR_EUDIW)
-                .attribute("family_name", verifiedCredential.getStringClaim("family_name", true))
-                .attribute("given_name", verifiedCredential.getStringClaim("given_name",  true))
+                .attribute("family_name", verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "family_name"))
+                .attribute("given_name", verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "given_name"))
                 .build();
     }
 
     private String getPersonIdentifier(VerifiedCredential verifiedCredential) {
-        String personIdentifier = verifiedCredential.getStringClaim("personal_administrative_number", true);
+        String personIdentifier = verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "personal_administrative_number");
         if (! PersonIdentifierValidator.isValid(personIdentifier)) {
             throw new InvalidVerificationException("Invalid person identifier");
         }
