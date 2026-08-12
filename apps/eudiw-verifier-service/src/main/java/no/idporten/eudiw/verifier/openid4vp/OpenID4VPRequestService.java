@@ -110,8 +110,9 @@ public class OpenID4VPRequestService {
         verificationTransaction.setState(state);
         verificationTransaction.setEncryptionKey(encryptionKey);
         verificationTransaction.setFlow(flow);
-        cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
         JWT authorizationRequest = makeRequestJwt(verificationTransaction, clientApplication, verificationTransactionId);
+        verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
+        cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
         return authorizationRequest.serialize();
     }
 

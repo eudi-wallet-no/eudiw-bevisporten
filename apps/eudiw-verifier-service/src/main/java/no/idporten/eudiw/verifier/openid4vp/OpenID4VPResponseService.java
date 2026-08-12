@@ -73,7 +73,7 @@ public class OpenID4VPResponseService {
             allCredentials.put(credentialId, parsedCredentials);
         }
         VerifiedCredentials verifiedCredentials = new VerifiedCredentials(allCredentials);
-        verificationTransactionService.addVerifiedCredentials(clientApplication, verifierTransactionId, verifiedCredentials);
+        verificationTransactionService.addVerifiedCredentials(clientApplication, verifierTransactionId, verifiedCredentials, claimsFromJwePayload);
         WalletCallback walletCallback = new WalletCallback();
         if ("same_device".equals(verificationTransaction.getFlow()) && verificationTransaction.getRedirectUri() != null) {
             walletCallback.setRedirectUri(verificationTransaction.getRedirectUri());
