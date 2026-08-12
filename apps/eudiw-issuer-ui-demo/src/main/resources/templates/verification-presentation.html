@@ -28,6 +28,22 @@
             </a>
         </div>
     </div>
+    <div id="tracing">
+        <details class="ds-details" data-variant="default">
+            <summary>Request til verifier-service</summary>
+            <div>
+                <code>POST <span th:text="${requestUri}"></span></code>
+                <br/>
+                <code th:text="${requestBody}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+            </div>
+        </details>
+        <details class="ds-details" data-variant="default">
+Respons frå verifier-service
+            <div>
+                <code th:text="${responseBody}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+            </div>
+        </details>
+    </div>
 </main>
 <footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 </body>
