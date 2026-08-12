@@ -18,7 +18,7 @@ eudiw-idporten-login:
     allow-synthetic-person-identifiers: true
     allow-real-person-identifiers: false
   oidc-sdk:
-    issuer: https://idporten-login.test.eidas2sandkasse.net
+    issuer: https://idporten-login.test.eidas2sandkasse.net/
     clients:
       - client-id: idporten
         client-secret: ${IDPORTEN_CLIENT_SECRET}

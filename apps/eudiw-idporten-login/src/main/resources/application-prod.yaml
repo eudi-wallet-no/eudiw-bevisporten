@@ -15,7 +15,7 @@ spring:
 
 eudiw-idporten-login:
   oidc-sdk:
-    issuer: https://idporten-login.eidas2sandkasse.net
+    issuer: https://idporten-login.eidas2sandkasse.net/
     clients:
       - client-id: idporten
         client-secret: ${IDPORTEN_CLIENT_SECRET}
