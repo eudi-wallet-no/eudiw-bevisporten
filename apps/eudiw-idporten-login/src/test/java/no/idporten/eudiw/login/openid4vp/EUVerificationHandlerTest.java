@@ -134,7 +134,7 @@ class EUVerificationHandlerTest {
         @DisplayName("then birthdate attribute is mapped from birth_date in credential")
         @Test
         void testBirthdateAttributeIsSet() {
-            assertEquals("996-09-25", authorization.getAttributes().get("birthdate"));
+            assertEquals("1996-09-25", authorization.getAttributes().get("birthdate"));
         }
     }
 }
