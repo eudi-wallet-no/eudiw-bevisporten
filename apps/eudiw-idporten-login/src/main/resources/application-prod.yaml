@@ -23,3 +23,5 @@ eudiw-idporten-login:
           - openid
         redirect-uris:
           - https://login.idporten.no/authorize/callback/eudiw
+          - https://login.idporten.no/authorize/callback/eudiw-eu
+          - https://login.idporten.no/authorize/callback/eudiw-no
