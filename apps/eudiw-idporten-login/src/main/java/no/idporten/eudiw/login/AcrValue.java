@@ -10,6 +10,7 @@ public enum AcrValue {
 
     IDPORTEN_LOA_SUBSTANTIAL("idporten-loa-substantial"),
     IDPORTEN_LOA_HIGH("idporten-loa-high"),
+    EIDAS_LOA_LOW("eidas-loa-low"),
     EIDAS_LOA_SUBSTANTIAL("eidas-loa-substantial"),
     EIDAS_LOA_HIGH("eidas-loa-high");
 
@@ -31,7 +32,7 @@ public enum AcrValue {
     }
 
     public boolean isEuLogin() {
-        return this == EIDAS_LOA_SUBSTANTIAL || this == EIDAS_LOA_HIGH;
+        return this == EIDAS_LOA_LOW || this == EIDAS_LOA_SUBSTANTIAL || this == EIDAS_LOA_HIGH;
     }
 
     public boolean isNoLogin() {
