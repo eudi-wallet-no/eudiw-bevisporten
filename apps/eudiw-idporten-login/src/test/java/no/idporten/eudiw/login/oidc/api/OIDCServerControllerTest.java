@@ -60,9 +60,10 @@ public class OIDCServerControllerTest {
                     .andExpect(jsonPath("$.acr_values_supported", Matchers.hasItems(
                             "idporten-loa-substantial",
                             "idporten-loa-high",
+                            "eidas-loa-low",
                             "eidas-loa-substantial",
                             "eidas-loa-high")))
-                    .andExpect(jsonPath("$.acr_values_supported", Matchers.hasSize(4)));
+                    .andExpect(jsonPath("$.acr_values_supported", Matchers.hasSize(5)));
         }
     }
 

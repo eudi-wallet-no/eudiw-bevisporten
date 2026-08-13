@@ -5,6 +5,8 @@ import no.idporten.eudiw.login.openid4vp.verifier.model.DcqlQuery;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerifiedCredential;
 import no.idporten.sdk.oidcserver.protocol.Authorization;
 
+import java.util.UUID;
+
 /**
  * Handler for EU PID verification.
  */
@@ -41,7 +43,7 @@ public class EUVerificationHandler implements OpenID4VPVerificationHandler {
     @Override
     public Authorization completeVerification(VerifiedCredential verifiedCredential) {
         return Authorization.builder()
-                .sub("TODO") // TODO finne sub for eu login uten norsk personidentifikator
+                .sub(UUID.randomUUID().toString()) // TODO EUW-1672 - Finne egnet verdi for sub for innlogging med europeisk PID
                 .acr(AcrValue.EIDAS_LOA_HIGH.value())
                 .amr(AMR_EUDIW)
                 .attribute("family_name", verifiedCredential.getStringClaim(true, "eu.europa.ec.eudi.pid.1", "family_name"))
