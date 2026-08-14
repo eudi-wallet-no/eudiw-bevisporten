@@ -5,6 +5,7 @@ import no.idporten.eudiw.bevisgenerator.exception.VerifierServiceIOException;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.config.VerificationProperties;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStartResponse;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -32,9 +33,8 @@ public class VerifierServiceImpl implements VerifierService {
     }
 
     @Override
-    public VerificationTransactionData startVerification(String dcql) {
-        String apiRequest = buildApiRequest(dcql);
-        VerificationStartResponse response = getVerificationStartResponse(apiRequest);
+    public VerificationTransactionData startVerification(String requestBody) {
+        VerificationStartResponse response = getVerificationStartResponse(requestBody);
 
         if (response == null) {
             throw new VerifierServiceException("Verifier service returned null response when starting verification");
@@ -52,7 +52,7 @@ public class VerifierServiceImpl implements VerifierService {
                         .replace("{client_application_id}", verificationProperties.clientApplicationId())
                         .replace("{verifier_transaction_id}", response.verifierTransactionId()));
 
-        return new VerificationTransactionData(response, requestUri, apiRequest, statusUri, responseUri);
+        return new VerificationTransactionData(response, requestUri, requestBody, statusUri, responseUri);
 
     }
 
@@ -80,6 +80,30 @@ public class VerifierServiceImpl implements VerifierService {
         return result;
     }
 
+    @Override
+    public VerificationStatus retrieveVerificationStatus(String transactionId) {
+        VerificationStatus result;
+        try {
+            result = restClient
+                    .get()
+                    .uri(verificationProperties.verificationStatusEndpoint(), verificationProperties.clientApplicationId(), transactionId)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .onStatus(verifierErrorHandler())
+                    .body(VerificationStatus.class);
+        } catch (ResourceAccessException e) {
+            throw new VerifierServiceIOException("IO error when calling Verifier service to retrieve verification status", e);
+        } catch (RestClientException e) {
+            throw new VerifierServiceException("Configuration error against Verifier-service? path=" + verificationProperties.verificationStatusEndpoint(), e);
+        }
+
+        if (result == null) {
+            throw new VerifierServiceException("Verification status returned null");
+        }
+
+        return result;
+    }
+
     private VerificationStartResponse getVerificationStartResponse(String apiRequest) {
         try {
             return restClient
@@ -96,13 +120,6 @@ public class VerifierServiceImpl implements VerifierService {
         } catch (RestClientException e) {
             throw new VerifierServiceException("Configuration error against Verifier-service? path=" + verificationProperties.verificationStartEndpoint(), e);
         }
-    }
-
-    private String buildApiRequest(String dcql) {
-        return """
-                {
-                  "dcql_query": %s
-                }""".formatted(dcql);
     }
 
     private static ResponseErrorHandler verifierErrorHandler() {

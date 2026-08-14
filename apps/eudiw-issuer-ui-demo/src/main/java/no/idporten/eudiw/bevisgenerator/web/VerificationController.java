@@ -1,5 +1,6 @@
 package no.idporten.eudiw.bevisgenerator.web;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
@@ -8,19 +9,25 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class VerificationController {
@@ -55,9 +62,13 @@ public class VerificationController {
     }
 
     @PostMapping("/verification-start")
-    public ModelAndView startVerification(@Valid @ModelAttribute("verificationForm") StartVerificationForm form,
-                                          BindingResult bindingResult,
-                                          RedirectAttributes redirectAttributes) {
+    public ModelAndView startVerification(
+            @Valid @ModelAttribute("verificationForm")
+            StartVerificationForm form,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes,
+            HttpSession session
+    ) {
         List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
                 issuerServerService.getAllCredentialIssuerMetadata()
         );
@@ -81,8 +92,12 @@ public class VerificationController {
             return baseView(form, credentialDefinitions);
         }
 
-        String dcql = dcqlService.buildDcql(credentialDefinition, form.selectedClaimPaths());
-        VerificationTransactionData verificationTransactionData = verifierService.startVerification(dcql);
+        String verificationId = UUID.randomUUID().toString();
+        String requestBody = buildStartVerificationRequestBody(credentialDefinition, form.selectedClaimPaths(), verificationId);
+
+        VerificationTransactionData verificationTransactionData = verifierService.startVerification(requestBody);
+
+        session.setAttribute("verificationTransactionData", verificationTransactionData);
 
         redirectAttributes.addFlashAttribute("qrCode", verificationTransactionData.verificationStartResponse().authorizationRequestQrCode());
         redirectAttributes.addFlashAttribute("authorizationRequest", verificationTransactionData.verificationStartResponse().authorizationRequest());
@@ -92,24 +107,57 @@ public class VerificationController {
         redirectAttributes.addFlashAttribute("requestUri", verificationTransactionData.requestUri());
         redirectAttributes.addFlashAttribute("responseBody", toJsonString(verificationTransactionData.verificationStartResponse()));
 
-        return new ModelAndView("redirect:/verification-presentation");
+        return new ModelAndView("redirect:/verification-presentation/" + verificationId);
     }
 
-    @GetMapping("/verification-presentation")
-    public ModelAndView verificationPresentation() {
-        return new ModelAndView("verification-presentation");
+    @GetMapping("/verification-presentation/{verification-id}")
+    public ModelAndView verificationPresentation(@PathVariable("verification-id") String verificationId, HttpSession session) {
+        VerificationTransactionData verificationTransactionData = (VerificationTransactionData) session.getAttribute("verificationTransactionData");
+
+        return new ModelAndView("verification-presentation")
+                .addObject("qrCode", verificationTransactionData.verificationStartResponse().authorizationRequestQrCode())
+                .addObject("authorizationRequest", verificationTransactionData.verificationStartResponse().authorizationRequest())
+                .addObject("transactionId", verificationTransactionData.verificationStartResponse().verifierTransactionId())
+                .addObject("statusUri", verificationTransactionData.statusUri())
+                .addObject("requestBody", toJsonString(verificationTransactionData.requestBody()))
+                .addObject("requestUri", verificationTransactionData.requestUri())
+                .addObject("responseBody", toJsonString(verificationTransactionData.verificationStartResponse()));
     }
 
-    @GetMapping("/verification-result")
-    public ModelAndView verificationResult(String transactionId) {
+    @GetMapping("/verification-result/{transaction-id}")
+    public ModelAndView verificationResult(@PathVariable("transaction-id") String transactionId, HttpSession session) {
         if (transactionId == null || transactionId.isBlank()) {
             throw new IssuerUiException("Missing transactionId");
         }
+
+        session.removeAttribute("verificationTransactionData");
 
         VerificationResult result = verifierService.retrieveVerificationResult(transactionId);
         return new ModelAndView("verification-result")
                 .addObject("result", result)
                 .addObject("resultJson", toJsonString(result.credentials()));
+    }
+
+    @GetMapping("/verification-presentation/{transactionId}/status")
+    public ResponseEntity<?> verificationStatus(@PathVariable String transactionId) {
+        if (transactionId == null || transactionId.isBlank()) {
+            throw new IssuerUiException("Missing transactionId");
+        }
+
+        VerificationStatus verificationStatus = verifierService.retrieveVerificationStatus(transactionId);
+        String status = verificationStatus.status();
+
+        if (status.isBlank() || status.equals("UNKNOWN")) {
+            return ResponseEntity.notFound().build();
+        }
+        if (status.equals("WAIT")) {
+            return ResponseEntity.accepted().build();
+        }
+        if (status.equals("AVAILABLE")) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.internalServerError().build();
     }
 
     private ModelAndView baseView(StartVerificationForm form) {
@@ -125,6 +173,20 @@ public class VerificationController {
                 .addObject("credentialDefinitions", credentialDefinitions)
                 .addObject("credentialDefinitionsJson", toJsonString(credentialDefinitions, false))
                 .addObject("selectedClaimPathsJson", toJsonString(form.selectedClaimPaths(), false));
+    }
+
+    private String buildStartVerificationRequestBody(CredentialDefinitionDisplayData credentialDefinition, List<String> selectedClaimPaths, String verificationId) {
+        Map<String, Object> dcql = dcqlService.buildDcqlMap(credentialDefinition, selectedClaimPaths);
+
+        String redirectUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/verification-presentation/{session-id}")
+                .buildAndExpand(verificationId)
+                .toString();
+
+        return toJsonString(Map.of(
+                "dcql_query", dcql,
+                "redirect_uri", redirectUri
+        ), false);
     }
 
     private String toJsonString(Object object) {
