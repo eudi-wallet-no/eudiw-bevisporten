@@ -87,10 +87,7 @@ public class VerifierServiceTest {
                 result.requestUri()
         );
         assertEquals(
-                """
-                {
-                  "dcql_query": {"credentials":[]}
-                }""",
+                "{\"credentials\":[]}",
                 result.requestBody()
         );
         assertEquals(
