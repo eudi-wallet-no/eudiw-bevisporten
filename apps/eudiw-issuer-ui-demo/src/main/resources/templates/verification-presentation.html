@@ -71,7 +71,7 @@
 
 
     const handle200 = async () => {
-        if (!sameDeviceFlow && window.hasFocus()) {
+        if (!sameDeviceFlow) {
             document.location.assign(resultUrl);
         }
         else {
