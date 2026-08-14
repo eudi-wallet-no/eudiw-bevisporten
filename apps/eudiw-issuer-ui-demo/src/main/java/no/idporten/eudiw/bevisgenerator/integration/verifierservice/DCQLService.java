@@ -4,8 +4,9 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefin
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DCQLService {
     List<CredentialDefinitionDisplayData> createCredentialDefinitionDisplayData(List<CredentialIssuerMetadata> credentialIssuerMetadata);
-    String buildDcql(CredentialDefinitionDisplayData definition, List<String> selectedClaimPaths);
+    Map<String, Object> buildDcqlMap(CredentialDefinitionDisplayData definition, List<String> selectedClaimPaths);
 }

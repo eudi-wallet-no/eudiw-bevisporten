@@ -1,6 +1,5 @@
 package no.idporten.eudiw.bevisgenerator.integration.verifierservice;
 
-import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.ClaimMetadata;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfiguration;
@@ -10,8 +9,6 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.Creden
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.SelectableClaim;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -20,13 +17,6 @@ import java.util.regex.Pattern;
 public class DCQLServiceImpl implements DCQLService {
 
     private static final Pattern NON_ALLOWED = Pattern.compile("[^A-Za-z0-9_-]+");
-
-    private final ObjectMapper objectMapper;
-
-    public DCQLServiceImpl(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
 
     @Override
     public List<CredentialDefinitionDisplayData> createCredentialDefinitionDisplayData(List<CredentialIssuerMetadata> credentialIssuerMetadata) {
@@ -57,15 +47,15 @@ public class DCQLServiceImpl implements DCQLService {
     }
 
     @Override
-    public String buildDcql(CredentialDefinitionDisplayData credentialDefinitionDisplayData, List<String> selectedClaimPaths) {
-        return toJsonString(Map.of(
+    public Map<String, Object> buildDcqlMap(CredentialDefinitionDisplayData credentialDefinitionDisplayData, List<String> selectedClaimPaths) {
+        return Map.of(
                 "credentials", List.of(Map.of(
                         "id", normalizeDcqlId(credentialDefinitionDisplayData.id()),
                         "format", credentialDefinitionDisplayData.format(),
                         "meta", credentialDefinitionDisplayData.meta(),
                         "claims", getClaimsWithFullPath(credentialDefinitionDisplayData, selectedClaimPaths)
                 ))
-        ));
+        );
     }
 
     private static CredentialDefinitionDisplayData buildCredentialDefinitionDisplayData(
@@ -135,13 +125,5 @@ public class DCQLServiceImpl implements DCQLService {
         }
 
         return meta;
-    }
-
-    private String toJsonString(Object object) {
-        try {
-            return objectMapper.writeValueAsString(object);
-        } catch (JacksonException e) {
-            throw new IssuerUiException("Failed to convert object to Json string", e);
-        }
     }
 }
