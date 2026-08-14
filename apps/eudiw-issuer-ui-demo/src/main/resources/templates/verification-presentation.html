@@ -60,13 +60,18 @@
         statusMessage.textContent = message;
     }
 
-    function redirectOnFocus() {
+    function redirectToResult() {
         const redirect = () => {
             window.removeEventListener("focus", redirect);
-            document.location.assign(resultUrl);
+            document.removeEventListener("visibilitychange", redirect);
+
+            setTimeout(() => {
+                document.location.assign(resultUrl);
+            }, 500);
         }
 
         window.addEventListener("focus", redirect);
+        document.addEventListener("visibilitychange", redirect);
     }
 
 
@@ -75,7 +80,7 @@
             document.location.assign(resultUrl);
         }
         else {
-            redirectOnFocus();
+            redirectToResult();
         }
     };
 
