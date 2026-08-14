@@ -18,7 +18,7 @@
         </div>
         <p id="verification-status-message" class="ds-paragraph" style="margin-top: var(--ds-size-3);"></p>
         <div class="flex-container" style="min-width: unset">
-            <a th:href="${authorizationRequest}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+            <a th:href="${authorizationRequest}" id="same-device-button" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
                 Opne på mobilen
             </a>
             <a th:href="@{/verification-start}" class="ds-button" type="button" data-variant="secondary">
@@ -48,27 +48,44 @@
     const statusMessage = document.getElementById("verification-status-message");
     const statusEndpoint = /*[[@{/verification-presentation/{transactionId}/status(transactionId=${transactionId})}]]*/ "";
     const resultUrl = /*[[@{/verification-result/{transactionId}(transactionId=${transactionId})}]]*/ "";
+    const sameDeviceButton = document.getElementById("same-device-button");
+
+    let sameDeviceFlow = false;
+
+    sameDeviceButton.addEventListener("click", () => {
+        sameDeviceFlow = true;
+    });
+
+    function updateStatusMessage(message) {
+        statusMessage.textContent = message;
+    }
+
+    function redirectOnFocus() {
+        const redirect = () => {
+            window.removeEventListener("focus", redirect);
+            document.location.assign(resultUrl);
+        }
+
+        window.addEventListener("focus", redirect);
+    }
+
 
     const handle200 = async () => {
-        if (document.visibilityState === "visible") {
-            window.location.assign(resultUrl);
+        if (!sameDeviceFlow && window.hasFocus()) {
+            document.location.assign(resultUrl);
         }
         else {
-            const redirect = async () => {
-                window.removeEventListener("visibilitychange", redirect);
-                window.location.assign(resultUrl);
-            }
-            window.addEventListener("visibilitychange", redirect);
+            redirectOnFocus();
         }
     };
 
     async function waitForWallet(interval, timeout) {
         const endtime = Date.now() + timeout;
-        statusMessage.textContent = "Ventar på presentasjon frå wallet ...";
+        updateStatusMessage("Ventar på presentasjon frå wallet ...");
 
         async function poll() {
             if (Date.now() >= endtime) {
-                statusMessage.textContent = "Tidsavbrot ved venting på verifisering.";
+                updateStatusMessage("Tidsavbrot ved venting på verifisering.");
                 return;
             }
             try {
@@ -88,14 +105,14 @@
                 }
 
                 if (response.status === 404) {
-                    statusMessage.textContent = "Verifiseringa har ukjend status og blir stoppa.";
+                    updateStatusMessage("Verifiseringa har ukjend status og blir stoppa.");
                     return;
                 }
 
-                statusMessage.textContent = "Klarte ikkje hente verifiseringsstatus.";
+                updateStatusMessage("Klarte ikkje hente verifiseringsstatus.");
 
             } catch (error) {
-                statusMessage.textContent = "Klarte ikkje hente verifiseringsstatus.";
+                updateStatusMessage("Klarte ikkje hente verifiseringsstatus.");
             }
         }
 
