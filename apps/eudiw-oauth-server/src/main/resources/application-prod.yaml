@@ -1,0 +1,22 @@
+---
+spring:
+  application:
+    environment: prod
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-redis-ha-server-0.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-1.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
+
+oauth-authorization-server:
+  issuer: https://auth.eidas2sandkasse.net
+  access-token-default-audience: https://utsteder.eidas2sandkasse.net
+
+oidc-proxy:
+  headless-login:
+    enabled: false # should always be false in production
