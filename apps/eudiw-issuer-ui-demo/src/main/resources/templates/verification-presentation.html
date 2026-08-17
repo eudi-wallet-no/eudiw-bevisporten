@@ -46,8 +46,8 @@
 <footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script th:inline="javascript">
     const statusMessage = document.getElementById("verification-status-message");
-    const statusEndpoint = /*[[@{/verification-presentation/{transactionId}/status(transactionId=${transactionId})}]]*/ "";
-    const resultUrl = /*[[@{/verification-result/{transactionId}(transactionId=${transactionId})}]]*/ "";
+    const statusEndpoint = /*[[@{/verification-presentation/{verificationId}/status(verificationId=${verificationId})}]]*/ "";
+    const resultUrl = /*[[@{/verification-result/{verificationId}(verificationId=${verificationId})}]]*/ "";
     const sameDeviceButton = document.getElementById("same-device-button");
 
     let sameDeviceFlow = false;
@@ -64,6 +64,7 @@
         const redirect = () => {
             window.removeEventListener("focus", redirect);
             document.removeEventListener("visibilitychange", redirect);
+            document.removeEventListener("click", redirect);
 
             setTimeout(() => {
                 document.location.assign(resultUrl);
@@ -72,6 +73,7 @@
 
         window.addEventListener("focus", redirect);
         document.addEventListener("visibilitychange", redirect);
+        document.addEventListener("click", redirect);
     }
 
 
