@@ -10,7 +10,7 @@ Monorepo for EUDI Wallet Verifiable Credential Issuance (VCI) og Verifiable Pres
 
 | Applikasjon | Beskrivelse | Status |
 | --- | --- | --- |
-| [eudiw-auth-connector-sources](apps/eudiw-auth-connector-sources) | Authentication Connector Sources | Pending migrering |
+| [eudiw-authoritativ-sources-connector](apps/eudiw-authoritativ-sources-connector) | Authoritative Sources Connector | ✅ Migrert |
 | [eudiw-byob-service](apps/eudiw-byob-service) | Bring Your Own Briefcase Service | Pending migrering |
 | [eudiw-oauth-server](apps/eudiw-oauth-server) | OAuth Server | Pending migrering |
 | [eudiw-issuer-ui](apps/eudiw-issuer-ui) | Issuer UI (Bevisporten) | Pending migrering |
