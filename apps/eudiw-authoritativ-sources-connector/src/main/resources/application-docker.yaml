@@ -1,0 +1,37 @@
+---
+server:
+  port: 9298
+
+management:
+  server:
+    port: 9298
+
+spring:
+  config:
+    import: optional:file:${EUDIW_AUTHORITATIV_SOURCES_CONNECTOR_ENV}[.properties]
+  application:
+    environment: docker
+
+
+authoritative-sources-connector:
+  api:
+    api-key: ${API_KEY}
+  connectors:
+    advokatregisteret:
+      subscription-key: ${ADVOKATREGISTERET_SUBSCRIPTION_KEY}
+
+maskinporten:
+  lib:
+    clients:
+      default:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+
+idporten-key-manager:
+  keystores:
+    maskinporten-default:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}
