@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/>
+    </parent>
+    <groupId>no.idporten.eudiw</groupId>
+    <artifactId>authoritativ-sources-connector</artifactId>
+    <version>DEV-SNAPSHOT</version>
+    <name>authoritativ-sources-connector</name>
+    <description>Digdir authoritativ-sources-connector for norsk eidas2sandkasse</description>
+
+    <properties>
+        <java.version>25</java.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
+        <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
+        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
+        <idporten-log-audit.version>4.0.4</idporten-log-audit.version>
+        <springdoc.version>3.1.0</springdoc.version>
+        <maskinporten.client.version>6.0.1</maskinporten.client.version>
+        <log-event.version>2.0.4</log-event.version>
+        <freg-integration-lib.version>2.0.3</freg-integration-lib.version>
+        <idporten-validators.version>1.6.1</idporten-validators.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.validators</groupId>
+            <artifactId>idporten-validators</artifactId>
+            <version>${idporten-validators.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>no.idporten</groupId>
+            <artifactId>lib-maskinporten-client-spring-boot-4</artifactId>
+            <version>${maskinporten.client.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+            <version>${opentelemetry-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.actuator</groupId>
+            <artifactId>idporten-actuator-4-starter</artifactId>
+            <version>${idporten-actuator-starter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.logging</groupId>
+            <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
+            <version>${idporten-access-log.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.logging</groupId>
+            <artifactId>idporten-log-audit-spring-boot-4-starter</artifactId>
+            <version>${idporten-log-audit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.digdir.logging</groupId>
+            <artifactId>log-event-spring-boot4-starter</artifactId>
+            <version>${log-event.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.digdir.freg</groupId>
+            <artifactId>freg-integration-lib</artifactId>
+            <version>${freg-integration-lib.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- Enable for local debuggin with Maven when not using docker -->
+<!--                <configuration>-->
+<!--                    <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9299</jvmArguments>-->
+<!--                </configuration>-->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <proc>full</proc>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>github</id>
+            <name>GitHub felleslosninger Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/felleslosninger/.github</url>
+        </repository>
+    </repositories>
+
+</project>
