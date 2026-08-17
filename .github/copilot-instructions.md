@@ -13,8 +13,9 @@ PR-tittelen (delen etter JIRA-ID-prefikset) skal skrives på **norsk**.
 
 ## Branch-navn
 
-`rename_branch(name: "<jira-id>")`, f.eks. `"euw-1234"`. Ikke bruk fritekstbeskrivelse. Finnes
-branchen fra før, inkrementer: `euw-1234-2`, `euw-1234-3` osv.
+Ny branch (uansett om den opprettes via `rename_branch` eller direkte med git) skal hete
+`<jira-id>`, f.eks. `euw-1234`. Ikke bruk fritekstbeskrivelse. Finnes branchen fra før,
+inkrementer: `euw-1234-2`, `euw-1234-3` osv.
 
 # PR-beskrivelser
 
