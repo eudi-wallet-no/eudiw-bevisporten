@@ -21,8 +21,8 @@ services:
 
   oauth-server:
     build:
-      context: .
-      dockerfile: docker/dev.Dockerfile
+      context: ../..
+      dockerfile: apps/eudiw-oauth-server/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
