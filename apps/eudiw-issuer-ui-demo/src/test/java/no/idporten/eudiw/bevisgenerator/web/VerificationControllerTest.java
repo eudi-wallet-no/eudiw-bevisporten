@@ -43,6 +43,7 @@ class VerificationControllerTest {
     private MockMvc mockMvc;
     private VerifierService verifierService;
     private String issuanceDefinitionId;
+    private VerificationTransactionData verificationTransactionData;
 
     @BeforeEach
     void setUp() {
@@ -91,6 +92,14 @@ class VerificationControllerTest {
                 null,
                 Map.of(issuanceDefinitionId, issuanceConfig, subjectDefinitionId, subjectConfig),
                 List.of()
+        );
+
+        verificationTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id"),
+                URI.create("http://verifier/result/tx-id")
         );
 
         when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
@@ -156,11 +165,7 @@ class VerificationControllerTest {
                         .param("credentialConfigurationId", issuanceDefinitionId)
                         .param("selectedClaimPaths", "epostadresse"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/verification-presentation/*"))
-                .andExpect(flash().attributeExists("qrCode"))
-                .andExpect(flash().attributeExists("authorizationRequest"))
-                .andExpect(flash().attribute("transactionId", "tx-id"))
-                .andExpect(flash().attributeExists("requestBody"));
+                .andExpect(redirectedUrlPattern("/verification-presentation/*"));
 
         verify(verifierService).startVerification(argThat(requestBody ->
                 requestBody.contains("\"dcql_query\"")
@@ -174,16 +179,8 @@ class VerificationControllerTest {
 
     @Test
     void getVerificationPresentationReturnsPresentationView() throws Exception {
-        VerificationTransactionData verificationTransactionData = new VerificationTransactionData(
-                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id"),
-                URI.create("http://verifier/start"),
-                "{\"dcql_query\":{\"credentials\":[]}}",
-                URI.create("http://verifier/status/tx-id"),
-                URI.create("http://verifier/result/tx-id")
-        );
-
         mockMvc.perform(get("/verification-presentation/uniqueKey")
-                        .sessionAttr("verificationTransactionData", verificationTransactionData))
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-presentation"))
                 .andExpect(model().attributeExists("qrCode"))
@@ -197,7 +194,8 @@ class VerificationControllerTest {
 
     @Test
     void getVerificationResultAddsResultAndPrettyJsonToModel() throws Exception {
-        mockMvc.perform(get("/verification-result/tx-id"))
+        mockMvc.perform(get("/verification-result/uniqueKey")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-result"))
                 .andExpect(model().attributeExists("result"))
@@ -212,7 +210,8 @@ class VerificationControllerTest {
         when(verifierService.retrieveVerificationStatus("tx-id"))
                 .thenReturn(new VerificationStatus("AVAILABLE", "tx-id"));
 
-        mockMvc.perform(get("/verification-presentation/tx-id/status"))
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isOk());
     }
 
@@ -221,7 +220,8 @@ class VerificationControllerTest {
         when(verifierService.retrieveVerificationStatus("tx-id"))
                 .thenReturn(new VerificationStatus("WAIT", "tx-id"));
 
-        mockMvc.perform(get("/verification-presentation/tx-id/status"))
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isAccepted());
     }
 
@@ -230,7 +230,8 @@ class VerificationControllerTest {
         when(verifierService.retrieveVerificationStatus("tx-id"))
                 .thenReturn(new VerificationStatus("UNKNOWN", "tx-id"));
 
-        mockMvc.perform(get("/verification-presentation/tx-id/status"))
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isNotFound());
     }
 
@@ -239,7 +240,8 @@ class VerificationControllerTest {
         when(verifierService.retrieveVerificationStatus("tx-id"))
                 .thenReturn(new VerificationStatus("", "tx-id"));
 
-        mockMvc.perform(get("/verification-presentation/tx-id/status"))
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isNotFound());
     }
 
@@ -248,7 +250,8 @@ class VerificationControllerTest {
         when(verifierService.retrieveVerificationStatus("tx-id"))
                 .thenReturn(new VerificationStatus("SOMETHING_ELSE", "tx-id"));
 
-        mockMvc.perform(get("/verification-presentation/tx-id/status"))
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isInternalServerError());
     }
 
