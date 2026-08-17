@@ -1,0 +1,57 @@
+{
+  "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
+  "credential_type": "no.skatteetaten.nnid.1",
+  "scope": "eudiw:no:skatteetaten:nnid",
+  "format": "mso_mdoc",
+  "credential_metadata": {
+    "display": [
+      {
+        "name": "Norsk identitetsnummer",
+        "locale": "no",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      },
+      {
+        "name": "Norwegian identification number",
+        "locale": "en",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": "norwegian_national_id_number",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Norsk identitetsnummer",
+            "locale": "no"
+          },
+          {
+            "name": "Norwegian identification number",
+            "locale": "en"
+          }
+        ]
+      },
+      {
+        "path": "norwegian_national_id_number_type",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Type norsk identitetsnummer",
+            "locale": "no"
+          },
+          {
+            "name": "Type of Norwegian identification number",
+            "locale": "en"
+          }
+        ]
+      }
+    ]
+  },
+  "example_credential_data": {
+    "norwegian_national_id_number": "50917500484",
+    "norwegian_national_id_number_type": "D-nummer"
+  }
+}
+

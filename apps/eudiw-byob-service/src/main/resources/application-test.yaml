@@ -1,0 +1,20 @@
+---
+spring:
+  application:
+    environment: test
+
+  data:
+    redis:
+      password: ${BYOB_REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${BYOB_REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-byob-redis-ha-server-0.digital-lommebok-byob-redis-ha:26379
+          - digital-lommebok-byob-redis-ha-server-1.digital-lommebok-byob-redis-ha:26379
+          - digital-lommebok-byob-redis-ha-server-2.digital-lommebok-byob-redis-ha:26379
+
+digdir:
+  access:
+    logging:
+      debug-level: request
