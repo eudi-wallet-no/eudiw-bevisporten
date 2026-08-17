@@ -1,0 +1,81 @@
+# ========== Maven ==========
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.maven.metadata.xml
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ========== Gradle ==========
+.gradle
+build/
+gradle/wrapper/gradle-wrapper.jar
+.gradle/
+
+# ========== Java / Spring Boot ==========
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.class
+*.log
+
+# ========== IDE / Editor ==========
+.idea/
+*.iml
+*.iws
+*.ipr
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/
+.DS_Store
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vagrant/
+
+# ========== Runtime / Dev ==========
+*.pid
+*.seed
+*.pid.lock
+.env
+.env.local
+.env.*.local
+node_modules/
+
+# ========== Docker / Container ==========
+docker-compose.override.yml
+.docker/
+
+# ========== Build outputs ==========
+dist/
+build/
+out/
+
+# ========== App-specific (Spring Boot, Node) ==========
+/apps/*/target/
+/apps/*/.gradle/
+/apps/*/build/
+/apps/*/node_modules/
+/apps/*/.env
+/apps/*/.env.local
