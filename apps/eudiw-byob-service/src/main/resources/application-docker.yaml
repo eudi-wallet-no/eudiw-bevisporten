@@ -1,0 +1,24 @@
+---
+server:
+  port: 9296
+
+management:
+  server:
+    port: 9296
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  config:
+    import: optional:file:${EUDIW_BYOB_SERVICE_ENV}[.properties]
+  application:
+    environment: docker
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+byob-service:
+  api_key: ${BYOB_SERVICE_API_KEY}
