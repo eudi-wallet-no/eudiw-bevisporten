@@ -8,15 +8,15 @@ Monorepo for EUDI Wallet Verifiable Credential Issuance (VCI) og Verifiable Pres
 
 ## Applikasjoner
 
-| Applikasjon | Beskrivelse | Status |
-| --- | --- | --- |
-| [eudiw-authoritativ-sources-connector](apps/eudiw-authoritativ-sources-connector) | Authoritative Sources Connector | ✅ Migrert |
-| [eudiw-byob-service](apps/eudiw-byob-service) | Bring Your Own Briefcase Service | Pending migrering |
-| [eudiw-oauth-server](apps/eudiw-oauth-server) | OAuth Server | Pending migrering |
-| [eudiw-issuer-ui](apps/eudiw-issuer-ui) | Issuer UI (Bevisporten) | Pending migrering |
-| [eudiw-verifier-demo](apps/eudiw-verifier-demo) | Verifier Demo | Pending migrering |
-| [eudiw-issuer-server](apps/eudiw-issuer-server) | Issuer Server | Pending migrering |
-| [eudiw-status-list](apps/eudiw-status-list) | Status List Service | Pending migrering |
+| Applikasjon | Beskrivelse |
+| --- | --- |
+| [eudiw-authoritativ-sources-connector](apps/eudiw-authoritativ-sources-connector) | Authoritative Sources Connector |
+| eudiw-byob-service | Bring Your Own Briefcase Service |
+| eudiw-oauth-server | OAuth Server |
+| eudiw-issuer-ui | Issuer UI (Bevisporten) |
+| eudiw-verifier-demo | Verifier Demo |
+| eudiw-issuer-server | Issuer Server |
+| eudiw-status-list | Status List Service |
 
 ## Struktur
 
