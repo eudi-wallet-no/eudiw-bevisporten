@@ -29,4 +29,4 @@ Hver app har sin egen README med detaljer om oppsett, kjøring og testing.
 
 ## Lokal utvikling
 
-Se inviduell app sin README for spesifikke instruksjoner.
+Se individuell app sin README for spesifikke instruksjoner.
