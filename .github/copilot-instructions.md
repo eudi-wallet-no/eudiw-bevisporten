@@ -9,6 +9,8 @@ ikke anta eller finn på en. Brukes som prefiks i branch-navn og i PR-tittel:
 
 F.eks. `EUW-1234: Ny pr`. Uten dette feiler `validate-pr-title`-sjekken i GitHub Actions.
 
+PR-tittelen (delen etter JIRA-ID-prefikset) skal skrives på **norsk**.
+
 # PR-beskrivelser
 
 Skriv menneskelig, kort og konkret. Unngå AI-språk ("This PR introduces..."), emojis, overdreven struktur, selvskryt og oppsummeringsvegger. Én linje holder for trivielle endringer.
