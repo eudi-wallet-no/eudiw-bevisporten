@@ -30,6 +30,10 @@ public class TestData {
     }
 
     public static VerifiedCredential verifiedCredentialEU() {
+        return verifiedCredentialEUWithPersonalAdministrativeNumber("123456789");
+    }
+
+    public static VerifiedCredential verifiedCredentialEUWithPersonalAdministrativeNumber(String personalAdministrativeNumber) {
         String json = """
                 {
                   "claims": {
@@ -42,7 +46,33 @@ public class TestData {
                       ],
                       "birth_date": "1996-09-25",
                       "given_name": "UFUNKSJONELL",
-                      "family_name": "LOMMEBOK"
+                      "family_name": "LOMMEBOK",
+                      "issuing_authority": "Finnish Border Guard",
+                      "issuing_country": "FI",
+                      "personal_administrative_number": "%s"
+                    }
+                  }
+                }
+                """.formatted(personalAdministrativeNumber);
+        return new JsonMapper().readValue(json, VerifiedCredential.class);
+    }
+
+    public static VerifiedCredential verifiedCredentialEUWithoutPersonalAdministrativeNumber() {
+        String json = """
+                {
+                  "claims": {
+                    "eu.europa.ec.eudi.pid.1": {
+                      "place_of_birth": {
+                        "country": "FI"
+                      },
+                      "nationality": [
+                        "FI"
+                      ],
+                      "birth_date": "1996-09-25",
+                      "given_name": "UFUNKSJONELL",
+                      "family_name": "LOMMEBOK",
+                      "issuing_authority": "Finnish Border Guard",
+                      "issuing_country": "FI"
                     }
                   }
                 }

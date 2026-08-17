@@ -3,9 +3,12 @@ package no.idporten.eudiw.login.openid4vp.verifier.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import no.idporten.eudiw.login.openid4vp.InvalidVerificationException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.Serializable;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -17,6 +20,21 @@ public record VerifiedCredential(
     public String getStringClaim(boolean mandatory, String... path) {
         String value = getClaim(mandatory, path);
         if (mandatory && ! StringUtils.hasText(value)) {
+            throw new InvalidVerificationException("Missing mandatory claim", "Missing mandatory claim for path %s".formatted(Arrays.toString(path)));
+        }
+        return value;
+    }
+
+    public List<String> getStringArrayClaim(boolean mandatory, String... path) {
+        List<String> value = getClaim(mandatory, path);
+        if (mandatory && CollectionUtils.isEmpty(value)) {
+            throw new InvalidVerificationException("Missing mandatory claim", "Missing mandatory claim for path %s".formatted(Arrays.toString(path)));
+        }
+        return value;
+    }
+    public Map<String, Serializable> getObjectClaim(boolean mandatory, String... path) {
+        Map<String, Serializable> value = getClaim(mandatory, path);
+        if (mandatory && CollectionUtils.isEmpty(value)) {
             throw new InvalidVerificationException("Missing mandatory claim", "Missing mandatory claim for path %s".formatted(Arrays.toString(path)));
         }
         return value;
