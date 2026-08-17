@@ -1,0 +1,34 @@
+---
+server:
+  port: 9260
+  servlet:
+    session:
+      cookie:
+        secure: false
+
+management:
+  server:
+    port: 9261
+  endpoint:
+    health:
+      show-details: always
+spring:
+  config:
+    import: optional:file:${EUDIW_OAUTH_SERVER_ENV}[.properties]
+  application:
+    environment: dev
+  data:
+    redis:
+      port: 9262
+      host: localhost
+
+# EUDIW auth server
+oauth-authorization-server:
+  issuer: http://oauth-server:9260
+  access-token-default-audience: http://issuer-server:9240
+
+oidc-proxy:
+  redirect-uri: ${oauth-authorization-server.issuer}/callback
+  oidc-issuer:
+    issuer: https://idporten.dev
+    authorization-endpoint: https://login.idporten.dev/authorize
