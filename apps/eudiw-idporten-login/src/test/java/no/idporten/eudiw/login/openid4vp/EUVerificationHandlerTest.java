@@ -54,10 +54,10 @@ class EUVerificationHandlerTest {
             assertEquals("eu.europa.ec.eudi.pid.1", dcqlQuery.credentials().getFirst().meta().doctypeValue());
         }
 
-        @DisplayName("then the query contains exactly five claims")
+        @DisplayName("then the query contains exactly eight claims")
         @Test
-        void testContainsFiveClaims() {
-            assertEquals(5, dcqlQuery.credentials().getFirst().claims().size());
+        void testContainsEightClaims() {
+            assertEquals(8, dcqlQuery.credentials().getFirst().claims().size());
         }
 
         @DisplayName("then the claims include family_name")
@@ -93,6 +93,27 @@ class EUVerificationHandlerTest {
         void testClaimsIncludeNationality() {
             assertTrue(dcqlQuery.credentials().getFirst().claims().stream()
                     .anyMatch(c -> c.path().equals(List.of("eu.europa.ec.eudi.pid.1", "nationality"))));
+        }
+
+        @DisplayName("then the claims include issuing_authority")
+        @Test
+        void testClaimsIncludeIssuingAuthority() {
+            assertTrue(dcqlQuery.credentials().getFirst().claims().stream()
+                    .anyMatch(c -> c.path().equals(List.of("eu.europa.ec.eudi.pid.1", "issuing_authority"))));
+        }
+
+        @DisplayName("then the claims include issuing_country")
+        @Test
+        void testClaimsIncludeIssuingCountry() {
+            assertTrue(dcqlQuery.credentials().getFirst().claims().stream()
+                    .anyMatch(c -> c.path().equals(List.of("eu.europa.ec.eudi.pid.1", "issuing_country"))));
+        }
+
+        @DisplayName("then the claims include personal_administrative_number")
+        @Test
+        void testClaimsIncludePersonalAdministrativeNumber() {
+            assertTrue(dcqlQuery.credentials().getFirst().claims().stream()
+                    .anyMatch(c -> c.path().equals(List.of("eu.europa.ec.eudi.pid.1", "personal_administrative_number"))));
         }
     }
 
@@ -135,6 +156,73 @@ class EUVerificationHandlerTest {
         @Test
         void testBirthdateAttributeIsSet() {
             assertEquals("1996-09-25", authorization.getAttributes().get("birthdate"));
+        }
+
+        @DisplayName("then nationalities attribute is set from credential attribute nationality")
+        @Test
+        void testNationalityAttributeIsSet() {
+            @SuppressWarnings("unchecked")
+            List<String> nationalities = (List<String>) authorization.getAttributes().get("nationalities");
+            assertTrue(nationalities.contains("FI"));
+        }
+
+        @DisplayName("then issuing_authority attribute is set from credential")
+        @Test
+        void testIssuingAuthorityAttributeIsSet() {
+            assertEquals("Finnish Border Guard", authorization.getAttributes().get("issuing_authority"));
+        }
+
+        @DisplayName("then issuing_country attribute is set from credential")
+        @Test
+        void testIssuingCountryAttributeIsSet() {
+            assertEquals("FI", authorization.getAttributes().get("issuing_country"));
+        }
+
+        @DisplayName("then personal_administrative_number attribute is set from credential")
+        @Test
+        void testPersonalAdministrativeNumberAttributeIsSet() {
+            assertEquals("123456789", authorization.getAttributes().get("personal_administrative_number"));
+        }
+    }
+
+    @DisplayName("When calculating sub value")
+    @Nested
+    class SubCalculationTests {
+
+        @DisplayName("then same data with personal_administrative_number produces same sub value")
+        @Test
+        void testSameDataWithPersonalAdministrativeNumberProducesSameSub() {
+            var credential1 = TestData.verifiedCredentialEUWithPersonalAdministrativeNumber("123456789");
+            var credential2 = TestData.verifiedCredentialEUWithPersonalAdministrativeNumber("123456789");
+
+            var auth1 = handler.completeVerification(credential1);
+            var auth2 = handler.completeVerification(credential2);
+
+            assertEquals(auth1.getSub(), auth2.getSub());
+        }
+
+        @DisplayName("then same data without personal_administrative_number produces same sub value")
+        @Test
+        void testSameDataWithoutPersonalAdministrativeNumberProducesSameSub() {
+            var credential1 = TestData.verifiedCredentialEUWithoutPersonalAdministrativeNumber();
+            var credential2 = TestData.verifiedCredentialEUWithoutPersonalAdministrativeNumber();
+
+            var auth1 = handler.completeVerification(credential1);
+            var auth2 = handler.completeVerification(credential2);
+
+            assertEquals(auth1.getSub(), auth2.getSub());
+        }
+
+        @DisplayName("then data with personal_administrative_number produces different sub than without")
+        @Test
+        void testWithAndWithoutPersonalAdministrativeNumberProduceDifferentSub() {
+            var credentialWithPersonalAdministrativeNumber = TestData.verifiedCredentialEUWithPersonalAdministrativeNumber("123456789");
+            var credentialWithoutPersonalAdministrativeNumber = TestData.verifiedCredentialEUWithoutPersonalAdministrativeNumber();
+
+            var authWithPersonalAdministrativeNumber = handler.completeVerification(credentialWithPersonalAdministrativeNumber);
+            var authWithoutPersonalAdministrativeNumber = handler.completeVerification(credentialWithoutPersonalAdministrativeNumber);
+
+            assertNotEquals(authWithPersonalAdministrativeNumber.getSub(), authWithoutPersonalAdministrativeNumber.getSub());
         }
     }
 }
