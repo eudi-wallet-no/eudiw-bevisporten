@@ -13,16 +13,8 @@ PR-tittelen (delen etter JIRA-ID-prefikset) skal skrives på **norsk**.
 
 ## Branch-navn
 
-Branch-navnet skal alltid være **brukernavn + JIRA-ID**, ikke en fritekstbeskrivelse. Plattformen
-legger automatisk til brukernavnet som prefiks (se `rename_branch`-verktøyet), så bruk selve
-JIRA-ID-en (små bokstaver) som navnet du sender inn:
-
-```
-rename_branch(name: "<jira-id>")   →  gir branch: <brukernavn>-<jira-id>
-```
-
-F.eks. `rename_branch(name: "euw-1234")` gir `andreasbalevik-euw-1234`. Ikke bruk beskrivende
-kebab-case-navn (som `fix-login-validation`) med mindre oppgaven mangler en JIRA-ID.
+`rename_branch(name: "<jira-id>")`, f.eks. `"euw-1234"`. Ikke bruk fritekstbeskrivelse. Finnes
+branchen fra før, inkrementer: `euw-1234-2`, `euw-1234-3` osv.
 
 # PR-beskrivelser
 
