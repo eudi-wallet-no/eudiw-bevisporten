@@ -127,11 +127,16 @@ public class VerificationController {
             throw new IssuerUiException("Missing verificationId");
         }
 
+        if (session.getAttribute(getVerificationFinishedKey(verificationId)) != null) {
+            throw new IssuerUiException("Verifikasjonen er allerede fullført. Sjå resultatet i ei annan tab.");
+        }
+
         String transactionId = getTransactionIdFromSession(verificationId, session);
 
         session.removeAttribute(getVerificationTransactionKey(verificationId));
 
         VerificationResult result = verifierService.retrieveVerificationResult(transactionId);
+        session.setAttribute(getVerificationFinishedKey(verificationId), verificationId);
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
@@ -171,6 +176,10 @@ public class VerificationController {
 
     private static String getVerificationTransactionKey(String verificationId) {
         return "verification_transaction_data_%s".formatted(verificationId);
+    }
+
+    private static String getVerificationFinishedKey(String verificationId) {
+        return "verification_finished_%s".formatted(verificationId);
     }
 
     private ModelAndView baseView(StartVerificationForm form) {
