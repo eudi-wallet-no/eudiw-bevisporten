@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<footer th:fragment="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <img class="footer__logo"
+                     th:src="@{/img/logo/logo-idporten-negative.svg}" th:alt="#{no_idporten_themed_logo_alt}">
+                <div class="footer__desc">
+                    <span th:text="#{no_idporten_themed_footer_info}"></span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="footer__header">
+                    <span th:text="#{no_idporten_common_footer_links}"></span>
+                </div>
+                <ul class="footer__links">
+                    <li>
+                        <a class="footer__link" th:href="#{no_idporten_common_security_link}">
+                            <span th:text="#{no_idporten_common_footer_security}">"</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="footer__link" th:href="#{no_idporten_themed_geteid_link}">
+                            <span th:text="#{no_idporten_common_footer_getid}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <div class="footer__header">
+                    <span th:text="#{no_idporten_common_footer_contact}">"</span>
+                </div>
+                <ul class="footer__links">
+                    <li>
+                        <a class="footer__link" th:href="#{no_idporten_common_support_link_login}">
+                            <span th:text="#{no_idporten_common_footer_loginhelp}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
