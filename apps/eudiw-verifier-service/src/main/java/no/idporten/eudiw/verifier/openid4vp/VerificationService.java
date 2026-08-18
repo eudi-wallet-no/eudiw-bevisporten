@@ -23,12 +23,12 @@ public class VerificationService {
         this.verificationTransactionService = verificationTransactionService;
     }
 
-    public StartVerificationResponse startVerification(@RequestBody StartVerificationRequest startVerificationRequest, ClientApplication clientApplication) throws Exception {
+    public StartVerificationResponse startVerification(@RequestBody StartVerificationRequest startVerificationRequest, ClientApplication clientApplication, boolean includeValidationDetails) throws Exception {
         String verifierTransactionId = createVerifierTransactionId();
         String requestId = openID4VPRequestService.createRequestId(clientApplication, verifierTransactionId);
         URI authorizationRequestSameDevice = openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "same_device");
         URI qrCodeDataUriCrossDevice = openID4VPRequestService.createQrCodeDataURI(openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "cross_device"));
-        verificationTransactionService.initTransaction(startVerificationRequest.dcqlQuery(), startVerificationRequest.redirectUri(), verifierTransactionId, clientApplication);
+        verificationTransactionService.initTransaction(startVerificationRequest.dcqlQuery(), startVerificationRequest.redirectUri(), verifierTransactionId, clientApplication, includeValidationDetails);
         return new StartVerificationResponse(authorizationRequestSameDevice, qrCodeDataUriCrossDevice, verifierTransactionId);
     }
 

@@ -23,5 +23,6 @@ public class VerificationTransaction implements Serializable {
     private VerifiedCredentials verifiedCredentials;
     private Map<String, Object> request;
     private Map<String, Object> response;
+    private boolean includeValidationDetails;
 
 }
