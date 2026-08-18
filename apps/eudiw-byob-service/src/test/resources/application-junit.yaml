@@ -1,0 +1,12 @@
+spring:
+  application:
+    environment: junit
+
+  data:
+    redis:
+      host: localhost
+      port: 8850
+      password:
+
+byob-service:
+  api-key: test-api-key

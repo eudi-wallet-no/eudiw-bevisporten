@@ -1,0 +1,318 @@
+{
+  "credential_configuration_id": "org.iso.18013.5.1.mDL_mso_mdoc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "credential_type": "org.iso.18013.5.1.mDL",
+  "format": "mso_mdoc",
+  "scope": "eudiw:no:vegvesen:mdl",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Norsk førerkort",
+        "description": "MERK: dette er ikkje eit reelt førarkort kobla til test-førarkortregisteret. Alle testbrukarar får statisk satt klasse B.",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      },
+      {
+        "locale": "en",
+        "name": "Norwegian driver's license",
+        "description": "NOTE: this is not a real driver's license tied to the test license register. All test users are granted class B license.",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "family_name"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Family name"
+          },
+          {
+            "locale": "no",
+            "name": "Etternavn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "given_name"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Given name"
+          },
+          {
+            "locale": "no",
+            "name": "Fornavn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "birth_date"
+        ],
+        "type": "iso_date",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Date of birth"
+          },
+          {
+            "locale": "no",
+            "name": "Fødselsdato"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_over_18"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age over 18"
+          },
+          {
+            "locale": "no",
+            "name": "Over 18 år"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^(true|false)$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_over_16"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age over 16"
+          },
+          {
+            "locale": "no",
+            "name": "Over 16 år"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^(true|false)$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_over_21"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age over 21"
+          },
+          {
+            "locale": "no",
+            "name": "Over 21 år"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^(true|false)$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "age_in_years"
+        ],
+        "type": "number",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Age"
+          },
+          {
+            "locale": "no",
+            "name": "År"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^\\d{1,5}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "issue_date"
+        ],
+        "type": "iso_date",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Issue date"
+          },
+          {
+            "locale": "no",
+            "name": "Gyldig fra dato"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "expiry_date"
+        ],
+        "type": "iso_date",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Expiry date"
+          },
+          {
+            "locale": "no",
+            "name": "Gyldig til dato"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{4}-\\d{2}-\\d{2}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "issuing_country"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Issuing country"
+          },
+          {
+            "locale": "no",
+            "name": "Utsted av land"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[A-Z]{2}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "issuing_authority"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Issuing authority"
+          },
+          {
+            "locale": "no",
+            "name": "Utsteder myndighet"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "document_number"
+        ],
+        "type": "number",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Document number"
+          },
+          {
+            "locale": "no",
+            "name": "Førerkort nummer"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{1,150}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "portrait"
+        ],
+        "type": "binary",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Portrait Photos"
+          },
+          {
+            "locale": "no",
+            "name": "Portrett bilde"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^[-A-Za-z0-9+/]*={0,3}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "driving_privileges"
+        ],
+        "type": "map",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Driving privileges"
+          },
+          {
+            "locale": "no",
+            "name": "Førerkort klasser"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,150}$"
+      },
+      {
+        "path": [
+          "org.iso.18013.5.1",
+          "un_distinguishing_sign"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "en",
+            "name": "Country"
+          },
+          {
+            "locale": "no",
+            "name": "Land"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[A-Z]{1,4}$"
+      }
+    ]
+  }
+}

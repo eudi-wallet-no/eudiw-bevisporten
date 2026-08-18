@@ -1,0 +1,29 @@
+package no.idporten.eudiw.issuer.claimssource;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@DisplayName("When using BYOB as claims source")
+@ActiveProfiles("junit")
+@SpringBootTest
+class PushPreAuthorizedClaimsSourceTest {
+
+    @Autowired
+    PushPreAuthorizedClaimsSource claimsSource;
+
+    @DisplayName("when pushing credential data then the same data is returned")
+    @Test
+    void testPush() {
+        CredentialData credentialData = new CredentialData(Map.of("attr1", "value"));
+        CredentialData result = claimsSource.push(null, credentialData);
+        assertEquals(credentialData, result);
+    }
+
+}

@@ -1,0 +1,135 @@
+package no.idporten.eudiw.issuer.claimssource;
+
+
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
+import no.idporten.eudiw.issuer.IssuerServerException;
+import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.credentials.types.StringValue;
+import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
+import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+
+import static no.idporten.eudiw.issuer.TestData.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+@DisplayName("When using pre-authorized claims sources")
+public class PreAuthorizedClaimsSourceTest {
+
+    abstract static class AbstractJUnitClaimsSource extends AbstractPreAuthorizedClaimsSource {
+
+        public AbstractJUnitClaimsSource() {
+            setClaimsSourceCache(new InMemoryClaimsSourceCache());
+        }
+    }
+
+    JWT maskinportenToken() {
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().build();
+        return new PlainJWT(claimsSet);
+    }
+
+    JWT authProxyToken(String issuanceTransactionId) {
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder().claim("tx_id", issuanceTransactionId).build();
+        return new PlainJWT(claimsSet);
+    }
+
+    @DisplayName("When using pull-based claims source")
+    @Nested
+    class PullTests {
+
+        static class PullClaimsSource extends AbstractJUnitClaimsSource {
+            @Override
+            public CredentialData pull(PreAuthorizedIssuanceContext preAuthorizedIssuanceContext) {
+                return new CredentialData(Map.of("c", "v"));
+            }
+        }
+
+        @DisplayName("then push is not supported")
+        @Test
+        void pushNotSupported() {
+            PreAuthorizedClaimsSource claimsSource = new PullClaimsSource();
+            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
+                    new PreAuthorizedIssuanceContext(junitIssuerTenant(), junitCredentialConfiguration(), new IssuanceTransactionId(), maskinportenToken()),
+                    new CredentialData(Map.of("some", "data")))
+            );
+            assertTrue(e.getMessage().contains("does not support push"));
+        }
+
+        @DisplayName("then pre-authorized claims are pulled, validated and stored")
+        @Test
+        public void testPullClaimsSourceLifecycle() {
+            final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+            PreAuthorizedClaimsSource claimsSource = spy(new PullClaimsSource());
+            PreAuthorizedIssuanceContext preAuthorizedIssuanceContext = new PreAuthorizedIssuanceContext(junitIssuerTenant(), junitCredentialConfiguration(), issuanceTransactionId, maskinportenToken(), Duration.ofMinutes(9));
+            claimsSource.preAuthorize(
+                    preAuthorizedIssuanceContext,
+                    null);
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), junitIssuerTenant(), junitCredentialConfiguration(), issuanceTransactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE));
+            assertAll(
+                    () -> assertEquals(1, claims.size()),
+                    () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
+                    () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
+            );
+            verify(claimsSource).pull(any());
+            verify(claimsSource).validate(any(), any(CredentialData.class));
+            verify(claimsSource).store(eq(preAuthorizedIssuanceContext), any(), eq(Duration.ofMinutes(9)));
+            verify(claimsSource, never()).push(any(), any());
+        }
+
+    }
+
+    @Nested
+    class PushTests {
+
+        static class PushClaimsSource extends AbstractJUnitClaimsSource {
+
+            @Override
+            public CredentialData push(PreAuthorizedIssuanceContext issuanceContext, CredentialData credentialData) {
+                return credentialData;
+            }
+
+        }
+
+        @DisplayName("then pull is not supported")
+        @Test
+        void pullNotSupported() {
+            PreAuthorizedClaimsSource claimsSource = new PushClaimsSource();
+            IssuerServerException e = assertThrows(IssuerServerException.class, () -> claimsSource.preAuthorize(
+                    new PreAuthorizedIssuanceContext(junitIssuerTenant(), junitCredentialConfiguration(), new IssuanceTransactionId(), maskinportenToken()), null));
+            assertTrue(e.getMessage().contains("does not support pull"));
+        }
+
+        @DisplayName("then pre-authorized claims are pushed, validated and stored")
+        @Test
+        public void testPushClaimsSourceLifecycle() {
+            final IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+            final PreAuthorizedIssuanceContext issuanceContext = new PreAuthorizedIssuanceContext(junitIssuerTenant(), junitCredentialConfiguration(), issuanceTransactionId, maskinportenToken(), Duration.ofMinutes(5));
+            PreAuthorizedClaimsSource claimsSource = spy(new PushClaimsSource());
+            claimsSource.preAuthorize(
+                    issuanceContext,
+                    new CredentialData(Map.of("c", "v")));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), credentialIssuerTenant("junit"), junitCredentialConfiguration(), issuanceTransactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE));
+            assertAll(
+                    () -> assertEquals(1, claims.size()),
+                    () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
+                    () -> assertEquals("v", ((StringValue) claims.getFirst().getValue()).value())
+            );
+            verify(claimsSource).push(any(), any());
+            verify(claimsSource).validate(any(), any(CredentialData.class));
+            verify(claimsSource).store(eq(issuanceContext), any(), eq(Duration.ofMinutes(5)));
+            verify(claimsSource, never()).pull(any());
+        }
+
+    }
+
+}

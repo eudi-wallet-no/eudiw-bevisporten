@@ -1,0 +1,130 @@
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    session:
+      tracking-modes:
+        - cookie
+      cookie:
+        same-site: lax
+        secure: true
+        name: ${spring.application.name}-session
+      timeout: 30m
+
+spring:
+  thread-executor: virtual
+  application:
+    name: digital-lommebok-oauth-server
+    environment: default
+  session:
+    store-type: redis
+    redis:
+      namespace: "${spring.application.name}:session"
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: readinessState,redis
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+# Digdir standard logging
+digdir:
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
+  audit:
+    log-dir:
+    log-file:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false
+      bearer-token: false
+      correlation-id: false
+      ip-address: true
+    prometheus:
+      counter: true
+
+# EUDIW oAuth proxy
+oauth-authorization-server:
+  features:
+    allow-real-person-identifiers: false
+    allow-synthetic-person-identifiers: true
+  scopes-supported:
+    - openid
+    - eudiw:no:pid
+    - eudiw:no:skatteetaten:nnid
+    - eudiw:no:skatteetaten:inntekt
+    - eudiw:no:minid:mpid
+    - eudiw:no:advokattilsynet:advokatregisteret
+    - eudiw:no:kontaktregisteret:kontaktinformasjon
+    - proof_of_age
+    - eudiw:eidas2sandkasse:dynamicvc
+    - eudiw:no:kommunalsektor:hcregister
+    - eudiw:no:helsesektor:legeerklaring
+  api-key: ${INTERNAL_API_KEY}
+  keystore:
+    type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
+    location: ${TOKEN_SIGNING_KEYSTORE_LOCATION}
+    password: ${TOKEN_SIGNING_KEYSTORE_PASSWORD}
+    key-alias: ${TOKEN_SIGNING_KEYSTORE_KEY_ALIAS}
+    key-password: ${TOKEN_SIGNING_KEYSTORE_KEY_PASSORD}
+  grant-types-supported:
+    - authorization_code
+    - urn:ietf:params:oauth:grant-type:pre-authorized_code
+
+oidc-proxy:
+  connect-timeout-millis: 5000
+  read-timeout-millis: 5000
+
+  # webuild
+  headless-login:
+    enabled: false
+    synthetic_pid:
+    acr:
+    amr:
+    client-ids: [ ]
+
+  redirect-uri: ${oauth-authorization-server.issuer}/callback
+  oidc-issuer:
+    issuer: https://test.idporten.no
+    authorization-endpoint: https://login.test.idporten.no/authorize
+    pushed-authorization-request-endpoint: ${oidc-proxy.oidc-issuer.issuer}/par
+    token-endpoint: ${oidc-proxy.oidc-issuer.issuer}/token
+    jwks-uri: ${oidc-proxy.oidc-issuer.issuer}/jwks.json
+  oidc-client:
+    client-id: ${OIDC_CLIENT_ID}
+    client-authentication-method: private_key_jwt
+    keystore:
+      type: pkcs12
+      location: ${OIDC_CLIENT_KEYSTORE_LOCATION}
+      password: ${OIDC_CLIENT_KEYSTORE_PASSWORD}
+      key-alias: ${OIDC_CLIENT_KEYSTORE_KEY_ALIAS}
+      key-password: ${OIDC_CLIENT_KEYSTORE_KEY_PASSWORD}

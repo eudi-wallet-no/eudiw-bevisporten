@@ -1,0 +1,68 @@
+---
+server:
+  port: 8080
+
+spring:
+  application:
+    name: digital-lommebok-byob-service
+    environment: default
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: redis
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+# Digdir standard logging
+digdir:
+  audit:
+    log-dir:
+    log-file:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false
+      bearer-token: false
+      correlation-id: false
+      ip-address: true
+    prometheus:
+      counter: true
+
+# byob-service: Bring your own bevis service properties
+byob-service:
+  api_key: ${BYOB_SERVICE_API_KEY}
+
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
+
+

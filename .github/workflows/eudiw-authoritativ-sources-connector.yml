@@ -35,7 +35,7 @@ jobs:
       # app-workflow (individuell, per app) kjørt sin egen duplikate
       # validate-pr-title-jobb via ci-pr-checks-image.yml sin default (true).
       enable-pr-title-verify: false
-      image-name: digital-lommebok-authoritativ-sources-connector
+      image-name: digital-lommebok-auth-sources-connector
       java-version: '25'
       maven-lifecycle: 'test'
       maven-skip-tests: false
@@ -52,7 +52,7 @@ jobs:
       application-type: spring-boot
       application-path: apps/eudiw-authoritativ-sources-connector/
       cache-path: apps/eudiw-authoritativ-sources-connector/pom.xml
-      image-name: digital-lommebok-authoritativ-sources-connector
+      image-name: digital-lommebok-auth-sources-connector
       java-version: '25'
       # Manual feature deploys use development; merges to the default branch use deployment.
       lifecycle: ${{ github.ref_name == github.event.repository.default_branch && 'deployment' || 'development' }}
@@ -65,10 +65,10 @@ jobs:
       pull-requests: read
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
-      application-name: digital-lommebok-authoritativ-sources-connector
+      application-name: digital-lommebok-auth-sources-connector
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
-      image-name: digital-lommebok-authoritativ-sources-connector
+      image-name: digital-lommebok-auth-sources-connector
       image-version: ${{ needs.build-image.outputs.image-version }}
       kubernetes-repo: digital-lommebok-cd
       product-name: digital-lommebok

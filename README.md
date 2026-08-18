@@ -11,12 +11,12 @@ Monorepo for EUDI Wallet Verifiable Credential Issuance (VCI) og Verifiable Pres
 | Applikasjon | Beskrivelse | README |
 | --- | --- | --- |
 | [eudiw-authoritativ-sources-connector](apps/eudiw-authoritativ-sources-connector) | Authoritative Sources Connector | [README](apps/eudiw-authoritativ-sources-connector/README.md) |
-| eudiw-byob-service | Bring Your Own Briefcase Service | |
-| eudiw-oauth-server | OAuth Server | |
+| [eudiw-byob-service](apps/eudiw-byob-service) | Bring Your Own Briefcase Service | [README](apps/eudiw-byob-service/README.md) |
+| [eudiw-oauth-server](apps/eudiw-oauth-server) | OAuth Server | [README](apps/eudiw-oauth-server/README.md) |
 | eudiw-issuer-ui | Issuer UI (Bevisporten) | |
-| eudiw-verifier-demo | Verifier Demo | |
-| eudiw-issuer-server | Issuer Server | |
-| eudiw-status-list | Status List Service | |
+| [eudiw-verifier-demo](apps/eudiw-verifier-demo) | Verifier Demo | [README](apps/eudiw-verifier-demo/README.md) |
+| [eudiw-issuer-server](apps/eudiw-issuer-server) | Issuer Server | [README](apps/eudiw-issuer-server/README.md) |
+| [eudiw-status-list](apps/eudiw-status-list) | Status List Service | [README](apps/eudiw-status-list/README.md) |
 
 ## Struktur
 

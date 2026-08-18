@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<header th:replace="~{fragments/header :: header}">...</header>
+
+<main>
+    <div class="box">
+        <div class="box__body">
+            <div class="notification notification--error">
+                <h1 th:text="#{result.header.failed}"></h1>
+                <p th:text="#{result.alder.failed.text(${age})}"></p>
+            </div>
+            <div class="btn-group">
+                <a th:href="@{/}"><button class="button" th:text="#{result.button.back}"></button></a>
+            </div>
+            <div th:replace="~{fragments/traces :: traces}">...</div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+
+</html>
