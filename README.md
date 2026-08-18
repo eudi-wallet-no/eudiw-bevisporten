@@ -15,7 +15,7 @@ Monorepo for EUDI Wallet Verifiable Credential Issuance (VCI) og Verifiable Pres
 | [eudiw-oauth-server](apps/eudiw-oauth-server) | OAuth Server | [README](apps/eudiw-oauth-server/README.md) |
 | eudiw-issuer-ui | Issuer UI (Bevisporten) | |
 | [eudiw-verifier-demo](apps/eudiw-verifier-demo) | Verifier Demo | [README](apps/eudiw-verifier-demo/README.md) |
-| eudiw-issuer-server | Issuer Server | |
+| [eudiw-issuer-server](apps/eudiw-issuer-server) | Issuer Server | [README](apps/eudiw-issuer-server/README.md) |
 | eudiw-status-list | Status List Service | |
 
 ## Struktur
