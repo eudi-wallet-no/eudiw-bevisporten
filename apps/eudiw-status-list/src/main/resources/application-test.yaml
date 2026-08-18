@@ -1,0 +1,7 @@
+---
+spring:
+  application:
+    environment: test
+
+status-list:
+  uri: https://status.test.eidas2sandkasse.net
