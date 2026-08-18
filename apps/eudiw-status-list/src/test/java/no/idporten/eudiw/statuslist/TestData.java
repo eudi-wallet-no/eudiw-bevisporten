@@ -1,0 +1,36 @@
+package no.idporten.eudiw.statuslist;
+
+import no.idporten.lib.keystore.KeystoreManager;
+import no.idporten.lib.keystore.KeystoreManagerProperties;
+
+
+public class TestData {
+
+    public static KeystoreManager getKeystoreManager(String keyType) {
+        return new KeystoreManager(getKeystoreManagerProperties(keyType));
+    }
+
+    public static KeystoreManagerProperties getKeystoreManagerProperties(String keyType) {
+        if ("RSA".equals(keyType)) {
+            return new KeystoreManagerProperties.KeystorePropertiesBuilder()
+                    .keystore(
+                            "status-provider",
+                            "base64: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",
+                            "pkcs12",
+                            "changeit",
+                            "status-provider",
+                            "changeit"
+                    ).build();
+        } else {
+            return new KeystoreManagerProperties.KeystorePropertiesBuilder()
+                    .keystore(
+                            "status-provider",
+                            "base64:MIIEMgIBAzCCA9wGCSqGSIb3DQEHAaCCA80EggPJMIIDxTCCATwGCSqGSIb3DQEHAaCCAS0EggEpMIIBJTCCASEGCyqGSIb3DQEMCgECoIG9MIG6MGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBT4no1JWPCmOsgDHqzdTncop4Z3rgICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEEPdzg0/f8RbkEKvyIYowpQoEUFEsT2hpe2x7kcvhgBMWyu4Q3NGqcOZrNK8uDihIK75J5zDwKjENFQyXGuRqGVef3H7AmUhWZ8grwl3KAK+cCdDmdbeNuj4QuTQp1NLDdDTyMVIwLQYJKoZIhvcNAQkUMSAeHgBzAHQAYQB0AHUAcwAtAHAAcgBvAHYAaQBkAGUAcjAhBgkqhkiG9w0BCRUxFAQSVGltZSAxNzgwOTk0MTAzOTM0MIICgQYJKoZIhvcNAQcGoIICcjCCAm4CAQAwggJnBgkqhkiG9w0BBwEwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFIiGdtb53f53/dWQXe11kUCstRNtAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQBtqcoH7MqUrf+xTq278UEoCCAfBElN2hWVvL2FgNoiQQPkDlUkWMw6vTM478b/H9XsvtCB6kq+sKOBveeyxPupfDxEaBKr1fdIzye6M4xOmh1++WUkbctMHleftdzptKWRjPib3kjZoxAOGCi6Pv19uRFZTnrx1JsBaysyo+O8LIDe6/YCIGeH4b3eIUHrjlYThOplOtROaqDzZnGbaP3inM2czjixZvxoZ70cf6uZcXK6mXfxtLP+irzxyrB/47DsJsx+mMsTDSrtICUB2oFVfLfjJY+w/cl7FRl4Qru/asy74f5kfU7ghGqqQQte4L7hA3DePDi2v0oWADpbAVxBEZMFr0NiTsCVp7Gy2tqquh8P4pAsk9CWReyKNACNVsBIAcp0cp9GO93DlWe1VpbYOYxVJlRZ7Zd4r6xd7S9bRNlkOPM0LLPe7eT3UG5A5U3nAR8/lGkB/bbo9R53B9tPYurpaxDB4XcXIQ6inFXlChYOhelfYvR9G1Aah39bwPcfnMp1ggMlJMnJebduVBKMmeicwoTrS5zuRWxhZGI+joYdxtiNRxfX9Mj6Sjnq1iBzxwMj/m+D4qiXf50N9cu+QMzKYOyE3sn7ML8pKpAuoPWTUarnsncuUk4OmomrdPe9qM23lryOpitM44rGlShR0f7RMG76b0SVEenrEGD2YzGY0mME0wMTANBglghkgBZQMEAgEFAAQg8AgnPXgQCzSG4zfj3p4CGKR+jmQsY/cTGFelKXfbGjEEFITy25YyMgqXXaz1Epsz6PdQc33MAgInEA==",
+                            "pkcs12",
+                            "changeit",
+                            "status-provider",
+                            "changeit"
+                    ).build();
+        }
+    }
+}

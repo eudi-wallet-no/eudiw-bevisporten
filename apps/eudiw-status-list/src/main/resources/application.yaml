@@ -1,0 +1,85 @@
+---
+server:
+  port: 8080
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: digital-lommebok-status-list
+    environment: default
+  datasource:
+    url: ${MARIADB_URL}
+    username: ${MARIADB_USER}
+    password: ${MARIADB_PASSWORD}
+    driver-class-name: org.mariadb.jdbc.Driver
+  flyway:
+    table: flyway_schema_history
+    locations: classpath:/db/migration
+
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+  health:
+    group:
+      readiness:
+        include: db,readinessState
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+status-list:
+  uri: https://status.test.eidas2sandkasse.net
+  provider:
+    uri: ${status-list.uri}
+    ttl: 12h
+    valid: 24h
+  issuer:
+    uri: ${status-list.uri}/lists/{id}
+    api-key: ${STATUS_ISSUER_API_KEY}
+  list-config:
+    list-size: 1000000
+    bits-per-status: 2
+
+idporten-key-manager:
+  keystores:
+    status-provider:
+      key-store-type: ${SIGNING_KEYSTORE_TYPE}
+      key-store-location: ${SIGNING_KEYSTORE_LOCATION}
+      key-store-password: ${SIGNING_KEYSTORE_PASSWORD}
+      key-alias: ${SIGNING_KEYSTORE_KEY_ALIAS}
+      key-password: ${SIGNING_KEYSTORE_KEY_PASSWORD}
+
+digdir:
+  audit:
+    application-name:  ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false                                     # optional - default 'true'
+      bearer-token: false                                    # optional - default 'true'
+      ip-address: true                                    # optional - default 'true'
+    prometheus:
+      counter: false                                     # optional - default 'true'
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
