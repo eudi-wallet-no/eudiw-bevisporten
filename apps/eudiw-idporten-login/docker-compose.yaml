@@ -32,6 +32,8 @@ services:
     environment:
       spring_profiles_active: docker
       _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    env_file:
+      - ${EUDIW_IDPORTEN_LOGIN_ENV}
     ports:
       - "9283:9283"
       - "9284:9284"
