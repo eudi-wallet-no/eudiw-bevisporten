@@ -18,6 +18,9 @@
         </div>
         <p id="verification-status-message" class="ds-paragraph" style="margin-top: var(--ds-size-3);"></p>
         <div class="flex-container" style="min-width: unset">
+            <a th:href="@{/verification-result/{verificationId}(verificationId=${verificationId})}" id="navigate-to-result-button" class="ds-button" style="display:none;">
+                Sjå resultatet
+            </a>
             <a th:href="${authorizationRequest}" id="same-device-button" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
                 Opne på mobilen
             </a>
@@ -49,6 +52,8 @@
     const statusEndpoint = /*[[@{/verification-presentation/{verificationId}/status(verificationId=${verificationId})}]]*/ "";
     const resultUrl = /*[[@{/verification-result/{verificationId}(verificationId=${verificationId})}]]*/ "";
     const sameDeviceButton = document.getElementById("same-device-button");
+    const navigateToResultButton = document.getElementById("navigate-to-result-button");
+    const qrCode = document.getElementById("cross-device-request");
 
     let sameDeviceFlow = false;
 
@@ -60,29 +65,45 @@
         statusMessage.textContent = message;
     }
 
-    function redirectToResult() {
-        const redirect = () => {
-            window.removeEventListener("focus", redirect);
-            document.removeEventListener("visibilitychange", redirect);
-            document.removeEventListener("click", redirect);
-
-            setTimeout(() => {
-                document.location.assign(resultUrl);
-            }, 500);
-        }
-
-        window.addEventListener("focus", redirect);
-        document.addEventListener("visibilitychange", redirect);
-        document.addEventListener("click", redirect);
+    function redirectToResultPage() {
+        document.location.assign(resultUrl);
     }
 
+    const debounce = (func, wait) => {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    };
+
+    const debouncedRedirectToResultPage = debounce(redirectToResultPage, 500);
+
+    function waitForUserBeforeRedirectToResultPage() {
+        const redirect = () => {
+            window.removeEventListener("focus", redirect);
+            window.removeEventListener("pageshow", redirect);
+            document.removeEventListener("visibilitychange", redirect);
+
+            debouncedRedirectToResultPage();
+        }
+
+        updateStatusMessage("Verifikasjonen er fullført.");
+        navigateToResultButton.style.display = "block";
+        sameDeviceButton.style.display = "none";
+        qrCode.style.display = "none";
+
+        window.addEventListener("focus", redirect);
+        window.addEventListener("pageshow", redirect);
+        document.addEventListener("visibilitychange", redirect);
+    }
 
     const handle200 = async () => {
         if (!sameDeviceFlow) {
-            document.location.assign(resultUrl);
+            debouncedRedirectToResultPage();
         }
         else {
-            redirectToResult();
+            waitForUserBeforeRedirectToResultPage();
         }
     };
 
