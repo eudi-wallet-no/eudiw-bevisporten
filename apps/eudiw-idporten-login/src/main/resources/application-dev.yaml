@@ -13,6 +13,8 @@ management:
       show-details: always
 
 spring:
+  config:
+    import: optional:file:${EUDIW_IDPORTEN_LOGIN_ENV}[.properties]
   application:
     environment: dev
   data:
@@ -28,7 +30,7 @@ eudiw-idporten-login:
     issuer: http://eudiw-idporten-login:9283/
     clients:
       - client-id: testclient
-        client-secret: secret
+        client-secret: ${TESTCLIENT_CLIENT_SECRET}
         scopes:
           - openid
         redirect-uris:
