@@ -1,0 +1,279 @@
+# NB: Login to Azure Container Registery : az login && az acr login -n crutvikling --subscription 9c0d7873-b8aa-4042-96f8-b8ce5c9888d0
+# https://portal.azure.com/#@Nasjonalfelleslosning.onmicrosoft.com/resource/subscriptions/9c0d7873-b8aa-4042-96f8-b8ce5c9888d0/resourceGroups/rg-eid-systest-cr/providers/Microsoft.ContainerRegistry/registries/crutvikling/overview
+
+name: digital-lommebok-issuer
+networks:
+  digital-lommebok:
+    name: digital-lommebok
+
+services:
+  issuer-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: issuer_server_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "36307:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 5s
+      start_period: 3s
+      timeout: 2s
+      retries: 20
+    ports:
+      - "9262:6379"
+    networks:
+      - digital-lommebok
+    command: redis-server --maxmemory-policy allkeys-lru
+  issuer-server:
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-issuer-server/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    depends_on:
+      issuer-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      byob-service:
+        condition: service_started
+      oauth-server:
+        condition: service_started
+      authoritative-sources-connector:
+        condition: service_started
+      status-list:
+        condition: service_started
+    env_file:
+      - ${EUDIW_ISSUER_SERVER_ENV}
+    environment:
+      spring_profiles_active: docker
+      MARIADB_URL: jdbc:mariadb://issuer-db:3306/issuer_server_db
+      MARIADB_USER: eudiw_user
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0"
+    ports:
+      - "9240:9240"
+      - "9245:9245"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9245 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9240/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  oauth-server:
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-oauth-server/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    depends_on:
+      - redis
+    env_file:
+      - ${EUDIW_OAUTH_SERVER_ENV}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9260:9260"
+      - "9261:9261"
+      - "9265:9265"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9265 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9261/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  issuer-ui:
+    image: "crutvikling.azurecr.io/eudiw-issuer-ui"
+#    image: "digital-lommebok-issuer-issuer-ui" # Uncomment this line if you want to use the local image instead
+    depends_on:
+      - issuer-server
+    env_file:
+      - ${EUDIW_ISSUER_UI_ENV}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9292:9292"
+      - "9293:9293"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9293 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9292/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  issuer-ui-demo:
+    image: "crutvikling.azurecr.io/eudiw-issuer-ui-demo"
+#    image: "digital-lommebok-issuer-bevisgenerator" # Uncomment this line if you want to use the local image instead
+    depends_on:
+      - issuer-server
+      - byob-service
+    env_file:
+      - ${EUDIW_ISSUER_UI_DEMO_ENV}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9290:9290"
+      - "9295:9295"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9295 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9290/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  byob-service:
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-byob-service/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    depends_on:
+      - redis
+    env_file:
+      - ${EUDIW_BYOB_SERVICE_ENV}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9296:9296"
+      - "9297:9297"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -javaagent:opentelemetry-javaagent.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9297 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9296/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+
+  authoritative-sources-connector:
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-authoritativ-sources-connector/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
+    env_file:
+      - ${EUDIW_AUTHORITATIV_SOURCES_CONNECTOR_ENV}
+    environment:
+      spring_profiles_active: docker
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9298:9298"
+      - "9299:9299"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9299 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9298/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20
+  status-list-db:
+    image: "mariadb:11.4"
+    restart: on-failure
+    environment:
+      MARIADB_ROOT_PASSWORD: verysecret
+      MARIADB_DATABASE: status_list_db
+      MARIADB_USER: eudiw_user
+      MARIADB_PASSWORD: lesssecret
+    ports:
+      - "36306:3306"
+    networks:
+      - digital-lommebok
+    healthcheck:
+      test: mariadb-admin -p$$MARIADB_ROOT_PASSWORD -uroot ping -h localhost
+      interval: 5s
+      start_period: 5s
+      timeout: 5s
+      retries: 10
+
+  status-list:
+    image: "crutvikling.azurecr.io/eudiw-status-list"
+    #image: "digital-lommebok-status-list" # Uncomment this line if you want to use the local image instead
+    depends_on:
+      status-list-db:
+        condition: service_healthy
+    env_file:
+      - ${EUDIW_STATUS_LIST_ENV}
+    environment:
+      spring_profiles_active: docker
+      MARIADB_URL: jdbc:mariadb://status-list-db:3306/status_list_db
+      MARIADB_USER: eudiw_user
+      _JAVA_OPTIONS: "-XX:+IgnoreUnrecognizedVMOptions -XX:UseSVE=0 -Dotel.metrics.exporter=none -Dotel.traces.exporter=none -Dotel.span.exporter=none -Dotel.logs.exporter=none"
+    ports:
+      - "9288:9288"
+      - "9289:9289"
+    networks:
+      - digital-lommebok
+    entrypoint: "/bin/bash -c"
+    command:
+      - |
+        cd /usr/local/tomcat/webapps/
+        java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9289 -jar application.jar
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:9288/health/readiness || exit 1
+      interval: 15s
+      start_period: 5s
+      timeout: 5s
+      retries: 20

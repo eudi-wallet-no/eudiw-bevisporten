@@ -1,0 +1,41 @@
+{
+  "credential_configuration_id": "no.skatteetaten.inntekt_sd_jwt_vc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "authoritative-source://skatteetaten",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "grant_type": "authorization_code",
+    "validity_days": 180
+  },
+  "credential_type": "no.skatteetaten.inntekt.1",
+  "format": "dc+sd-jwt",
+  "scope": "eudiw:no:skatteetaten:inntekt",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Inntektsbevis",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": [
+          "fastlonn"
+        ],
+        "type": "map",
+        "mime_type": null,
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fastlønn"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^[\\x20-\\x7E]{1,200}$"
+      }
+    ]
+  }
+}
