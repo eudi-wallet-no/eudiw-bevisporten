@@ -16,7 +16,7 @@
         <div class="box__body">
             <p th:text="#{eudiw_description}"></p>
             <p id="temp-status"></p>
-            <span id="interaction-id" style="display: none">${walletInteractionId}</span>
+            <span id="interaction-id" style="display: none" th:text="${walletInteractionId}"></span>
             <div id="cross-device-request">
                 <img th:src="${authorizationRequests.crossDeviceQRCodeDataUri()}" th:alt="#{eudiw_qrcode_alt}" id="qrcode-cross-device" width="100%" />
             </div>
