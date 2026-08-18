@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<main>
+    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
+        <h1 class="ds-heading" data-size="lg">
+            Presenter bevis
+        </h1>
+    </div>
+    <div class="ds-card" style="max-width: 600px">
+        <div id="cross-device-request">
+            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" width="100%"/>
+        </div>
+        <p id="verification-status-message" class="ds-paragraph" style="margin-top: var(--ds-size-3);"></p>
+        <div class="flex-container" style="min-width: unset">
+            <a th:href="@{/verification-result/{verificationId}(verificationId=${verificationId})}" id="navigate-to-result-button" class="ds-button" style="display:none;">
+                Sjå resultatet
+            </a>
+            <a th:href="${authorizationRequest}" id="same-device-button" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+                Opne på mobilen
+            </a>
+            <a th:href="@{/verification-start}" class="ds-button" type="button" data-variant="secondary">
+                Tilbake
+            </a>
+        </div>
+    </div>
+    <div id="tracing">
+        <details class="ds-details" data-variant="default">
+            <summary>Request til verifier-service</summary>
+            <div>
+                <code>POST <span th:text="${requestUri}"></span></code>
+                <br/>
+                <code th:text="${requestBody}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+            </div>
+        </details>
+        <details class="ds-details" data-variant="default">
+            <summary>Respons frå verifier-service</summary>
+            <div>
+                <code th:text="${responseBody}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+            </div>
+        </details>
+    </div>
+</main>
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script th:inline="javascript">
+    const statusMessage = document.getElementById("verification-status-message");
+    const statusEndpoint = /*[[@{/verification-presentation/{verificationId}/status(verificationId=${verificationId})}]]*/ "";
+    const resultUrl = /*[[@{/verification-result/{verificationId}(verificationId=${verificationId})}]]*/ "";
+    const sameDeviceButton = document.getElementById("same-device-button");
+    const navigateToResultButton = document.getElementById("navigate-to-result-button");
+    const qrCode = document.getElementById("cross-device-request");
+
+    let sameDeviceFlow = false;
+
+    sameDeviceButton.addEventListener("click", () => {
+        sameDeviceFlow = true;
+    });
+
+    function updateStatusMessage(message) {
+        statusMessage.textContent = message;
+    }
+
+    function redirectToResultPage() {
+        document.location.assign(resultUrl);
+    }
+
+    const debounce = (func, wait) => {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    };
+
+    const debouncedRedirectToResultPage = debounce(redirectToResultPage, 500);
+
+    function waitForUserBeforeRedirectToResultPage() {
+        const redirect = () => {
+            window.removeEventListener("focus", redirect);
+            window.removeEventListener("pageshow", redirect);
+            document.removeEventListener("visibilitychange", redirect);
+
+            debouncedRedirectToResultPage();
+        }
+
+        updateStatusMessage("Verifikasjonen er fullført.");
+        navigateToResultButton.style.display = "block";
+        sameDeviceButton.style.display = "none";
+        qrCode.style.display = "none";
+
+        window.addEventListener("focus", redirect);
+        window.addEventListener("pageshow", redirect);
+        document.addEventListener("visibilitychange", redirect);
+    }
+
+    const handle200 = async () => {
+        if (!sameDeviceFlow) {
+            debouncedRedirectToResultPage();
+        }
+        else {
+            waitForUserBeforeRedirectToResultPage();
+        }
+    };
+
+    async function waitForWallet(interval, timeout) {
+        const endtime = Date.now() + timeout;
+        updateStatusMessage("Ventar på presentasjon frå wallet ...");
+
+        async function poll() {
+            if (Date.now() >= endtime) {
+                updateStatusMessage("Tidsavbrot ved venting på verifisering.");
+                return;
+            }
+            try {
+                const response = await fetch(statusEndpoint, {
+                    method: "GET",
+                    headers: {Accept: "application/json"}
+                });
+
+                if (response.status === 200) {
+                    await handle200();
+                    return;
+                }
+
+                if (response.status === 202) {
+                    setTimeout(poll, interval);
+                    return;
+                }
+
+                if (response.status === 404) {
+                    updateStatusMessage("Verifiseringa har ukjend status og blir stoppa.");
+                    return;
+                }
+
+                updateStatusMessage("Klarte ikkje hente verifiseringsstatus.");
+
+            } catch (error) {
+                updateStatusMessage("Klarte ikkje hente verifiseringsstatus.");
+            }
+        }
+
+        await poll();
+    }
+
+    waitForWallet(2000, 60000);
+</script>
+</body>
+</html>

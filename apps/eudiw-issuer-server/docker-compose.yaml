@@ -143,8 +143,12 @@ services:
       retries: 20
 
   issuer-ui-demo:
-    image: "crutvikling.azurecr.io/eudiw-issuer-ui-demo"
-#    image: "digital-lommebok-issuer-bevisgenerator" # Uncomment this line if you want to use the local image instead
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-issuer-ui-demo/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     depends_on:
       - issuer-server
       - byob-service

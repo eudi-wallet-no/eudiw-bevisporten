@@ -1,0 +1,225 @@
+package no.idporten.eudiw.bevisgenerator.integration.issuerserver;
+
+import no.idporten.eudiw.bevisgenerator.byob.CredentialIssuerService;
+import no.idporten.eudiw.bevisgenerator.exception.IssuerServerException;
+import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceSubject;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeRequest;
+import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
+import no.idporten.lib.maskinporten.client.AccessTokenRequestOverrides;
+import no.idporten.lib.maskinporten.client.MaskinportenClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestClient;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@Service
+public class IssuerServerService {
+
+    private final static Logger log = LoggerFactory.getLogger(IssuerServerService.class);
+
+    private final IssuerServerProperties issuerServerProperties;
+    private final RestClient restClient;
+    private final MaskinportenClient maskinportenClient;
+    private final CredentialIssuerService credentialIssuerService;
+
+    @Autowired
+    public IssuerServerService(@Qualifier("issuerServerRestClient") RestClient restClient,
+                               IssuerServerProperties issuerServerProperties,
+                               MaskinportenClient maskinportenClient, CredentialIssuerService credentialIssuerService) {
+        this.issuerServerProperties = issuerServerProperties;
+        this.restClient = restClient;
+        this.maskinportenClient = maskinportenClient;
+        this.credentialIssuerService = credentialIssuerService;
+    }
+
+    @Cacheable(value = "credential-issuer-metadata", sync = true)
+    public List<CredentialIssuerMetadata> getAllCredentialIssuerMetadata() {
+        List<String> wellKnownUrls = issuerServerProperties.wellKnownUrls();
+        List<CredentialIssuerMetadata> credentialIssuerMetadata = new ArrayList<>();
+        for (String wellKnownUrl : wellKnownUrls) {
+            if (wellKnownUrl == null || wellKnownUrl.isBlank()) {
+                continue;
+            }
+
+            try {
+                CredentialIssuerMetadata metadata = restClient.get()
+                        .uri(wellKnownUrl)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .retrieve()
+                        .body(CredentialIssuerMetadata.class);
+
+                if (metadata != null) {
+                    credentialIssuerMetadata.add(metadata);
+                }
+            } catch (HttpClientErrorException e) {
+                log.error("Configuration error fetching .well-known endpoint: {}",
+                        wellKnownUrl, e);
+                throw new IssuerServerException("Failed to fetch credential issuer metadata", e);
+            } catch (HttpServerErrorException e) {
+                log.error("Server error fetching .well-known endpoint", e);
+                throw new IssuerServerException("Issuer server returned error fetching metadata", e);
+            }
+        }
+
+        return credentialIssuerMetadata;
+    }
+
+    /**
+     * Gets all credential configurations that can be issued.  Combines application config with dynamic configurations from BYOB.
+     */
+    public List<CredentialConfiguration> getAll() {
+        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>();
+        if (issuerServerProperties.credentialConfigurations() != null) {
+            credentialConfigurations.addAll(issuerServerProperties.credentialConfigurations());
+        }
+        credentialConfigurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
+        return credentialConfigurations;
+    }
+
+    public CredentialConfiguration getById(String id) {
+        CredentialConfiguration c = issuerServerProperties.findCredentialConfiguration(id);
+
+        if (c != null) {
+            return c;
+        }
+
+        return credentialIssuerService.getCredentialConfigurationById(id);
+    }
+
+    /**
+     * Gets all credential configurations that can be revoked by subject. Issued in Bevisporten
+     */
+
+    public List<CredentialConfiguration> getAllSubjectCredentialConfigurations() {
+        if (issuerServerProperties.subjectCredentialConfigurations() == null) {
+            return List.of();
+        }
+        return issuerServerProperties.subjectCredentialConfigurations();
+    }
+
+    public CredentialConfiguration getSubjectCredentialConfigurationById(String id) {
+        return issuerServerProperties.findSubjectCredentialConfigurationById(id);
+    }
+
+    private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
+        return maskinportenClient.getAccessToken(
+                AccessTokenRequestOverrides.builder()
+                        .personIdentifier(StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null)
+                        .scopes(List.of(credentialConfiguration.scope()))
+                        .resources(Collections.singletonList(credentialConfiguration.credentialIssuer()))
+                        .build())
+                .getValue();
+    }
+
+    private String createAccessToken(CredentialConfiguration credentialConfiguration) {
+        return maskinportenClient.getAccessToken(
+                AccessTokenRequestOverrides.builder()
+                        .scopes(List.of(credentialConfiguration.scope()))
+                        .resources(Collections.singletonList(credentialConfiguration.credentialIssuer()))
+                        .build())
+                .getValue();
+    }
+
+    private String createAccessToken(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+        return maskinportenClient.getAccessToken(
+                AccessTokenRequestOverrides.builder()
+                        .personIdentifier(StringUtils.hasText(subjectIdentifier) ? subjectIdentifier : null)
+                        .scopes(List.of(credentialConfiguration.scope()))
+                        .resources(Collections.singletonList(credentialConfiguration.credentialIssuer()))
+                        .build())
+                .getValue();
+    }
+
+    public IssuanceResponse startIssuance(CredentialConfiguration credentialConfiguration, StartIssuanceForm json) {
+        String issuanceEndpoint = credentialConfiguration.credentialIssuer() + issuerServerProperties.issuanceEndpoint();
+        String accessToken = createAccessToken(credentialConfiguration, json);
+        IssuanceResponse result;
+        try {
+            result = restClient.post()
+                    .uri(issuanceEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .body(json.json())
+                    .retrieve()
+                    .body(IssuanceResponse.class);
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + issuanceEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException("callIssuerServer failed for input" + json, e);
+        }
+        if (result == null || result.credentialOffer() == null) {
+            throw new IssuerUiException("callIssuerServer returned null for input: " + json);
+        }
+        log.debug("Searched for " + json + ". Returned: " + result);
+        return result;
+    }
+
+    public void revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke";
+        String accessToken = createAccessToken(credentialConfiguration);
+        RevokeRequest request = new RevokeRequest(credentialConfiguration.credentialConfigurationId(), issuanceTransactionId);
+
+        try {
+            restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException("Revoke credential failed for issuance_transaction_id=" + issuanceTransactionId, e);
+        }
+    }
+
+    public void revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke/by-subject";
+        String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
+        RevokeBySubjectRequest request = new RevokeBySubjectRequest(
+                credentialConfiguration.credentialConfigurationId(),
+                new IssuanceSubject(subjectIdentifier)
+        );
+
+        try {
+            restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .toBodilessEntity();
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException(
+                    "Revoke credential by subject failed for credential_configuration_id="
+                            + credentialConfiguration.credentialConfigurationId(),
+                    e
+            );
+        }
+    }
+
+}
