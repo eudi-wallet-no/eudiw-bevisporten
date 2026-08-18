@@ -46,6 +46,8 @@ idporten-key-manager:
       key-password: ${BEVISGENERATOR_LOGIN_ACCESS_KEY_PASSWORD}
 
 trustlists:
+  connect-timeout: 3s
+  read-timeout: 3s
   environments:
     eidas2sandkasse:
       pid: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
