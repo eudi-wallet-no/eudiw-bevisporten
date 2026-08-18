@@ -6,18 +6,28 @@ import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
+import id.walt.mdoc.dataelement.*;
 import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
+import no.idporten.eudiw.verifier.config.TrustlistsProperties;
+import no.idporten.eudiw.verifier.crypto.ECUtils;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
+import no.idporten.eudiw.verifier.openid4vp.trustlist.etsi612.LoTE;
+import no.idporten.eudiw.verifier.openid4vp.trustlist.util.TrustlistLogic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
@@ -42,14 +52,26 @@ import java.util.stream.Collectors;
 @Component
 public class OpenID4VPResponseService {
 
+    private static final Logger log = LoggerFactory.getLogger(OpenID4VPResponseService.class);
+
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
     private final JsonMapper objectMapper;
 
-    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, JsonMapper objectMapper) {
+
+    private final RestClient trustlistRestclient;
+
+    private final TrustlistsProperties trustlistsProperties;
+
+    private TrustlistLogic trustlistLogic;
+
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, JsonMapper objectMapper, @Qualifier("trustlist") RestClient trustlistRestclient, TrustlistsProperties trustlistsProperties) {
         this.verificationTransactionService = verificationTransactionService;
         this.tokenStatuslistService = tokenStatuslistService;
         this.objectMapper = objectMapper;
+        this.trustlistRestclient = trustlistRestclient;
+        this.trustlistsProperties = trustlistsProperties;
+        this.trustlistLogic = new TrustlistLogic(trustlistRestclient, trustlistsProperties);
     }
 
     public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
@@ -149,12 +171,23 @@ public class OpenID4VPResponseService {
         return jwe.getPayload().toJSONObject();
     }
 
+    protected boolean checkTrustlist(X509Certificate cert) throws Exception {
+        return trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+    }
+
     protected VerifiedCredential retrieveClaimsFromSDJwtCredential(String vpToken, boolean includeValidationDetails) throws Exception {
+
         SDJwt unverifiedSDJwt = SDJwt.Companion.parse(vpToken);
         JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
         X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
         JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
         JWSAlgorithm jwsAlgorithm = ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
+        boolean trustlistCheck = checkTrustlist(cert);
+        if (!trustlistCheck) {
+            //TODO: Remove this and throw exception when trustlist feature is complete
+            log.info("Trustlist check failed for credential id: " + vpToken);
+            //throw new VerificationException("invalid_request", "Certificate not on trustlist");
+        }
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
         VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(cryptoProvider, null);
         if (!verificationResult.getVerified()) {

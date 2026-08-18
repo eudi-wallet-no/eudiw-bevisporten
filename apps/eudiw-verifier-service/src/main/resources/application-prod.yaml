@@ -8,6 +8,8 @@ verifier-service:
   external-base-uri: https://verifier-service.eidas2sandkasse.no
 
 trustlists:
+  connect-timeout: 3s
+  read-timeout: 3s
   environments:
     eidas2sandkasse:
       pid: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_pid.jws
