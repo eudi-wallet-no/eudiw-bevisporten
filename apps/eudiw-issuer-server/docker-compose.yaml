@@ -249,8 +249,12 @@ services:
       retries: 10
 
   status-list:
-    image: "crutvikling.azurecr.io/eudiw-status-list"
-    #image: "digital-lommebok-status-list" # Uncomment this line if you want to use the local image instead
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-status-list/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     depends_on:
       status-list-db:
         condition: service_healthy
