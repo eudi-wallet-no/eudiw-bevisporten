@@ -1,0 +1,36 @@
+---
+spring:
+  application:
+    environment: systest
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-redis-ha-server-0.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-1.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
+
+eudiw-idporten-login:
+  features:
+    allow-synthetic-person-identifiers: true
+    allow-real-person-identifiers: false
+  oidc-sdk:
+    issuer: https://idporten-login.eidas2sandkasse.dev/
+    clients:
+      - client-id: idporten
+        client-secret: ${IDPORTEN_CLIENT_SECRET}
+        scopes:
+          - openid
+        redirect-uris:
+          - https://login.idporten.dev/authorize/callback/eudiw
+          - https://login.idporten.dev/authorize/callback/eudiw-eu
+          - https://login.idporten.dev/authorize/callback/eudiw-no
+      - client-id: testclient
+        client-secret: ${TESTCLIENT_CLIENT_SECRET}
+        scopes:
+          - openid
+        redirect-uris:
+          - https://test-client.tools.idporten.dev/authorize/response

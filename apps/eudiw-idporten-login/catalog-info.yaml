@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: digital-lommebok-idporten-login
+  description: ID-porten login med Europeisk identitetslommebok (EUDIW)
+  annotations:
+    github.com/project-slug: felleslosninger/eudiw-idporten-login
+spec:
+  type: application
+  lifecycle: production
+  owner: team-digital-lommebok
+  system: digital-lommebok
+  dependsOn:
+    - component:idporten-login
