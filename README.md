@@ -14,7 +14,7 @@ Monorepo for EUDI Wallet Verifiable Credential Issuance (VCI) og Verifiable Pres
 | [eudiw-byob-service](apps/eudiw-byob-service) | Bring Your Own Briefcase Service | [README](apps/eudiw-byob-service/README.md) |
 | [eudiw-oauth-server](apps/eudiw-oauth-server) | OAuth Server | [README](apps/eudiw-oauth-server/README.md) |
 | eudiw-issuer-ui | Issuer UI (Bevisporten) | |
-| eudiw-verifier-demo | Verifier Demo | |
+| [eudiw-verifier-demo](apps/eudiw-verifier-demo) | Verifier Demo | [README](apps/eudiw-verifier-demo/README.md) |
 | eudiw-issuer-server | Issuer Server | |
 | eudiw-status-list | Status List Service | |
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<header th:replace="~{fragments/header :: header}">...</header>
+
+<main>
+    <th:block th:replace="~{fragments/verification-status :: result(${verificationStatus}, ~{::#result-content})}">
+        <th:block id="result-content">
+            <th:block th:if="${verificationStatus != null and verificationStatus.name() == 'VALID'}">
+                <p th:text="#{result.inntekt.text}"></p>
+                <table>
+                    <thead>
+                    <tr>
+                        <th th:text="#{result.inntekt.table.month}"></th>
+                        <th th:text="#{result.inntekt.table.income}"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="lonn: ${fastlonn.entrySet()}">
+                        <td th:text="${lonn.key}">...</td>
+                        <td th:text="${lonn.value}">...</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </th:block>
+            <div class="btn-group">
+                <a th:href="@{/}">
+                    <button class="button" th:text="#{result.button.back}"></button>
+                </a>
+            </div>
+            <div th:replace="~{fragments/traces :: traces}">...</div>
+        </th:block>
+    </th:block>
+</main>
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+
+</html>
