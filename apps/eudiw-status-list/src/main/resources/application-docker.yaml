@@ -1,0 +1,16 @@
+---
+server:
+  port: 9288
+
+management:
+  server:
+    port: 9288
+
+spring:
+  config:
+    import: optional:file:${EUDIW_STATUS_LIST_ENV}[.properties]
+  application:
+    environment: docker
+
+status-list:
+  uri: http://status-list:9288
