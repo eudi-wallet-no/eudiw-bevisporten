@@ -24,8 +24,8 @@ services:
 
   eudiw-idporten-login:
     build:
-      context: .
-      dockerfile: docker/dev.Dockerfile
+      context: ../..
+      dockerfile: apps/eudiw-idporten-login/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
@@ -45,7 +45,7 @@ services:
         cd /usr/local/tomcat/webapps/
         java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9284 -jar application.jar
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:9261/health/readiness || exit 1
+      test: wget --no-verbose --tries=1 --spider http://localhost:9283/health/readiness || exit 1
       interval: 15s
       start_period: 5s
       timeout: 5s
