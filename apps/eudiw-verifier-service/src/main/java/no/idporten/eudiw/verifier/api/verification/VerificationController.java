@@ -2,6 +2,7 @@ package no.idporten.eudiw.verifier.api.verification;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.VerificationService;
@@ -20,7 +21,7 @@ public class VerificationController {
     private final VerificationService verificationService;
     private final VerifierServiceProperties verifierServiceProperties;
 
-    public VerificationController(VerificationService verificationService,  VerifierServiceProperties verifierServiceProperties) {
+    public VerificationController(VerificationService verificationService, VerifierServiceProperties verifierServiceProperties) {
         this.verificationService = verificationService;
         this.verifierServiceProperties = verifierServiceProperties;
     }
@@ -34,8 +35,14 @@ public class VerificationController {
             tags = {ApiDocProperties.API_TAG})
     @PostMapping("/verify/start/")
     public ResponseEntity<StartVerificationResponse> startVerification(@RequestBody StartVerificationRequest startVerificationRequest,
-            @PathVariable("client_application_id") String clientApplicationId) throws Exception {
-        return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest, verifierServiceProperties.findClientApplication(clientApplicationId)));
+                                                                       @PathVariable("client_application_id") String clientApplicationId,
+                                                                       @Parameter(
+                                                                               name = "include_validation_details",
+                                                                               description = "Set to true to include verification details in the response. Defaults to false.",
+                                                                               example = "false",
+                                                                               schema = @Schema(type = "boolean", defaultValue = "false"))
+                                                                       @RequestParam(defaultValue = "false") boolean includeValidationDetails) throws Exception {
+        return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest, verifierServiceProperties.findClientApplication(clientApplicationId), includeValidationDetails));
     }
 
     /**

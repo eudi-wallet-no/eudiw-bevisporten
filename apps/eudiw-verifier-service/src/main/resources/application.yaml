@@ -36,3 +36,8 @@ management:
       application: ${spring.application.name}
       environment: ${spring.application.environment}
 
+
+status-list:
+  readTimeout: 3s
+  connectTimeout: 3s
+  clock-skew: 60s

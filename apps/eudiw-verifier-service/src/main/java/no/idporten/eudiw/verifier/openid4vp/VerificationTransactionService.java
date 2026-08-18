@@ -22,12 +22,13 @@ public class VerificationTransactionService {
         this.cacheService = cacheService;
     }
 
-    public void initTransaction(DcqlQuery dcqlQuery, URI redirectUri, String verifierTransactionId, ClientApplication clientApplication) {
+    public void initTransaction(DcqlQuery dcqlQuery, URI redirectUri, String verifierTransactionId, ClientApplication clientApplication, boolean includeValidationDetails) {
         VerificationTransaction verificationTransaction = new VerificationTransaction();
         verificationTransaction.setDcqlQuery(dcqlQuery);
         verificationTransaction.setRedirectUri(redirectUri);
         verificationTransaction.setClientApplication(clientApplication);
         verificationTransaction.setStatus(STATUS_WAIT);
+        verificationTransaction.setIncludeValidationDetails(includeValidationDetails);
         cacheService.putVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
     }
 

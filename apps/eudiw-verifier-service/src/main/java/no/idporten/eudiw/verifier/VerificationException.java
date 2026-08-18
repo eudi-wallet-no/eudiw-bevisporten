@@ -13,5 +13,10 @@ public class VerificationException extends RuntimeException {
         this.error = errorCode;
         this.errorDescription = errorMessage;
     }
+    public VerificationException(String errorCode, String errorMessage, Exception e) {
+        super(errorMessage, e);
+        this.error = errorCode;
+        this.errorDescription = errorMessage;
+    }
 
 }
