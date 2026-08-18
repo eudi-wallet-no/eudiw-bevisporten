@@ -1,0 +1,22 @@
+package no.idporten.eudiw.verifier;
+
+import lombok.Getter;
+
+@Getter
+public class VerificationException extends RuntimeException {
+
+    private String error;
+    private String errorDescription;
+
+    public VerificationException(String errorCode, String errorMessage) {
+        super(errorMessage);
+        this.error = errorCode;
+        this.errorDescription = errorMessage;
+    }
+    public VerificationException(String errorCode, String errorMessage, Exception e) {
+        super(errorMessage, e);
+        this.error = errorCode;
+        this.errorDescription = errorMessage;
+    }
+
+}
