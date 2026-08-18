@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+    <div>
+        <h1 class="ds-heading" data-size="lg">
+            Legg til bevistype
+        </h1>
+    </div>
+    <div>
+        <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevisdefinisjonen er oppdatert i utstedaren. </p>
+        <div class="ds-container ds-alert">
+            <p class="ds-paragraph ">Gyldig <code>type</code> for claims (datatyper) er:</p>
+            <ol>
+                <li><code>string</code>: for tekst</li>
+                <li><code>boolean</code>: for boolske verdier (true/false)</li>
+                <li><code>number</code>: positiv tal (Java Integer: 2³¹ - 1 )</li>
+                <li><code>iso_date</code>: ISO 8601 format YYYY-MM-DD som string f.eks. "2026-12-31"</li>
+                <li><code>iso_date_time</code>: ISO 8601 format YYYY-MM-DDThh:mm:ssZ som string f.eks. "2025-11-10T10:30:00Z"</li>
+                <li><code>binary</code>: for binære data som bilder som er base64encoded. <code>mime_type</code> gjeld
+                    berre for binary type og må angis som mediatype ihht <a href="https://www.rfc-editor.org/rfc/rfc2397.html">RFC 2397</a>.
+                    Default er "image/png" for SD-JWT, attributten er ignorert for MDoc.
+                </li>
+            </ol>
+            <p class="ds-paragraph ">Dersom <code>type</code> ikke er angitt blir string brukt som default.
+            </p>
+        </div>
+    </div>
+
+    <form th:fragment="add_attributes_form_fragment"
+          id="add_attributes_form"
+          th:action="@{/add-credential}"
+          th:object="${addCredentialForm}"
+          method="POST">
+
+        <div class="ds-field"
+             th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
+
+            <label class="ds-label" for="credentialType">ID (credentialType)</label>
+
+            <input class="ds-input"
+                   type="text"
+                   id="credentialType"
+                   th:field="*{credentialType}">
+
+            <div th:if="${#fields.hasErrors('credentialType')}">
+                <div class="ds-validation-message"
+                     data-field="validation"
+                     th:each="error : ${#fields.errors('credentialType')}" th:text="${error}">
+                </div>
+            </div>
+        </div>
+
+        <div class="ds-field">
+            <label class="ds-label" for="json">
+                Bevis-struktur
+            </label>
+            <textarea class="ds-input"
+                      type="text"
+                      id="json"
+                      style="max-height:500px;min-height:500px; resize: none"
+                      th:field="*{json}"></textarea>
+        </div>
+
+
+        <button class="ds-button"
+                type="submit"
+                style="margin-top:16px"
+                form="add_attributes_form"
+                data-variant="primary">
+            Legg til bevistype
+        </button>
+    </form>
+
+
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>

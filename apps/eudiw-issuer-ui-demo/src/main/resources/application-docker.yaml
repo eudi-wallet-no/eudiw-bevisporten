@@ -1,0 +1,44 @@
+---
+server:
+  port: 9290
+
+management:
+  server:
+    port: 9290
+
+spring:
+  config:
+    import: optional:file:${EUDIW_ISSUER_UI_DEMO_ENV}[.properties]
+  application:
+    environment: docker
+
+bevisgenerator:
+  byob-service:
+    base-url: http://byob-service:9296
+  issuer-server:
+    credential-issuer: http://issuer-server:9240/bevisgenerator
+    credential-issuer-pid: http://issuer-server:9240/pid
+    credential-issuer-minid: http://issuer-server:9240/minid
+    well-known-urls:
+      - http://issuer-server:9240/.well-known/openid-credential-issuer/pid
+      - http://issuer-server:9240/.well-known/openid-credential-issuer/minid
+      - http://issuer-server:9240/.well-known/openid-credential-issuer/bevisgenerator
+  verifier-service:
+    base-url: http://verifier-service:9285
+
+maskinporten:
+  lib:
+    issuer: https://maskinporten.dev/
+    clients:
+      default:
+        client-id: ${MASKINPORTEN_CLIENT_ID}
+        kid: ${MASKINPORTEN_CLIENT_KID}
+idporten-key-manager:
+  default-keystore: default
+  keystores:
+    default:
+      key-store-type: JKS
+      key-store-location: base64:${MASKINPORTEN_BASE64_KEYSTORE}
+      key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
+      key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
+      key-password: ${MASKINPORTEN_KEY_PASSWORD}

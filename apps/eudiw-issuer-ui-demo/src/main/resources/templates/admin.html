@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+    <style>
+        .credential-table {
+            width: 100%;
+            max-width: 700px;
+            border-collapse: collapse;
+        }
+
+        .credential-table th,
+        .credential-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .credential-table th {
+            font-weight: 600;
+            background-color: #f8f8f8;
+        }
+
+        .actions-col {
+            width: 220px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-end;
+        }
+
+        .credential-table tr:hover {
+            background-color: #fafafa;
+        }
+
+        a {
+            text-decoration: none;
+            margin: 0;
+        }
+
+    </style>
+</head>
+
+<body>
+<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+
+<main>
+    <div>
+        <h1 class="ds-heading" data-size="lg">
+            Administrer bevis
+        </h1>
+        <p class="ds-paragraph">
+            Her kan du definere datamodell for en bevis-type. <br>Den må følge Openid4VCI-spec'en definisjoner for
+            <a style="display: inline-block;" th:href="@{https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata-p}">credential_metadata</a>.
+        </p>
+    </div>
+    <div class="flex-container">
+        <table class="credential-table">
+            <thead>
+            <tr>
+                <th>Beskrivelse</th>
+                <th class="actions-col">Handlinger</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${credentials}">
+                <td th:text="${c.name()}">Navn</td>
+                <td>
+                    <div class="actions">
+                        <a th:href="@{/edit-credential/{id}(id=${c.credentialType()})}">
+                            <button  class="ds-button" data-size="sm" data-variant="tertiary">
+                                Rediger
+                            </button>
+                        </a>
+                        <a th:href="@{/edit-credential-new/{id}(id=${c.credentialType()})}" th:if="${allowBevisTyperV2}">
+                            <button  class="ds-button" data-size="sm" data-variant="tertiary">
+                                Rediger 2.0
+                            </button>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="display: flex; gap:10px;">
+        <a th:href="@{/add-credential}" style="text-decoration: none">
+            <button class="ds-button" data-variant="neutral" data-size="lg">+ Legg til</button>
+        </a>
+        <a th:href="@{/add-credential-new}" style="text-decoration: none" th:if="${allowBevisTyperV2}">
+            <button class="ds-button" data-variant="neutral" data-size="lg">+ Legg til 2.0</button>
+        </a>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+
+</body>
+</html>
