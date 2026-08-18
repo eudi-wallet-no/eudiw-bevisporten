@@ -1,0 +1,55 @@
+---
+server:
+  port: 9285
+
+spring:
+  config:
+    import: optional:file:${EUDIW_VERIFIER_SERVICE_ENV}[.properties]
+  application:
+    environment: docker
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 9285
+
+verifier-service:
+  siop2ClientId: abr.vc.local
+  externalBaseUri: http://localhost:9285
+  client-applications:
+    idporten-login:
+      keystore-name: idporten-login-access
+    bevisgenerator-login:
+      keystore-name: bevisgenerator-login-access
+
+idporten-key-manager:
+  keystores:
+    idporten-login-access:
+      key-store-type: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${IDPORTEN_LOGIN_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${IDPORTEN_LOGIN_ACCESS_KEY_ALIAS}
+      key-password: ${IDPORTEN_LOGIN_ACCESS_KEY_PASSWORD}
+    bevisgenerator-login-access:
+      key-store-type: ${BEVISGENERATOR_LOGIN_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${BEVISGENERATOR_LOGIN_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${BEVISGENERATOR_LOGIN_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${BEVISGENERATOR_LOGIN_ACCESS_KEY_ALIAS}
+      key-password: ${BEVISGENERATOR_LOGIN_ACCESS_KEY_PASSWORD}
+
+trustlists:
+  connect-timeout: 3s
+  read-timeout: 3s
+  environments:
+    eidas2sandkasse:
+      pid: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
+      attestations: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
+    webuild:
+      pid: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
+      attestations: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
