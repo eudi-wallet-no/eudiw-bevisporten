@@ -1,0 +1,43 @@
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: digital-lommebok-verifier-service
+    environment: default
+  cache:
+    redis:
+      time-to-live: 10m
+
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+
+status-list:
+  readTimeout: 3s
+  connectTimeout: 3s
+  clock-skew: 60s
