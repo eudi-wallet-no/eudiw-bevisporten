@@ -1,0 +1,112 @@
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    session:
+      tracking-modes:
+        - cookie
+      cookie:
+        same-site: lax
+        secure: true
+        name: ${spring.application.name}-session
+      timeout: 30m
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: digital-lommebok-idporten-login
+    environment: default
+  session:
+    store-type: redis
+    redis:
+      namespace: "${spring.application.name}:session"
+  cache:
+    type: redis
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
+
+# Digdir standard logging
+digdir:
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
+  audit:
+    log-dir:
+    log-file:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false
+      bearer-token: false
+      correlation-id: false
+      ip-address: true
+    prometheus:
+      counter: true
+
+# Application config
+eudiw-idporten-login:
+  features:
+    allow-synthetic-person-identifiers: false
+    allow-real-person-identifiers: true
+  oidc-sdk:
+    issuer:
+    par-lifetime-seconds: 60
+    authorization-lifetime-seconds: 60
+    response-modes-supported:
+      - query
+      - query.jwt
+    scopes-supported:
+      - openid
+    ui-locales:
+      - nb
+    clients:
+  openid4vp-verifier-service:
+    uri: http://digital-lommebok-verifier-service-service:8080
+    connect-timeout: 3s
+    read-timeout: 3s
+  wallet-interaction:
+    polling-interval: 5s
+    polling-timeout: 10m
+
+external-dependency-health-checks:
+  health-endpoints:
+    verifier-service:
+      name: verifierService
+      base-uri: http://digital-lommebok-verifier-service-service-actuator:8090
+      endpoint: /health/readiness
+      connect-timeout-ms: 2000
+      read-timeout-ms: 1000
+      map-down-status-to: EXTERNAL_DEPENDENCY_DOWN
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

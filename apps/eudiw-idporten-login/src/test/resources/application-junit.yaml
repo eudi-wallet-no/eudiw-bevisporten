@@ -1,0 +1,17 @@
+---
+spring:
+  application:
+    environment: junit
+
+eudiw-idporten-login:
+  oidc-sdk:
+    issuer: http://junit.idporten.dev/
+    clients:
+      - client-id: junitclient
+        client-secret: junitsecret
+        scopes:
+          - openid
+        redirect-uris:
+          - http://127.0.0.1:8888/authorize/response
+  openid4vp-verifier-service:
+    uri: http://junitverifier.eidas2sandkasse.dev
