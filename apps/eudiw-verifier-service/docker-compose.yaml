@@ -22,8 +22,8 @@ services:
 
   verifier-service:
     build:
-      context: .
-      dockerfile: docker/dev.Dockerfile
+      context: ../..
+      dockerfile: apps/eudiw-verifier-service/docker/dev.Dockerfile
       args:
         GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
         GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
