@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<header th:replace="~{fragments/header :: header}">...</header>
+
+<main>
+    <div class="box">
+        <div class="box__header">
+            <div class="service-provider">
+                <div class="service-provider__name" th:text="#{index.title}"></div>
+                <img class="service-provider__logo" src="img/logo/logo-emblem-blue.svg" alt="Logo">
+            </div>
+            <h1 class="title-bar">
+                <span class="title-bar__name" th:text="#{index.title.text}"></span>
+            </h1>
+        </div>
+        <div class="box__body">
+            <ul class="providers" th:each="credentialConfig: ${credentialTypes}">
+                <li class="providers__item">
+                    <a th:href="@{/verify/{id}(id = ${credentialConfig.id})}">
+                        <div class="providers__logo-container">
+                            <img class="providers__logo" src="img/providers/idporten.svg" alt>
+                        </div>
+                        <div class="providers__container">
+                            <h2 class="providers__title" th:text="#{|${credentialConfig.id}.title|}">...</h2>
+                            <p class="providers__desc" th:text="#{|${credentialConfig.id}.description|}">...</p>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+
+</html>

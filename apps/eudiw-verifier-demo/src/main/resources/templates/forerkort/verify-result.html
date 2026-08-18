@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<header th:replace="~{fragments/header :: header}">...</header>
+
+<main>
+    <th:block th:replace="~{fragments/verification-status :: result(${verificationStatus}, ~{::#result-content})}">
+        <th:block id="result-content">
+            <th:block th:if="${verificationStatus != null and verificationStatus.name() == 'VALID'}">
+                <p th:text="#{result.forerkort.welcome(${given_name?.get(0) ?: ''}, ${family_name?.get(0) ?: ''})}"></p>
+                <p th:text="#{result.forerkort.classes(${driving_privileges[0].vehicle_category_code})}"></p>
+                <img th:if="${portrait}" width="75%" th:src="|data:image/jpg;base64,${portrait.get(0)}|" th:alt="#{forerkort.claim.portrait}" />
+            </th:block>
+            <div class="btn-group">
+                <a th:href="@{/}">
+                    <button class="button" th:text="#{result.button.back}"></button>
+                </a>
+            </div>
+            <div th:replace="~{fragments/traces :: traces}">...</div>
+        </th:block>
+    </th:block>
+</main>
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+
+</html>

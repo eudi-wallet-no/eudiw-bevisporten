@@ -1,0 +1,172 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    session:
+      tracking-modes:
+        - cookie
+      cookie:
+        path: /
+        same-site: lax
+        secure: true
+        name: ${spring.application.name}-session
+      timeout: 30m
+
+spring:
+  application:
+    name: verifier-demo
+  thymeleaf:
+    check-template-location: false
+  session:
+    store-type: redis
+    redis:
+      namespace: "${spring.application.name}"
+  data:
+    redis:
+      timeout: 3s
+      connect-timeout: 3s
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      status:
+        order: DOWN, OUT_OF_SERVICE, UNKNOWN, DEGRADED, EXTERNAL_DEPENDENCY_DOWN, UP
+      group:
+        readiness:
+          include: readinessState,redis
+        liveness:
+          include: livenessState
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+digdir:
+  access:
+    logging:
+      debug-level: response
+
+vcverifier:
+  credential-configurations:
+    - id: eudi-pid-mdoc
+      doc-type: "eu.europa.ec.eudi.pid.1"
+      format: mso_mdoc
+      claims:
+        - family_name
+        - given_name
+        - birth_date
+        - place_of_birth
+        - nationality
+    - id: eudi-pid-sd-jwt-vc
+      doc-type: "urn:eudi:pid:1"
+      format: dc+sd-jwt
+      claims:
+        - family_name
+        - given_name
+        - birthdate
+        - place_of_birth
+        - nationalities
+    - id: pid
+      doc-type: "eu.europa.ec.eudi.pid.1"
+      format: mso_mdoc
+      claims:
+        - personal_administrative_number
+    - id: alder16
+      doc-type: "net.eidas2sandkasse.av.1"
+      format: mso_mdoc
+      claims:
+        - age_over_16
+        - portrait
+    - id: alder
+      doc-type: "eu.europa.ec.av.1"
+      format: mso_mdoc
+      claims:
+        - age_over_18
+    - id: forerkort
+      doc-type: "org.iso.18013.5.1.mDL"
+      namespace: "org.iso.18013.5.1"
+      format: mso_mdoc
+      claims:
+        - family_name
+        - given_name
+        - driving_privileges
+        - portrait
+    - id: advokatregisteret
+      doc-type: "no.advokattilsynet.advokatregisteret.1"
+      format: mso_mdoc
+      claims:
+        - personidentifikator
+        - tittel
+        - etternavn
+        - mellomnavn
+        - fornavn
+        - regnr
+    - id: kontaktregisteret
+      doc-type: "no:kontaktregisteret:kontaktinformasjon:1"
+      format: dc+sd-jwt
+      claims:
+        - personidentifikator
+        - epostadresse
+        - mobiltelefonnummer
+    - id: inntekt
+      doc-type: "no.skatteetaten.inntekt.1"
+      format: dc+sd-jwt
+      claims:
+        - fastlonn
+    - id: minid
+      doc-type: "no:minid:mpid:1"
+      format: dc+sd-jwt
+      claims:
+        - personal_administrative_number
+        - family_name
+        - given_name
+        - middle_name
+        - birth_date
+        - expiry_date
+        - issuance_date
+    - id: conformance-pid-mdoc
+      authorization-endpoint-uri: https://demo.certification.openid.net/test/a/demo-verifier-1/authorize
+      doc-type: "eu.europa.ec.eudi.pid.1"
+      format: mso_mdoc
+      claims:
+        - family_name
+        - given_name
+        - birth_date
+        - place_of_birth
+        - nationality
+    - id: conformance-pid-sd-jwt-vc
+      authorization-endpoint-uri: https://demo.certification.openid.net/test/a/demo-verifier-1/authorize
+      doc-type: "urn:eudi:pid:1"
+      format: dc+sd-jwt
+      claims:
+        - family_name
+        - given_name
+        - birthdate
+#        - place_of_birth
+#        - nationalities
+
+statuslist:
+  read-timeout: 3s
+  connect-timeout: 3s
+  clock-skew: 60s
+
+idporten-key-manager:
+  default-keystore: access
+  keystores:
+    access:
+      key-store-type: pkcs12
+      key-store-location: ${VERIFIER_KEYSTORE}
+      key-store-password: ${VERIFIER_KEYSTORE_PASSWORD}
+      key-alias: ${VERIFIER_KEY_ALIAS}
+      key-password: ${VERIFIER_KEY_PASSWORD}
