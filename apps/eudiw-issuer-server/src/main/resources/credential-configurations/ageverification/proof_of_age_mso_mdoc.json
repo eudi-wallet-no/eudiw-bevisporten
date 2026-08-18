@@ -1,0 +1,56 @@
+{
+  "credential_configuration_id": "proof_of_age",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "authoritative-source://freg",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "grant_type": "authorization_code",
+    "validity_days": 30
+  },
+  "scope": "proof_of_age",
+  "format": "mso_mdoc",
+  "credential_type": "eu.europa.ec.av.1",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Aldersbevis",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": [
+          "eu.europa.ec.av.1",
+          "age_over_18"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Over 18 år"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^true|false$"
+      },
+      {
+        "path": [
+          "eu.europa.ec.av.1",
+          "age_over_15"
+        ],
+        "type": "boolean",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Over 15 år"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^true|false$"
+      }
+    ]
+  }
+}

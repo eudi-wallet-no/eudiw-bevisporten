@@ -1,0 +1,41 @@
+{
+  "credential_configuration_id": "junitdoc_pre_mso_mdoc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.authoritativesources.JUnitPreAuthorizedClaimsSource",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "junit",
+    "pre_authorization_server": "maskinporten",
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "credential_type": "junitdoc-pre",
+  "format": "mso_mdoc",
+  "scope": "eudiw:junit",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Junit doc",
+        "description": "Kun for junit-tester",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": [
+          "junitdoc",
+          "attr1"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Attributt 1"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": ".*"
+      }
+    ]
+  }
+}

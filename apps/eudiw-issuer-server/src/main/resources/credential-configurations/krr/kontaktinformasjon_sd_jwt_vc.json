@@ -1,0 +1,68 @@
+{
+  "credential_configuration_id": "no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "authoritative-source://krr",
+    "credential_signing_keystore": "eaa-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "include_status": true,
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "credential_type": "no:kontaktregisteret:kontaktinformasjon:1",
+  "format": "dc+sd-jwt",
+  "scope": "eudiw:no:kontaktregisteret:kontaktinformasjon",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Digital kontaktinformasjon",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": [
+          "personidentifikator"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Personidentifikator"
+          }
+        ],
+        "mandatory": true,
+        "validation_regex": "^\\d{11}$"
+      },
+      {
+        "path": [
+          "epostadresse"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Epost"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      },
+      {
+        "path": [
+          "mobiltelefonnummer"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Telefonnummer"
+          }
+        ],
+        "mandatory": false,
+        "validation_regex": "^[\\x20-\\x7EæøåÆØÅ]{1,155}$"
+      }
+    ]
+  }
+}
