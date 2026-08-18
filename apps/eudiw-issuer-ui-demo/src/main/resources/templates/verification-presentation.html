@@ -77,7 +77,7 @@
         };
     };
 
-    const debouncedRedirectToResultPage = debounce(redirectToResultPage, 500);
+    const debouncedRedirectToResultPage = debounce(redirectToResultPage, 1000);
 
     function waitForUserBeforeRedirectToResultPage() {
         const redirect = () => {
