@@ -84,8 +84,12 @@ services:
       retries: 20
 
   oauth-server:
-    image: "crutvikling.azurecr.io/eudiw-oauth-server"
-#    image: "digital-lommebok-issuer-oauth-server" # Uncomment this line if you want to use the local image instead
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-oauth-server/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     depends_on:
       - redis
     env_file:
@@ -167,8 +171,12 @@ services:
       retries: 20
 
   byob-service:
-    image: "crutvikling.azurecr.io/eudiw-byob-service"
-    #    image: "digital-lommebok-issuer-byob-service" # Uncomment this line if you want to use the local image instead
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-byob-service/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     depends_on:
       - redis
     env_file:
@@ -194,8 +202,12 @@ services:
       retries: 20
 
   authoritative-sources-connector:
-    image: "crutvikling.azurecr.io/eudiw-authoritativ-sources-connector"
-    #image: "digital-lommebok-issuer-auth-sources-connector" # Uncomment this line if you want to use the local image instead
+    build:
+      context: ../..
+      dockerfile: apps/eudiw-authoritativ-sources-connector/docker/dev.Dockerfile
+      args:
+        GIT_PACKAGE_TOKEN: ${GIT_PACKAGE_TOKEN}
+        GIT_PACKAGE_USERNAME: ${GIT_PACKAGE_USERNAME}
     env_file:
       - ${EUDIW_AUTHORITATIV_SOURCES_CONNECTOR_ENV}
     environment:
