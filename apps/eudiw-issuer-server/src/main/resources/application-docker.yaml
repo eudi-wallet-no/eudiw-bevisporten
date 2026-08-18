@@ -1,0 +1,112 @@
+---
+server:
+  port: 9240
+
+management:
+  server:
+    port: 9240
+
+spring:
+  config:
+    import: optional:file:${EUDIW_ISSUER_SERVER_ENV}[.properties]
+  application:
+    environment: docker
+  data:
+    redis:
+      port: 6379
+      host: redis
+
+credential-issuer-server:
+  credential-issuer: http://issuer-server:9240
+  authorization-servers:
+    - id: auth-eidas2sandkasse
+      issuer: http://oauth-server:9260
+      jwks-uri: http://oauth-server:9260/jwks
+      internal-api:
+        uri: http://oauth-server:9260
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_PROXY_API_KEY}
+  pre-authorization-servers:
+    - id: maskinporten
+      issuer: https://maskinporten.dev/
+      jwks-uri: https://maskinporten.dev/jwk
+  status-list:
+    status-issuer:
+      api:
+        uri: http://status-list:9288
+        api-key: ${STATUS_ISSUER_API_KEY}
+  authoritative-sources:
+    krr:
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/krr/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_KRR_API_KEY}
+    freg:
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/freg/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_FREG_API_KEY}
+    skatteetaten:
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/skatteetaten/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_SKATTEETATEN_API_KEY}
+    advokatregisteret:
+      api:
+        uri: http://authoritative-sources-connector:9298/api/v1/advokatregisteret/credentialdata/retrieve
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
+  tenants:
+    bevisgenerator:
+      display-names:
+        "no": "Digdir bevisgenerator"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/ageverification/proof_of_age_mso_mdoc.json
+              - classpath:credential-configurations/vegvesenet/mdl_mso_mdoc.json
+              - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
+              - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
+              - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
+        - api:
+            uri: http://byob-service:9296/v1/admin/credential-configurations
+            api-key-header: X-API-KEY
+            api-key: ${API_KEY}
+            connect-timeout: 2s
+            read-timeout: 2s
+    pid:
+      display-names:
+        "no": "PID-utsteder (Norsk ID-bevis)"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/pid/pid_mso_mdoc.json
+              - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+    minid:
+      display-names:
+        "no": "MinID bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
+
+idporten-key-manager:
+  keystores:
+    pid-provider:
+      key-store-type: pkcs12
+      key-store-location: ${PID_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${PID_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: pid-issuer
+      key-password: ${PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    eaa-provider:
+      key-store-type: pkcs12
+      key-store-location: ${EAA_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: eaa-issuer
+      key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    minid-provider:
+      key-store-type: pkcs12
+      key-store-location: ${MINID_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: eaa-issuer
+      key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}

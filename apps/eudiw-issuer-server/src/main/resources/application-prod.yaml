@@ -1,0 +1,46 @@
+---
+spring:
+  application:
+    environment: prod
+  data:
+    redis:
+      password: ${REDIS_PASSWORD}
+      sentinel:
+        master: mymaster
+        password: ${REDIS_PASSWORD}
+        nodes:
+          - digital-lommebok-redis-ha-server-0.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-1.digital-lommebok-redis-ha:26379
+          - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
+
+credential-issuer-server:
+  credential-issuer: https://utsteder.eidas2sandkasse.net
+  authorization-servers:
+    - id: auth-eidas2sandkasse
+      issuer: https://auth.eidas2sandkasse.net
+      jwks-uri: http://digital-lommebok-oauth-server-service:8080/jwks
+      internal-api:
+        uri: http://digital-lommebok-oauth-server-service:8080
+        api-key-header: X-API-KEY
+        api-key: ${AUTH_PROXY_API_KEY}
+  pre-authorization-servers:
+    - id: maskinporten
+      issuer: https://maskinporten.no/
+      jwks-uri: https://maskinporten.no/jwk
+  tenants:
+    minid:
+      display-names:
+        "no": "MinID bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
+
+idporten-key-manager:
+  keystores:
+    minid-provider:
+      key-store-type: ${MINID_PROVIDER_KEYSTORE_TYPE}
+      key-store-location: ${MINID_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: ${MINID_PROVIDER_KEYSTORE_KEY_ALIAS}
+      key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
