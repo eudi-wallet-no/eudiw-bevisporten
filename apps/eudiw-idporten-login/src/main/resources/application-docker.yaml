@@ -1,0 +1,39 @@
+---
+server:
+  port: 9283
+  servlet:
+    session:
+      cookie:
+        secure: false
+management:
+  server:
+    port: 9283
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  config:
+    import: optional:file:${EUDIW_IDPORTEN_LOGIN_ENV}[.properties]
+  application:
+    environment: docker
+  data:
+    redis:
+      port: 6379
+      host: redis
+
+eudiw-idporten-login:
+  features:
+    allow-synthetic-person-identifiers: true
+    allow-real-person-identifiers: false
+  oidc-sdk:
+    issuer: http://eudiw-idporten-login:9283/
+    clients:
+      - client-id: testclient
+        client-secret: ${TESTCLIENT_CLIENT_SECRET}
+        scopes:
+          - openid
+        redirect-uris:
+          - http://testclient:8888/authorize/response
+          - http://localhost:8888/authorize/response
+          - http://127.0.0.1:8888/authorize/response
