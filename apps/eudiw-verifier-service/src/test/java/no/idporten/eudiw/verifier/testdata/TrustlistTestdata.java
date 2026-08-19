@@ -10,22 +10,37 @@ import java.nio.file.Path;
 public class TrustlistTestdata {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistTestdata.class);
-    private String trustlist;
+    private String xmlTrustlist;
+    private String jsonTrustlist;
 
     public TrustlistTestdata() {
-        setTrustlist();
+        setXmlTrustlist();
+        setJsonTrustlist();
+        log.info("TrustlistTestdata created" + getJsonTrustlist());
     }
 
-    public void setTrustlist() {
+    public void setXmlTrustlist() {
         try {
-            trustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlist.xtsl"));
+            xmlTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlist.xtsl"));
 
         } catch (IOException e) {
             log.info(e.getMessage());
         }
     }
 
-    public String getTrustlist() {
-        return trustlist;
+    public String getXmlTrustlist() {
+        return xmlTrustlist;
+    }
+
+    public void setJsonTrustlist() {
+        try {
+            jsonTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPid.jws"));
+        } catch (IOException e) {
+            log.info(e.getMessage());
+        }
+    }
+
+    public String getJsonTrustlist() {
+        return jsonTrustlist;
     }
 }
