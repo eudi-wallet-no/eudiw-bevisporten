@@ -1,0 +1,9 @@
+---
+spring:
+  application:
+    environment: test
+
+issuer-ui:
+  issuer-server:
+    base-url: https://utsteder.test.eidas2sandkasse.net
+
