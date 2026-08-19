@@ -1,0 +1,69 @@
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  application:
+    name: digital-lommebok-issuer-ui
+    environment: default
+
+
+# Spring Boot Actuator
+management:
+  server:
+    port: 8090
+  endpoints:
+    web:
+      exposure:
+        include: info,version,prometheus,health
+      base-path: /
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      environment: ${spring.application.environment}
+
+issuer-ui:
+  issuer-server:
+    issuance-endpoint: /api/v1/credential-offer/create
+    credential-configurations:
+      - id: proof_of_age
+        issuer: ${issuer-ui.issuer-server.base-url}/bevisgenerator
+        title: Aldersbevis
+        description: Aldersbevis (mdoc)
+      - id: "no.digdir.eudiw.pid_mso_mdoc"
+        issuer: ${issuer-ui.issuer-server.base-url}/pid
+        title: Norsk ID-bevis
+        description: Norsk ID-bevis (mdoc)
+      - id: "no.digdir.eudiw.pid_sd_jwt_vc"
+        issuer: ${issuer-ui.issuer-server.base-url}/pid
+        title: Norsk ID-bevis
+        description: Norsk ID-bevis (SD-JWT VC)
+      - id: "no.skatteetaten.inntekt_sd_jwt_vc"
+        issuer: ${issuer-ui.issuer-server.base-url}/bevisgenerator
+        title: Inntektsbevis
+        description: Inntektsbevis (SD-JWT VC)
+
+# Digdir standard logging
+digdir:
+  access:
+    logging:
+      filtering:
+        static-resources: true
+
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
