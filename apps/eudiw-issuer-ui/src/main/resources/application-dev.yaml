@@ -1,0 +1,18 @@
+---
+server:
+  port: 9292
+
+management:
+  server:
+    port: 9292
+
+spring:
+  config:
+    import: optional:file:${EUDIW_ISSUER_UI_ENV}[.properties]
+  application:
+    environment: dev
+
+issuer-ui:
+  issuer-server:
+    base-url: http://issuer-server:9240
+#    base-url: https://utsteder.eidas2sandkasse.dev

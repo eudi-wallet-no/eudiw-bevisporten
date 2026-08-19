@@ -1,0 +1,8 @@
+---
+spring:
+  application:
+    environment: systest
+
+issuer-ui:
+  issuer-server:
+    base-url: https://utsteder.eidas2sandkasse.dev
