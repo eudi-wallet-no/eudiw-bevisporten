@@ -1,5 +1,6 @@
 package no.idporten.eudiw.bevisgenerator.web;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -66,7 +66,6 @@ public class VerificationController {
             @Valid @ModelAttribute("verificationForm")
             StartVerificationForm form,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes,
             HttpSession session
     ) {
         List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
@@ -122,21 +121,19 @@ public class VerificationController {
     }
 
     @GetMapping("/verification-result/{verification-id}")
-    public ModelAndView verificationResult(@PathVariable("verification-id") String verificationId, HttpSession session) {
+    public ModelAndView verificationResult(
+            @PathVariable("verification-id") String verificationId,
+            HttpSession session,
+            HttpServletResponse response
+    ) {
         if (verificationId == null || verificationId.isBlank()) {
             throw new IssuerUiException("Missing verificationId");
         }
 
-        if (session.getAttribute(getVerificationFinishedKey(verificationId)) != null) {
-            throw new IssuerUiException("Verifikasjonen er allerede fullført. Sjå resultatet i ei annan tab.");
-        }
+        response.setHeader("Cache-Control", "no-store, private");
+        response.setHeader("Referrer-Policy", "no-referrer");
 
-        String transactionId = getTransactionIdFromSession(verificationId, session);
-
-        session.removeAttribute(getVerificationTransactionKey(verificationId));
-
-        VerificationResult result = verifierService.retrieveVerificationResult(transactionId);
-        session.setAttribute(getVerificationFinishedKey(verificationId), verificationId);
+        VerificationResult result = getVerificationResult(verificationId, session);
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
@@ -178,8 +175,20 @@ public class VerificationController {
         return "verification_transaction_data_%s".formatted(verificationId);
     }
 
-    private static String getVerificationFinishedKey(String verificationId) {
-        return "verification_finished_%s".formatted(verificationId);
+    private static String getVerificationResultKey(String verificationId) {
+        return "verification_result_%s".formatted(verificationId);
+    }
+
+    private VerificationResult getVerificationResult(String verificationId, HttpSession session) {
+        String transactionId = getTransactionIdFromSession(verificationId, session);
+        String verificationResultKey = getVerificationResultKey(verificationId);
+
+        VerificationResult result = (VerificationResult) session.getAttribute(verificationResultKey);
+        if (result == null) {
+            result = verifierService.retrieveVerificationResult(transactionId);
+            session.setAttribute(verificationResultKey, result);
+        }
+        return result;
     }
 
     private ModelAndView baseView(StartVerificationForm form) {
