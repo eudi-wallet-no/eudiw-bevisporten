@@ -12,6 +12,7 @@ import id.walt.mdoc.issuersigned.IssuerSigned;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
+import id.walt.mdoc.dataelement.*;
 import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
