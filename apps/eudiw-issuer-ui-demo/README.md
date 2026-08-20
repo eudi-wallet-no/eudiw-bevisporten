@@ -37,6 +37,12 @@ The local hosts file should include:
 127.0.0.1 bevisgenerator
 ```
 
+This application depends on `byob-service` and `issuer-server`. Start those first from `eudiw-issuer-server`:
+```
+cd ../eudiw-issuer-server
+docker-compose up --scale issuer-ui-demo=0 --scale issuer-ui=0 -d
+```
+
 The application can be started with Maven:
 ```
 mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
