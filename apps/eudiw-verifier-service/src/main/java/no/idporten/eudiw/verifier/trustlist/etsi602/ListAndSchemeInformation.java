@@ -4,6 +4,7 @@ package no.idporten.eudiw.verifier.trustlist.etsi602;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -15,7 +16,7 @@ import java.util.List;
 
 public record ListAndSchemeInformation(
         @JsonProperty("SchemeName")
-        @NotNull @Valid List<LocalizedString> schemeName,
+        @NotNull @Valid List<@NotNull LocalizedString> schemeName,
         @JsonProperty("SequenceNumber")
         @Positive @NotNull BigInteger sequenceNumber,
         @JsonProperty("ListIssueDateTime")
@@ -27,7 +28,7 @@ public record ListAndSchemeInformation(
         @JsonProperty("StatusDeterminationApproach")
         @NotNull @Valid URI statusDeterminationApproach,
         @JsonProperty("SchemeTypeCommunityRules")
-        @NotBlank List<LocalizedString> schemeTypeCommunityRules,
+        @Valid @NotEmpty List<@NotNull LocalizedString> schemeTypeCommunityRules,
         @JsonProperty("SchemeOperatorAddress")
         @Valid @NotNull Address schemeOperatorAddress
         ) {
