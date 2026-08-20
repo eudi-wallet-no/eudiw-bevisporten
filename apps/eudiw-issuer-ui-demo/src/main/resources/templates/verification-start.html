@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
-    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <title>Bevisgenerator</title>
 </head>
 <body>
-<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
     <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
         <h1 class="ds-heading" data-size="lg">
@@ -58,7 +58,7 @@
         </form>
     </div>
 </main>
-<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script id="credential-definitions-data" type="application/json" th:utext="${credentialDefinitionsJson}"></script>
 <script id="selected-claims-data" type="application/json" th:utext="${selectedClaimPathsJson}"></script>
 <script>
