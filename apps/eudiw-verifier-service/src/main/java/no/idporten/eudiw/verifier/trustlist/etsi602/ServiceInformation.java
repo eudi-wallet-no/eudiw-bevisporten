@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
+import java.net.URI;
 import java.util.List;
 
 public record ServiceInformation(
@@ -13,6 +14,8 @@ public record ServiceInformation(
         @JsonProperty("ServiceDigitalIdentity")
         @Valid @NotNull ServiceDigitalIdentity serviceDigitalIdentity,
         @JsonProperty("ServiceTypeIdentifier")
-        @NotNull String serviceTypeIdentifier
+        @NotNull String serviceTypeIdentifier,
+        @JsonProperty("ServiceStatus")
+        URI uri
         ) {
 }
