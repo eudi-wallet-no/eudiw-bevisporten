@@ -38,7 +38,7 @@ public record ValueCertificate(
              PEMParser pemParser = new PEMParser(stringReader)) {
             return (X509CertificateHolder) pemParser.readObject();
         } catch (IOException e) {
-            throw new VerificationException("Feil i lesing av x509 sertifikat i tillitsliste 602", e.getMessage());
+            throw new VerificationException("invalid_request", "Feil i lesing av x509 sertifikat i tillitsliste 602", e);
         }
     }
 
@@ -46,7 +46,7 @@ public record ValueCertificate(
         try {
             return new JcaX509CertificateConverter().getCertificate(getCertificate());
         } catch (CertificateException e) {
-            throw new VerificationException("Feil i lesing av x509 sertifikat i tillitsliste 602", e.getMessage());
+            throw new VerificationException("invalid_request","Feil i lesing av x509 sertifikat i tillitsliste 602", e);
         }
     }
 }
