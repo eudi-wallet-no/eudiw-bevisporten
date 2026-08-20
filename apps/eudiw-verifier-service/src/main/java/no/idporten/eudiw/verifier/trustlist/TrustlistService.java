@@ -26,9 +26,9 @@ import java.util.List;
 @Service
 public class TrustlistService {
 
-    private RestClient trustlistRestclient;
+    private final RestClient trustlistRestclient;
 
-    private TrustlistsProperties  trustlistsProperties;
+    private final TrustlistsProperties  trustlistsProperties;
 
     public TrustlistService(@Qualifier("trustlist") RestClient trustlistRestclient, TrustlistsProperties trustlistsProperties) {
         this.trustlistRestclient = trustlistRestclient;

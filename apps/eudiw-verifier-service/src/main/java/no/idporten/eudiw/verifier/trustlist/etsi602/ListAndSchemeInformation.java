@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import no.idporten.eudiw.verifier.VerificationException;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -15,17 +16,25 @@ import java.util.List;
 public record ListAndSchemeInformation(
         @JsonProperty("SchemeName")
         @NotNull @Valid List<LocalizedString> schemeName,
+        @JsonProperty("SequenceNumber")
         @Positive @NotNull BigInteger sequenceNumber,
-        @NotNull ZonedDateTime listIssueDateTime,
+        @JsonProperty("ListIssueDateTime")
+        @NotBlank String listIssueDateTime,
+        @JsonProperty("LoteType")
         @NotNull @Valid URI loteType,
+        @JsonProperty("InformationUris")
         @NotNull @Valid TSUri informationUris,
+        @JsonProperty("StatusDeterminationApproach")
         @NotNull @Valid URI statusDeterminationApproach,
-        @NotBlank String schemeTypeCommunityRules
+        @JsonProperty("SchemeTypeCommunityRules")
+        @NotBlank List<LocalizedString> schemeTypeCommunityRules,
+        @JsonProperty("SchemeOperatorAddress")
+        @Valid @NotNull Address schemeOperatorAddress
         ) {
     public ListAndSchemeInformation {
-//        if (listIssueDateTime == null || listIssueDateTime.isAfter(ZonedDateTime.now())) {
-//            throw new IllegalArgumentException("List issue date time must not be null and not in the future");
-//        }
+        if (listIssueDateTime == null || ZonedDateTime.parse(listIssueDateTime).isAfter(ZonedDateTime.now())) {
+            throw new VerificationException("invalid_request","Invalid list of scheme issue dates for trustlist");
+        }
     }
 
 }
