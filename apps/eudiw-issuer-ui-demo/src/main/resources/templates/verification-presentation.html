@@ -7,14 +7,16 @@
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
-    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
+    <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
+    <div>
         <h1 class="ds-heading" data-size="lg">
             Presenter bevis
         </h1>
     </div>
-    <div class="ds-card" style="max-width: 600px">
-        <div id="cross-device-request">
-            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" width="100%"/>
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=2)}"></div>
+    <div class="ds-card" >
+        <div id="cross-device-request" style="display: flex; align-items: center; justify-content: center; margin-top: var(--ds-size-4);">
+            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" style="width: 100%; max-width: 400px; align-self: center;"/>
         </div>
         <p id="verification-status-message" class="ds-paragraph" style="margin-top: var(--ds-size-3);"></p>
         <div class="flex-container" style="min-width: unset">

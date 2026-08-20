@@ -1,22 +1,44 @@
 <div th:fragment="back_link_fragment(href)">
-        <a th:href="@{${href}}"
-           class="ds-link"
-           data-color="neutral"
-           style="text-decoration: none; --dsc-link-color: var(--ds-color-neutral-text-subtle); --dsc-link-color--visited: var(--ds-color-neutral-text-subtle);">
-            <span style="display: flex; align-items: center; justify-content: flex-start;">
-                <svg aria-hidden="true"
-                     width="20"
-                     height="20"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path d="M19 12H5"></path>
-                    <path d="m12 19-7-7 7-7"></path>
-                </svg>
+    <a th:href="@{${href}}"
+       class="ds-link"
+       data-color="neutral"
+       style="text-decoration: none; --dsc-link-color: var(--ds-color-neutral-text-subtle); --dsc-link-color--visited: var(--ds-color-neutral-text-subtle);">
+        <span style="display: flex; align-items: center; justify-content: flex-start;">
+            <svg aria-hidden="true"
+                 width="20"
+                 height="20"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <path d="M19 12H5"></path>
+                <path d="m12 19-7-7 7-7"></path>
+            </svg>
             <span>Tilbake</span>
-            </span>
-        </a>
+        </span>
+    </a>
 </div>
+
+<span th:fragment="step_indicator_fragment(number, text, current)"
+      class="stepper__step"
+      th:classappend="${current} ? 'stepper__step--current' : ''">
+    <span class="stepper__indicator" th:text="${number}"></span>
+    <span class="stepper__text" th:text="${text}"></span>
+</span>
+
+<nav th:fragment="stepper_fragment(steps, currentStep)"
+     class="stepper"
+     aria-label="Steg">
+    <ol>
+        <li th:each="step, status : ${steps}"
+            th:attr="aria-current=${currentStep == status.count} ? 'step'">
+            <span th:replace="~{:: step_indicator_fragment(
+                number=${status.count},
+                text=${step},
+                current=${currentStep == status.count}
+            )}"></span>
+        </li>
+    </ol>
+</nav>

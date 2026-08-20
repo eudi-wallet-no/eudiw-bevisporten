@@ -13,38 +13,7 @@
             Presenter bevis
         </h1>
     </div>
-
-    <div>
-        <div class="ds-breadcrumbs" aria-label="Du er her:">
-            <a class="ds-link" href="#" aria-label="Tilbake til Nivå 3">Nivå 3</a>
-            <ol>
-                <li>
-                    <a class="ds-link" href="#">
-                       <span style="
-                            display: inline-flex;
-                            width: 2rem;
-                            height: 2rem;
-                            align-items: center;
-                            justify-content: center;
-                            border-radius: 50%;
-                            background-color: red;
-                        ">
-                            1
-                        </span>
-                        <span>Vel bevistype</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="ds-link" href="#">Skann QR-kode</a>
-                </li>
-                <li>
-                    <a class="ds-link disbaled" href="#">Resultat</a>
-                </li>
-
-            </ol>
-        </div>
-    </div>
-
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
     <div class="ds-card" >
         <h2 class="ds-heading" data-size="sm">Konfigurer DCQL query</h2>
         <p th:if="${verificationSuccessMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${verificationSuccessMessage}"></p>
