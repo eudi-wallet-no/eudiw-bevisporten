@@ -46,8 +46,7 @@ public record ValueCertificate(
         try {
             return new JcaX509CertificateConverter().getCertificate(getCertificate());
         } catch (CertificateException e) {
-            log.info("error parsing certificate", e);
+            throw new VerificationException("Feil i lesing av x509 sertifikat i tillitsliste 602", e.getMessage());
         }
-        return null;
     }
 }
