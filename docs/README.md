@@ -1,5 +1,8 @@
-# Delt dokumentasjon
+# Shared Documentation
 
-Denne mappen inneholder dokumentasjon som deles på tvers av alle applikasjoner i monorepoet.
+This directory contains documentation shared across the monorepo.
 
-Se individuelle app-mapper for app-spesifikk dokumentasjon.
+Read these docs before starting work to understand the system, roles, and architecture.
+
+See individual app directories in `apps/` for app-specific documentation.
+
