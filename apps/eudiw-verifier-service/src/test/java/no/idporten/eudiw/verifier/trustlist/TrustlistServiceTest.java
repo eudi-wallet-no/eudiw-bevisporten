@@ -1,8 +1,8 @@
 package no.idporten.eudiw.verifier.trustlist;
 
 import com.nimbusds.jose.util.X509CertUtils;
-import no.idporten.eudiw.verifier.trustlist.etsi602.pojo.LoTEResponse;
-import no.idporten.eudiw.verifier.trustlist.etsi612.LoTE;
+import no.idporten.eudiw.verifier.trustlist.etsi602.pojo.LoTEJson;
+import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.testdata.Certificates;
 import no.idporten.eudiw.verifier.testdata.TrustlistTestdata;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +60,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
 
-        LoTE lote = (LoTE) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
+        LoTEXml lote = (LoTEXml) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
         assertNotNull(lote);
         assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue());
     }
@@ -72,7 +72,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
 
-        LoTEResponse lote = (LoTEResponse) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
+        LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
         assertNotNull(lote);
         log.info("Trustlist: {}", lote);
         assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
@@ -86,7 +86,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
 
-        LoTE lote = (LoTE) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
+        LoTEXml lote = (LoTEXml) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
         assertAll(
                 () -> assertNotNull(lote),
                 () -> assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue()),

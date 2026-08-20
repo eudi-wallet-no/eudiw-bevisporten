@@ -89,6 +89,5 @@ class OpenID4VPResponseServiceTest {
                 () -> assertEquals("FANTASIFULL", verifiedCredential.claims().get("given_name"))
         );
 
-
     }
 }

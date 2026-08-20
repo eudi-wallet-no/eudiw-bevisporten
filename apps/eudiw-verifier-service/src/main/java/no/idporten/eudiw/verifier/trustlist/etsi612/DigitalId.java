@@ -2,6 +2,7 @@ package no.idporten.eudiw.verifier.trustlist.etsi612;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import no.idporten.eudiw.verifier.VerificationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
@@ -58,13 +59,20 @@ public class DigitalId {
         return cert;
     }
 
-    public X509CertificateHolder getCertificate() throws IOException {
+    public X509CertificateHolder getCertificate() {
         try (PEMParser pemParser = new PEMParser(new StringReader(getValidCertString()))) {
             return (X509CertificateHolder) pemParser.readObject();
+        } catch (Exception e) {
+            throw new VerificationException("invalid_request", "Certificate cannot be read", e);
         }
     }
 
-    public X509Certificate getCertificateAsX509Object() throws IOException, CertificateException {
-        return new JcaX509CertificateConverter().getCertificate(getCertificate());
+    public X509Certificate getCertificateAsX509Object() {
+        try {
+            return new JcaX509CertificateConverter().getCertificate(getCertificate());
+        } catch (Exception e) {
+            throw new VerificationException("invalid_request", "Certificate cannot be read into x509 object", e);
+        }
+
     }
 }

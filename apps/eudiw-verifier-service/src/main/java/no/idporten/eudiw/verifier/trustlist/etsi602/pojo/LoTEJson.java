@@ -6,7 +6,7 @@ import no.idporten.eudiw.verifier.trustlist.etsi602.Trustlist;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize
-public record LoTEResponse(
+public record LoTEJson(
         @JsonProperty("LoTE")
         @NotNull Trustlist lote
 ) {

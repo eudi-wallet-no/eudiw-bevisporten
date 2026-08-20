@@ -10,7 +10,7 @@ import no.idporten.eudiw.verifier.trustlist.etsi612.signature.Signature;
 
 @JacksonXmlRootElement(namespace = EtsiNamespaces.ETSI_TSL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record LoTE (
+public record LoTEXml(
         @JacksonXmlProperty(localName = "SchemeInformation", namespace = EtsiNamespaces.ETSI_TSL)
         @Valid @NotNull TLSchemeInformation schemeInformation,
 
