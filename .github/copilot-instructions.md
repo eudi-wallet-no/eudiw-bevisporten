@@ -4,6 +4,12 @@
 
 Before any work, read [`docs/`](../docs/) to understand the system, roles, and architecture.
 
+## Design System
+
+All UI follows [Digitaliseringsdirektoratet's Designsystemet](https://designsystemet.no). Reuse its components and design tokens. Avoid writing custom CSS.
+
+See [the designsystem skill](skills/designsystem-skill.md) before changing anything visual.
+
 ## After completing work
 
 When planning or executing changes, check if documentation needs updating. If your changes make something in the docs incorrect or outdated, update it.
