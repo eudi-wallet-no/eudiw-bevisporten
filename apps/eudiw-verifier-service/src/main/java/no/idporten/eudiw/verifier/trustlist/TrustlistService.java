@@ -102,17 +102,18 @@ public class TrustlistService {
     protected boolean checkXml612(URI uri, X509Certificate cert, String jwsHeaderCertificateIssuer)  {
         LoTEXml lote = (LoTEXml) connectToTrustlist(uri);
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
-            String trustlistIssuer = issuerName(ldapName(sp.services().services().getFirst().serviceInformation().serviceDigitalIdentity().digitalIds().get(1).getCertificateAsX509Object().getIssuerX500Principal().getName(X500Principal.RFC2253)));
-            if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
-                for (TSPService service : sp.services().services()) {
-                    if (compareCertificates(cert,service.serviceInformation().serviceDigitalIdentity().digitalIds().get(1).getCertificateAsX509Object())) {
-                        if (service.serviceInformation().checkServiceCurrentStatus()) {
+            for(TSPService service : sp.services().services()) {
+                String trustlistIssuer = issuerName(ldapName(service.serviceInformation().serviceDigitalIdentity().
+                        digitalIds().get(1).getCertificateAsX509Object().getIssuerX500Principal(). // Cert is at place 1
+                        getName(X500Principal.RFC2253)));
+                if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
+                    if (compareCertificates(cert,service.serviceInformation().serviceDigitalIdentity().digitalIds()
+                            .get(1).getCertificateAsX509Object()) && service.serviceInformation().checkServiceCurrentStatus()) {
                             return true;
                         }
                     }
                 }
             }
-        }
         return false;
     }
 
