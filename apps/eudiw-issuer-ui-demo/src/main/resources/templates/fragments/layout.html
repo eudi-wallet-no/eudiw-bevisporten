@@ -13,32 +13,43 @@
 </th:block>
 
 <header th:fragment="page_header_fragment">
-    <div>
-        <div style="padding-right: 8px;">
-            <a aria-label="Til framsida"
-               class="ds-focus"
-               th:href="@{/}">
-                <div th:replace="~{:: digdir_logo_fragment(26)}">
-                </div>
-            </a>
-        </div>
-        Bevisgenerator
-    </div>
-
-    <div>
-        <a class="ds-link"
-           th:href="@{/}"
-           data-color="neutral">
-            Heim
+    <div class="page-container header__inner">
+        <a aria-label="Til framsida"
+           class="ds-focus header__brand"
+           th:href="@{/}">
+            <div th:replace="~{:: digdir_logo_fragment(26)}"></div>
+            <span>Bevisgenerator</span>
         </a>
+
+        <input type="checkbox" id="header-nav-toggle" class="header__nav-toggle">
+        <label for="header-nav-toggle" class="header__nav-toggle-label ds-button" data-variant="tertiary" data-size="sm" aria-label="Opne meny">
+            <div th:replace="~{:: menu_icon_fragment}"></div>
+        </label>
+
+        <nav class="header__nav" aria-label="Hovudnavigasjon">
+            <a class="ds-link"
+               th:href="@{/admin}"
+               data-color="neutral">
+                Administrasjon
+            </a>
+        </nav>
     </div>
 </header>
 
 <footer th:fragment="page_footer_fragment(issuer)"
         data-color-scheme="dark">
-    <div> <!--/* this div holds first row of footer. do not remove! */-->
+    <div class="page-container footer__inner"> <!--/* this div holds first row of footer. do not remove! */-->
         <div>
-            <div th:replace="~{:: digdir_logo_fragment(64)}"></div>
+            <h2 class="ds-heading">Digitaliseringsdirektoratet</h2>
+
+            <ul>
+                <li><a class="ds-link" href="https://www.digdir.no/digdir/om-digitaliseringsdirektoratet/1547">Om Digitaliseringsdirektoratet</a></li>
+                <li><a class="ds-link" href="https://www.digdir.no/digdir/jobb-i-digdir/6851">Jobb hos oss</a></li>
+                <li><a class="ds-link" href="https://www.digdir.no/node/1340">Digitaliseringsbloggen</a></li>
+                <li><a class="ds-link" href="https://www.digdir.no/digdir/presse/704">For presse</a></li>
+                <li><a class="ds-link" href="https://www.digdir.no/digdir/personvernombod-i-digitaliseringsdirektoratet/944">Personvernombod</a></li>
+                <li><a class="ds-link" href="https://www.digdir.no/digdir/about-norwegian-digitalisation-agency/887">About us</a></li>
+            </ul>
         </div>
 
         <div>
@@ -65,6 +76,22 @@
         </div>
     </div>
 </footer>
+
+<div th:fragment="menu_icon_fragment">
+    <svg xmlns="http://www.w3.org/2000/svg"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         width="24"
+         height="24"
+         viewBox="0 0 24 24"
+         aria-hidden="true">
+        <path d="M3 6h18"></path>
+        <path d="M3 12h18"></path>
+        <path d="M3 18h18"></path>
+    </svg>
+</div>
 
 <div th:fragment="digdir_logo_fragment(dim)">
     <svg xmlns="http://www.w3.org/2000/svg"

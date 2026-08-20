@@ -37,6 +37,12 @@ The local hosts file should include:
 127.0.0.1 bevisgenerator
 ```
 
+This application depends on `byob-service` and `issuer-server`. Start those first from `eudiw-issuer-server`:
+```
+cd ../eudiw-issuer-server
+docker-compose up --scale issuer-ui-demo=0 --scale issuer-ui=0 -d
+```
+
 The application can be started with Maven:
 ```
 mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
@@ -45,6 +51,11 @@ mvn spring-boot:run -Dspring-boot.run.profiles=<profile>
 The application can be started with Docker compose:
 ```
 docker-compose up --build
+```
+
+To automatically rebuild and restart the container when Thymeleaf templates or static CSS/HTML change, use watch mode instead:
+```
+docker-compose watch
 ```
 
 The application will run on http://bevisgenerator:9290.
