@@ -33,3 +33,11 @@ services:
       start_period: 5s
       timeout: 5s
       retries: 20
+    develop:
+      watch:
+        # Thymeleaf templates and static CSS/HTML are packaged into the jar,
+        # so any change rebuilds the image and restarts the container.
+        - path: src/main/resources/templates
+          action: rebuild
+        - path: src/main/resources/static
+          action: rebuild

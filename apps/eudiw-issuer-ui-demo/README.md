@@ -53,4 +53,9 @@ The application can be started with Docker compose:
 docker-compose up --build
 ```
 
+To automatically rebuild and restart the container when Thymeleaf templates or static CSS/HTML change, use watch mode instead:
+```
+docker-compose watch
+```
+
 The application will run on http://bevisgenerator:9290.
