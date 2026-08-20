@@ -1,31 +1,56 @@
-# JIRA-ID i branch og PR-tittel
+# AI Instructions
 
-Alle oppgaver har en JIRA-ID. **Spør alltid brukeren om JIRA-ID** hvis den ikke er oppgitt —
-ikke anta eller finn på en. Brukes i PR-tittel:
+## Context
+
+Before any work, read [`docs/`](../docs/) to understand the system, roles, and architecture.
+
+## Design System
+
+All UI follows [Digitaliseringsdirektoratet's Designsystemet](https://designsystemet.no). Reuse its components and design tokens. Avoid writing custom CSS.
+
+See [the designsystem skill](skills/designsystem-skill.md) before changing anything visual.
+
+## After completing work
+
+When planning or executing changes, check if documentation needs updating. If your changes make something in the docs incorrect or outdated, update it.
+
+---
+
+## Writing Guidelines
+
+**Keep it simple** — write short, direct, clear content without unnecessary jargon.
+
+- No emojis (documentation, diagrams, PRs)
+- No AI language or excessive structure
+- Dark/light mode friendly diagrams (no hard-coded colors)
+
+---
+
+## JIRA-ID in branch and PR title
+
+All tasks have a JIRA-ID. **Always ask the user for the JIRA-ID** if not provided — do not assume or make one up. Used in PR title:
 
 ```
-<JIRA-ID>: <PR-tittel>
+<JIRA-ID>: <PR title>
 ```
 
-F.eks. `EUW-1234: Ny pr`. Uten dette feiler `validate-pr-title`-sjekken i GitHub Actions.
+E.g. `EUW-1234: New feature`. Without this, the `validate-pr-title` check in GitHub Actions will fail.
 
-PR-tittelen (delen etter JIRA-ID-prefikset) skal skrives på **norsk**.
+PR title (the part after the JIRA-ID prefix) should be written in **English**.
 
-## Branch-navn
+## Branch name
 
-Ny branch (uansett om den opprettes via `rename_branch` eller direkte med git) skal hete
-`<jira-id>`, f.eks. `euw-1234`. Ikke bruk fritekstbeskrivelse. Finnes branchen fra før,
-inkrementer: `euw-1234-2`, `euw-1234-3` osv.
+New branch (whether created via `rename_branch` or directly with git) should be named `<jira-id>`, e.g. `euw-1234`. Do not use free-text descriptions. If the branch already exists, increment: `euw-1234-2`, `euw-1234-3` etc.
 
-# PR-beskrivelser
+# PR descriptions
 
-Skriv menneskelig, kort og konkret. Unngå AI-språk ("This PR introduces..."), emojis, overdreven struktur, selvskryt og oppsummeringsvegger. Én linje holder for trivielle endringer.
+Write in human-friendly, short and concrete style. Avoid AI language ("This PR introduces..."), emojis, excessive structure, self-praise, and summary walls. One line is fine for trivial changes.
 
-Mal:
+Template:
 ```
-## Hva og hvorfor
-1-2 setninger: hva endres og hvorfor.
+## What and why
+1-2 sentences: what changes and why.
 
-## Endringer
-- Viktigste punkter, ikke hver fil/detalj.
+## Changes
+- Key points, not every file/detail.
 ```
