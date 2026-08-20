@@ -1,8 +1,16 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
 html {
     scrollbar-gutter: stable;
+    overflow-x: hidden;
 }
 
 body {
+    overflow-x: hidden;
     font-family: 'Inter', sans-serif;
     font-feature-settings: 'cv05' 1; /* Enable lowercase l with tail */
     background-color: var(--ds-color-neutral-background-tinted);
