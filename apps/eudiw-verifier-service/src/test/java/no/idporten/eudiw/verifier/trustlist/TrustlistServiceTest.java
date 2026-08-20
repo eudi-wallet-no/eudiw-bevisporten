@@ -75,7 +75,7 @@ class TrustlistServiceTest {
         LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
         assertNotNull(lote);
         log.info("Trustlist: {}", lote);
-        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
+        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i dev", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
     }
 
 
@@ -149,6 +149,7 @@ class TrustlistServiceTest {
                 .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.trustlistCertificatePID() + "-----END CERTIFICATE-----");
         boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        assertTrue(result);
     }
 
 }

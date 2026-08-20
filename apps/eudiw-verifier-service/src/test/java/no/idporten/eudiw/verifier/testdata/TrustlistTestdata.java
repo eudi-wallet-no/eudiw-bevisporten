@@ -16,6 +16,7 @@ public class TrustlistTestdata {
     public TrustlistTestdata() {
         setXmlTrustlist();
         setJsonTrustlist();
+        log.info("PID TRUSTLIST " + getJsonTrustlist());
         log.info("TrustlistTestdata created" + getJsonTrustlist());
     }
 

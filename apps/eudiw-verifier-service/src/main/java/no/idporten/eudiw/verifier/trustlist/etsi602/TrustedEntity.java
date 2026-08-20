@@ -13,6 +13,7 @@ public record TrustedEntity(
         @JsonProperty("TrustedEntityServices")
         @Valid List<TrustedEntityService> trustedEntityServices) {
 
+
     public boolean noneContainServiceStatus() {
         return trustedEntityServices().stream().map(TrustedEntityService::serviceInformation).map(ServiceInformation::serviceStaus).allMatch(Objects::isNull);
     }

@@ -10,6 +10,8 @@ import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TSPService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -26,6 +28,7 @@ import java.util.List;
 @Service
 public class TrustlistService {
 
+    private static final Logger log = LoggerFactory.getLogger(TrustlistService.class);
     private final RestClient trustlistRestclient;
 
     private final TrustlistsProperties  trustlistsProperties;
@@ -75,17 +78,19 @@ public class TrustlistService {
         LoTEJson lote = (LoTEJson) connectToTrustlist(uri);
         boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
         for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
-            String trustListIssuer = issuerName(ldapName(trustedEntity.trustedEntityServices().getFirst().serviceInformation().serviceDigitalIdentity().X509Certificates().getFirst().getCertificateAsX509Object().getIssuerX500Principal().getName(X500Principal.RFC2253)));
-            if (jwsHeaderCertificateIssuer.equals(trustListIssuer)) {
-                for (TrustedEntityService trustedEntityService : trustedEntity.trustedEntityServices()) {
-                    if(compareCertificates(cert,  trustedEntityService.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts())) {
-                        if(allActive || trustedEntityService.serviceInformation().serviceStaus() != null) {
-                            return true;
-                        } else {
-                            throw new VerificationException("invalid_request", "Service "+
-                                    trustedEntityService.serviceInformation().serviceName().getFirst().getLocalisedValue() +
-                                    "  is set to inactive on trustlist," +
-                                    "or is missing status field ");
+            for(TrustedEntityService service : trustedEntity.trustedEntityServices()) {
+                for(X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
+                    String trustListIssuer = issuerName(ldapName(individual.getIssuerX500Principal().getName(X500Principal.RFC2253)));
+                    if(jwsHeaderCertificateIssuer.equals(trustListIssuer)) {
+                        if(compareCertificates(cert, individual)) {
+                            if(allActive || service.serviceInformation().serviceStaus() != null) {
+                                return true;
+                            } else {
+                                throw new VerificationException("invalid_request", "Service "+
+                                        service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
+                                        "  is set to inactive on trustlist," +
+                                        "or is missing status field ");
+                            }
                         }
                     }
                 }
@@ -100,7 +105,7 @@ public class TrustlistService {
             String trustlistIssuer = issuerName(ldapName(sp.services().services().getFirst().serviceInformation().serviceDigitalIdentity().digitalIds().get(1).getCertificateAsX509Object().getIssuerX500Principal().getName(X500Principal.RFC2253)));
             if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
                 for (TSPService service : sp.services().services()) {
-                    if (compareCertificates(cert, List.of(service.serviceInformation().serviceDigitalIdentity().digitalIds().get(1).getCertificateAsX509Object()))) {
+                    if (compareCertificates(cert,service.serviceInformation().serviceDigitalIdentity().digitalIds().get(1).getCertificateAsX509Object())) {
                         if (service.serviceInformation().checkServiceCurrentStatus()) {
                             return true;
                         }
@@ -153,13 +158,8 @@ public class TrustlistService {
 
     }
 
-    protected boolean compareCertificates(X509Certificate certificateFromWalletResponse, List<X509Certificate> certificatesToCompareWith) {
-        for(X509Certificate certificate : certificatesToCompareWith){
-            if(certificate.getPublicKey().equals(certificateFromWalletResponse.getPublicKey())){
-                return true;
-            }
-        }
-        return false;
+    protected boolean compareCertificates(X509Certificate certificateFromWalletResponse,X509Certificate certificatesToCompareWith) {
+        return certificatesToCompareWith.getPublicKey().equals(certificateFromWalletResponse.getPublicKey());
     }
 
     protected LdapName ldapName(String distinguishedName) {
