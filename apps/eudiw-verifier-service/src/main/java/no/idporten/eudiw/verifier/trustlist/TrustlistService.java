@@ -6,7 +6,7 @@ import com.nimbusds.jose.JWSObject;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
-import no.idporten.eudiw.verifier.trustlist.etsi602.pojo.LoTEJson;
+import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TSPService;

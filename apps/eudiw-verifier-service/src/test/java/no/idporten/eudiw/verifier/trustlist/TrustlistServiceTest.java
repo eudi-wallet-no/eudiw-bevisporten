@@ -1,7 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist;
 
 import com.nimbusds.jose.util.X509CertUtils;
-import no.idporten.eudiw.verifier.trustlist.etsi602.pojo.LoTEJson;
+import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.testdata.Certificates;
 import no.idporten.eudiw.verifier.testdata.TrustlistTestdata;

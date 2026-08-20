@@ -1,8 +1,7 @@
-package no.idporten.eudiw.verifier.trustlist.etsi602.pojo;
+package no.idporten.eudiw.verifier.trustlist.etsi602;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
-import no.idporten.eudiw.verifier.trustlist.etsi602.Trustlist;
 import tools.jackson.databind.annotation.JsonDeserialize;
 
 @JsonDeserialize
