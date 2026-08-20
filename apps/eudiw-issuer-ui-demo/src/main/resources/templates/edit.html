@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
-    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <title>Bevisgenerator</title>
 </head>
 
 <body>
-<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
     <div>
@@ -62,6 +62,6 @@
 
 </main>
 
-<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 </body>
 </html>

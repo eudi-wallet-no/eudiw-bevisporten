@@ -16,6 +16,8 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.Verifi
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.verification.VerificationMode;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -31,9 +33,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -197,12 +197,28 @@ class VerificationControllerTest {
         mockMvc.perform(get("/verification-result/uniqueKey")
                         .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
                 .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store, private"))
+                .andExpect(header().string("Referrer-Policy", "no-referrer"))
                 .andExpect(view().name("verification-result"))
                 .andExpect(model().attributeExists("result"))
                 .andExpect(model().attribute("resultJson", containsString("\"proof_of_age\"")))
                 .andExpect(model().attribute("resultJson", containsString("\"age_over_18\" : true")));
 
         verify(verifierService).retrieveVerificationResult("tx-id");
+    }
+
+    @Test
+    void getVerificationResultReusesResultFromSession() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("verification_transaction_data_uniqueKey", verificationTransactionData);
+
+        mockMvc.perform(get("/verification-result/uniqueKey").session(session))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/verification-result/uniqueKey").session(session))
+                .andExpect(status().isOk())
+                .andExpect(model().attributeExists("result"));
+
+        verify(verifierService, times(1)).retrieveVerificationResult("tx-id");
     }
 
     @Test

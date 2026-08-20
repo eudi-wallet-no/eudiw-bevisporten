@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
-    <th:block th:replace="~{fragments/general :: base_head_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <title>Bevisgenerator</title>
 </head>
 <body>
-<header th:replace="~{fragments/general :: page_header_fragment}"></header>
+<header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
     <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
         <h1 class="ds-heading" data-size="lg">
@@ -46,7 +46,7 @@
         </details>
     </div>
 </main>
-<footer th:replace="~{fragments/general :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script th:inline="javascript">
     const statusMessage = document.getElementById("verification-status-message");
     const statusEndpoint = /*[[@{/verification-presentation/{verificationId}/status(verificationId=${verificationId})}]]*/ "";
@@ -55,9 +55,11 @@
     const navigateToResultButton = document.getElementById("navigate-to-result-button");
     const qrCode = document.getElementById("cross-device-request");
 
+    let stopped = false;
     let sameDeviceFlow = false;
 
     sameDeviceButton.addEventListener("click", () => {
+        stopped = true;
         sameDeviceFlow = true;
     });
 
@@ -82,11 +84,16 @@
     function waitForUserBeforeRedirectToResultPage() {
         const redirect = () => {
             window.removeEventListener("focus", redirect);
-            window.removeEventListener("pageshow", redirect);
-            document.removeEventListener("visibilitychange", redirect);
+            document.removeEventListener("visibilitychange", redirectWhenVisible);
 
             debouncedRedirectToResultPage();
         }
+
+        const redirectWhenVisible = () => {
+            if (document.visibilityState === "visible") {
+                redirect();
+            }
+        };
 
         updateStatusMessage("Verifikasjonen er fullført.");
         navigateToResultButton.style.display = "block";
@@ -94,8 +101,7 @@
         qrCode.style.display = "none";
 
         window.addEventListener("focus", redirect);
-        window.addEventListener("pageshow", redirect);
-        document.addEventListener("visibilitychange", redirect);
+        document.addEventListener("visibilitychange", redirectWhenVisible);
     }
 
     const handle200 = async () => {
@@ -106,6 +112,26 @@
             waitForUserBeforeRedirectToResultPage();
         }
     };
+
+    const handle202 = (pollFunc, interval) => {
+        if (stopped) {
+            const resume = () => {
+                window.removeEventListener("focus", resume);
+                document.removeEventListener("visibilitychange", resumeWhenVisible);
+
+                stopped = false;
+                pollFunc();
+            }
+            const resumeWhenVisible = () => {
+                if (document.visibilityState === "visible") {
+                    resume();
+                }
+            };
+            window.addEventListener("focus", resume);
+            document.addEventListener("visibilitychange", resumeWhenVisible);
+        }
+        setTimeout(pollFunc, interval);
+    }
 
     async function waitForWallet(interval, timeout) {
         const endtime = Date.now() + timeout;
@@ -128,7 +154,7 @@
                 }
 
                 if (response.status === 202) {
-                    setTimeout(poll, interval);
+                    handle202(poll, interval);
                     return;
                 }
 
