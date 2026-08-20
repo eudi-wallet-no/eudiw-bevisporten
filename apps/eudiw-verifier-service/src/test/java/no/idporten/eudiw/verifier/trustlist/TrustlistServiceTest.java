@@ -1,12 +1,10 @@
-package no.idporten.eudiw.verifier.trustlist.util;
+package no.idporten.eudiw.verifier.trustlist;
 
 import com.nimbusds.jose.util.X509CertUtils;
-import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import no.idporten.eudiw.verifier.trustlist.etsi602.pojo.LoTEResponse;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTE;
 import no.idporten.eudiw.verifier.testdata.Certificates;
 import no.idporten.eudiw.verifier.testdata.TrustlistTestdata;
-import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,8 +28,8 @@ import java.security.cert.X509Certificate;
 class TrustlistServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistServiceTest.class);
-    private static URI XMLTRUSTLISTURL =URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
-    private static URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
+    public static URI XMLTRUSTLISTURL =URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
+    public static URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
 
     private TrustlistService trustlistService;
 
@@ -135,6 +133,22 @@ class TrustlistServiceTest {
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.certificateThatIsNotOnTrustlist()+ "-----END CERTIFICATE-----");
         boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertFalse(result);
+    }
+
+
+    @Test
+    @DisplayName("that PID checks trustlist and is valid")
+    void pidTrustlistChechValid() throws Exception {
+        mockServer.expect(requestTo(XMLTRUSTLISTURL))
+                .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
+        mockServer.expect(requestTo(XMLTRUSTLISTURL))
+                .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
+        X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.trustlistCertificatePID() + "-----END CERTIFICATE-----");
+        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
     }
 
 }
