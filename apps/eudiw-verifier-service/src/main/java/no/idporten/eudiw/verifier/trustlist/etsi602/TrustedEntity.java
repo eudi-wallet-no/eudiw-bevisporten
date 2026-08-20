@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Objects;
 
 
 public record TrustedEntity(
@@ -11,4 +12,8 @@ public record TrustedEntity(
         TrustedEntityInformation trustedEntityInformation,
         @JsonProperty("TrustedEntityServices")
         @Valid List<TrustedEntityService> trustedEntityServices) {
+
+    public boolean noneContainServiceStatus() {
+        return trustedEntityServices().stream().map(TrustedEntityService::serviceInformation).map(ServiceInformation::serviceStaus).allMatch(Objects::isNull);
+    }
 }

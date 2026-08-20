@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import com.nimbusds.jose.JWSObject;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.trustlist.etsi602.ServiceInformation;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
 import no.idporten.eudiw.verifier.trustlist.etsi602.pojo.LoTEResponse;
@@ -90,12 +91,17 @@ public class TrustlistService {
 
     protected boolean checkJson602(URI uri, X509Certificate cert, String jwsHeaderCertificateIssuer) throws IOException, InvalidNameException, ParseException {
         LoTEResponse lote = (LoTEResponse) connectToTrustlist(uri);
+        boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
         for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
             String trustListIssuer = issuerName(new LdapName(trustedEntity.trustedEntityServices().getFirst().serviceInformation().serviceDigitalIdentity().X509Certificates().getFirst().getCertificateAsX509Object().getIssuerX500Principal().getName(X500Principal.RFC2253)));
             if (jwsHeaderCertificateIssuer.equals(trustListIssuer)) {
                 for (TrustedEntityService trustedEntityService : trustedEntity.trustedEntityServices()) {
                     if(compareCertificates(cert,  trustedEntityService.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts())) {
-                        return true;
+                        if(allActive || trustedEntityService.serviceInformation().serviceStaus() != null) {
+                            return true;
+                        } else {
+                            log.info("Certificate {} is set to not active on trustlist", cert.getSubjectX500Principal().getName());
+                        }
                     }
                 }
             }
@@ -110,7 +116,9 @@ public class TrustlistService {
             if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
                 for (TSPService service : sp.services().services()) {
                     if (compareCertificates(cert, List.of(service.serviceInformation().serviceDigitalIdentity().digitalIds().get(1).getCertificateAsX509Object()))) {
-                        return true;
+                        if (service.serviceInformation().checkServiceCurrentStatus()) {
+                            return true;
+                        }
                     }
                 }
             }

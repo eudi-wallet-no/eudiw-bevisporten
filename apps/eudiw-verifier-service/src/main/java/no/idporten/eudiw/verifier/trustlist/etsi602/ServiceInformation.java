@@ -16,6 +16,6 @@ public record ServiceInformation(
         @JsonProperty("ServiceTypeIdentifier")
         @NotNull String serviceTypeIdentifier,
         @JsonProperty("ServiceStatus")
-        URI uri
+        URI serviceStaus
         ) {
 }

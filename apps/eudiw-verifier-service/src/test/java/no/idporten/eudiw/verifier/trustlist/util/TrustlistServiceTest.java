@@ -1,4 +1,4 @@
-package no.idporten.eudiw.verifier.openid4vp.trustlist.util;
+package no.idporten.eudiw.verifier.trustlist.util;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
@@ -27,13 +27,13 @@ import java.security.cert.X509Certificate;
 
 @SpringBootTest
 @ActiveProfiles("junit")
-class TrustlistLogicTest {
+class TrustlistServiceTest {
 
-    private static final Logger log = LoggerFactory.getLogger(TrustlistLogicTest.class);
+    private static final Logger log = LoggerFactory.getLogger(TrustlistServiceTest.class);
     private static URI XMLTRUSTLISTURL =URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
     private static URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
 
-    private TrustlistService trustlistLogic;
+    private TrustlistService trustlistService;
 
     private MockRestServiceServer mockServer;
 
@@ -43,7 +43,7 @@ class TrustlistLogicTest {
     private final TrustlistTestdata trustlistTestdata = new TrustlistTestdata();
     private final Certificates certificates = new Certificates();
 
-    public TrustlistLogicTest() {
+    public TrustlistServiceTest() {
     }
 
     @BeforeEach
@@ -51,7 +51,7 @@ class TrustlistLogicTest {
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
         RestClient restclient = builder.build();
-        trustlistLogic = new TrustlistService(restclient, trustlistProperties);
+        trustlistService = new TrustlistService(restclient, trustlistProperties);
     }
 
 
@@ -62,7 +62,7 @@ class TrustlistLogicTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
 
-        LoTE lote = (LoTE) trustlistLogic.connectToTrustlist(XMLTRUSTLISTURL);
+        LoTE lote = (LoTE) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
         assertNotNull(lote);
         assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue());
     }
@@ -74,7 +74,7 @@ class TrustlistLogicTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
 
-        LoTEResponse lote = (LoTEResponse) trustlistLogic.connectToTrustlist(JSONTRUSTLISTURL);
+        LoTEResponse lote = (LoTEResponse) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
         assertNotNull(lote);
         log.info("Trustlist: {}", lote);
         assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
@@ -88,7 +88,7 @@ class TrustlistLogicTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
 
-        LoTE lote = (LoTE) trustlistLogic.connectToTrustlist(XMLTRUSTLISTURL);
+        LoTE lote = (LoTE) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
         assertAll(
                 () -> assertNotNull(lote),
                 () -> assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue()),
@@ -107,7 +107,7 @@ class TrustlistLogicTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.getBevisportenCertificate()+ "-----END CERTIFICATE-----");
-        boolean result = trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertTrue(result);
     }
 
@@ -117,7 +117,7 @@ class TrustlistLogicTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.getSecondBevisporten()+ "-----END CERTIFICATE-----");
-        boolean result = trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertTrue(result);
     }
 
@@ -133,7 +133,8 @@ class TrustlistLogicTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.certificateThatIsNotOnTrustlist()+ "-----END CERTIFICATE-----");
-        boolean result = trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertFalse(result);
     }
+
 }
