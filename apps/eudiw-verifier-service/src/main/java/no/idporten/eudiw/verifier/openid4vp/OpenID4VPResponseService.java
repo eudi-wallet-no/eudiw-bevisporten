@@ -12,7 +12,6 @@ import id.walt.mdoc.issuersigned.IssuerSigned;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
-import id.walt.mdoc.dataelement.*;
 import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -53,21 +52,13 @@ public class OpenID4VPResponseService {
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
     private final JsonMapper objectMapper;
+    private final TrustlistService trustlistService;
 
-
-    private final RestClient trustlistRestclient;
-
-    private final TrustlistsProperties trustlistsProperties;
-
-    private TrustlistService trustlistLogic;
-
-    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, JsonMapper objectMapper, @Qualifier("trustlist") RestClient trustlistRestclient, TrustlistsProperties trustlistsProperties) {
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, JsonMapper objectMapper) {
         this.verificationTransactionService = verificationTransactionService;
         this.tokenStatuslistService = tokenStatuslistService;
+        this.trustlistService = trustlistService;
         this.objectMapper = objectMapper;
-        this.trustlistRestclient = trustlistRestclient;
-        this.trustlistsProperties = trustlistsProperties;
-        this.trustlistLogic = new TrustlistService(trustlistRestclient, trustlistsProperties);
     }
 
     public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
@@ -168,7 +159,7 @@ public class OpenID4VPResponseService {
     }
 
     protected boolean checkTrustlist(X509Certificate cert) throws Exception {
-        return trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
     }
 
     protected VerifiedCredential retrieveClaimsFromSDJwtCredential(String vpToken, boolean includeValidationDetails) throws Exception {
