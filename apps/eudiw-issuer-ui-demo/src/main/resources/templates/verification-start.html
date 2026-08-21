@@ -14,8 +14,12 @@
         </h1>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
+    <h2 class="ds-heading" data-size="sm">Vel ein bevistype og tilhøyrande attributt du ynkjer å henta fra ei lommebok</h2>
+   <div class="card-container">
+
+
+   </div>
     <div class="ds-card" >
-        <h2 class="ds-heading" data-size="sm">Konfigurer DCQL query</h2>
         <p th:if="${verificationSuccessMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${verificationSuccessMessage}"></p>
         <form class="form-container"
               th:action="@{/verification-start}"
@@ -78,6 +82,9 @@
             .replaceAll("\"", "&quot;")
             .replaceAll("'", "&#039;");
     }
+
+
+
 
     function getSelectedDefinition() {
         const selectedId = configurationSelect.value;
