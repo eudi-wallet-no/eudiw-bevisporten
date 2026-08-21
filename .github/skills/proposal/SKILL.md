@@ -2,7 +2,7 @@
 name: proposal
 description: "Plan code changes before implementing. Map exact locations, understand impact, pick the simplest path, and deliver a testable plan. Do not implement without approval."
 license: Digitaliseringsdirektoratet
-allowed-tools: ['view', 'grep', 'bash']
+allowed-tools: ['view', 'grep', 'glob', 'bash', 'sql']
 ---
 
 # Proposal Skill
@@ -17,17 +17,35 @@ allowed-tools: ['view', 'grep', 'bash']
 
 ---
 
-## Three Core Disciplines
+## Core Disciplines
 
-1. **Map First** — Find change locations (`file:line`). Trace who calls in, what flows next, what breaks. Search monorepo for existing patterns.
+1. **Ground Truth First** — Read the files you will actually edit, in the workspace you
+   will actually edit them in. A monorepo may have several checkouts of the same repo;
+   a stale one silently produces a plan full of files and line numbers that don't exist.
 
-2. **Hypothesis → Test** — Pick the simplest, most maintainable approach. Plan tests (don't run): name the behavior, expected result, command.
+2. **Map First** — Find change locations (`file:line`). Trace who calls in, what flows next, what breaks. Search monorepo for existing patterns.
 
-3. **Wait for Approval** — Never code without sign-off. Plan is complete when it answers: What? Where? Why this way? How to verify?
+3. **Hypothesis → Test** — Pick the simplest, most maintainable approach. Plan tests (don't run): name the behavior, expected result, command.
+
+4. **Wait for Approval** — Never code without sign-off. Plan is complete when it answers: What? Where? Why this way? How to verify?
 
 ---
 
 ## Steps
+
+### 0. Ground truth
+Before reading anything, confirm *where* you are reading from:
+
+```bash
+pwd                                             # the workspace you will edit
+git rev-parse --show-toplevel                   # confirm it's the repo root you expect
+git fetch origin <default-branch>
+git rev-list --left-right --count HEAD...origin/<default-branch>   # must not be behind
+```
+
+If behind, sync before mapping. Then confirm the files exist *in this tree* — `glob` the
+directory rather than assuming a path from memory, another checkout, or an earlier session.
+Never map or edit via an absolute path outside the current workspace.
 
 ### 1. Map
 Find all change locations and impacts. Who is affected? Any reusable patterns in the monorepo?
@@ -71,9 +89,14 @@ the full detail (where, impacts, test, done-when) lives in each todo's `descript
 
 ## Non-Negotiable
 
+- **Ground truth before mapping.** Right workspace, synced with the default branch, files
+  confirmed to exist in *this* tree. A plan built on a stale checkout is worse than no plan.
 - **Map before plan.** Know where the change lives and what it affects.
-- **No code claims without file:line.**
+- **No code claims without file:line** — and only from files you actually opened in this
+  workspace. Don't carry over paths or line numbers from another checkout or from memory.
 - **Reuse first.** Only design new patterns when existing ones don't fit.
+- **Check for a domain skill.** If the change touches an area with its own skill
+  (UI/design system, tests, migrations), read it before proposing an approach.
 - **Justify deviations.** Breaking from patterns? Explain why.
 - **Plan, don't code.** Wait for approval before implementing.
 
@@ -82,6 +105,10 @@ the full detail (where, impacts, test, done-when) lives in each todo's `descript
 ## After Approval
 
 1. Execute tasks in dependency order
-2. Run all tests
-3. Update docs if changes made them incorrect
+2. Keep todo status current — set `in_progress` when starting, `done` only once verified.
+   Don't leave everything `pending` and mark it all done at the end.
+3. Verify against the done-when condition, not just "it ran". For UI, that means rendering
+   the page and comparing to the reference; for logic, the named test.
+4. Run all tests
+5. Update docs if changes made them incorrect
 
