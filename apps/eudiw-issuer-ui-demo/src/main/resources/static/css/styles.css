@@ -243,6 +243,50 @@ main {
     }
 }
 
+/* Credential picker */
+.credential-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-auto-flow: dense;
+    gap: var(--ds-size-4);
+    align-items: start;
+}
+
+.credential-card {
+    cursor: pointer;
+    padding: var(--ds-size-4);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+}
+
+.credential-card--expanded {
+    grid-column: span 2;
+    border-color: var(--ds-color-accent-border-default);
+}
+
+.credential-card__title {
+    margin: 0;
+}
+
+.credential-card__claims {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    margin-top: var(--ds-size-4);
+}
+
+.credential-card__claim {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    cursor: pointer;
+}
+
+@media (max-width: 639px) {
+    .credential-card--expanded {
+        grid-column: span 1;
+    }
+}
+
 /* Footer */
 footer {
     background-color: var(--ds-color-neutral-background-tinted);
