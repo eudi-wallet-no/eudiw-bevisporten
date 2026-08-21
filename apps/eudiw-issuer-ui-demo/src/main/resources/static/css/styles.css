@@ -156,6 +156,24 @@ main {
             }
         }
     }
+
+    .admin-callout {
+        align-self: flex-end;
+        width: fit-content;
+        max-width: 320px;
+        text-align: right;
+    }
+
+    .step-card {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ds-size-2);
+    }
+
+    .step-number {
+        color: var(--ds-color-neutral-text-subtle);
+        line-height: 1;
+    }
 }
 
 @media (min-width: 640px) {
