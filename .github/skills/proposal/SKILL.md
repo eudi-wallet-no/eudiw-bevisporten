@@ -33,6 +33,9 @@ allowed-tools: ['view', 'grep', 'glob', 'bash', 'sql']
 
 ## Steps
 
+These are working steps — the order you *investigate* in. It is not the order you
+*present* in (see Output).
+
 ### 0. Ground truth
 Before reading anything, confirm *where* you are reading from:
 
@@ -50,13 +53,16 @@ Never map or edit via an absolute path outside the current workspace.
 ### 1. Map
 Find all change locations and impacts. Who is affected? Any reusable patterns in the monorepo?
 
+Mapping is **research, not a deliverable**. Most of what you find never reaches the
+document — it exists to make the options and the technical changes correct.
+
 ### 2. Scope
 What is the goal? What changes, what doesn't? Any blockers?
 
-### 3. Paths
+### 3. Options
 1–2 realistic approaches. Which is simplest and fits existing patterns? Why?
 
-### 4. Plan
+### 4. Tasks
 Create the tasks as SQL todos (with dependencies), each with a clear test strategy and
 done-when condition in its description. Don't duplicate that detail as a table in `plan.md`.
 
@@ -67,23 +73,30 @@ done-when condition in its description. Don't duplicate that detail as a table i
 Keep the plan short. Investigate thoroughly, but only surface what's decision-relevant —
 this is a proposal to read in seconds, not an audit log.
 
-**Answer:**
-- Goal (one sentence)
-- Scope (what changes, what doesn't)
-- Recommendation (which path, why)
-- Related issues / Out of scope (other things worth considering separately)
+Present it in this order, so it reads as an argument: *why → what's in play → what we could
+do → what we should do → what that means in code → what gets done.*
 
-**Map:** 3–6 bullets max, only what shapes the decision:
-- The exact locations that change (`file:line`), grouped, not itemized line-by-line
-- Any existing pattern being reused, or why none fits (one line)
-- Anything unusual that affects the approach (a gotcha, a shared dependency, a missing test)
+**1. Goal** — one sentence. What outcome, and why.
 
-Do not list every unchanged line/section of a file "for completeness" — if it isn't
-changing and isn't relevant to the decision, leave it out.
+**2. Scope** — what changes, what explicitly doesn't, what's out of scope for now.
 
-**Plan:** Create the tasks as SQL todos (with `todo_deps` for ordering) — don't also render
-a task table in `plan.md`. In the plan output, just list task IDs with a one-line goal each;
-the full detail (where, impacts, test, done-when) lives in each todo's `description` field.
+**3. Options** — the 1–2 realistic approaches, each in a couple of lines. State the
+trade-off honestly. If there is genuinely only one sensible approach, say so in one line
+and move on — don't invent a strawman alternative.
+
+**4. Recommendation** — which option, and the reason. Comes *after* the options, never before.
+
+**5. Technical changes** — what this means in code: the locations that change
+(`file:line`, grouped), the pattern being reused or why none fits, and any gotcha that
+shapes the approach. 3–6 bullets. This is where mapping surfaces — filtered, not dumped.
+
+Do not list unchanged lines or sections "for completeness". If it isn't changing and
+doesn't affect the decision, leave it out.
+
+**6. Tasks** — task IDs with a one-line goal each. The full detail (where, impacts, test,
+done-when) lives in the todo `description`, not here.
+
+**7. Verification** — how we'll know it worked, in one or two lines.
 
 ---
 
@@ -91,7 +104,8 @@ the full detail (where, impacts, test, done-when) lives in each todo's `descript
 
 - **Ground truth before mapping.** Right workspace, synced with the default branch, files
   confirmed to exist in *this* tree. A plan built on a stale checkout is worse than no plan.
-- **Map before plan.** Know where the change lives and what it affects.
+- **Map before proposing.** Know where the change lives and what it affects — but keep the
+  findings out of the document unless they shape the decision.
 - **No code claims without file:line** — and only from files you actually opened in this
   workspace. Don't carry over paths or line numbers from another checkout or from memory.
 - **Reuse first.** Only design new patterns when existing ones don't fit.
