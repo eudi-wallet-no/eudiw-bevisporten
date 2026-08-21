@@ -1,9 +1,8 @@
 <div th:fragment="back_link_fragment(href)">
     <a th:href="@{${href}}"
-       class="ds-link"
-       data-color="neutral"
-       style="text-decoration: none; --dsc-link-color: var(--ds-color-neutral-text-subtle); --dsc-link-color--visited: var(--ds-color-neutral-text-subtle);">
-        <span style="display: flex; align-items: center; justify-content: flex-start;">
+       class="ds-link back-link"
+       data-color="neutral">
+        <span class="back-link__content">
             <svg aria-hidden="true"
                  width="20"
                  height="20"

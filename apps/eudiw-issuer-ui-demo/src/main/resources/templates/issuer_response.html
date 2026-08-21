@@ -22,15 +22,15 @@
     </p>
 
 
-    <div class="ds-card" style="max-width: 600px">
+    <div class="ds-card card-narrow">
 
         <div id="cross-device-request">
             <img th:src="${'data:image/png;base64,' + issuance.qrCode}" alt="QR kode for bevis" id="qrcode-cross-device"
                  width="100%"/>
         </div>
 
-        <div class="flex-container" style="min-width: unset">
-            <a th:href="${issuance.encodedUri}" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+        <div class="button-group">
+            <a th:href="${issuance.encodedUri}" class="ds-button" data-variant="primary">
                 Opne på mobilen
             </a>
             <a th:href="@{/issue}" class="ds-button" type="button" data-variant="secondary">
@@ -49,13 +49,13 @@
                 <br/>
                 <code><span th:text="${request.headers}"></span></code>
                 <br/><br/>
-                <code th:text="${request.body}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+                <code class="code-block" th:text="${request.body}"></code>
             </div>
         </details>
         <details class="ds-details" data-variant="default">
             <summary>Response frå issuer-server</summary>
             <div>
-                <code th:text="${issuance.issuanceResponse}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+                <code class="code-block" th:text="${issuance.issuanceResponse}"></code>
             </div>
         </details>
     </div>
