@@ -2,7 +2,7 @@
 name: proposal
 description: "Plan code changes before implementing. Map exact locations, understand impact, pick the simplest path, and deliver a testable plan. Do not implement without approval."
 license: Digitaliseringsdirektoratet
-allowed-tools: ['view', 'grep', 'glob', 'bash', 'sql']
+allowed-tools: ['view', 'grep', 'glob', 'bash']
 ---
 
 # Proposal Skill
