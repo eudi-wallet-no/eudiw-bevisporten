@@ -178,6 +178,123 @@ main {
     }
 }
 
+/* Stepper */
+.stepper ol {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.stepper li {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.stepper li:not(:last-child)::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    margin-inline: var(--ds-size-3);
+    background-color: var(--ds-color-neutral-border-subtle);
+}
+
+.stepper__step {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    color: var(--ds-color-neutral-text-subtle);
+    white-space: nowrap;
+}
+
+.stepper__indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ds-size-7);
+    height: var(--ds-size-7);
+    flex: 0 0 var(--ds-size-7);
+    border-radius: 50%;
+    background-color: var(--ds-color-neutral-surface-tinted);
+    color: var(--ds-color-neutral-text-subtle);
+    font-weight: 600;
+}
+
+.stepper__step--current {
+    color: var(--ds-color-accent-text-default);
+    font-weight: 600;
+}
+
+.stepper__step--current .stepper__indicator {
+    background-color: var(--ds-color-accent-base-default);
+    color: var(--ds-color-accent-base-contrast-default);
+}
+
+@media (max-width: 639px) {
+    .stepper ol {
+        flex-direction: column;
+        gap: var(--ds-size-3);
+    }
+
+    .stepper li:not(:last-child)::after {
+        display: none;
+    }
+}
+
+/* Credential picker */
+.credential-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-auto-flow: dense;
+    gap: var(--ds-size-4);
+    align-items: start;
+}
+
+@media (min-width: 640px) {
+    .credential-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.credential-card {
+    cursor: pointer;
+    padding: var(--ds-size-4);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    min-width: 0;
+    height: 100%;
+}
+
+.credential-card--expanded {
+    grid-column: span 2;
+    border-color: var(--ds-color-accent-border-default);
+}
+
+.credential-card__title {
+    margin: 0;
+}
+
+.credential-card__claims {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    margin-top: var(--ds-size-4);
+}
+
+.credential-card__claim {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    cursor: pointer;
+}
+
+@media (max-width: 639px) {
+    .credential-card--expanded {
+        grid-column: span 1;
+    }
+}
+
 /* Footer */
 footer {
     background-color: var(--ds-color-neutral-background-tinted);
