@@ -10,6 +10,11 @@ All UI follows [Digitaliseringsdirektoratet's Designsystemet](https://designsyst
 
 See [the designsystem skill](skills/designsystem-skill.md) before changing anything visual.
 
+## Norwegian text
+
+Before editing Norwegian UI copy, documentation, or product text, use the
+[`norsk-klarsprak` skill](skills/norsk-klarsprak).
+
 ## Planning
 
 Before planning any non-trivial change (multi-file, unclear scope, or a design/architecture
