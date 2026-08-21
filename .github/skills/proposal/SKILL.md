@@ -60,7 +60,13 @@ document — it exists to make the options and the technical changes correct.
 What is the goal? What changes, what doesn't? Any blockers?
 
 ### 3. Options
-1–2 realistic approaches. Which is simplest and fits existing patterns? Why?
+Start with prior art: search the monorepo for the closest analog before designing anything.
+
+```bash
+git log --oneline -5 -- <file>          # is this area settled or mid-migration?
+```
+
+Then 1–2 realistic approaches. Which is simplest and fits existing patterns? Why?
 
 ### 4. Tasks
 Create the tasks as SQL todos (with dependencies), each with a clear test strategy and
@@ -80,9 +86,16 @@ do → what we should do → what that means in code → what gets done.*
 
 **2. Scope** — what changes, what explicitly doesn't, what's out of scope for now.
 
-**3. Options** — the 1–2 realistic approaches, each in a couple of lines. State the
-trade-off honestly. If there is genuinely only one sensible approach, say so in one line
-and move on — don't invent a strawman alternative.
+**3. Options** — open with a short paragraph on **prior art**: has the monorepo solved
+something like this before? Name the closest analog (`app/file`), what convention it
+established, and whether we follow it or deviate. If there is no analog, say so — that is
+itself a finding, and means the options are about *establishing* a pattern, not picking one.
+Check when the surrounding code last changed; landing on top of an in-progress migration
+constrains the options more than an old, settled file does.
+
+Then the 1–2 realistic approaches, each in a couple of lines. State the trade-off honestly.
+If there is genuinely only one sensible approach, say so in one line and move on — don't
+invent a strawman alternative.
 
 **4. Recommendation** — which option, and the reason. Comes *after* the options, never before.
 
