@@ -15,6 +15,13 @@ spring:
     cache-names: credential-issuer-metadata
     caffeine:
       spec: maximumSize=100,expireAfterWrite=2m
+  web:
+    resources:
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
 
 
 # Spring Boot Actuator
