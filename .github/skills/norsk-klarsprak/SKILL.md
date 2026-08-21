@@ -2,7 +2,7 @@
 name: norsk-klarsprak
 description: "Edit Norwegian UI copy, documentation, and product text for clarity. Preserve the existing Bokmål or Nynorsk form, and ask the user when the text mixes both."
 license: Digitaliseringsdirektoratet
-allowed-tools: ['view', 'rg', 'glob', 'ask_user']
+allowed-tools: ['view', 'grep', 'glob', 'ask_user']
 ---
 
 # Norsk klarspråk
