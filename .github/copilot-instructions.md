@@ -10,6 +10,18 @@ All UI follows [Digitaliseringsdirektoratet's Designsystemet](https://designsyst
 
 See [the designsystem skill](skills/designsystem-skill.md) before changing anything visual.
 
+## Norwegian text
+
+Before editing Norwegian UI copy, documentation, or product text, use the
+[`norsk-klarsprak` skill](skills/norsk-klarsprak).
+
+## Planning
+
+Before planning any non-trivial change (multi-file, unclear scope, or a design/architecture
+decision), use the [`proposal` skill](skills/proposal) immediately — as the first action,
+not after feedback. Sync the branch with the latest default branch (`main`) before writing
+the plan, so it is never based on stale history.
+
 ## After completing work
 
 When planning or executing changes, check if documentation needs updating. If your changes make something in the docs incorrect or outdated, update it.
