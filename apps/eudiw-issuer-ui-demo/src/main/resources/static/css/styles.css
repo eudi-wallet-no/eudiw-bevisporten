@@ -118,6 +118,9 @@ header {
 
 /* Main content */
 main {
+    width: 100%;
+    max-width: 1380px;
+    margin-inline: auto;
     padding-block: var(--ds-size-7);
     padding-inline: var(--ds-size-5);
     display: flex;
@@ -125,9 +128,6 @@ main {
     gap: var(--ds-size-7);
 
     & > * {
-        max-width: 1380px;
-        margin: 0 auto;
-        gap: var(--ds-size-7);
         width: 100%;
     }
 
@@ -145,16 +145,6 @@ main {
         display: flex;
         flex-direction: column;
         gap: var(--ds-size-4);
-
-        .button-group {
-            display: flex;
-            gap: var(--ds-size-4);
-            flex-wrap: wrap;
-
-            button {
-                width: fit-content;
-            }
-        }
     }
 
     .landing-copy {
@@ -180,6 +170,17 @@ main {
     }
 }
 
+.button-group {
+    display: flex;
+    gap: var(--ds-size-4);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.button-group > * {
+    width: fit-content;
+}
+
 @media (min-width: 640px) {
     main {
         .flex-container {
@@ -198,6 +199,138 @@ main {
     main {
         padding-block: var(--ds-size-10);
     }
+}
+
+.back-link {
+    --dsc-link-color: var(--ds-color-neutral-text-subtle);
+    --dsc-link-color--visited: var(--ds-color-neutral-text-subtle);
+    text-decoration: none;
+}
+
+.back-link__content {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-1);
+}
+
+.content-narrow {
+    max-width: 900px;
+}
+
+.card-narrow {
+    max-width: 600px;
+}
+
+.issue-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-width: 500px;
+}
+
+.success-message {
+    color: var(--ds-color-success-text-default);
+}
+
+.json-editor {
+    min-height: 500px;
+    resize: vertical;
+}
+
+.error-list {
+    margin-block-start: var(--ds-size-1);
+    padding-inline-start: var(--ds-size-6);
+}
+
+.metadata-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    max-width: 700px;
+}
+
+.metadata-fields .ds-field {
+    display: grid;
+    gap: var(--ds-size-2);
+}
+
+.metadata-fields .ds-input {
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .metadata-fields .ds-field {
+        grid-template-columns: 160px minmax(0, 1fr);
+        align-items: center;
+        gap: var(--ds-size-4);
+    }
+}
+
+.credential-table-wrapper {
+    overflow-x: auto;
+}
+
+.credential-table {
+    width: 100%;
+    max-width: 700px;
+    border-collapse: collapse;
+}
+
+.credential-table th,
+.credential-table td {
+    padding: var(--ds-size-3) var(--ds-size-4);
+    border-bottom: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    text-align: left;
+}
+
+.credential-table th {
+    background-color: var(--ds-color-neutral-surface-tinted);
+    font-weight: 600;
+}
+
+.credential-table tbody tr:hover {
+    background-color: var(--ds-color-neutral-surface-hover);
+}
+
+.credential-table__actions-column {
+    width: 220px;
+}
+
+.credential-table__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ds-size-2);
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-3);
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    margin-block-start: var(--ds-size-4);
+}
+
+.qr-code {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+}
+
+.status-message {
+    margin-block-start: var(--ds-size-3);
+}
+
+.code-block {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.result-actions {
+    margin-block-start: var(--ds-size-4);
 }
 
 /* Stepper */
@@ -369,17 +502,27 @@ footer ul {
 .claim {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: var(--ds-size-3);
     justify-content: center;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: var(--ds-size-4);
 }
 
 .claim_field {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: var(--ds-size-2);
     width: 100%;
     justify-content: flex-start;
-    align-items: center;
+}
+
+@media (max-width: 639px) {
+    .claim {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .claim > .ds-button {
+        align-self: flex-start;
+    }
 }

@@ -19,8 +19,9 @@
     </div>
     <div class="flex-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
-            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}" class="ds-card"
-               data-variant="neutral" style="max-width: 500px; display: flex; flex-direction: column; justify-content: space-between;">
+            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
+               class="ds-card issue-card"
+               data-variant="neutral">
                 <div>
                     <h2 class="ds-heading" th:text="${credentialConfiguration.description}">PID</h2>
                     <p class="ds-paragraph" data-variant="neutral" th:text="${credentialConfiguration.credentialConfigurationId}"></p>

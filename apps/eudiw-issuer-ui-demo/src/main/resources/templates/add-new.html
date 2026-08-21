@@ -35,16 +35,15 @@
                 Skjemaet inneholder feil:
             </p>
 
-            <ul style="margin-block-start: 0.2em; margin-inline-start: 0.8em;">
+            <ul class="error-list">
                 <li th:each="error : ${#fields.allErrors()}"
                     th:text="${error}">
                 </li>
             </ul>
         </div>
 
-        <div>
+        <div class="metadata-fields">
             <div class="ds-field"
-                 style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;"
                  th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
 
                 <label class="ds-label" for="credentialType">Credential type</label>
@@ -52,25 +51,21 @@
                 <input class="ds-input"
                        type="text"
                        id="credentialType"
-                       th:field="*{credentialType}"
-                       style="width: 50%" >
+                       th:field="*{credentialType}">
 
             </div>
 
-            <div class="ds-field"
-                 style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;">
+            <div class="ds-field">
                 <label for="name-field" class="ds-label">Name</label>
-                <input id="name-field" style="width:50%;" class="ds-input" type="text" th:field="*{name}" />
+                <input id="name-field" class="ds-input" type="text" th:field="*{name}" />
             </div>
-            <div class="ds-field"
-                 style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;">
+            <div class="ds-field">
                 <label for="format-field" class="ds-label">Format</label>
-                <input id="format-field" style="width:50%;" class="ds-input" type="text" th:field="*{format}" />
+                <input id="format-field" class="ds-input" type="text" th:field="*{format}" />
             </div>
-            <div class="ds-field"
-                 style="display: grid; grid-template-columns: 60px 1fr; grid-gap: 10px; align-items: center; justify-content: center;">
+            <div class="ds-field">
                 <label for="scope-field" class="ds-label">Scope</label>
-                <input id="scope-field" style="width:50%;" class="ds-input" type="text" th:field="*{scope}" />
+                <input id="scope-field" class="ds-input" type="text" th:field="*{scope}" />
             </div>
         </div>
 
