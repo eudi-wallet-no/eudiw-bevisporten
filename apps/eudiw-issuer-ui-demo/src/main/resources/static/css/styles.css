@@ -263,6 +263,7 @@ main {
     padding: var(--ds-size-4);
     border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
     min-width: 0;
+    height: 100%;
 }
 
 .credential-card--expanded {
