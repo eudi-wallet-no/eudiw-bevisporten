@@ -83,7 +83,7 @@ public class TrustlistService {
                     String trustListIssuer = issuerName(ldapName(individual.getIssuerX500Principal().getName(X500Principal.RFC2253)));
                     if(jwsHeaderCertificateIssuer.equals(trustListIssuer)) {
                         if(compareCertificates(cert, individual)) {
-                            if(allActive || service.serviceInformation().serviceStaus() != null) {
+                            if(allActive || service.serviceInformation().serviceStatus() != null) {
                                 return true;
                             } else {
                                 throw new VerificationException("invalid_request", "Service "+

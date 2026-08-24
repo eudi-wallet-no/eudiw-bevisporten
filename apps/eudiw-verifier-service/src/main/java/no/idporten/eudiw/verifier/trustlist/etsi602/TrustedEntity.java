@@ -15,6 +15,6 @@ public record TrustedEntity(
 
 
     public boolean noneContainServiceStatus() {
-        return trustedEntityServices().stream().map(TrustedEntityService::serviceInformation).map(ServiceInformation::serviceStaus).allMatch(Objects::isNull);
+        return trustedEntityServices().stream().map(TrustedEntityService::serviceInformation).map(ServiceInformation::serviceStatus).allMatch(Objects::isNull);
     }
 }
