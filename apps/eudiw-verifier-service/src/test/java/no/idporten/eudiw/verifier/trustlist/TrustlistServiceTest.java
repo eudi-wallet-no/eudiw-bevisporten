@@ -28,8 +28,8 @@ import java.security.cert.X509Certificate;
 class TrustlistServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistServiceTest.class);
-    public static URI XMLTRUSTLISTURL =URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
-    public static URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
+    public static final URI XMLTRUSTLISTURL =URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
+    public static final URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
 
     private TrustlistService trustlistService;
 
