@@ -124,6 +124,12 @@
                               class="ds-validation-message"
                               th:errors="*{issuanceTransactionId}"></span>
                     </div>
+
+                    <button class="ds-button"
+                            type="submit"
+                            data-variant="primary">
+                        Tilbakekall bevis
+                    </button>
                 </form>
             </section>
 
@@ -189,6 +195,12 @@
                               class="ds-validation-message"
                               th:errors="*{subjectIdentifier}"></span>
                     </div>
+
+                    <button class="ds-button"
+                            type="submit"
+                            data-variant="primary">
+                        Tilbakekall bevis
+                    </button>
                 </form>
             </section>
         </div>
@@ -197,10 +209,10 @@
             previousHref='/verification-start',
             previousLabel='Presenter bevis',
             nextHref=${null},
-            nextLabel='Tilbakekall bevis',
+            nextLabel=${null},
             nextForm=${null},
             nextDisabledUntilSelection=${false},
-            dynamicNextForm=${true},
+            dynamicNextForm=${false},
             nextColor=${null}
         )}"></div>
     </div>
