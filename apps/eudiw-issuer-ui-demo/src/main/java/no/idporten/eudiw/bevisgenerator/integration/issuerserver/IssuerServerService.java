@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,12 +71,14 @@ public class IssuerServerService {
                     credentialIssuerMetadata.add(metadata);
                 }
             } catch (HttpClientErrorException e) {
-                log.error("Configuration error fetching .well-known endpoint: {}",
-                        wellKnownUrl, e);
-                throw new IssuerServerException("Failed to fetch credential issuer metadata", e);
+                log.error("Configuration error fetching .well-known endpoint: {}", wellKnownUrl, e);
+                throw new IssuerServerException("Configuration error fetching .well-known endpoint", e);
             } catch (HttpServerErrorException e) {
-                log.error("Server error fetching .well-known endpoint", e);
-                throw new IssuerServerException("Issuer server returned error fetching metadata", e);
+                log.error("Server error fetching .well-known endpoint: {}", wellKnownUrl, e);
+                throw new IssuerServerException("Server error fetching .well-known endpoint", e);
+            } catch (ResourceAccessException e) {
+                log.error("Unable to fetch .well-known endpoint: {}", wellKnownUrl, e);
+                throw new IssuerServerException("Unable to fetch .well-known endpoint", e);
             }
         }
 
