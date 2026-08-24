@@ -55,7 +55,7 @@ class TrustlistServiceTest {
 
     @Test
     @DisplayName("that util method of conecting to trustlist takes the uri and returns LoTE")
-    void connectToTrustlistReturnsLoteWhenUriIsCorrect() throws Exception {
+    void connectToTrustlistReturnsLoteWhenUriIsCorrect() {
 
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
@@ -67,7 +67,7 @@ class TrustlistServiceTest {
 
     @Test
     @DisplayName("that util method of conecting to trustlist takes the uri and returns Trustlist")
-    void connectToTrustlistReturnsLotResponseeWhenUriIsCorrect() throws Exception {
+    void connectToTrustlistReturnsLotResponseeWhenUriIsCorrect() {
 
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
@@ -82,7 +82,7 @@ class TrustlistServiceTest {
 
     @Test
     @DisplayName("that trustlist has expected content")
-    void trustlistHasExpectedContent() throws Exception {
+    void trustlistHasExpectedContent() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
 
@@ -101,7 +101,7 @@ class TrustlistServiceTest {
     @Test
     @DisplayName("that trustlists from config properties are read in, and that the list of trustlists are used " +
             "when checking for matching entry in trustlist")
-    void checkIfUrlsFromTrustlistPropertiesAreIteratedOverAndUsedWhenSerarhingForMatchingEntry() throws Exception {
+    void checkIfUrlsFromTrustlistPropertiesAreIteratedOverAndUsedWhenSerarhingForMatchingEntry() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.getBevisportenCertificate()+ "-----END CERTIFICATE-----");
@@ -111,7 +111,7 @@ class TrustlistServiceTest {
 
     @Test
     @DisplayName("that certificate down the list is checked when first entry is not matching")
-    void checkIfCertificateDownTheListIsCheckedAgainst() throws Exception {
+    void checkIfCertificateDownTheListIsCheckedAgainst() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
         X509Certificate cert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----" + certificates.getSecondBevisporten()+ "-----END CERTIFICATE-----");
@@ -121,7 +121,7 @@ class TrustlistServiceTest {
 
     @Test
     @DisplayName("that if certificate from vp token response from wallet is not on trustlist, result is false")
-    void resultIsFalseWhenCertIsNotOnTrustlist() throws Exception {
+    void resultIsFalseWhenCertIsNotOnTrustlist() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(trustlistTestdata.getXmlTrustlist(), MediaType.parseMediaType("application/vnd.etsi.tsl+xml")));
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
