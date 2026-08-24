@@ -26,11 +26,11 @@ public record SDJwtTrace(String id, String description, String sdJwt) implements
                     %s
                     .
                     <signature>
-                    .
-                    %s~
+                    ~%s~%s
                     """.formatted(writer.writeValueAsString(reader.readValue(parsedSDJwt.getHeader().toString())),
                     writer.writeValueAsString(reader.readValue(parsedSDJwt.getSdPayload().getUndisclosedPayload().toString())),
-                    String.join("~", parsedSDJwt.getDisclosures()));
+                    String.join("~", parsedSDJwt.getDisclosures()),
+                    parsedSDJwt.getKeyBindingJwt());
         } catch (Exception e) {
             logger.error("Failed to format SD-JWT", e);
             return sdJwt;

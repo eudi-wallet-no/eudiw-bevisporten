@@ -23,6 +23,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.view.InternalResourceView;
 import org.springframework.web.servlet.view.RedirectView;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -31,6 +34,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -150,6 +154,87 @@ class VerificationControllerTest {
                 .andExpect(model().attributeExists("credentialDefinitions"))
                 .andExpect(model().attributeExists("credentialDefinitionsJson"))
                 .andExpect(model().attributeExists("selectedClaimPathsJson"));
+    }
+
+    @Test
+    void getVerificationStartRendersTemplateWithCredentialCardGrid() throws Exception {
+        // Uses a real Thymeleaf view resolver (instead of the standalone InternalResourceView
+        // stub) to verify the actual template renders without errors after the Alpine.js
+        // card-grid refactor (EUW-1742), including partials such as fragments/layout.html.
+        org.springframework.web.context.support.GenericWebApplicationContext applicationContext =
+                new org.springframework.web.context.support.GenericWebApplicationContext();
+        applicationContext.refresh();
+
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(applicationContext);
+        templateResolver.setPrefix("classpath:/templates/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode(org.thymeleaf.templatemode.TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
+        templateResolver.setCacheable(false);
+
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver);
+
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine);
+        viewResolver.setCharacterEncoding("UTF-8");
+
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+
+        IssuerServerService issuerServerService = mock(IssuerServerService.class);
+        IssuerServerProperties issuerServerProperties = mock(IssuerServerProperties.class);
+        when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
+        when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(
+                new CredentialIssuerMetadata(
+                        "http://issuer",
+                        List.of(),
+                        "http://issuer/credential",
+                        null,
+                        null,
+                        Map.of("pid", new CredentialConfiguration(
+                                null,
+                                "no:kontaktregisteret:kontaktinformasjon:1",
+                                "scope",
+                                "dc+sd-jwt",
+                                List.of(),
+                                List.of(),
+                                new CredentialConfigurationMetadata(
+                                        List.of(new Display("PID")),
+                                        List.of(new ClaimMetadata(List.of("personidentifikator"), true, List.of(new Display("Personidentifikator"))))
+                                ),
+                                Map.of()
+                        )),
+                        List.of()
+                )
+        ));
+
+        MockMvc thymeleafMockMvc = MockMvcBuilders.standaloneSetup(
+                        new VerificationController(issuerServerService, issuerServerProperties, verifierService, new ObjectMapper(), new DCQLServiceImpl()))
+                .setValidator(validator)
+                .setViewResolvers(viewResolver)
+                .build();
+
+        thymeleafMockMvc.perform(get("/verification-start"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"step-flow\"")))
+                .andExpect(content().string(containsString("credential-picker")))
+                .andExpect(content().string(containsString("credential-grid")))
+                .andExpect(content().string(containsString("credentialPicker(")))
+                .andExpect(content().string(containsString("Start verifisering")))
+                .andExpect(content().string(containsString("x-bind:disabled=\"!selectedId\"")));
+
+        thymeleafMockMvc.perform(get("/verification-result/uniqueKey")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"step-flow\"")))
+                .andExpect(content().string(containsString("class=\"step-flow__content\"")))
+                .andExpect(content().string(containsString("href=\"/verification-start\"")))
+                .andExpect(content().string(containsString("Presenter nytt bevis")))
+                .andExpect(content().string(containsString("href=\"/revoke\"")))
+                .andExpect(content().string(containsString("Tilbakekall bevis")))
+                .andExpect(content().string(not(containsString(">Heim<"))));
     }
 
     @Test

@@ -3,9 +3,9 @@ package no.idporten.eudiw.bevisgenerator.web.models;
 import jakarta.validation.constraints.NotBlank;
 
 public record RevokeForm(
-        @NotBlank(message = "Credential configuration må velgast")
+        @NotBlank(message = "Vel ein bevistype")
         String credentialConfigurationId,
-        @NotBlank(message = "Issuance transaction id må ha verdi")
+        @NotBlank(message = "Skriv inn transaksjons-ID-en")
         String issuanceTransactionId
 ) {
     public RevokeForm() {

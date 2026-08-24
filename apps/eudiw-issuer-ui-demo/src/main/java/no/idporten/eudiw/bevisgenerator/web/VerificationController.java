@@ -38,6 +38,8 @@ public class VerificationController {
     private final ObjectMapper objectMapper;
     private final DCQLService dcqlService;
 
+    private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Resultat");
+
     public VerificationController(
             IssuerServerService issuerServerService,
             IssuerServerProperties properties,
@@ -117,7 +119,8 @@ public class VerificationController {
                 .addObject("statusUri", verificationTransactionData.statusUri())
                 .addObject("requestBody", toJsonString(verificationTransactionData.requestBody()))
                 .addObject("requestUri", verificationTransactionData.requestUri())
-                .addObject("responseBody", toJsonString(verificationTransactionData.verificationStartResponse()));
+                .addObject("responseBody", toJsonString(verificationTransactionData.verificationStartResponse()))
+                .addObject("steps", STEPS);
     }
 
     @GetMapping("/verification-result/{verification-id}")
@@ -137,7 +140,8 @@ public class VerificationController {
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("resultJson", toJsonString(result.credentials()));
+                .addObject("resultJson", toJsonString(result.credentials()))
+                .addObject("steps", STEPS);
     }
 
     @GetMapping("/verification-presentation/{verification-id}/status")
@@ -203,7 +207,8 @@ public class VerificationController {
                 .addObject("verificationForm", form)
                 .addObject("credentialDefinitions", credentialDefinitions)
                 .addObject("credentialDefinitionsJson", toJsonString(credentialDefinitions, false))
-                .addObject("selectedClaimPathsJson", toJsonString(form.selectedClaimPaths(), false));
+                .addObject("selectedClaimPathsJson", toJsonString(form.selectedClaimPaths(), false))
+                .addObject("steps", STEPS);
     }
 
     private String buildStartVerificationRequestBody(CredentialDefinitionDisplayData credentialDefinition, List<String> selectedClaimPaths, String verificationId) {
