@@ -16,7 +16,6 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.Verifi
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.verification.VerificationMode;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -119,7 +118,7 @@ class VerificationControllerTest {
                 "tx-id",
                 Map.of(
                         "proof_of_age",
-                        List.of(new VerificationResult.CredentialPresentation(
+                        List.of(new VerificationResult.VerifiedCredential(
                                 Map.of("age_over_18", true)
                         ))
                 )

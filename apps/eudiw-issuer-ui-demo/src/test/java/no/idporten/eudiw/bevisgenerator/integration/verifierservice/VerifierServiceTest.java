@@ -130,7 +130,7 @@ public class VerifierServiceTest {
     void retrieveVerificationResultReturnsResponseBody() {
         VerificationResult expected = new VerificationResult(
                 "tx-id",
-                Map.of("proof_of_age", List.of(new VerificationResult.CredentialPresentation(Map.of("age_over_18", true))))
+                Map.of("proof_of_age", List.of(new VerificationResult.VerifiedCredential(Map.of("age_over_18", true))))
         );
         when(responseSpec.body(VerificationResult.class)).thenReturn(expected);
 

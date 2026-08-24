@@ -8,10 +8,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerSer
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -137,10 +134,12 @@ public class VerificationController {
         response.setHeader("Referrer-Policy", "no-referrer");
 
         VerificationResult result = getVerificationResult(verificationId, session);
+        Map<String, List<VerifiedCredential>> verifiedCredentials = result.credentials();
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
                 .addObject("resultJson", toJsonString(result.credentials()))
+                .addObject("verifiedCredentials", verifiedCredentials)
                 .addObject("steps", STEPS);
     }
 
