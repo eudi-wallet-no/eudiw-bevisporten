@@ -17,6 +17,22 @@
             Vel ein bevistype. Fyll deretter inn opplysningane som skal vere med i beviset.
         </p>
     </div>
+    <aside class="ds-alert content-narrow"
+           data-color="info"
+           aria-labelledby="custom-credential-heading">
+        <h2 id="custom-credential-heading"
+            class="ds-heading"
+            data-size="xs">
+            Vil du lage din eigen bevistype?
+        </h2>
+        <p class="ds-paragraph">
+            På administrasjonssida kan du opprette eigne bevistypar og finne tekniske instruksjonar.
+            Du kan òg bruke ein av bevistypane under.
+        </p>
+        <a class="ds-link" th:href="@{/admin}">
+            Gå til administrasjon av bevistypar
+        </a>
+    </aside>
     <div class="step-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
             <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"

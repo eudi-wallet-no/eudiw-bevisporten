@@ -16,12 +16,13 @@
         </div>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=2)}"></div>
-    <div class="ds-card content-narrow"
+    <div class="ds-card card-narrow"
          data-color="neutral"
          data-variant="default">
-        <div id="cross-device-request" class="qr-code-container">
-            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" class="qr-code"/>
-        </div>
+        <div th:replace="~{fragments/components :: qr_code_fragment(
+            src=${qrCode},
+            alt='QR-kode for verifikasjon'
+        )}"></div>
         <p id="verification-status-message" class="ds-paragraph status-message"></p>
         <div class="button-group">
             <a th:href="@{/verification-result/{verificationId}(verificationId=${verificationId})}" id="navigate-to-result-button" class="ds-button" style="display:none;">

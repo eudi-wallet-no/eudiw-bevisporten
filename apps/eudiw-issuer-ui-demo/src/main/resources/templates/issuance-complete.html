@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
+    <title>Bevisgenerator</title>
+</head>
+<body>
+<header th:replace="~{fragments/layout :: page_header_fragment}"></header>
+<main>
+    <div class="step-flow">
+        <div class="step-flow__content">
+            <div class="landing-intro landing-copy">
+                <h1 class="ds-heading" data-size="xl">
+                    Beviset er utferda
+                </h1>
+                <p class="ds-paragraph" data-size="lg">
+                    Du kan no presentere beviset eller utferde eit nytt.
+                </p>
+            </div>
+        </div>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/issue',
+            previousLabel='Vel bevistype',
+            nextHref='/verification-start',
+            nextLabel='Presenter bevis',
+            nextForm=${null},
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>

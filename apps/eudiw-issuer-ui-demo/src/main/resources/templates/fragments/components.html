@@ -20,6 +20,15 @@
     </a>
 </div>
 
+<div th:fragment="qr_code_fragment(src, alt)"
+     id="cross-device-request"
+     class="qr-code-container">
+    <img th:src="${src}"
+         th:alt="${alt}"
+         id="qrcode-cross-device"
+         class="qr-code"/>
+</div>
+
 <nav th:fragment="step_navigation_fragment(previousHref, previousLabel, nextHref, nextLabel, nextForm, nextDisabledUntilSelection, dynamicNextForm, nextColor)"
      class="step-navigation"
      aria-label="Navigasjon mellom steg">

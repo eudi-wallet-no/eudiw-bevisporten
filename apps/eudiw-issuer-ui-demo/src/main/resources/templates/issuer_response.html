@@ -9,76 +9,178 @@
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
-    <div class="landing-intro landing-copy">
-        <h1 class="ds-heading" data-size="xl">
-            Send bevis til mobilen
-        </h1>
-        <p class="ds-paragraph" data-size="lg">
-            No er me i gong med å utferding av bevis, køyr på med mobilen!
-        </p>
+    <div class="page-heading">
+        <div th:replace="~{fragments/components :: back_link_fragment(href='/issue')}"></div>
+        <div class="landing-intro landing-copy">
+            <h1 class="ds-heading" data-size="xl">
+                Send bevis til mobilen
+            </h1>
+            <p class="ds-paragraph" data-size="lg">
+                Opne beviset på mobilen eller skann QR-koden.
+            </p>
+        </div>
     </div>
 
-    <div class="step-flow">
-        <div class="step-flow__content">
-            <p th:text="${error}" class="ds-validation-message" th:if="${error}">
-            </p>
+    <p th:text="${error}" class="ds-validation-message" th:if="${error}">
+    </p>
 
-            <div class="ds-card card-narrow"
-                 data-color="neutral"
-                 data-variant="default">
+    <div class="ds-card card-narrow"
+         data-color="neutral"
+         data-variant="default">
 
-                <div id="cross-device-request" class="qr-code-container">
-                    <img th:src="${'data:image/png;base64,' + issuance.qrCode}"
-                         alt="QR-kode for bevis"
-                         id="qrcode-cross-device"
-                         class="qr-code"/>
-                </div>
-
-                <div class="button-group">
-                    <a th:href="${issuance.encodedUri}" class="ds-button" data-variant="primary">
-                        Opne på mobilen
-                    </a>
-                    <a th:href="@{/issue}" class="ds-button" type="button" data-variant="secondary">
-                        Tilbake
-                    </a>
-                </div>
-            </div>
-
-            <div id="tracing">
-                <details class="ds-details" data-variant="default">
-                    <summary>Request til issuer-server</summary>
-                    <div>
-                        <code>POST <span th:text="${request.endpoint}"></span></code>
-                        <br/>
-                        <code><span th:text="${request.token}"></span></code>
-                        <br/>
-                        <code><span th:text="${request.headers}"></span></code>
-                        <br/><br/>
-                        <code class="code-block" th:text="${request.body}"></code>
-                    </div>
-                </details>
-                <details class="ds-details" data-variant="default">
-                    <summary>Response frå issuer-server</summary>
-                    <div>
-                        <code class="code-block" th:text="${issuance.issuanceResponse}"></code>
-                    </div>
-                </details>
-            </div>
-        </div>
-
-        <div th:replace="~{fragments/components :: step_navigation_fragment(
-            previousHref='/issue',
-            previousLabel='Vel bevistype',
-            nextHref='/verification-start',
-            nextLabel='Presenter bevis',
-            nextForm=${null},
-            nextDisabledUntilSelection=${false},
-            dynamicNextForm=${false},
-            nextColor=${null}
+        <div th:replace="~{fragments/components :: qr_code_fragment(
+            src=${'data:image/png;base64,' + issuance.qrCode},
+            alt='QR-kode for bevis'
         )}"></div>
+
+        <p id="issuance-status-message"
+           class="ds-paragraph status-message"
+           role="status"
+           aria-live="polite"></p>
+
+        <div class="button-group">
+            <a th:href="${issuance.encodedUri}"
+               id="same-device-button"
+               class="ds-button"
+               data-variant="primary">
+                Opne på mobilen
+            </a>
+        </div>
+    </div>
+
+    <div id="tracing">
+        <details class="ds-details" data-variant="default">
+            <summary>Request til issuer-server</summary>
+            <div>
+                <code>POST <span th:text="${request.endpoint}"></span></code>
+                <br/>
+                <code><span th:text="${request.token}"></span></code>
+                <br/>
+                <code><span th:text="${request.headers}"></span></code>
+                <br/><br/>
+                <code class="code-block" th:text="${request.body}"></code>
+            </div>
+        </details>
+        <details class="ds-details" data-variant="default">
+            <summary>Response frå issuer-server</summary>
+            <div>
+                <code class="code-block" th:text="${issuance.issuanceResponse}"></code>
+            </div>
+        </details>
     </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script th:inline="javascript">
+    const statusMessage = document.getElementById("issuance-status-message");
+    const statusEndpoint = /*[[@{/issuance/{transactionId}/status(transactionId=${issuedTransactionId})}]]*/ "";
+    const completeUrl = /*[[@{/issuance/{transactionId}/complete(transactionId=${issuedTransactionId})}]]*/ "";
+    const sameDeviceButton = document.getElementById("same-device-button");
+
+    let stopped = false;
+    let sameDeviceFlow = false;
+
+    sameDeviceButton.addEventListener("click", () => {
+        stopped = true;
+        sameDeviceFlow = true;
+    });
+
+    function updateStatusMessage(message) {
+        statusMessage.textContent = message;
+    }
+
+    function redirectToCompletePage() {
+        document.location.assign(completeUrl);
+    }
+
+    function redirectWhenVisible() {
+        if (document.visibilityState === "visible") {
+            window.removeEventListener("focus", redirectToCompletePage);
+            document.removeEventListener("visibilitychange", redirectWhenVisible);
+            redirectToCompletePage();
+        }
+    }
+
+    function handleCompleted() {
+        if (!sameDeviceFlow || document.visibilityState === "visible") {
+            redirectToCompletePage();
+            return;
+        }
+
+        updateStatusMessage("Utferdinga er fullført.");
+        window.addEventListener("focus", redirectToCompletePage, {once: true});
+        document.addEventListener("visibilitychange", redirectWhenVisible);
+    }
+
+    function scheduleNextPoll(poll, interval) {
+        if (!stopped) {
+            setTimeout(poll, interval);
+            return;
+        }
+        if (document.visibilityState === "visible") {
+            stopped = false;
+            setTimeout(poll, interval);
+            return;
+        }
+
+        const resume = () => {
+            window.removeEventListener("focus", resume);
+            document.removeEventListener("visibilitychange", resumeWhenVisible);
+            stopped = false;
+            poll();
+        };
+        const resumeWhenVisible = () => {
+            if (document.visibilityState === "visible") {
+                resume();
+            }
+        };
+
+        window.addEventListener("focus", resume);
+        document.addEventListener("visibilitychange", resumeWhenVisible);
+    }
+
+    async function waitForWallet(interval, timeout) {
+        const endTime = Date.now() + timeout;
+        updateStatusMessage("Ventar på at beviset blir utferda ...");
+
+        async function poll() {
+            try {
+                const response = await fetch(statusEndpoint, {
+                    method: "GET",
+                    headers: {Accept: "application/json"}
+                });
+
+                if (response.status === 200) {
+                    handleCompleted();
+                    return;
+                }
+                if (response.status === 202) {
+                    if (Date.now() >= endTime) {
+                        updateStatusMessage("Tidsavbrot. Gå tilbake og prøv på nytt.");
+                        return;
+                    }
+                    scheduleNextPoll(poll, interval);
+                    return;
+                }
+                if (response.status === 422) {
+                    updateStatusMessage("Utferdinga feila. Gå tilbake og prøv på nytt.");
+                    return;
+                }
+                if (response.status === 404) {
+                    updateStatusMessage("Utferdinga har ukjend status. Gå tilbake og prøv på nytt.");
+                    return;
+                }
+
+                updateStatusMessage("Klarte ikkje hente status for utferdinga. Gå tilbake og prøv på nytt.");
+            } catch (error) {
+                updateStatusMessage("Klarte ikkje hente status for utferdinga. Gå tilbake og prøv på nytt.");
+            }
+        }
+
+        await poll();
+    }
+
+    waitForWallet(2000, 60000);
+</script>
 </body>
 </html>

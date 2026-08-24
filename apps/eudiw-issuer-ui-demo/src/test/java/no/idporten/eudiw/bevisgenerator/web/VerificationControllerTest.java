@@ -235,6 +235,13 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("href=\"/revoke\"")))
                 .andExpect(content().string(containsString("Tilbakekall bevis")))
                 .andExpect(content().string(not(containsString(">Heim<"))));
+
+        thymeleafMockMvc.perform(get("/verification-presentation/uniqueKey")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"ds-card card-narrow\"")))
+                .andExpect(content().string(containsString("id=\"cross-device-request\"")))
+                .andExpect(content().string(containsString("class=\"qr-code\"")));
     }
 
     @Test
