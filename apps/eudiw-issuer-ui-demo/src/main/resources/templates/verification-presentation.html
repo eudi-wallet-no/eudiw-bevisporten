@@ -7,21 +7,27 @@
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
-    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
-        <h1 class="ds-heading" data-size="lg">
-            Presenter bevis
-        </h1>
-    </div>
-    <div class="ds-card" style="max-width: 600px">
-        <div id="cross-device-request">
-            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" width="100%"/>
+    <div class="page-heading">
+        <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
+        <div class="landing-intro">
+            <h1 class="ds-heading" data-size="xl">
+                Presenter bevis
+            </h1>
         </div>
-        <p id="verification-status-message" class="ds-paragraph" style="margin-top: var(--ds-size-3);"></p>
-        <div class="flex-container" style="min-width: unset">
+    </div>
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=2)}"></div>
+    <div class="ds-card content-narrow"
+         data-color="neutral"
+         data-variant="default">
+        <div id="cross-device-request" class="qr-code-container">
+            <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" class="qr-code"/>
+        </div>
+        <p id="verification-status-message" class="ds-paragraph status-message"></p>
+        <div class="button-group">
             <a th:href="@{/verification-result/{verificationId}(verificationId=${verificationId})}" id="navigate-to-result-button" class="ds-button" style="display:none;">
                 Sjå resultatet
             </a>
-            <a th:href="${authorizationRequest}" id="same-device-button" class="ds-button" type="button" data-variant="primary" style="min-width:75px">
+            <a th:href="${authorizationRequest}" id="same-device-button" class="ds-button" data-variant="primary">
                 Opne på mobilen
             </a>
             <a th:href="@{/verification-start}" class="ds-button" type="button" data-variant="secondary">
@@ -35,13 +41,13 @@
             <div>
                 <code>POST <span th:text="${requestUri}"></span></code>
                 <br/>
-                <code th:text="${requestBody}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+                <code class="code-block" th:text="${requestBody}"></code>
             </div>
         </details>
         <details class="ds-details" data-variant="default">
             <summary>Respons frå verifier-service</summary>
             <div>
-                <code th:text="${responseBody}" style="white-space: pre-wrap; overflow-wrap: break-word;"></code>
+                <code class="code-block" th:text="${responseBody}"></code>
             </div>
         </details>
     </div>

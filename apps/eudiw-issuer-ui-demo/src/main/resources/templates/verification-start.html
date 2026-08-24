@@ -2,149 +2,146 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
     <title>Bevisgenerator</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
-    <div style="max-width: 900px; padding-inline: var(--ds-size-7);">
-        <h1 class="ds-heading" data-size="lg">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
             Presenter bevis
         </h1>
+        <p class="ds-paragraph" data-size="lg">
+            Vel ein bevistype og tilhøyrande attributt du ynkjer å henta fra ei lommebok
+        </p>
     </div>
-    <div class="ds-card" style="max-width: 900px">
-        <h2 class="ds-heading" data-size="sm">Konfigurer DCQL query</h2>
-        <p th:if="${verificationSuccessMessage}" class="ds-paragraph" style="color: #0f8f3c" th:text="${verificationSuccessMessage}"></p>
-        <form class="form-container"
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
+
+    <div class="step-flow"
+         th:attr="x-data=|credentialPicker('${#strings.escapeJavaScript(verificationForm.credentialConfigurationId)}')|">
+        <p th:if="${verificationSuccessMessage}" class="ds-paragraph success-message" th:text="${verificationSuccessMessage}"></p>
+
+        <form id="verification-form"
+              class="form-container"
               th:action="@{/verification-start}"
               th:object="${verificationForm}"
               method="post">
-            <div class="ds-field">
-                <label for="credentialConfigurationId"
-                       data-weight="medium"
-                       class="ds-label">
-                    Credential configuration
-                </label>
-                <select id="credentialConfigurationId"
-                        class="ds-input"
-                        th:field="*{credentialConfigurationId}"
-                        th:attr="aria-invalid=${#fields.hasErrors('credentialConfigurationId')}">
-                    <option value="">Velg</option>
-                    <option th:each="credentialDefinition : ${credentialDefinitions}"
-                            th:value="${credentialDefinition.id()}"
-                            th:text="${credentialDefinition.title() + ' (' + credentialDefinition.id() + ')'}">
-                    </option>
-                </select>
+
+            <div class="credential-picker">
+                <div class="credential-grid">
+                    <template x-for="credential in credentials" :key="credential.id">
+                        <div class="credential-card ds-card"
+                             data-color="neutral"
+                             data-variant="default"
+                             :class="{ 'credential-card--expanded': isSelected(credential.id) }"
+                             role="button"
+                             tabindex="0"
+                             :aria-pressed="isSelected(credential.id)"
+                             @click="select(credential.id)"
+                             @keydown.enter.prevent="select(credential.id)"
+                             @keydown.space.prevent="select(credential.id)">
+                            <p class="ds-paragraph credential-card__title" data-weight="medium" x-text="credential.title"></p>
+
+                            <div class="credential-card__claims" x-show="isSelected(credential.id)" @click.stop>
+                                <template x-for="claim in credential.claims" :key="pathOf(claim)">
+                                    <label class="credential-card__claim">
+                                        <input type="checkbox"
+                                               :checked="isClaimSelected(credential.id, claim)"
+                                               @change="toggleClaim(credential.id, claim, $event.target.checked)">
+                                        <span x-text="claim.label"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <input type="hidden" name="credentialConfigurationId" :value="selectedId">
+                <template x-for="path in selectedClaimPaths" :key="path">
+                    <input type="hidden" name="selectedClaimPaths" :value="path">
+                </template>
+
                 <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
                       class="ds-validation-message"
                       th:errors="*{credentialConfigurationId}"></span>
-            </div>
-            <div class="ds-field">
-                <label data-weight="medium" class="ds-label">
-                    Claims
-                </label>
-                <div id="claims-container" class="ds-paragraph">Vel credential configuration for å sjå claims.</div>
                 <span th:if="${#fields.hasErrors('selectedClaimPaths')}"
                       class="ds-validation-message"
                       th:errors="*{selectedClaimPaths}"></span>
             </div>
-            <div class="button-group">
-                <button class="ds-button"
-                        type="submit"
-                        data-variant="primary">
-                    Start verifisering
-                </button>
-            </div>
+
         </form>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/issue',
+            previousLabel='Utsted nytt bevis',
+            nextHref=${null},
+            nextLabel='Start verifisering',
+            nextForm='verification-form',
+            nextDisabledUntilSelection=${true},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script id="credential-definitions-data" type="application/json" th:utext="${credentialDefinitionsJson}"></script>
 <script id="selected-claims-data" type="application/json" th:utext="${selectedClaimPathsJson}"></script>
 <script>
-    const definitions = JSON.parse(document.getElementById("credential-definitions-data").textContent || "[]");
-    const selectedClaimPaths = new Set(JSON.parse(document.getElementById("selected-claims-data").textContent || "[]"));
-    const configurationSelect = document.getElementById("credentialConfigurationId");
-    const claimsContainer = document.getElementById("claims-container");
+    // Alpine.js component: holds all state for the credential card grid.
+    // Cards are collapsed by default; selecting a card expands it and shows
+    // its claims as checkboxes (all selected by default). Only the claims of
+    // the currently selected card are submitted with the form.
+    function credentialPicker(initialCredentialId) {
+        const credentials = JSON.parse(document.getElementById("credential-definitions-data").textContent || "[]");
+        const initialSelectedPaths = new Set(JSON.parse(document.getElementById("selected-claims-data").textContent || "[]"));
 
-    function escapeHtml(value) {
-        return String(value)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll("\"", "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    function getSelectedDefinition() {
-        const selectedId = configurationSelect.value;
-        return definitions.find(definition => definition.id === selectedId);
-    }
-
-    function selectAllClaims() {
-        const selectedDefinition = getSelectedDefinition();
-        if (!selectedDefinition || !selectedDefinition.claims) {
-            return;
+        function pathOf(claim) {
+            return Array.isArray(claim.path) ? claim.path.join(".") : "";
         }
 
-        selectedClaimPaths.clear();
-        
-        selectedDefinition.claims.forEach((claim) => {
-            if (!Array.isArray(claim.path) || claim.path.length === 0) {
-                return;
-            }
-            const pathText = claim.path.join(".");
-            selectedClaimPaths.add(pathText);
+        const claimSelections = {};
+        credentials.forEach((credential) => {
+            const paths = (credential.claims || []).map(pathOf);
+            const useInitialSelection = credential.id === initialCredentialId && initialSelectedPaths.size > 0;
+            claimSelections[credential.id] = new Set(
+                useInitialSelection ? paths.filter((path) => initialSelectedPaths.has(path)) : paths
+            );
         });
+
+        return {
+            credentials,
+            selectedId: initialCredentialId || "",
+            claimSelections,
+
+            select(id) {
+                this.selectedId = id;
+            },
+
+            isSelected(id) {
+                return this.selectedId === id;
+            },
+
+            pathOf,
+
+            isClaimSelected(credentialId, claim) {
+                return this.claimSelections[credentialId].has(pathOf(claim));
+            },
+
+            toggleClaim(credentialId, claim, checked) {
+                const path = pathOf(claim);
+                if (checked) {
+                    this.claimSelections[credentialId].add(path);
+                } else {
+                    this.claimSelections[credentialId].delete(path);
+                }
+            },
+
+            get selectedClaimPaths() {
+                return this.selectedId ? Array.from(this.claimSelections[this.selectedId] ?? []) : [];
+            }
+        };
     }
-
-    function renderClaims() {
-        const selectedDefinition = getSelectedDefinition();
-
-        if (!selectedDefinition) {
-            claimsContainer.innerHTML = "Vel credential configuration for å sjå claims.";
-            return;
-        }
-
-        if (!selectedDefinition.claims || selectedDefinition.claims.length === 0) {
-            claimsContainer.innerHTML = "Ingen claims funne i credential definition.";
-            return;
-        }
-
-        claimsContainer.innerHTML = selectedDefinition.claims
-            .map((claim) => {
-                const pathText = Array.isArray(claim.path) ? claim.path.join(".") : "";
-                const checked = selectedClaimPaths.has(pathText);
-                return `<label style="display:flex; align-items:center; gap: var(--ds-size-2); margin-bottom: var(--ds-size-2);">
-                    <input type="checkbox" name="selectedClaimPaths" value="${escapeHtml(pathText)}"
-                           ${checked ? "checked" : ""}>
-                    <span>${escapeHtml(claim.label)} <span style="opacity:0.8">(${escapeHtml(pathText)})</span></span>
-                </label>`;
-            })
-            .join("");
-    }
-
-    function configurationSelectChangeHandler() {
-        selectAllClaims();
-        renderClaims();
-    }
-
-    function claimSelectionChangeHandler(event) {
-        const target = event.target;
-        if (!(target instanceof HTMLInputElement) || target.name !== "selectedClaimPaths") {
-            return;
-        }
-
-        if (target.checked) {
-            selectedClaimPaths.add(target.value);
-        } else {
-            selectedClaimPaths.delete(target.value);
-        }
-    }
-
-    configurationSelect.addEventListener("change", configurationSelectChangeHandler);
-    claimsContainer.addEventListener("change", claimSelectionChangeHandler);
-    renderClaims();
 </script>
 </body>
 </html>

@@ -19,6 +19,9 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class RevokeController {
 
+    static final String TRANSACTION_ID_METHOD = "transaction-id";
+    static final String PERSON_IDENTIFIER_METHOD = "person-identifier";
+
     private final Logger logger = LoggerFactory.getLogger(RevokeController.class);
     private final IssuerServerService issuerServerService;
     private final IssuerServerProperties properties;
@@ -35,60 +38,66 @@ public class RevokeController {
 
     @GetMapping("/revoke")
     public ModelAndView revoke() {
-        return baseView(new RevokeForm(), new RevokeBySubjectForm());
+        return baseView(new RevokeForm(), new RevokeBySubjectForm(), "");
     }
 
     @PostMapping("/revoke")
     public ModelAndView revoke(@Valid @ModelAttribute("revokeForm") RevokeForm revokeForm, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return baseView(revokeForm, new RevokeBySubjectForm());
+            return baseView(revokeForm, new RevokeBySubjectForm(), TRANSACTION_ID_METHOD);
         }
 
         CredentialConfiguration credentialConfiguration = issuerServerService.getById(revokeForm.credentialConfigurationId());
         if (credentialConfiguration == null) {
-            bindingResult.rejectValue("credentialConfigurationId", "notFound", "Credential configuration finnes ikkje");
-            return baseView(revokeForm, new RevokeBySubjectForm());
+            bindingResult.rejectValue("credentialConfigurationId", "notFound", "Bevistypen finst ikkje");
+            return baseView(revokeForm, new RevokeBySubjectForm(), TRANSACTION_ID_METHOD);
         }
 
         try {
             issuerServerService.revokeCredential(credentialConfiguration, revokeForm.issuanceTransactionId());
         } catch (IssuerServerException e) {
             logger.error("Failed to revoke credential", e);
-            return baseView(revokeForm, new RevokeBySubjectForm()).addObject("txIdErrorMessage", e.getCauseMessage());
+            return baseView(revokeForm, new RevokeBySubjectForm(), TRANSACTION_ID_METHOD)
+                    .addObject("txIdErrorMessage", e.getCauseMessage());
         }
 
-        return baseView(new RevokeForm(), new RevokeBySubjectForm())
-                .addObject("txIdSuccessMessage", "Beviset er revokert dersom det eksisterte.");
+        return baseView(new RevokeForm(), new RevokeBySubjectForm(), TRANSACTION_ID_METHOD)
+                .addObject("txIdRevocationProcessed", true);
     }
 
     @PostMapping("/revoke/by-subject")
     public ModelAndView revokeBySubject(@Valid @ModelAttribute("revokeBySubjectForm") RevokeBySubjectForm revokeBySubjectForm,
                                         BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return baseView(new RevokeForm(), revokeBySubjectForm);
+            return baseView(new RevokeForm(), revokeBySubjectForm, PERSON_IDENTIFIER_METHOD);
         }
         CredentialConfiguration credentialConfiguration = issuerServerService.getSubjectCredentialConfigurationById(revokeBySubjectForm.credentialConfigurationId());
         if (credentialConfiguration == null) {
-            return baseView(new RevokeForm(), revokeBySubjectForm)
-                    .addObject("subjectErrorMessage", "Credential configuration finnes ikkje");
+            return baseView(new RevokeForm(), revokeBySubjectForm, PERSON_IDENTIFIER_METHOD)
+                    .addObject("subjectErrorMessage", "Bevistypen finst ikkje");
         }
 
         try {
             issuerServerService.revokeCredentialBySubject(credentialConfiguration, revokeBySubjectForm.subjectIdentifier());
         } catch (IssuerServerException e) {
             logger.error("Failed to revoke credential by subject", e);
-            return baseView(new RevokeForm(), revokeBySubjectForm)
+            return baseView(new RevokeForm(), revokeBySubjectForm, PERSON_IDENTIFIER_METHOD)
                     .addObject("subjectErrorMessage", e.getCauseMessage());
         }
 
-        return baseView(new RevokeForm(), new RevokeBySubjectForm())
-                .addObject("subjectSuccessMessage", "Beviset er revokert dersom det eksisterte.");
+        return baseView(new RevokeForm(), new RevokeBySubjectForm(), PERSON_IDENTIFIER_METHOD)
+                .addObject("subjectRevocationProcessed", true);
     }
 
-    private ModelAndView baseView(RevokeForm revokeForm, RevokeBySubjectForm revokeBySubjectForm) {
+    private ModelAndView baseView(
+            RevokeForm revokeForm,
+            RevokeBySubjectForm revokeBySubjectForm,
+            String revocationMethod
+    ) {
         return new ModelAndView("revoke")
                 .addObject("revokeForm", revokeForm)
                 .addObject("revokeBySubjectForm", revokeBySubjectForm)
+                .addObject("revocationMethod", revocationMethod)
                 .addObject("credentialConfigurations", issuerServerService.getAll())
                 .addObject("subjectCredentialConfigurations", issuerServerService.getAllSubjectCredentialConfigurations());
     }

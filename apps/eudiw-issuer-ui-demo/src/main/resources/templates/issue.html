@@ -9,22 +9,23 @@
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
              Utsted bevis
         </h1>
-        <p class="ds-paragraph">
-            Klikk på et bevis og fyll deretter inn dataene som du ønsker skal inn i beviset.
+        <p class="ds-paragraph" data-size="lg">
+            Vel ein bevistype. Fyll deretter inn opplysningane som skal vere med i beviset.
         </p>
     </div>
-    <div class="flex-container">
+    <div class="step-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
-            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}" class="ds-card"
-               data-variant="neutral" style="max-width: 500px; display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <h2 class="ds-heading" th:text="${credentialConfiguration.description}">PID</h2>
-                    <p class="ds-paragraph" data-variant="neutral" th:text="${credentialConfiguration.credentialConfigurationId}"></p>
-                </div>
+            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
+               class="ds-card"
+               data-color="neutral"
+               data-variant="default">
+                <h2 class="ds-heading"
+                    data-size="sm"
+                    th:text="${credentialConfiguration.description}">PID</h2>
             </a>
         </th:block>
     </div>
