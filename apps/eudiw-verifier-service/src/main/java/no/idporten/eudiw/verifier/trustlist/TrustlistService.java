@@ -108,7 +108,7 @@ public class TrustlistService {
                         getName(X500Principal.RFC2253)));
                 if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
                     if (compareCertificates(cert,service.serviceInformation().serviceDigitalIdentity().digitalIds()
-                            .get(1).getCertificateAsX509Object()) && service.serviceInformation().checkServiceCurrentStatus()) {
+                            .get(1).getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
                             return true;
                         }
                     }

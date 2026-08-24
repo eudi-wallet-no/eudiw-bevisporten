@@ -47,7 +47,7 @@ public record TLService(
 
     }
 
-    public boolean checkServiceCurrentStatus() {
+    public boolean serviceCurrentStatus() {
         if(serviceStatus.equals(URI.create(SERVICE_STATUS_URI_NATIONALLEVEL_DEPRECATED)) || serviceStatus.equals(URI.create(SERVICE_STATUS_URI_WITHDRAWN))) {
             return false;
         }
