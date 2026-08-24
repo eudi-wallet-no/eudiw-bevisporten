@@ -7,6 +7,7 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
+import no.idporten.eudiw.verifier.trustlist.etsi612.DigitalId;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TSPService;
@@ -103,17 +104,17 @@ public class TrustlistService {
         LoTEXml lote = (LoTEXml) connectToTrustlist(uri);
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
             for(TSPService service : sp.services().services()) {
-                String trustlistIssuer = issuerName(ldapName(service.serviceInformation().serviceDigitalIdentity().
-                        digitalIds().get(1).getCertificateAsX509Object().getIssuerX500Principal(). // Cert is at place 1
-                        getName(X500Principal.RFC2253)));
-                if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
-                    if (compareCertificates(cert,service.serviceInformation().serviceDigitalIdentity().digitalIds()
-                            .get(1).getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
+                for(DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
+                    String trustlistIssuer = issuerName(ldapName(digitalId.getCertificateAsX509Object().getIssuerX500Principal().
+                                    getName(X500Principal.RFC2253)));
+                    if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
+                        if (compareCertificates(cert,digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
                             return true;
                         }
                     }
                 }
             }
+        }
         return false;
     }
 

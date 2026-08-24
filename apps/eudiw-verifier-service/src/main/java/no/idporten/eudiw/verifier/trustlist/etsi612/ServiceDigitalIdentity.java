@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -12,4 +13,14 @@ import java.util.List;
 public record ServiceDigitalIdentity(
         @JacksonXmlProperty(localName = "DigitalId", namespace = EtsiNamespaces.ETSI_TSL)
         @Valid @NotNull List<@NotNull DigitalId> digitalIds
-) {}
+) {
+    public List<DigitalId> getCertificateDigitalIds() {
+        List<DigitalId> listOfDigitalIdWithCertificate = new ArrayList<>();
+        for(DigitalId digitalId : digitalIds) {
+            if(digitalId.hasCertificate()) {
+                listOfDigitalIdWithCertificate.add(digitalId);
+            }
+        }
+        return  listOfDigitalIdWithCertificate;
+    }
+}
