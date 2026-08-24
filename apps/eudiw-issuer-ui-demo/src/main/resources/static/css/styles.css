@@ -418,9 +418,7 @@ main {
     overflow-x: auto;
 }
 
-.result-actions {
-    margin-block-start: var(--ds-size-4);
-}
+
 
 /* Stepper */
 .stepper ol {

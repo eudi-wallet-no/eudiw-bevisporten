@@ -7,31 +7,39 @@
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
-    <div class="page-heading content-narrow">
-        <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
-        <div class="landing-intro">
-            <h1 class="ds-heading" data-size="xl">
-                Resultat av verifikasjon
-            </h1>
-        </div>
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
+            Resultat av verifikasjon
+        </h1>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=3)}"></div>
-    <div class="ds-card content-narrow"
-         data-color="neutral"
-         data-variant="default">
-        <div th:if="${result != null}">
-            <p><strong>Transaction ID:</strong> <span th:text="${result.verifierTransactionId}"></span></p>
-            <p><strong>Result (JSON):</strong></p>
-            <pre class="code-block" th:text="${resultJson}"></pre>
+
+    <div class="step-flow">
+        <div class="step-flow__content">
+            <div class="ds-card content-narrow"
+                 data-color="neutral"
+                 data-variant="default">
+                <div th:if="${result != null}">
+                    <p><strong>Transaction ID:</strong> <span th:text="${result.verifierTransactionId}"></span></p>
+                    <p><strong>Result (JSON):</strong></p>
+                    <pre class="code-block" th:text="${resultJson}"></pre>
+                </div>
+                <div th:if="${result == null}">
+                    <p>Ingen resultat funne.</p>
+                </div>
+            </div>
         </div>
-        <div th:if="${result == null}">
-            <p>Ingen resultat funne.</p>
-        </div>
-        <div class="button-group result-actions">
-            <a th:href="@{ / }" class="ds-button" type="button" data-variant="secondary">
-                Heim
-            </a>
-        </div>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/verification-start',
+            previousLabel='Presenter nytt bevis',
+            nextHref='/revoke',
+            nextLabel='Tilbakekall bevis',
+            nextForm=${null},
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>

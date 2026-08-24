@@ -34,6 +34,7 @@ import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -223,6 +224,17 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("credentialPicker(")))
                 .andExpect(content().string(containsString("Start verifisering")))
                 .andExpect(content().string(containsString("x-bind:disabled=\"!selectedId\"")));
+
+        thymeleafMockMvc.perform(get("/verification-result/uniqueKey")
+                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"step-flow\"")))
+                .andExpect(content().string(containsString("class=\"step-flow__content\"")))
+                .andExpect(content().string(containsString("href=\"/verification-start\"")))
+                .andExpect(content().string(containsString("Presenter nytt bevis")))
+                .andExpect(content().string(containsString("href=\"/revoke\"")))
+                .andExpect(content().string(containsString("Tilbakekall bevis")))
+                .andExpect(content().string(not(containsString(">Heim<"))));
     }
 
     @Test
