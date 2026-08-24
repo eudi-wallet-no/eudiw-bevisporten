@@ -229,6 +229,10 @@ main {
     max-width: 600px;
 }
 
+.revocation-method {
+    cursor: pointer;
+}
+
 @media (max-width: 639px) {
     .step-navigation {
         flex-direction: column;

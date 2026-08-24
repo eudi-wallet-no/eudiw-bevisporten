@@ -25,9 +25,9 @@
             <fieldset class="ds-fieldset revocation-methods">
                 <legend class="ds-label" data-size="lg">Vel metode</legend>
 
-                <div class="ds-field"
+                <div class="ds-field revocation-method"
                      data-variant="outline"
-                     data-clickdelegatefor="revocation-method-transaction-id">
+                     @click="selectedForm = 'revoke-form'">
                     <input id="revocation-method-transaction-id"
                            class="ds-input"
                            type="radio"
@@ -43,9 +43,9 @@
                     </p>
                 </div>
 
-                <div class="ds-field"
+                <div class="ds-field revocation-method"
                      data-variant="outline"
-                     data-clickdelegatefor="revocation-method-person-identifier">
+                     @click="selectedForm = 'revoke-by-subject-form'">
                     <input id="revocation-method-person-identifier"
                            class="ds-input"
                            type="radio"
