@@ -20,16 +20,16 @@
                  data-color="neutral"
                  data-variant="default">
                 <div th:if="${result != null}">
-                    <template x-for="verifiedCredential in verifiedCredentials">
-                        <div class="ds-card content-narrow"
-                             data-color="neutral"
-                             data-variant="default">
-                            <p><strong>Credential ID:</strong> <span x-text="verifiedCredential.credentialId"></span></p>
-                            <p><strong>Result:</strong> <span x-text="verifiedCredential.result"></span></p>
-                            <p><strong>Result (JSON):</strong></p>
-                            <pre class="code-block" x-text="JSON.stringify(verifiedCredential, null, 2)"></pre>
-                        </div>
-                    </template>
+                    <template x-for="key in result.credentials">
+                        <p><strong>Credential ID:</strong> <span x-text="key"></span></p>
+                        <template x-for="value in result.credentials.get(key)">
+                            <div>
+                                <p><strong>Result:</strong> <span x-text="value.result"></span></p>
+                                <p><strong>Result (JSON):</strong></p>
+                                <pre class="code-block" x-text="JSON.stringify(value, null, 2)"></pre>
+                            </div>
+                        </template>
+                   </template>
 <!--                    <p><strong>Transaction ID:</strong> <span th:text="${result.verifierTransactionId}"></span></p>-->
 <!--                    <p><strong>Result (JSON):</strong></p>-->
 <!--                    <pre class="code-block" th:text="${resultJson}"></pre>-->
