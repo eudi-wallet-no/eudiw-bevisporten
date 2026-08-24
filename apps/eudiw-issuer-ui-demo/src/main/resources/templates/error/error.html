@@ -10,20 +10,41 @@
 
 <main>
     <div class="landing-intro landing-copy content-narrow">
-        <h1 class="ds-heading" data-size="xl">
-            Beklager! Noko gjekk gale.
+        <h1 class="ds-heading"
+            data-size="xl"
+            th:text="${pageTitle ?: 'Vi kunne ikkje fullføre oppgåva'}">
+            Vi kunne ikkje fullføre oppgåva
         </h1>
-        <div class="error-details">
-            <p class="ds-paragraph" data-size="lg" th:text="${errorMessage}"></p>
-            <code th:text="${statusCode}"></code>
-            <code th:text="${details}"></code>
-        </div>
+        <p class="ds-paragraph"
+           data-size="lg"
+           th:text="${userMessage ?: 'Prøv igjen. Dersom feilen held fram, kan du gå til forsida og starte på nytt.'}">
+            Prøv igjen. Dersom feilen held fram, kan du gå til forsida og starte på nytt.
+        </p>
     </div>
 
-    <div class="button-group content-narrow">
-        <a th:href="@{/}" class="ds-button">
-            Heim
-        </a>
+    <div class="error-content content-narrow">
+        <div class="button-group">
+            <a th:if="${recoveryHref != null}"
+               th:href="@{${recoveryHref}}"
+               class="ds-button"
+               th:text="${recoveryLabel}">
+                Start på nytt
+            </a>
+            <a th:href="@{/}"
+               class="ds-button"
+               th:attr="data-variant=${recoveryHref != null ? 'secondary' : 'primary'}">
+                Gå til forsida
+            </a>
+        </div>
+
+        <details class="ds-details" data-variant="default">
+            <summary>Tekniske detaljar</summary>
+            <div class="error-details">
+                <code th:if="${statusCode != null}" th:text="${statusCode}"></code>
+                <code th:if="${errorMessage != null}" th:text="${errorMessage}"></code>
+                <code th:if="${details != null}" th:text="${details}"></code>
+            </div>
+        </details>
     </div>
 </main>
 

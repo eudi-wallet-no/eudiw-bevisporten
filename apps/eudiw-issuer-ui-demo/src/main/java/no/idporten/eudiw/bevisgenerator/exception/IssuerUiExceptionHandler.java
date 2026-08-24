@@ -42,7 +42,18 @@ public class IssuerUiExceptionHandler {
     @ExceptionHandler(IssuerUiException.class)
     public ModelAndView handleIssuerUiException(IssuerUiException e) {
         log.error("IssuerUiException", e);
-        return getModelAndView("error/error").addObject("errorMessage", e.getMessage());
+        ModelAndView modelAndView = getModelAndView("error/error")
+                .addObject("errorMessage", e.getMessage());
+
+        if (e.getMessage() != null && e.getMessage().startsWith("Missing verification transaction data")) {
+            modelAndView
+                    .addObject("pageTitle", "Resultatet er ikkje lenger tilgjengeleg")
+                    .addObject("userMessage", "Verifikasjonen kan ha gått ut, eller resultatet kan allereie vere henta. Start presentasjonen på nytt.")
+                    .addObject("recoveryHref", "/verification-start")
+                    .addObject("recoveryLabel", "Start presentasjon på nytt");
+        }
+
+        return modelAndView;
     }
 
     @ExceptionHandler(MaskinportenClientException.class)
