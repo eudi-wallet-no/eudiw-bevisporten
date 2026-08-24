@@ -47,7 +47,7 @@ public class TrustlistService {
                     .retrieve()
                     .body(String.class);
         } catch (Exception e){
-            throw new VerificationException("invalid_request", "Cannot fetch trustlist" + e);
+            throw new VerificationException("invalid_request", "Cannot fetch trustlist", e);
         }
         if (uri.toString().endsWith("xtsl")) {
             return xmlListMapping(trustlist);
