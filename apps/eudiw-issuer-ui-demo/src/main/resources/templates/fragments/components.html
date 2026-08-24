@@ -20,6 +20,55 @@
     </a>
 </div>
 
+<nav th:fragment="step_navigation_fragment(previousHref, previousLabel, nextHref, nextLabel, nextForm, nextDisabledUntilSelection, dynamicNextForm, nextColor)"
+     class="step-navigation"
+     aria-label="Navigasjon mellom steg">
+    <a th:if="${previousHref != null}"
+       th:href="@{${previousHref}}"
+       class="ds-button step-navigation__button"
+       data-variant="secondary">
+        <span class="step-navigation__direction">Tilbake</span>
+        <span th:text="${previousLabel}"></span>
+    </a>
+    <a th:if="${nextHref != null}"
+       th:href="@{${nextHref}}"
+       class="ds-button step-navigation__button step-navigation__button--next"
+       th:attr="data-color=${nextColor}"
+       data-variant="primary">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </a>
+    <button th:if="${nextHref == null && nextForm != null && !nextDisabledUntilSelection && !dynamicNextForm}"
+            th:attr="form=${nextForm}, data-color=${nextColor}"
+            class="ds-button step-navigation__button step-navigation__button--next"
+            type="submit"
+            data-variant="primary">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </button>
+    <button th:if="${nextHref == null && nextForm != null && nextDisabledUntilSelection && !dynamicNextForm}"
+            th:attr="form=${nextForm}, data-color=${nextColor}"
+            class="ds-button step-navigation__button step-navigation__button--next"
+            type="submit"
+            data-variant="primary"
+            disabled
+            x-bind:disabled="!selectedId">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </button>
+    <button th:if="${nextHref == null && dynamicNextForm}"
+            class="ds-button step-navigation__button step-navigation__button--next"
+            type="submit"
+            data-variant="primary"
+            th:attr="data-color=${nextColor}"
+            disabled
+            x-bind:form="selectedForm"
+            x-bind:disabled="!selectedForm">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </button>
+</nav>
+
 <span th:fragment="step_indicator_fragment(number, text, current)"
       class="stepper__step"
       th:classappend="${current} ? 'stepper__step--current' : ''">

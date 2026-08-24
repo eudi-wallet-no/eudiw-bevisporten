@@ -9,12 +9,12 @@
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
+    <div class="landing-intro">
+        <h1 class="ds-heading" data-size="xl">
            Rediger bevistype
         </h1>
     </div>
-    <div>
+    <div class="content-narrow">
         <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevisdefinisjonen er oppdatert i utstedaren. </p>
         <div class="ds-container ds-alert">
             <p class="ds-paragraph ">Gyldig <code>type</code> for claims (datatyper) er:</p>
@@ -34,7 +34,7 @@
         </div>
     </div>
 
-    <form class="form-container"
+    <form class="form-container content-narrow"
           id="add_attributes_form"
           th:object="${editCredentialForm}"
           th:action="@{/edit-credential/{id}(id=*{credentialType})}"

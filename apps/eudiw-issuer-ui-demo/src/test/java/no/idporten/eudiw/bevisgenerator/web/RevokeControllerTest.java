@@ -12,9 +12,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.view.InternalResourceView;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
+import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -75,12 +80,92 @@ class RevokeControllerTest {
                 .andExpect(view().name("revoke"))
                 .andExpect(model().attributeExists("revokeForm"))
                 .andExpect(model().attributeExists("revokeBySubjectForm"))
+                .andExpect(model().attribute("revocationMethod", ""))
                 .andExpect(model().attributeExists("credentialConfigurations"))
                 .andExpect(model().attributeExists("subjectCredentialConfigurations"));
     }
 
     @Test
-    void postRevokeReturnsSuccessMessageWhenRevoked() throws Exception {
+    void revokePageRendersMethodPickerDynamicNavigationAndProcessedAlert() throws Exception {
+        org.springframework.web.context.support.GenericWebApplicationContext applicationContext =
+                new org.springframework.web.context.support.GenericWebApplicationContext();
+        applicationContext.refresh();
+
+        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
+        templateResolver.setApplicationContext(applicationContext);
+        templateResolver.setPrefix("classpath:/templates/");
+        templateResolver.setSuffix(".html");
+        templateResolver.setTemplateMode(org.thymeleaf.templatemode.TemplateMode.HTML);
+        templateResolver.setCharacterEncoding("UTF-8");
+        templateResolver.setCacheable(false);
+
+        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.setTemplateResolver(templateResolver);
+
+        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
+        viewResolver.setTemplateEngine(templateEngine);
+        viewResolver.setCharacterEncoding("UTF-8");
+
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+
+        IssuerServerProperties issuerServerProperties = mock(IssuerServerProperties.class);
+        when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
+
+        MockMvc thymeleafMockMvc = MockMvcBuilders.standaloneSetup(
+                        new RevokeController(issuerServerService, issuerServerProperties))
+                .setValidator(validator)
+                .setViewResolvers(viewResolver)
+                .build();
+
+        thymeleafMockMvc.perform(get("/revoke"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"step-flow\"")))
+                .andExpect(content().string(containsString("class=\"step-flow__content\"")))
+                .andExpect(content().string(containsString("class=\"ds-fieldset revocation-methods\"")))
+                .andExpect(content().string(containsString("data-variant=\"outline\"")))
+                .andExpect(content().string(containsString("data-clickdelegatefor=\"revocation-method-transaction-id\"")))
+                .andExpect(content().string(containsString("data-clickdelegatefor=\"revocation-method-person-identifier\"")))
+                .andExpect(content().string(containsString("x-model=\"selectedForm\"")))
+                .andExpect(content().string(containsString("x-bind:form=\"selectedForm\"")))
+                .andExpect(content().string(containsString("x-bind:disabled=\"!selectedForm\"")))
+                .andExpect(content().string(not(containsString("data-color=\"danger\""))))
+                .andExpect(content().string(containsString("Tilbakekall utstedte bevis")))
+                .andExpect(content().string(containsString("Tilbakekall bevis")))
+                .andExpect(content().string(containsString("Du må først velje korleis du vil finne beviset.")))
+                .andExpect(content().string(containsString("Fyll inn opplysningane")))
+                .andExpect(content().string(not(containsString("Vel opplysninga du har tilgjengeleg."))));
+
+        thymeleafMockMvc.perform(post("/revoke")
+                        .param("credentialConfigurationId", "")
+                        .param("issuanceTransactionId", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("selectedForm: &#39;revoke-form&#39;")))
+                .andExpect(content().string(containsString("Skriv inn transaksjons-ID-en")));
+
+        thymeleafMockMvc.perform(post("/revoke/by-subject")
+                        .param("credentialConfigurationId", "")
+                        .param("subjectIdentifier", ""))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("selectedForm: &#39;revoke-by-subject-form&#39;")))
+                .andExpect(content().string(containsString("Skriv inn personidentifikatoren")));
+
+        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId()))
+                .thenReturn(credentialConfiguration);
+
+        thymeleafMockMvc.perform(post("/revoke")
+                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
+                        .param("issuanceTransactionId", "tx-123"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"ds-alert\"")))
+                .andExpect(content().string(containsString("data-color=\"info\"")))
+                .andExpect(content().string(containsString("Dersom beviset fanst, er det no tilbakekalla.")))
+                .andExpect(content().string(containsString("href=\"/verification-start\"")))
+                .andExpect(content().string(containsString("Presenter beviset på nytt")));
+    }
+
+    @Test
+    void postRevokeMarksRevocationAsProcessed() throws Exception {
         when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
 
         mockMvc.perform(post("/revoke")
@@ -88,7 +173,8 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
-                .andExpect(model().attribute("txIdSuccessMessage", "Beviset er revokert dersom det eksisterte."));
+                .andExpect(model().attribute("revocationMethod", RevokeController.TRANSACTION_ID_METHOD))
+                .andExpect(model().attribute("txIdRevocationProcessed", true));
 
         verify(issuerServerService).revokeCredential(eq(credentialConfiguration), eq("tx-123"));
     }
@@ -100,6 +186,7 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", ""))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
+                .andExpect(model().attribute("revocationMethod", RevokeController.TRANSACTION_ID_METHOD))
                 .andExpect(model().attributeHasFieldErrors("revokeForm", "credentialConfigurationId", "issuanceTransactionId"));
     }
 
@@ -123,11 +210,12 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-123"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
+                .andExpect(model().attribute("revocationMethod", RevokeController.TRANSACTION_ID_METHOD))
                 .andExpect(model().attributeExists("txIdErrorMessage"));
     }
 
     @Test
-    void postRevokeBySubjectReturnsSuccessMessageWithArbitrarySubjectInput() throws Exception {
+    void postRevokeBySubjectMarksRevocationAsProcessedWithArbitrarySubjectInput() throws Exception {
         when(issuerServerService.getSubjectCredentialConfigurationById(subjectCredentialConfiguration.credentialConfigurationId()))
                 .thenReturn(subjectCredentialConfiguration);
 
@@ -136,7 +224,8 @@ class RevokeControllerTest {
                         .param("subjectIdentifier", "abc-123-anything"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
-                .andExpect(model().attribute("subjectSuccessMessage", "Beviset er revokert dersom det eksisterte."));
+                .andExpect(model().attribute("revocationMethod", RevokeController.PERSON_IDENTIFIER_METHOD))
+                .andExpect(model().attribute("subjectRevocationProcessed", true));
 
         verify(issuerServerService).revokeCredentialBySubject(eq(subjectCredentialConfiguration), eq("abc-123-anything"));
     }
@@ -150,7 +239,23 @@ class RevokeControllerTest {
                         .param("subjectIdentifier", "some-subject"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
-                .andExpect(model().attribute("subjectErrorMessage", "Credential configuration finnes ikkje"));
+                .andExpect(model().attribute("revocationMethod", RevokeController.PERSON_IDENTIFIER_METHOD))
+                .andExpect(model().attribute("subjectErrorMessage", "Bevistypen finst ikkje"));
+    }
+
+    @Test
+    void postRevokeBySubjectPreservesMethodForInvalidInput() throws Exception {
+        mockMvc.perform(post("/revoke/by-subject")
+                        .param("credentialConfigurationId", "")
+                        .param("subjectIdentifier", ""))
+                .andExpect(status().isOk())
+                .andExpect(view().name("revoke"))
+                .andExpect(model().attribute("revocationMethod", RevokeController.PERSON_IDENTIFIER_METHOD))
+                .andExpect(model().attributeHasFieldErrors(
+                        "revokeBySubjectForm",
+                        "credentialConfigurationId",
+                        "subjectIdentifier"
+                ));
     }
 
     @Test
@@ -174,6 +279,7 @@ class RevokeControllerTest {
                         .param("subjectIdentifier", "05821098825"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("revoke"))
+                .andExpect(model().attribute("revocationMethod", RevokeController.PERSON_IDENTIFIER_METHOD))
                 .andExpect(model().attributeExists("subjectErrorMessage"));
     }
 

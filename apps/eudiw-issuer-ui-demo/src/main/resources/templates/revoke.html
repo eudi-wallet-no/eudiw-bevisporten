@@ -2,123 +2,207 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Revoker utstedte bevis</title>
+    <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
+    <title>Tilbakekall utstedte bevis</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
-    <div class="content-narrow">
-        <h1 class="ds-heading" data-size="lg">
-            Revoker utstedte bevis
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
+            Tilbakekall utstedte bevis
         </h1>
+        <p class="ds-paragraph" data-size="lg">
+            Du må først velje korleis du vil finne beviset.
+        </p>
     </div>
 
-    <div class="ds-card content-narrow">
-        <h2 class="ds-heading" data-size="sm">Manuell revokering med tx_id</h2>
+    <div class="step-flow"
+         th:attr="x-data=|{ selectedForm: '${revocationMethod == 'transaction-id' ? 'revoke-form' : revocationMethod == 'person-identifier' ? 'revoke-by-subject-form' : ''}' }|">
+        <div class="step-flow__content">
+            <fieldset class="ds-fieldset revocation-methods">
+                <legend class="ds-label" data-size="lg">Vel metode</legend>
 
-        <p th:if="${txIdSuccessMessage}" class="ds-paragraph success-message" th:text="${txIdSuccessMessage}"></p>
-        <p th:if="${txIdErrorMessage}" class="ds-validation-message" th:text="${txIdErrorMessage}"></p>
+                <div class="ds-field"
+                     data-variant="outline"
+                     data-clickdelegatefor="revocation-method-transaction-id">
+                    <input id="revocation-method-transaction-id"
+                           class="ds-input"
+                           type="radio"
+                           name="revocation-method"
+                           value="revoke-form"
+                           x-model="selectedForm"
+                           th:checked="${revocationMethod == 'transaction-id'}" />
+                    <label for="revocation-method-transaction-id" class="ds-label">
+                        Transaksjons-ID
+                    </label>
+                    <p data-field="description">
+                        Bruk transaksjons-ID-en frå utferdinga.
+                    </p>
+                </div>
 
-        <form id="revoke-form"
-              class="form-container"
-              th:object="${revokeForm}"
-              th:action="@{/revoke}"
-              method="POST">
+                <div class="ds-field"
+                     data-variant="outline"
+                     data-clickdelegatefor="revocation-method-person-identifier">
+                    <input id="revocation-method-person-identifier"
+                           class="ds-input"
+                           type="radio"
+                           name="revocation-method"
+                           value="revoke-by-subject-form"
+                           x-model="selectedForm"
+                           th:checked="${revocationMethod == 'person-identifier'}" />
+                    <label for="revocation-method-person-identifier" class="ds-label">
+                        Personidentifikator
+                    </label>
+                    <p data-field="description">
+                        Bruk personidentifikatoren beviset er knytt til.
+                    </p>
+                </div>
+            </fieldset>
 
-            <div class="ds-field">
-                <label for="credentialConfigurationId"
-                       data-weight="medium"
-                       class="ds-label">
-                    Credential configuration
-                </label>
-                <select id="credentialConfigurationId"
-                        class="ds-input"
-                        th:field="*{credentialConfigurationId}"
-                        th:attr="aria-invalid=${#fields.hasErrors('credentialConfigurationId')}">
-                    <option value="">Velg</option>
-                    <option th:each="credentialConfiguration : ${credentialConfigurations}"
-                            th:value="${credentialConfiguration.credentialConfigurationId()}"
-                            th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
-                    </option>
-                </select>
-                <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
-                      class="ds-validation-message"
-                      th:errors="*{credentialConfigurationId}"></span>
-            </div>
-            <div class="ds-field">
-                <label for="issuanceTransactionId"
-                       data-weight="medium"
-                       class="ds-label">
-                    Issuance transaction id
-                </label>
-                <input id="issuanceTransactionId"
-                       class="ds-input"
-                       th:field="*{issuanceTransactionId}"
-                       th:attr="aria-invalid=${#fields.hasErrors('issuanceTransactionId')}" />
-                <span th:if="${#fields.hasErrors('issuanceTransactionId')}"
-                      class="ds-validation-message"
-                      th:errors="*{issuanceTransactionId}"></span>
-            </div>
-            <div class="button-group">
-                <button class="ds-button"
-                        type="submit"
-                        data-variant="primary">
-                    Revoker
-                </button>
-            </div>
-        </form>
-    </div>
+            <section class="ds-card content-narrow"
+                     data-color="neutral"
+                     data-variant="default"
+                     x-cloak
+                     x-show="selectedForm === 'revoke-form'">
+                <h2 class="ds-heading" data-size="md">Fyll inn opplysningane</h2>
 
-    <div class="ds-card content-narrow">
-        <h2 class="ds-heading" data-size="sm">Manuell revokering med subject</h2>
+                <div th:if="${txIdRevocationProcessed}"
+                     class="ds-alert"
+                     data-color="info">
+                    <p class="ds-paragraph">
+                        Dersom beviset fanst, er det no tilbakekalla.
+                        <a class="ds-link" th:href="@{/verification-start}">
+                            Presenter beviset på nytt
+                        </a>
+                        for å kontrollere at det er tilbakekalla.
+                    </p>
+                </div>
+                <p th:if="${txIdErrorMessage}"
+                   class="ds-validation-message"
+                   th:text="${txIdErrorMessage}"></p>
 
-        <p th:if="${subjectSuccessMessage}" class="ds-paragraph success-message" th:text="${subjectSuccessMessage}"></p>
-        <p th:if="${subjectErrorMessage}" class="ds-validation-message" th:text="${subjectErrorMessage}"></p>
+                <form id="revoke-form"
+                      class="form-container"
+                      th:object="${revokeForm}"
+                      th:action="@{/revoke}"
+                      method="POST">
+                    <div class="ds-field">
+                        <label for="credentialConfigurationId"
+                               data-weight="medium"
+                               class="ds-label">
+                            Bevistype
+                        </label>
+                        <select id="credentialConfigurationId"
+                                class="ds-input"
+                                th:field="*{credentialConfigurationId}"
+                                th:attr="aria-invalid=${#fields.hasErrors('credentialConfigurationId')}">
+                            <option value="">Vel bevistype</option>
+                            <option th:each="credentialConfiguration : ${credentialConfigurations}"
+                                    th:value="${credentialConfiguration.credentialConfigurationId()}"
+                                    th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
+                            </option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
+                              class="ds-validation-message"
+                              th:errors="*{credentialConfigurationId}"></span>
+                    </div>
 
-        <form id="revoke-by-subject-form"
-              class="form-container"
-              th:object="${revokeBySubjectForm}"
-              th:action="@{/revoke/by-subject}"
-              method="POST">
+                    <div class="ds-field">
+                        <label for="issuanceTransactionId"
+                               data-weight="medium"
+                               class="ds-label">
+                            Transaksjons-ID
+                        </label>
+                        <input id="issuanceTransactionId"
+                               class="ds-input"
+                               th:field="*{issuanceTransactionId}"
+                               th:attr="aria-invalid=${#fields.hasErrors('issuanceTransactionId')}" />
+                        <span th:if="${#fields.hasErrors('issuanceTransactionId')}"
+                              class="ds-validation-message"
+                              th:errors="*{issuanceTransactionId}"></span>
+                    </div>
+                </form>
+            </section>
 
-            <div class="ds-field">
-                <label for="subjectCredentialConfigurationId"
-                       data-weight="medium"
-                       class="ds-label">
-                    Credential configuration
-                </label>
-                <select id="subjectCredentialConfigurationId"
-                        class="ds-input"
-                        th:field="*{credentialConfigurationId}">
-                    <option value="">Velg</option>
-                    <option th:each="credentialConfiguration : ${subjectCredentialConfigurations}"
-                            th:value="${credentialConfiguration.credentialConfigurationId()}"
-                            th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
-                    </option>
-                </select>
-            </div>
+            <section class="ds-card content-narrow"
+                     data-color="neutral"
+                     data-variant="default"
+                     x-cloak
+                     x-show="selectedForm === 'revoke-by-subject-form'">
+                <h2 class="ds-heading" data-size="md">Fyll inn opplysningane</h2>
 
-            <div class="ds-field">
-                <label for="subjectIdentifier"
-                       data-weight="medium"
-                       class="ds-label">
-                    Subject
-                </label>
-                <input id="subjectIdentifier"
-                       class="ds-input"
-                       th:field="*{subjectIdentifier}" />
-            </div>
+                <div th:if="${subjectRevocationProcessed}"
+                     class="ds-alert"
+                     data-color="info">
+                    <p class="ds-paragraph">
+                        Dersom beviset fanst, er det no tilbakekalla.
+                        <a class="ds-link" th:href="@{/verification-start}">
+                            Presenter beviset på nytt
+                        </a>
+                        for å kontrollere at det er tilbakekalla.
+                    </p>
+                </div>
+                <p th:if="${subjectErrorMessage}"
+                   class="ds-validation-message"
+                   th:text="${subjectErrorMessage}"></p>
 
-            <div class="button-group">
-                <button class="ds-button"
-                        type="submit"
-                        data-variant="primary">
-                    Revoker
-                </button>
-            </div>
-        </form>
+                <form id="revoke-by-subject-form"
+                      class="form-container"
+                      th:object="${revokeBySubjectForm}"
+                      th:action="@{/revoke/by-subject}"
+                      method="POST">
+                    <div class="ds-field">
+                        <label for="subjectCredentialConfigurationId"
+                               data-weight="medium"
+                               class="ds-label">
+                            Bevistype
+                        </label>
+                        <select id="subjectCredentialConfigurationId"
+                                class="ds-input"
+                                th:field="*{credentialConfigurationId}"
+                                th:attr="aria-invalid=${#fields.hasErrors('credentialConfigurationId')}">
+                            <option value="">Vel bevistype</option>
+                            <option th:each="credentialConfiguration : ${subjectCredentialConfigurations}"
+                                    th:value="${credentialConfiguration.credentialConfigurationId()}"
+                                    th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
+                            </option>
+                        </select>
+                        <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
+                              class="ds-validation-message"
+                              th:errors="*{credentialConfigurationId}"></span>
+                    </div>
+
+                    <div class="ds-field">
+                        <label for="subjectIdentifier"
+                               data-weight="medium"
+                               class="ds-label">
+                            Personidentifikator
+                        </label>
+                        <input id="subjectIdentifier"
+                               class="ds-input"
+                               th:field="*{subjectIdentifier}"
+                               th:attr="aria-invalid=${#fields.hasErrors('subjectIdentifier')}" />
+                        <span th:if="${#fields.hasErrors('subjectIdentifier')}"
+                              class="ds-validation-message"
+                              th:errors="*{subjectIdentifier}"></span>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/verification-start',
+            previousLabel='Presenter bevis',
+            nextHref=${null},
+            nextLabel='Tilbakekall bevis',
+            nextForm=${null},
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${true},
+            nextColor=${null}
+        )}"></div>
     </div>
 </main>
 

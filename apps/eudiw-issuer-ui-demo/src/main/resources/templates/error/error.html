@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <title>Intern feil</title>
@@ -9,21 +9,22 @@
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
-    <h1 class="ds-heading" data-size="lg">
-        Beklager! Noko gjekk gale.
-    </h1>
+    <div class="landing-intro landing-copy content-narrow">
+        <h1 class="ds-heading" data-size="xl">
+            Beklager! Noko gjekk gale.
+        </h1>
+        <div class="error-details">
+            <p class="ds-paragraph" data-size="lg" th:text="${errorMessage}"></p>
+            <code th:text="${statusCode}"></code>
+            <code th:text="${details}"></code>
+        </div>
+    </div>
 
-    <p class="ds-paragraph">
-        <div th:text="${errorMessage}"></div>
-        <code th:text="${statusCode}"></code>
-        <code th:text="${details}"></code>
-    </p>
-
-    <p class="ds-paragraph">
+    <div class="button-group content-narrow">
         <a th:href="@{/}" class="ds-button">
             Heim
         </a>
-    </p>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>

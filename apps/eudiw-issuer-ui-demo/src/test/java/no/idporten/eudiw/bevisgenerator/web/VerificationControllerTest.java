@@ -217,8 +217,12 @@ class VerificationControllerTest {
 
         thymeleafMockMvc.perform(get("/verification-start"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"step-flow\"")))
+                .andExpect(content().string(containsString("credential-picker")))
                 .andExpect(content().string(containsString("credential-grid")))
-                .andExpect(content().string(containsString("credentialPicker(")));
+                .andExpect(content().string(containsString("credentialPicker(")))
+                .andExpect(content().string(containsString("Start verifisering")))
+                .andExpect(content().string(containsString("x-bind:disabled=\"!selectedId\"")));
     }
 
     @Test
