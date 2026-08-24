@@ -11,6 +11,6 @@ public record TrustedEntityInformation(
         @NotBlank List<LocalizedString> teName,
         @NotBlank List<LocalizedString> teTradeName,
         @Valid @NotNull InformationUri informationUri,
-        TeAddress teAddress // this exists for pid phone number
+        @Valid @NotNull TeAddress teAddress
         ) {
 }
