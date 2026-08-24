@@ -9,58 +9,74 @@
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
 <main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
             Send bevis til mobilen
         </h1>
-        <p class="ds-paragraph">
+        <p class="ds-paragraph" data-size="lg">
             No er me i gong med å utferding av bevis, køyr på med mobilen!
         </p>
     </div>
 
-    <p th:text="${error}" class="ds-validation-message" th:if="${error}">
-    </p>
+    <div class="step-flow">
+        <div class="step-flow__content">
+            <p th:text="${error}" class="ds-validation-message" th:if="${error}">
+            </p>
 
+            <div class="ds-card card-narrow"
+                 data-color="neutral"
+                 data-variant="default">
 
-    <div class="ds-card card-narrow">
+                <div id="cross-device-request" class="qr-code-container">
+                    <img th:src="${'data:image/png;base64,' + issuance.qrCode}"
+                         alt="QR-kode for bevis"
+                         id="qrcode-cross-device"
+                         class="qr-code"/>
+                </div>
 
-        <div id="cross-device-request">
-            <img th:src="${'data:image/png;base64,' + issuance.qrCode}" alt="QR kode for bevis" id="qrcode-cross-device"
-                 width="100%"/>
+                <div class="button-group">
+                    <a th:href="${issuance.encodedUri}" class="ds-button" data-variant="primary">
+                        Opne på mobilen
+                    </a>
+                    <a th:href="@{/issue}" class="ds-button" type="button" data-variant="secondary">
+                        Tilbake
+                    </a>
+                </div>
+            </div>
+
+            <div id="tracing">
+                <details class="ds-details" data-variant="default">
+                    <summary>Request til issuer-server</summary>
+                    <div>
+                        <code>POST <span th:text="${request.endpoint}"></span></code>
+                        <br/>
+                        <code><span th:text="${request.token}"></span></code>
+                        <br/>
+                        <code><span th:text="${request.headers}"></span></code>
+                        <br/><br/>
+                        <code class="code-block" th:text="${request.body}"></code>
+                    </div>
+                </details>
+                <details class="ds-details" data-variant="default">
+                    <summary>Response frå issuer-server</summary>
+                    <div>
+                        <code class="code-block" th:text="${issuance.issuanceResponse}"></code>
+                    </div>
+                </details>
+            </div>
         </div>
 
-        <div class="button-group">
-            <a th:href="${issuance.encodedUri}" class="ds-button" data-variant="primary">
-                Opne på mobilen
-            </a>
-            <a th:href="@{/issue}" class="ds-button" type="button" data-variant="secondary">
-                Tilbake
-            </a>
-        </div>
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/issue',
+            previousLabel='Vel bevistype',
+            nextHref='/verification-start',
+            nextLabel='Presenter bevis',
+            nextForm=${null},
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
     </div>
-
-    <div id="tracing">
-        <details class="ds-details" data-variant="default">
-            <summary>Request til issuer-server</summary>
-            <div>
-                <code>POST <span th:text="${request.endpoint}"></span></code>
-                <br/>
-                <code><span th:text="${request.token}"></span></code>
-                <br/>
-                <code><span th:text="${request.headers}"></span></code>
-                <br/><br/>
-                <code class="code-block" th:text="${request.body}"></code>
-            </div>
-        </details>
-        <details class="ds-details" data-variant="default">
-            <summary>Response frå issuer-server</summary>
-            <div>
-                <code class="code-block" th:text="${issuance.issuanceResponse}"></code>
-            </div>
-        </details>
-    </div>
-
-
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
