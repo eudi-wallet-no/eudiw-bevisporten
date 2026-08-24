@@ -1,30 +1,32 @@
 package no.idporten.eudiw.bevisgenerator.exception;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
 public class IssuerServerException extends RuntimeException {
 
-    private final HttpStatusCodeException httpStatusCodeException;
+    private final HttpStatusCode httpStatusCode;
+    private final String message;
 
 
-     public IssuerServerException(String message, HttpClientErrorException cause) {
+    public IssuerServerException(String message, HttpStatusCodeException cause) {
         super(message, cause);
-        httpStatusCodeException = cause;
+        this.httpStatusCode = cause.getStatusCode();
+        this.message = cause.getMessage();
     }
 
-    public IssuerServerException(String message, HttpServerErrorException cause) {
+    public IssuerServerException(String message, RuntimeException cause) {
         super(message, cause);
-        httpStatusCodeException = cause;
+        this.httpStatusCode = HttpStatus.SERVICE_UNAVAILABLE;
+        this.message = cause.getMessage();
     }
 
     public HttpStatusCode getHttpStatusCode() {
-        return httpStatusCodeException.getStatusCode();
+        return httpStatusCode;
     }
 
     public String getCauseMessage(){
-        return httpStatusCodeException.getMessage();
+        return message;
     }
 }
