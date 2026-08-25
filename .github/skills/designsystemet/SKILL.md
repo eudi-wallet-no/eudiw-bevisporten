@@ -63,6 +63,16 @@ Standardise shared roles before fine-tuning individual elements. Consistency doe
 - Give pages with persistent step navigation an explicit shared structure where the content region and navigation are siblings. Do not let a form's smaller internal field gap determine the distance to the navigation; use the button's `form` attribute and place shared interactive state on a common wrapper when the action must remain outside the form.
 - Mobile layouts may be denser, but must preserve the same hierarchy, component states and repeated rhythm.
 
+## Spacing and gap contract
+
+Spacing is part of the component contract, not finishing polish. Whenever a visual composition changes, inspect the full affected composition and align spacing with Designsystemet and the established token scale.
+
+- Let the parent composition own the rhythm between direct children. Prefer `flex` or `grid` with a token-based `gap` over child margins, line breaks, empty elements or one-off offsets.
+- Use Designsystemet size tokens for every gap. Reuse an existing composition with the correct gap before introducing a new class or spacing rule.
+- Keep related content closer together than separate sections. Define intentional internal, component and section gaps instead of relying on browser defaults or incidental component margins.
+- Inspect title, ingress, body, links, actions and neighbouring sections together. If any part of the affected composition falls outside the gap system, correct it in the same change.
+- Apply the correction at the narrowest shared level whose consumers should all receive it. Do not turn a local spacing fix into an unrelated repository-wide cleanup.
+
 ## Content coherence
 
 Treat content as part of the Designsystemet composition, not as isolated sentences:
@@ -75,10 +85,10 @@ Treat content as part of the Designsystemet composition, not as isolated sentenc
 ## Workflow
 
 1. **Inspect the actual UI.** Open the affected surface at relevant desktop and mobile widths. Read computed styles or component states when visual differences are subtle.
-2. **Map comparable roles.** Find all nearby occurrences with the same role and note their wrapper, Designsystemet component, variant, token use, DOM structure, spacing and states.
+2. **Map comparable roles.** Find all nearby occurrences with the same role and note their wrapper, Designsystemet component, variant, token use, DOM structure, parent-owned gaps and states.
 3. **Choose the standard.** Apply the source-of-truth order above. Prefer a documented component or an already correct shared composition over a new local solution.
 4. **Implement at the smallest level.** Reuse the established wrapper or fragment first, then supported variants and tokens, and only then a local override. Do not add CSS to compensate for incorrect component markup.
-5. **Verify visually and functionally.** Compare the changed surface side by side with at least one already correct reference. Check relevant viewports, keyboard focus, hover/active states, wrapping, alignment and content hierarchy. Read the page from top to bottom and confirm the spacing rhythm from the consistency contract holds, including a clear but restrained boundary before action regions.
+5. **Verify visually and functionally.** Compare the changed surface side by side with at least one already correct reference. Check relevant viewports, keyboard focus, hover/active states, wrapping, alignment and content hierarchy. Measure or inspect computed gaps when the rhythm is subtle. Read the page from top to bottom and confirm the spacing and gap contracts hold, including a clear but restrained boundary before action regions.
 6. **Run a skeptic pass.** Remove changes that introduce a new visual direction, duplicate an existing contract, expand scope without evidence, or cannot be justified by Designsystemet or an established composition.
 
 ## Guardrails
@@ -95,6 +105,7 @@ A visual task is complete only when:
 
 - the component markup and variants are valid for the loaded Designsystemet version;
 - comparable roles in scope use the same justified composition;
+- the affected composition uses parent-owned, token-based gaps with no accidental margin-driven rhythm;
 - no unnecessary custom values or duplicate classes were introduced;
 - the whole affected composition and its closest comparable surfaces were inspected, not only the edited element — a mismatch such as one page intro lacking the shared intro wrapper belongs to the same scoped work;
 - the rendered result was compared with an established reference in relevant viewports and states.
