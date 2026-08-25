@@ -218,12 +218,23 @@ class VerificationControllerTest {
 
         thymeleafMockMvc.perform(get("/verification-start"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Vel bevis å presentere | Bevisgenerator</title>")))
+                .andExpect(content().string(containsString("class=\"ds-skip-link\" href=\"#main-content\"")))
+                .andExpect(content().string(containsString("<main id=\"main-content\" tabindex=\"-1\">")))
+                .andExpect(content().string(containsString("aria-expanded=\"false\"")))
+                .andExpect(content().string(containsString("aria-controls=\"header-navigation\"")))
                 .andExpect(content().string(containsString("class=\"step-flow\"")))
                 .andExpect(content().string(containsString("credential-picker")))
                 .andExpect(content().string(containsString("credential-grid")))
+                .andExpect(content().string(containsString("<fieldset class=\"ds-fieldset credential-picker\"")))
+                .andExpect(content().string(containsString("<legend class=\"ds-label\" data-size=\"lg\">Vel bevistype</legend>")))
+                .andExpect(content().string(containsString("type=\"radio\"")))
+                .andExpect(content().string(containsString("name=\"credentialConfigurationId\"")))
+                .andExpect(content().string(containsString("x-model=\"selectedId\"")))
+                .andExpect(content().string(containsString("class=\"ds-fieldset credential-card__claims\"")))
+                .andExpect(content().string(not(containsString("role=\"button\""))))
                 .andExpect(content().string(containsString("credentialPicker(")))
-                .andExpect(content().string(containsString("Start verifisering")))
-                .andExpect(content().string(containsString("x-bind:disabled=\"!selectedId\"")));
+                .andExpect(content().string(containsString("Start verifisering")));
 
         thymeleafMockMvc.perform(get("/verification-result/uniqueKey")
                         .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))

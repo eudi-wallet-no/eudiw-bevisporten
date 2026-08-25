@@ -108,6 +108,8 @@ WCAG 2.2 level AA is the minimum acceptance level for every visual change. Desig
 - Normal text needs at least 4.5:1 contrast and large text at least 3:1. Meaningful component boundaries, controls and state indicators need at least 3:1 where WCAG requires non-text contrast.
 - Check foreground and background contrast in default, hover, active, selected, focus, invalid and disabled states. Never rely on colour alone to communicate meaning or interaction.
 - Every interaction must work with a keyboard, expose the correct accessible name, role, value and state, and keep a visible focus indicator in logical order.
+- Test the complete keyboard path through the page, not only the edited control. Tab and Shift+Tab must follow the reading order without traps or unexpected stops; use arrow keys for native radio groups and other documented composite widgets. Do not use a positive `tabindex` to repair source order.
+- Verify the screen-reader contract from the rendered accessibility semantics: descriptive page title and language, landmarks, heading hierarchy, grouped form controls, labels, descriptions, errors, expanded/selected state and live-region updates. ARIA supplements native HTML; it must not disguise an invalid interactive structure.
 - Content must reflow without two-dimensional scrolling at 320 CSS pixels where applicable, remain usable when text is enlarged to 200%, and avoid clipping or overlap.
 - Pointer targets must meet the WCAG 2.2 AA minimum of 24 by 24 CSS pixels or its spacing exception. Prefer the documented Designsystemet component sizes, which normally provide larger targets.
 - Automated accessibility checks supplement rather than replace keyboard, contrast, zoom/reflow and screen-reader-oriented DOM inspection.
@@ -227,6 +229,7 @@ A visual task is complete only when the applicable checks that can be run pass. 
 - **Runtime:** loaded package, theme and script versions are understood; no undocumented API or assumed JS behaviour was introduced.
 - **Contract:** tag, direct children, attributes, variant and state markup match the loaded component version.
 - **Semantics:** keyboard path, focus order, accessible names, labels, descriptions, errors and dynamic announcements work.
+- **Screen readers:** page title, language, landmarks, headings, groups and control name/role/value/state form a coherent reading and navigation model; dynamic updates are announced once at the right priority.
 - **WCAG:** applicable WCAG 2.2 AA requirements pass, including text and non-text contrast, keyboard access, visible focus, zoom/reflow and target size.
 - **Visual:** alignment, wrapping, content hierarchy and token rhythm hold at relevant mobile and desktop widths.
 - **States:** hover, focus, active, selected, loading, invalid, disabled/read-only and empty states were checked where relevant.

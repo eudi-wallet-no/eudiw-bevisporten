@@ -2,11 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Presenter bevis på mobilen | Bevisgenerator</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main>
+<main id="main-content" tabindex="-1">
     <div class="page-heading">
         <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
         <div class="landing-intro">

@@ -3,11 +3,11 @@
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Vel bevis å presentere | Bevisgenerator</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main>
+<main id="main-content" tabindex="-1">
     <div class="landing-intro landing-copy">
         <h1 class="ds-heading" data-size="xl">
             Presenter bevis
@@ -28,47 +28,66 @@
               th:object="${verificationForm}"
               method="post">
 
-            <div class="credential-picker">
-                <div class="credential-grid">
-                    <template x-for="credential in credentials" :key="credential.id">
-                        <div class="credential-card ds-card"
-                             data-color="accent"
-                             data-variant="default"
-                             :class="{ 'credential-card--expanded': isSelected(credential.id) }"
-                             role="button"
-                             tabindex="0"
-                             :aria-pressed="isSelected(credential.id)"
-                             @click="select(credential.id)"
-                             @keydown.enter.prevent="select(credential.id)"
-                             @keydown.space.prevent="select(credential.id)">
-                            <p class="ds-paragraph credential-card__title" data-weight="medium" x-text="credential.title"></p>
+            <fieldset class="ds-fieldset credential-picker"
+                      th:attr="aria-describedby=${#fields.hasErrors('credentialConfigurationId')} ? 'credential-configuration-error' : null,
+                               aria-invalid=${#fields.hasErrors('credentialConfigurationId')} ? 'true' : null">
+                <legend class="ds-label" data-size="lg">Vel bevistype</legend>
 
-                            <div class="credential-card__claims" x-show="isSelected(credential.id)" @click.stop>
-                                <template x-for="claim in credential.claims" :key="pathOf(claim)">
-                                    <label class="credential-card__claim">
-                                        <input type="checkbox"
-                                               :checked="isClaimSelected(credential.id, claim)"
-                                               @change="toggleClaim(credential.id, claim, $event.target.checked)">
-                                        <span x-text="claim.label"></span>
-                                    </label>
-                                </template>
-                            </div>
+                <div class="credential-grid">
+                    <template x-for="(credential, credentialIndex) in credentials" :key="credential.id">
+                        <div class="credential-card ds-field"
+                             data-color="accent"
+                             data-variant="outline"
+                             :class="{ 'credential-card--expanded': isSelected(credential.id) }">
+                            <input class="ds-input"
+                                  type="radio"
+                                  name="credentialConfigurationId"
+                                  :id="`credential-${credentialIndex}`"
+                                  :value="credential.id"
+                                  x-model="selectedId" />
+                            <label class="ds-label credential-card__title"
+                                  :for="`credential-${credentialIndex}`"
+                                  x-text="credential.title"></label>
+
+                            <fieldset class="ds-fieldset credential-card__claims"
+                                     x-show="isSelected(credential.id)"
+                                     th:attr="aria-describedby=${#fields.hasErrors('selectedClaimPaths')} ? 'selected-claims-error' : null,
+                                              aria-invalid=${#fields.hasErrors('selectedClaimPaths')} ? 'true' : null">
+                               <legend class="ds-label" data-size="sm">
+                                   Vel attributt for <span x-text="credential.title"></span>
+                               </legend>
+                               <template x-for="(claim, claimIndex) in credential.claims" :key="pathOf(claim)">
+                                   <div class="ds-field credential-card__claim">
+                                       <input class="ds-input"
+                                              type="checkbox"
+                                              :id="`credential-${credentialIndex}-claim-${claimIndex}`"
+                                              :checked="isClaimSelected(credential.id, claim)"
+                                              @change="toggleClaim(credential.id, claim, $event.target.checked)">
+                                       <label class="ds-label"
+                                              :for="`credential-${credentialIndex}-claim-${claimIndex}`"
+                                              x-text="claim.label"></label>
+                                   </div>
+                               </template>
+                            </fieldset>
                         </div>
                     </template>
                 </div>
 
-                <input type="hidden" name="credentialConfigurationId" :value="selectedId">
                 <template x-for="path in selectedClaimPaths" :key="path">
                     <input type="hidden" name="selectedClaimPaths" :value="path">
                 </template>
 
                 <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
+                      id="credential-configuration-error"
                       class="ds-validation-message"
+                      data-field="validation"
                       th:errors="*{credentialConfigurationId}"></span>
                 <span th:if="${#fields.hasErrors('selectedClaimPaths')}"
+                      id="selected-claims-error"
                       class="ds-validation-message"
+                      data-field="validation"
                       th:errors="*{selectedClaimPaths}"></span>
-            </div>
+            </fieldset>
 
         </form>
 
@@ -78,7 +97,7 @@
             nextHref=${null},
             nextLabel='Start verifisering',
             nextForm='verification-form',
-            nextDisabledUntilSelection=${true},
+            nextDisabledUntilSelection=${false},
             dynamicNextForm=${false},
             nextColor=${null}
         )}"></div>
@@ -113,10 +132,6 @@
             credentials,
             selectedId: initialCredentialId || "",
             claimSelections,
-
-            select(id) {
-                this.selectedId = id;
-            },
 
             isSelected(id) {
                 return this.selectedId === id;
