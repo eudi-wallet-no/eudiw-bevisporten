@@ -20,6 +20,12 @@
 
 ---
 
+## Continuous improvement
+
+After a larger change or a long conversation, take a brief retrospective before finishing. Capture only reusable lessons and corrections, then update the most relevant instruction or skill in a few lines so future work improves without turning these files into a session log.
+
+---
+
 ## JIRA-ID, branch and PR
 
 All tasks have a JIRA-ID. **Always ask the user for the JIRA-ID** if not provided — do not assume or make one up.
