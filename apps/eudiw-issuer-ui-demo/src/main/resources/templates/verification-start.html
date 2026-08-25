@@ -123,7 +123,7 @@
             claimSelections,
 
             select(id) {
-                this.selectedId = id;
+                this.selectedId = this.selectedId === id ? "" : id;
             },
 
             isSelected(id) {
