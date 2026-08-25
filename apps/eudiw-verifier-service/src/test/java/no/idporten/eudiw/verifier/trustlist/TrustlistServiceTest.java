@@ -1,6 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist;
 
 import com.nimbusds.jose.util.X509CertUtils;
+import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
 import no.idporten.eudiw.verifier.trustlist.etsi602.ValueCertificate;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
@@ -20,6 +21,7 @@ import org.springframework.web.client.RestClient;
 
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonTrustlist;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getXmlTrustlist;
+import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonInvalidCertList;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -189,5 +191,20 @@ class TrustlistServiceTest {
         ValueCertificate certificate = new ValueCertificate(certificates.trustlistCertificatePIDFirstOnList());
         X509Certificate cert2 = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDFirstOnList() + END_CERTIFICATE);
         assertTrue(trustlistService.compareCertificates(certificate.getCertificateAsX509Object(), cert2));
+    }
+
+    @Test
+    @DisplayName("Invalid cert on trustlist throws error in ValueCertificate")
+    void invalidCertThrowsErrorInValueCertificate() {
+        mockServer.expect(requestTo(XMLTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+        mockServer.expect(requestTo(XMLTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(getJsonInvalidCertList(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(getJsonInvalidCertList(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        X509Certificate validCert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist() + END_CERTIFICATE);
+        assertThrows(VerificationException.class, () -> trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(validCert));
     }
 }

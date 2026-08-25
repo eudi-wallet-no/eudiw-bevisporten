@@ -159,7 +159,7 @@ public class OpenID4VPResponseService {
         return jwe.getPayload().toJSONObject();
     }
 
-    protected boolean checkTrustlist(X509Certificate cert) throws Exception {
+    protected boolean checkTrustlist(X509Certificate cert) {
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
     }
 

@@ -12,10 +12,12 @@ public class TrustlistTestdata {
     private static final Logger log = LoggerFactory.getLogger(TrustlistTestdata.class);
     private static String xmlTrustlist;
     private static String jsonTrustlist;
+    private static String jsonInvalidCertList;
 
     public TrustlistTestdata() {
         setXmlTrustlist();
         setJsonTrustlist();
+        setJsonTrustlistWithInvalidCertificate();
     }
 
     public void setXmlTrustlist() {
@@ -41,5 +43,16 @@ public class TrustlistTestdata {
 
     public static String getJsonTrustlist() {
         return jsonTrustlist;
+    }
+
+    public void setJsonTrustlistWithInvalidCertificate() {
+        try {
+            jsonInvalidCertList = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPidWithNonParsableCert.jws"));
+        } catch (IOException e) {
+            log.info(e.getMessage());
+        }
+    }
+    public static String getJsonInvalidCertList() {
+        return jsonInvalidCertList;
     }
 }

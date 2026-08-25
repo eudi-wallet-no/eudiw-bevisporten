@@ -5,8 +5,6 @@ import no.idporten.eudiw.verifier.VerificationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.StringReader;
 import java.security.cert.X509Certificate;

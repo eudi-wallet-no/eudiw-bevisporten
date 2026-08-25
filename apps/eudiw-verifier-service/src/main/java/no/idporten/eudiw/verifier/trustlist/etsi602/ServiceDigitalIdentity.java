@@ -1,6 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist.etsi602;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.idporten.eudiw.verifier.VerificationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +14,14 @@ public record ServiceDigitalIdentity(
         List<ValueCertificate> X509Certificates) {
 
 
-    private static final Logger log = LoggerFactory.getLogger(ServiceDigitalIdentity.class);
-
     public List<X509Certificate> certListFromStringsToCerts() {
         List<X509Certificate> certs = new ArrayList<>();
         for(ValueCertificate cert : X509Certificates) {
-            certs.add(cert.getCertificateAsX509Object());
+            if(cert.getCertificateAsX509Object() != null) {
+                certs.add(cert.getCertificateAsX509Object());
+            } else {
+                throw new VerificationException("invalid_request", "trustlist contains non-parsable certificate");
+            }
         }
         return certs;
     }
