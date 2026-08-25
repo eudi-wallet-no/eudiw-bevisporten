@@ -26,6 +26,14 @@ After a larger change or a long conversation, take a brief retrospective before 
 
 ---
 
+## Preserve production behaviour
+
+For visual UI work, treat production interaction, state, validation, submission and navigation logic as fixed unless the user explicitly asks to change it. Do not replace control types or interaction patterns because another solution seems better.
+
+If a different solution would improve accessibility or maintainability, describe it as a separate proposal with its benefits and risks. Do not include it in the implementation without an explicit request.
+
+---
+
 ## JIRA-ID, branch and PR
 
 All tasks have a JIRA-ID. **Always ask the user for the JIRA-ID** if not provided — do not assume or make one up.

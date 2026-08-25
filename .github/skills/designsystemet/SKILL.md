@@ -22,6 +22,8 @@ A contained correction inside that perimeter can be implemented directly. If it 
 
 The result should still look and behave like the same product. Do not introduce a new layout model, component role, colour strategy, density, navigation pattern or visual identity as hidden "polish".
 
+For visual work on an existing flow, production behaviour is the baseline contract. Preserve its control types, interaction model, state transitions, validation, submitted values and navigation unless the request explicitly changes them. A Designsystemet or accessibility alternative may be proposed separately, but must not be substituted into the implementation without explicit approval.
+
 ## Two source-of-truth contracts
 
 Designsystemet correctness has two distinct authorities. Do not collapse them into one list.
@@ -197,6 +199,7 @@ Classify every finding before changing it:
 | Invalid or outdated Designsystemet contract | Repair it |
 | Accidental drift between comparable roles | Harmonise it |
 | Intentional documented or product-specific variant | Preserve it |
+| Established production interaction | Preserve it; propose alternatives separately |
 | Ambiguous product or interaction decision | Leave it or ask |
 
 Apply a correction at the narrowest shared level whose consumers should all receive it. Change a shared component only after checking every affected consumer.
