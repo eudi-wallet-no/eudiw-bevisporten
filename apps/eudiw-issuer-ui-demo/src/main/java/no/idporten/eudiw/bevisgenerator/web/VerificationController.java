@@ -195,7 +195,11 @@ public class VerificationController {
         return result;
     }
 
-    private List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials) {
+private List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials) {
+        if (credentials == null || credentials.isEmpty()) {
+            return List.of();
+        }
+
         return credentials.entrySet().stream()
                 .flatMap(entry -> entry.getValue().stream()
                         .map(credential -> new VerificationResultView(
