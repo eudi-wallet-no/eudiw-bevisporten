@@ -15,30 +15,23 @@
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=3)}"></div>
 
     <div class="step-flow">
-        <div class="step-flow__content" th:if="${result != null}"
-             x-data="verificationResult('verification-result-data')">
+        <div class="step-flow__content" th:if="${result != null}">
             <div class="flex-container">
                 <div class="ds-card verification-result__card"
                      data-color="neutral"
                      data-variant="default">
                     <h2 class="ds-heading" data-size="sm">Attributt</h2>
 
-                    <template x-for="[credentialType, credentials] in Object.entries(data)" :key="credentialType">
-                        <div class="verification-result__group">
-                            <p class="ds-label" x-text="formatCredentialType(credentialType)"></p>
+                    <div class="verification-result__group" th:each="credential : ${verificationResults}">
+                        <p class="ds-label" th:text="${credential.displayName}"></p>
 
-                            <template x-for="(credential, index) in credentials" :key="index">
-                                <dl class="verification-result__claims">
-                                    <template x-for="[claim, value] in Object.entries(credential.claims || {})" :key="claim">
-                                        <div class="verification-result__claim">
-                                            <dt x-text="claim"></dt>
-                                            <dd x-text="formatValue(value)"></dd>
-                                        </div>
-                                    </template>
-                                </dl>
-                            </template>
-                        </div>
-                    </template>
+                        <dl class="verification-result__claims">
+                            <div class="verification-result__claim" th:each="claim : ${credential.claims}">
+                                <dt th:text="${claim.name}"></dt>
+                                <dd th:text="${claim.value}"></dd>
+                            </div>
+                        </dl>
+                    </div>
                 </div>
 
                 <div class="ds-card verification-result__card"
@@ -46,30 +39,25 @@
                      data-variant="default">
                     <h2 class="ds-heading" data-size="sm">Valideringsdetaljar</h2>
 
-                    <template x-for="[credentialType, credentials] in Object.entries(data)" :key="credentialType + '-validation'">
-                        <div class="verification-result__group">
-                            <p class="ds-label" x-text="formatCredentialType(credentialType)"></p>
+                    <div class="verification-result__group" th:each="credential : ${verificationResults}">
+                        <p class="ds-label" th:text="${credential.displayName}"></p>
 
-                            <template x-for="(credential, index) in credentials" :key="index">
-                                <div class="verification-result__validation">
-                                    <p class="ds-alert" :data-color="credential.valid ? 'success' : 'danger'"
-                                       x-text="credential.valid ? 'Beviset er gyldig' : 'Beviset er ikkje gyldig'"></p>
+                        <div class="verification-result__validation">
+                            <p class="ds-alert"
+                               th:data-color="${credential.valid} ? 'success' : 'danger'"
+                               th:text="${credential.valid} ? 'Beviset er gyldig' : 'Beviset er ikkje gyldig'"></p>
 
-                                    <template x-for="(detail, detailIndex) in (credential.validationDetails || [])" :key="detailIndex">
-                                        <p class="ds-validation-message" :data-color="statusColor(detail.status)">
-                                            <span x-text="validationTypeLabel(detail.validationType)"></span>:
-                                            <span x-text="statusLabel(detail.status)"></span>
-                                        </p>
-                                    </template>
+                            <p class="ds-validation-message"
+                               th:each="detail : ${credential.validationDetails}"
+                               th:data-color="${detail.statusColor}"
+                               th:text="${detail.typeLabel} + ': ' + ${detail.statusLabel}"></p>
 
-                                    <p class="ds-paragraph" data-size="sm" data-color="neutral"
-                                       x-show="!credential.validationDetails || credential.validationDetails.length === 0">
-                                        Ingen valideringsdetaljar tilgjengeleg.
-                                    </p>
-                                </div>
-                            </template>
+                            <p class="ds-paragraph" data-size="sm" data-color="neutral"
+                               th:if="${#lists.isEmpty(credential.validationDetails)}">
+                                Ingen valideringsdetaljar tilgjengeleg.
+                            </p>
                         </div>
-                    </template>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,64 +82,5 @@
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
-<script id="verification-result-data" type="application/json" th:if="${result != null}" th:utext="${resultJson}"></script>
-<script>
-    // Alpine.js component: renders the verification result as claims (left card)
-    // and validation details (right card), grouped per requested credential type.
-    function verificationResult(dataElementId) {
-        const dataElement = document.getElementById(dataElementId);
-        const data = dataElement ? JSON.parse(dataElement.textContent || "{}") : {};
-
-        const validationTypeLabels = {
-            STATUS_LIST: "Status",
-            TRUST_LIST: "Tillitsliste"
-        };
-
-        const statusColors = {
-            VALID: "success",
-            INVALID: "danger",
-            INCONCLUSIVE: "warning"
-        };
-
-        const statusLabels = {
-            VALID: "Gyldig",
-            INVALID: "Ugyldig",
-            INCONCLUSIVE: "Usikker"
-        };
-
-        return {
-            data,
-
-            formatCredentialType(credentialType) {
-                return credentialType.replaceAll("_", " ");
-            },
-
-            formatValue(value) {
-                if (value === null || value === undefined) {
-                    return "\u2013";
-                }
-                if (typeof value === "boolean") {
-                    return value ? "Ja" : "Nei";
-                }
-                if (typeof value === "object") {
-                    return JSON.stringify(value);
-                }
-                return value;
-            },
-
-            validationTypeLabel(validationType) {
-                return validationTypeLabels[validationType] || validationType;
-            },
-
-            statusColor(status) {
-                return statusColors[status] || "neutral";
-            },
-
-            statusLabel(status) {
-                return statusLabels[status] || status;
-            }
-        };
-    }
-</script>
 </body>
 </html>

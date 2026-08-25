@@ -9,7 +9,10 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerSe
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
+import no.idporten.eudiw.bevisgenerator.web.models.ClaimView;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
+import no.idporten.eudiw.bevisgenerator.web.models.ValidationDetailView;
+import no.idporten.eudiw.bevisgenerator.web.models.VerificationResultView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -134,12 +137,10 @@ public class VerificationController {
         response.setHeader("Referrer-Policy", "no-referrer");
 
         VerificationResult result = getVerificationResult(verificationId, session);
-        List<VerifiedCredential> verifiedCredentials = result.credentials().values().stream().flatMap(List::stream).toList();
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("resultJson", toJsonString(result.credentials()))
-                .addObject("verifiedCredentials", verifiedCredentials)
+                .addObject("verificationResults", buildVerificationResultViews(result.credentials()))
                 .addObject("steps", STEPS);
     }
 
@@ -192,6 +193,75 @@ public class VerificationController {
             session.setAttribute(verificationResultKey, result);
         }
         return result;
+    }
+
+    private List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials) {
+        return credentials.entrySet().stream()
+                .flatMap(entry -> entry.getValue().stream()
+                        .map(credential -> new VerificationResultView(
+                                entry.getKey(),
+                                formatCredentialType(entry.getKey()),
+                                credential.valid(),
+                                buildClaimViews(credential.claims()),
+                                buildValidationDetailViews(credential.validationDetails())
+                        )))
+                .toList();
+    }
+
+    private List<ClaimView> buildClaimViews(Map<String, Object> claims) {
+        return claims.entrySet().stream()
+                .map(entry -> new ClaimView(entry.getKey(), formatClaimValue(entry.getValue())))
+                .toList();
+    }
+
+    private List<ValidationDetailView> buildValidationDetailViews(List<ValidationDetail> validationDetails) {
+        return validationDetails.stream()
+                .map(detail -> new ValidationDetailView(
+                        validationTypeLabel(detail.validationType()),
+                        validationStatusLabel(detail.status()),
+                        validationStatusColor(detail.status())
+                ))
+                .toList();
+    }
+
+    private String formatCredentialType(String credentialType) {
+        return credentialType.replace('_', ' ');
+    }
+
+    private String formatClaimValue(Object value) {
+        if (value == null) {
+            return "\u2013";
+        }
+        if (value instanceof Boolean bool) {
+            return bool ? "Ja" : "Nei";
+        }
+        if (value instanceof Map<?, ?> || value instanceof List<?>) {
+            return toJsonString(value, false);
+        }
+        return value.toString();
+    }
+
+    private String validationTypeLabel(ValidationType validationType) {
+        return switch (validationType) {
+            case STATUS_LIST -> "Status";
+            case TRUST_LIST -> "Tillitsliste";
+        };
+    }
+
+    private String validationStatusLabel(ValidationStatus status) {
+        return switch (status) {
+            case VALID -> "Gyldig";
+            case INVALID -> "Ugyldig";
+            case INCONCLUSIVE -> "Usikker";
+        };
+    }
+
+    private String validationStatusColor(ValidationStatus status) {
+        return switch (status) {
+            case VALID -> "success";
+            case INVALID -> "danger";
+            case INCONCLUSIVE -> "warning";
+        };
     }
 
     private ModelAndView baseView(StartVerificationForm form) {

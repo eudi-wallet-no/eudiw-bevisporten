@@ -226,9 +226,9 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Presenter nytt bevis")))
                 .andExpect(content().string(containsString("href=\"/revoke\"")))
                 .andExpect(content().string(containsString("Tilbakekall bevis")))
-                .andExpect(content().string(containsString("verificationResult('verification-result-data')")))
-                .andExpect(content().string(containsString("id=\"verification-result-data\"")))
-                .andExpect(content().string(containsString("\"age_over_18\" : true")))
+                .andExpect(content().string(containsString("age_over_18")))
+                .andExpect(content().string(containsString("Ja")))
+                .andExpect(content().string(containsString("Beviset er gyldig")))
                 .andExpect(content().string(containsString("Attributt")))
                 .andExpect(content().string(containsString("Valideringsdetaljar")))
                 .andExpect(content().string(containsString("verification-result__claims")))
@@ -284,8 +284,7 @@ class VerificationControllerTest {
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
                 .andExpect(view().name("verification-result"))
                 .andExpect(model().attributeExists("result"))
-                .andExpect(model().attribute("resultJson", containsString("\"proof_of_age\"")))
-                .andExpect(model().attribute("resultJson", containsString("\"age_over_18\" : true")));
+                .andExpect(model().attribute("verificationResults", hasSize(1)));
 
         verify(verifierService).retrieveVerificationResult("tx-id");
     }
