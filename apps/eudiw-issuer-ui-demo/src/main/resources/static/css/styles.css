@@ -512,6 +512,7 @@ main {
 
 .credential-card {
     background-color: var(--ds-color-surface-default);
+    cursor: pointer;
     min-width: 0;
     height: 100%;
 }
@@ -527,11 +528,16 @@ main {
 }
 
 .credential-card__claims {
-    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
     margin-top: var(--ds-size-4);
 }
 
 .credential-card__claim {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-2);
     width: fit-content;
 }
 

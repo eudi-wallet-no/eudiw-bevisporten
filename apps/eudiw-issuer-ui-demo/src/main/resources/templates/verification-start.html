@@ -35,28 +35,24 @@
 
                 <div class="credential-grid">
                     <template x-for="(credential, credentialIndex) in credentials" :key="credential.id">
-                        <div class="credential-card ds-field"
+                        <div class="credential-card ds-card"
                              data-color="accent"
-                             data-variant="outline"
-                             :class="{ 'credential-card--expanded': isSelected(credential.id) }">
-                            <input class="ds-input"
-                                  type="radio"
-                                  name="credentialConfigurationId"
-                                  :id="`credential-${credentialIndex}`"
-                                  :value="credential.id"
-                                  x-model="selectedId" />
-                            <label class="ds-label credential-card__title"
-                                  :for="`credential-${credentialIndex}`"
-                                  x-text="credential.title"></label>
+                             data-variant="default"
+                             :class="{ 'credential-card--expanded': isSelected(credential.id) }"
+                             role="button"
+                             tabindex="0"
+                             :aria-pressed="isSelected(credential.id)"
+                             @click="select(credential.id)"
+                             @keydown.enter.self.prevent="select(credential.id)"
+                             @keydown.space.self.prevent="select(credential.id)">
+                            <p class="ds-paragraph credential-card__title"
+                               data-weight="medium"
+                               x-text="credential.title"></p>
 
-                            <fieldset class="ds-fieldset credential-card__claims"
-                                     x-show="isSelected(credential.id)"
-                                     th:attr="aria-describedby=${#fields.hasErrors('selectedClaimPaths')} ? 'selected-claims-error' : null,
-                                              aria-invalid=${#fields.hasErrors('selectedClaimPaths')} ? 'true' : null">
-                               <legend class="ds-label" data-size="sm">
-                                   Vel attributt for <span x-text="credential.title"></span>
-                               </legend>
-                               <template x-for="(claim, claimIndex) in credential.claims" :key="pathOf(claim)">
+                            <div class="credential-card__claims"
+                                 x-show="isSelected(credential.id)"
+                                 @click.stop>
+                                <template x-for="(claim, claimIndex) in credential.claims" :key="pathOf(claim)">
                                    <div class="ds-field credential-card__claim">
                                        <input class="ds-input"
                                               type="checkbox"
@@ -67,12 +63,13 @@
                                               :for="`credential-${credentialIndex}-claim-${claimIndex}`"
                                               x-text="claim.label"></label>
                                    </div>
-                               </template>
-                            </fieldset>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>
 
+                <input type="hidden" name="credentialConfigurationId" :value="selectedId">
                 <template x-for="path in selectedClaimPaths" :key="path">
                     <input type="hidden" name="selectedClaimPaths" :value="path">
                 </template>
@@ -97,7 +94,7 @@
             nextHref=${null},
             nextLabel='Start verifisering',
             nextForm='verification-form',
-            nextDisabledUntilSelection=${false},
+            nextDisabledUntilSelection=${true},
             dynamicNextForm=${false},
             nextColor=${null}
         )}"></div>
@@ -132,6 +129,10 @@
             credentials,
             selectedId: initialCredentialId || "",
             claimSelections,
+
+            select(id) {
+                this.selectedId = id;
+            },
 
             isSelected(id) {
                 return this.selectedId === id;
