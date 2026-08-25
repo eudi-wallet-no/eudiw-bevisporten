@@ -107,6 +107,23 @@ header {
     outline-offset: 2px;
 }
 
+@media (max-width: 767px) {
+    .header__nav {
+        gap: var(--ds-size-2);
+        padding-block-start: var(--ds-size-3);
+        border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    }
+
+    .header__nav .ds-link {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: var(--ds-size-12);
+        padding-block: var(--ds-size-2);
+        font-size: var(--ds-body-lg-font-size);
+    }
+}
+
 @media (min-width: 768px) {
     .header__nav-toggle-label {
         display: none;

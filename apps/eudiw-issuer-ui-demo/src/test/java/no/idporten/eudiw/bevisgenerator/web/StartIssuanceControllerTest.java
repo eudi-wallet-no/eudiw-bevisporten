@@ -110,6 +110,7 @@ class StartIssuanceControllerTest {
                 .andExpect(content().string(containsString("Vil du lage din eigen bevistype?")))
                 .andExpect(content().string(containsString("href=\"/admin\"")))
                 .andExpect(content().string(containsString("Gå til administrasjon av bevistypar")))
+                .andExpect(content().string(containsString("data-size=\"md\"")))
                 .andExpect(content().string(containsString("PID")));
     }
 
