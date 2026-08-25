@@ -599,11 +599,11 @@ main {
 .verification-result__claim--group dt {
     font-weight: var(--ds-font-weight-medium);
     color: inherit;
+    text-align: left;
 }
 
 .verification-result__claim--group dd {
-    width: 100%;
-    text-align: left;
+    text-align: right;
 }
 
 .verification-result__claim--group > dd > .verification-result__claims {
