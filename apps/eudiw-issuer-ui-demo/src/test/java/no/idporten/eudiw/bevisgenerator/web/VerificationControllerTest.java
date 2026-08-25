@@ -226,7 +226,7 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Presenter nytt bevis")))
                 .andExpect(content().string(containsString("href=\"/revoke\"")))
                 .andExpect(content().string(containsString("Tilbakekall bevis")))
-                .andExpect(content().string(containsString("age_over_18")))
+                .andExpect(content().string(containsString("age over 18")))
                 .andExpect(content().string(containsString("Ja")))
                 .andExpect(content().string(containsString("Beviset er gyldig")))
                 .andExpect(content().string(containsString("Attributt")))
@@ -271,6 +271,43 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("NO, SE")))
                 .andExpect(content().string(containsString("verification-result__claim--group")))
                 .andExpect(content().string(not(containsString("{\"gate\""))));
+
+        // mso_mdoc credentials wrap every claim under a single namespace key
+        // (e.g. "eu.europa.ec.eudi.pid.1"). That wrapper must be unwrapped so claims
+        // render flat, instead of showing the raw namespace string as a confusing group.
+        VerificationTransactionData mdocTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id-mdoc"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id-mdoc"),
+                URI.create("http://verifier/result/tx-id-mdoc")
+        );
+        when(verifierService.retrieveVerificationResult("tx-id-mdoc")).thenReturn(new VerificationResult(
+                "tx-id-mdoc",
+                Map.of(
+                        "no.digdir.eudiw.pid_mso_mdoc",
+                        List.of(new VerifiedCredential(
+                                Map.of(
+                                        "eu.europa.ec.eudi.pid.1",
+                                        Map.of(
+                                                "personal_administrative_number", "12345678912",
+                                                "given_name", "Kari"
+                                        )
+                                ),
+                                true,
+                                List.of()
+                        ))
+                )
+        ));
+
+        thymeleafMockMvc.perform(get("/verification-result/mdocKey")
+                        .sessionAttr("verification_transaction_data_mdocKey", mdocTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("personal administrative number")))
+                .andExpect(content().string(containsString("12345678912")))
+                .andExpect(content().string(containsString("given name")))
+                .andExpect(content().string(containsString("Kari")))
+                .andExpect(content().string(not(containsString("eu.europa.ec.eudi.pid.1"))));
     }
 
     @Test

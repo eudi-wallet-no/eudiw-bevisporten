@@ -219,23 +219,35 @@ private List<VerificationResultView> buildVerificationResultViews(Map<String, Li
             return List.of();
         }
 
-        return claims.entrySet().stream()
+        return unwrapNamespaceClaims(claims).entrySet().stream()
                 .map(entry -> buildClaimView(entry.getKey(), entry.getValue()))
                 .toList();
     }
 
+    private Map<String, Object> unwrapNamespaceClaims(Map<String, Object> claims) {
+        while (claims.size() == 1) {
+            Object onlyValue = claims.values().iterator().next();
+            if (!(onlyValue instanceof Map<?, ?> nested)) {
+                break;
+            }
+            claims = asStringKeyedMap(nested);
+        }
+        return claims;
+    }
+
     private ClaimView buildClaimView(String name, Object value) {
+        String label = formatClaimName(name);
         if (value instanceof Map<?, ?> map) {
-            return new ClaimView(name, null, buildClaimViews(asStringKeyedMap(map)));
+            return new ClaimView(label, null, buildClaimViews(asStringKeyedMap(map)));
         }
         if (value instanceof List<?> list && list.stream().anyMatch(item -> item instanceof Map<?, ?> || item instanceof List<?>)) {
             List<ClaimView> children = new ArrayList<>();
             for (int i = 0; i < list.size(); i++) {
                 children.add(buildClaimView(name + " " + (i + 1), list.get(i)));
             }
-            return new ClaimView(name, null, children);
+            return new ClaimView(label, null, children);
         }
-        return new ClaimView(name, formatClaimValue(value), List.of());
+        return new ClaimView(label, formatClaimValue(value), List.of());
     }
 
     @SuppressWarnings("unchecked")
@@ -259,6 +271,10 @@ private List<VerificationResultView> buildVerificationResultViews(Map<String, Li
 
     private String formatCredentialType(String credentialType) {
         return credentialType.replace('_', ' ');
+    }
+
+    private String formatClaimName(String name) {
+        return name.replace('_', ' ');
     }
 
     private String formatClaimValue(Object value) {
