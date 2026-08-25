@@ -181,4 +181,13 @@ class TrustlistServiceTest {
         X509Certificate cert2 = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDSecondOnList() + END_CERTIFICATE);
         assertFalse(trustlistService.compareCertificates(cert1, cert2));
     }
+
+    @Test
+    @DisplayName("that comparing certificates succeeds when the certificates are the same when one is parsed through " +
+            "ValueCertificate while other is parsed in test")
+    void testCompareCertificatesSucceedsWhenCertificatesAreTheSame() {
+        ValueCertificate certificate = new ValueCertificate(certificates.trustlistCertificatePIDFirstOnList());
+        X509Certificate cert2 = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDFirstOnList() + END_CERTIFICATE);
+        assertTrue(trustlistService.compareCertificates(certificate.getCertificateAsX509Object(), cert2));
+    }
 }
