@@ -9,10 +9,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefin
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLServiceImpl;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStartResponse;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -118,11 +115,9 @@ class VerificationControllerTest {
                 "tx-id",
                 Map.of(
                         "proof_of_age",
-                        List.of(new VerificationResult.VerifiedCredential(
-                                Map.of("age_over_18", true)
-                        ))
+                        List.of(new VerifiedCredential( Map.of("age_over_18", true), true, List.of())
                 )
-        ));
+        )));
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();

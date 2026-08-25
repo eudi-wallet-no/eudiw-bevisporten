@@ -134,7 +134,7 @@ public class VerificationController {
         response.setHeader("Referrer-Policy", "no-referrer");
 
         VerificationResult result = getVerificationResult(verificationId, session);
-        Map<String, List<VerifiedCredential>> verifiedCredentials = result.credentials();
+        List<VerifiedCredential> verifiedCredentials = result.credentials().values().stream().flatMap(List::stream).toList();
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
