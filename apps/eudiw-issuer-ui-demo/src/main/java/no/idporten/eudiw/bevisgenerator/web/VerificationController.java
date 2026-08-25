@@ -7,12 +7,13 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerificationResultService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
-import no.idporten.eudiw.bevisgenerator.web.models.ClaimView;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
-import no.idporten.eudiw.bevisgenerator.web.models.ValidationDetailView;
-import no.idporten.eudiw.bevisgenerator.web.models.VerificationResultView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -25,11 +26,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Controller
 public class VerificationController {
@@ -39,6 +38,7 @@ public class VerificationController {
     private final VerifierService verifierService;
     private final ObjectMapper objectMapper;
     private final DCQLService dcqlService;
+    private final VerificationResultService verificationResultService;
 
     private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Resultat");
 
@@ -46,13 +46,16 @@ public class VerificationController {
             IssuerServerService issuerServerService,
             IssuerServerProperties properties,
             VerifierService verifierService,
-            ObjectMapper objectMapper, DCQLService dcqlService
+            ObjectMapper objectMapper,
+            DCQLService dcqlService,
+            VerificationResultService verificationResultService
     ) {
         this.issuerServerService = issuerServerService;
         this.properties = properties;
         this.verifierService = verifierService;
         this.objectMapper = objectMapper;
         this.dcqlService = dcqlService;
+        this.verificationResultService = verificationResultService;
     }
 
     @ModelAttribute("issuerUrl")
@@ -142,7 +145,7 @@ public class VerificationController {
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("verificationResults", buildVerificationResultViews(result.credentials()))
+                .addObject("verificationResults", verificationResultService.buildVerificationResultViews(result.credentials()))
                 .addObject("steps", STEPS);
     }
 
@@ -197,121 +200,7 @@ public class VerificationController {
         return result;
     }
 
-private List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials) {
-        if (credentials == null || credentials.isEmpty()) {
-            return List.of();
-        }
 
-        return credentials.entrySet().stream()
-                .flatMap(entry -> entry.getValue().stream()
-                        .map(credential -> new VerificationResultView(
-                                entry.getKey(),
-                                formatCredentialType(entry.getKey()),
-                                credential.valid(),
-                                buildClaimViews(credential.claims()),
-                                buildValidationDetailViews(credential.validationDetails())
-                        )))
-                .toList();
-    }
-
-    private List<ClaimView> buildClaimViews(Map<String, Object> claims) {
-        if (claims == null || claims.isEmpty()) {
-            return List.of();
-        }
-
-        return unwrapNamespaceClaims(claims).entrySet().stream()
-                .map(entry -> buildClaimView(entry.getKey(), entry.getValue()))
-                .toList();
-    }
-
-    private Map<String, Object> unwrapNamespaceClaims(Map<String, Object> claims) {
-        while (claims.size() == 1) {
-            Object onlyValue = claims.values().iterator().next();
-            if (!(onlyValue instanceof Map<?, ?> nested)) {
-                break;
-            }
-            claims = asStringKeyedMap(nested);
-        }
-        return claims;
-    }
-
-    private ClaimView buildClaimView(String name, Object value) {
-        String label = formatClaimName(name);
-        if (value instanceof Map<?, ?> map) {
-            return new ClaimView(label, null, buildClaimViews(asStringKeyedMap(map)));
-        }
-        if (value instanceof List<?> list && list.stream().anyMatch(item -> item instanceof Map<?, ?> || item instanceof List<?>)) {
-            List<ClaimView> children = new ArrayList<>();
-            for (int i = 0; i < list.size(); i++) {
-                children.add(buildClaimView(name + " " + (i + 1), list.get(i)));
-            }
-            return new ClaimView(label, null, children);
-        }
-        return new ClaimView(label, formatClaimValue(value), List.of());
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> asStringKeyedMap(Map<?, ?> map) {
-        return (Map<String, Object>) map;
-    }
-
-    private List<ValidationDetailView> buildValidationDetailViews(List<ValidationDetail> validationDetails) {
-        if (validationDetails == null || validationDetails.isEmpty()) {
-            return List.of();
-        }
-
-        return validationDetails.stream()
-                .map(detail -> new ValidationDetailView(
-                        validationTypeLabel(detail.validationType()),
-                        validationStatusLabel(detail.status()),
-                        validationStatusColor(detail.status())
-                ))
-                .toList();
-    }
-
-    private String formatCredentialType(String credentialType) {
-        return credentialType.replace('_', ' ');
-    }
-
-    private String formatClaimName(String name) {
-        return name.replace('_', ' ');
-    }
-
-    private String formatClaimValue(Object value) {
-        if (value == null) {
-            return "\u2013";
-        }
-        if (value instanceof Boolean bool) {
-            return bool ? "Ja" : "Nei";
-        }
-        if (value instanceof List<?> list) {
-            return list.stream().map(this::formatClaimValue).collect(Collectors.joining(", "));
-        }
-        return value.toString();
-    }
-
-    private String validationTypeLabel(ValidationType validationType) {
-        return switch (validationType) {
-            case STATUS_LIST -> "Status";
-            case TRUST_LIST -> "Tillitsliste";
-        };
-    }
-
-    private String validationStatusLabel(ValidationStatus status) {
-        return switch (status) {
-            case VALID -> "Gyldig";
-            case INVALID -> "Ugyldig";
-            case INCONCLUSIVE -> "Usikker";
-        };
-    }
-
-    private String validationStatusColor(ValidationStatus status) {
-        return switch (status) {
-            case VALID -> "success";
-            case INVALID -> "danger";
-            case INCONCLUSIVE -> "warning";
-        };
-    }
 
     private ModelAndView baseView(StartVerificationForm form) {
         List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
