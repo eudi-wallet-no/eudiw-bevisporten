@@ -511,11 +511,13 @@ main {
 }
 
 .credential-card {
+    background-color: var(--ds-color-surface-default);
     min-width: 0;
     height: 100%;
 }
 
 .credential-card--expanded {
+    background-color: var(--ds-color-surface-tinted);
     grid-column: span 2;
     border-color: var(--ds-color-accent-border-default);
 }
