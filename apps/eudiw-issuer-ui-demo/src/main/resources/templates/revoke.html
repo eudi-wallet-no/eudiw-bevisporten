@@ -31,8 +31,9 @@
                     <input id="revocation-method-transaction-id"
                            class="ds-input"
                            type="radio"
-                           name="revocation-method"
+                           name="revocation-method-transaction-id"
                            value="revoke-form"
+                           tabindex="0"
                            x-model="selectedForm"
                            th:checked="${revocationMethod == 'transaction-id'}" />
                     <label for="revocation-method-transaction-id" class="ds-label">
@@ -49,8 +50,9 @@
                     <input id="revocation-method-person-identifier"
                            class="ds-input"
                            type="radio"
-                           name="revocation-method"
+                           name="revocation-method-person-identifier"
                            value="revoke-by-subject-form"
+                           tabindex="0"
                            x-model="selectedForm"
                            th:checked="${revocationMethod == 'person-identifier'}" />
                     <label for="revocation-method-person-identifier" class="ds-label">
