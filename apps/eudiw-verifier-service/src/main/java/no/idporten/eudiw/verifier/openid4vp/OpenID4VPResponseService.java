@@ -18,26 +18,22 @@ import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
-import no.idporten.eudiw.verifier.config.TrustlistsProperties;
+import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.etsi612.LoTE;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.util.TrustlistLogic;
+import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import no.idporten.eudiw.verifier.config.ClientApplication;
-import no.idporten.eudiw.verifier.crypto.ECUtils;
-import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 import org.jspecify.annotations.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -57,21 +53,13 @@ public class OpenID4VPResponseService {
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
     private final JsonMapper objectMapper;
+    private final TrustlistService trustlistService;
 
-
-    private final RestClient trustlistRestclient;
-
-    private final TrustlistsProperties trustlistsProperties;
-
-    private TrustlistLogic trustlistLogic;
-
-    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, JsonMapper objectMapper, @Qualifier("trustlist") RestClient trustlistRestclient, TrustlistsProperties trustlistsProperties) {
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, JsonMapper objectMapper) {
         this.verificationTransactionService = verificationTransactionService;
         this.tokenStatuslistService = tokenStatuslistService;
+        this.trustlistService = trustlistService;
         this.objectMapper = objectMapper;
-        this.trustlistRestclient = trustlistRestclient;
-        this.trustlistsProperties = trustlistsProperties;
-        this.trustlistLogic = new TrustlistLogic(trustlistRestclient, trustlistsProperties);
     }
 
     public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
@@ -172,7 +160,7 @@ public class OpenID4VPResponseService {
     }
 
     protected boolean checkTrustlist(X509Certificate cert) throws Exception {
-        return trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
     }
 
     protected VerifiedCredential retrieveClaimsFromSDJwtCredential(String vpToken, boolean includeValidationDetails) throws Exception {
