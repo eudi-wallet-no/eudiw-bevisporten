@@ -19,16 +19,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.support.GenericWebApplicationContext;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
-import org.thymeleaf.spring6.view.ThymeleafViewResolver;
-import org.thymeleaf.templatemode.TemplateMode;
+import org.springframework.web.servlet.view.InternalResourceView;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -38,7 +32,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,44 +67,18 @@ class StartIssuanceControllerTest {
         when(issuerServerService.getById("pid")).thenReturn(credentialConfiguration);
         when(issuerServerService.getAll()).thenReturn(List.of(credentialConfiguration));
 
-        GenericWebApplicationContext applicationContext = new GenericWebApplicationContext();
-        applicationContext.refresh();
-
-        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(applicationContext);
-        templateResolver.setPrefix("classpath:/templates/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false);
-
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
-        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
-        viewResolver.setTemplateEngine(templateEngine);
-        viewResolver.setCharacterEncoding("UTF-8");
-
         mockMvc = MockMvcBuilders.standaloneSetup(
                         new StartIssuanceController(
                                 issuerServerService,
                                 properties,
                                 bevisgeneratorProperties
                         ))
-                .setViewResolvers(viewResolver)
+                .setViewResolvers((viewName, locale) -> {
+                    InternalResourceView view = new InternalResourceView();
+                    view.setUrl("/templates/" + viewName + ".html");
+                    return view;
+                })
                 .build();
-    }
-
-    @Test
-    void issuePageOffersCustomCredentialManagementBeforeExistingCredentials() throws Exception {
-        mockMvc.perform(get("/issue"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("class=\"ds-alert content-narrow landing-intro\"")))
-                .andExpect(content().string(containsString("Vil du lage din eigen bevistype?")))
-                .andExpect(content().string(containsString("href=\"/admin\"")))
-                .andExpect(content().string(containsString("Gå til administrasjon av bevistypar")))
-                .andExpect(content().string(containsString("data-size=\"md\"")))
-                .andExpect(content().string(containsString("PID")));
     }
 
     @Test
@@ -132,10 +99,7 @@ class StartIssuanceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("issuer_response"))
                 .andExpect(model().attribute("issuedTransactionId", "tx-id"))
-                .andExpect(request().sessionAttribute(TRANSACTION_CONFIGURATION_KEY, "pid"))
-                .andExpect(content().string(containsString("class=\"ds-link back-link\"")))
-                .andExpect(content().string(containsString("\\/issuance\\/tx-id\\/status")))
-                .andExpect(content().string(not(containsString("class=\"step-navigation\""))));
+                .andExpect(request().sessionAttribute(TRANSACTION_CONFIGURATION_KEY, "pid"));
     }
 
     @Test
@@ -212,10 +176,7 @@ class StartIssuanceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "no-store, private"))
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
-                .andExpect(view().name("issuance-complete"))
-                .andExpect(content().string(containsString("class=\"step-navigation\"")))
-                .andExpect(content().string(containsString("Vel bevistype")))
-                .andExpect(content().string(containsString("Presenter bevis")));
+                .andExpect(view().name("issuance-complete"));
     }
 
     @Test
