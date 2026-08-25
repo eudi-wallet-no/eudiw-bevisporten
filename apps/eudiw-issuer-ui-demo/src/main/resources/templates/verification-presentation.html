@@ -7,14 +7,18 @@
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 <main>
-    <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
-            Presenter bevis
-        </h1>
+    <div class="page-heading">
+        <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
+        <div class="landing-intro">
+            <h1 class="ds-heading" data-size="xl">
+                Presenter bevis
+            </h1>
+        </div>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=2)}"></div>
-    <div class="ds-card" >
+    <div class="ds-card content-narrow"
+         data-color="neutral"
+         data-variant="default">
         <div id="cross-device-request" class="qr-code-container">
             <img th:src="${qrCode}" alt="QR kode for verifikasjon" id="qrcode-cross-device" class="qr-code"/>
         </div>

@@ -14,16 +14,17 @@
 </template>
 
 <main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
+    <div class="landing-intro">
+        <h1 class="ds-heading" data-size="xl">
             Legg til bevistype
         </h1>
     </div>
-    <div>
+    <div class="content-narrow">
         <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er tilgjengelig i utstederen.</p>
     </div>
 
-    <form   th:fragment="add_attributes_form_fragment"
+    <form class="form-container content-narrow"
+            th:fragment="add_attributes_form_fragment"
             id="add_attributes_form"
             th:action="@{/add-credential-new}"
             th:object="${form}" method="post">
@@ -69,11 +70,11 @@
             </div>
         </div>
 
-        <hr/>
+        <hr class="form-divider"/>
 
-        <h3>Claims</h3>
+        <h2 class="ds-heading" data-size="sm">Claims</h2>
 
-        <div id="claims">
+        <div id="claims" class="claims-list">
             <div th:each="claim, stat : *{claims}">
                 <th:block th:insert="~{fragments/claim :: claim(${stat.index}, ${claim})}"/>
             </div>
@@ -81,7 +82,7 @@
 
         <button type="button" class="ds-button" data-variant="secondary" onclick="addClaim()">Legg til Claim</button>
 
-        <hr/>
+        <hr class="form-divider"/>
 
         <button class="ds-button" type="submit" form="add_attributes_form">Legg til bevistype</button>
     </form>

@@ -17,17 +17,15 @@ allowed-tools: ['view', 'grep', 'glob', 'bash']
 
 ---
 
-## Core Disciplines
+## Principles
 
-1. **Ground Truth First** — Read the files you will actually edit, in the workspace you
-   will actually edit them in. A monorepo may have several checkouts of the same repo;
-   a stale one silently produces a plan full of files and line numbers that don't exist.
-
-2. **Map First** — Find change locations (`file:line`). Trace who calls in, what flows next, what breaks. Search monorepo for existing patterns.
-
-3. **Hypothesis → Test** — Pick the simplest, most maintainable approach. Plan tests (don't run): name the behavior, expected result, command.
-
-4. **Wait for Approval** — Never code without sign-off. Plan is complete when it answers: What? Where? Why this way? How to verify?
+- **Ground truth first.** Read the files you will actually edit, in the workspace you will actually edit them in: right workspace, synced with the default branch, files confirmed to exist in *this* tree. A monorepo may have several checkouts of the same repo, and a stale one silently produces a plan full of files and line numbers that don't exist — worse than no plan.
+- **Map before proposing.** Find change locations (`file:line`). Trace who calls in, what flows next, what breaks. Search the monorepo for existing patterns. Keep the findings out of the document unless they shape the decision.
+- **No code claims without `file:line`** — and only from files you actually opened in this workspace. Don't carry over paths or line numbers from another checkout or from memory.
+- **Reuse first.** Pick the simplest, most maintainable approach that fits existing patterns. Only design new patterns when existing ones don't fit, and explain any deviation.
+- **Check for a domain skill.** If the change touches an area with its own skill (UI/design system, tests, migrations), read it before proposing an approach.
+- **Hypothesis → test.** Plan tests, don't run them: name the behavior, the expected result, and the command.
+- **Plan, don't code.** Never code without sign-off. The plan is complete when it answers: What? Where? Why this way? How to verify?
 
 ---
 
@@ -51,10 +49,7 @@ directory rather than assuming a path from memory, another checkout, or an earli
 Never map or edit via an absolute path outside the current workspace.
 
 ### 1. Map
-Find all change locations and impacts. Who is affected? Any reusable patterns in the monorepo?
-
-Mapping is **research, not a deliverable**. Most of what you find never reaches the
-document — it exists to make the options and the technical changes correct.
+Find all change locations and impacts. Who is affected? Any reusable patterns in the monorepo? Mapping is research, not a deliverable — most of what you find exists only to make the options and the technical changes correct.
 
 ### 2. Scope
 What is the goal? What changes, what doesn't? Any blockers?
@@ -77,7 +72,8 @@ done-when condition in its description. Don't duplicate that detail as a table i
 ## Output
 
 Keep the plan short. Investigate thoroughly, but only surface what's decision-relevant —
-this is a proposal to read in seconds, not an audit log.
+this is a proposal to read in seconds, not an audit log. Do not list unchanged lines or
+sections "for completeness".
 
 Present it in this order, so it reads as an argument: *why → what's in play → what we could
 do → what we should do → what that means in code → what gets done.*
@@ -91,11 +87,9 @@ something like this before? Name the closest analog (`app/file`), what conventio
 established, and whether we follow it or deviate. If there is no analog, say so — that is
 itself a finding, and means the options are about *establishing* a pattern, not picking one.
 Check when the surrounding code last changed; landing on top of an in-progress migration
-constrains the options more than an old, settled file does.
-
-Then the 1–2 realistic approaches, each in a couple of lines. State the trade-off honestly.
-If there is genuinely only one sensible approach, say so in one line and move on — don't
-invent a strawman alternative.
+constrains the options more than an old, settled file does. Then the 1–2 realistic
+approaches, each in a couple of lines, with the trade-off stated honestly. If there is
+genuinely only one sensible approach, say so in one line — don't invent a strawman.
 
 **4. Recommendation** — which option, and the reason. Comes *after* the options, never before.
 
@@ -103,29 +97,10 @@ invent a strawman alternative.
 (`file:line`, grouped), the pattern being reused or why none fits, and any gotcha that
 shapes the approach. 3–6 bullets. This is where mapping surfaces — filtered, not dumped.
 
-Do not list unchanged lines or sections "for completeness". If it isn't changing and
-doesn't affect the decision, leave it out.
-
 **6. Tasks** — task IDs with a one-line goal each. The full detail (where, impacts, test,
 done-when) lives in the todo `description`, not here.
 
 **7. Verification** — how we'll know it worked, in one or two lines.
-
----
-
-## Non-Negotiable
-
-- **Ground truth before mapping.** Right workspace, synced with the default branch, files
-  confirmed to exist in *this* tree. A plan built on a stale checkout is worse than no plan.
-- **Map before proposing.** Know where the change lives and what it affects — but keep the
-  findings out of the document unless they shape the decision.
-- **No code claims without file:line** — and only from files you actually opened in this
-  workspace. Don't carry over paths or line numbers from another checkout or from memory.
-- **Reuse first.** Only design new patterns when existing ones don't fit.
-- **Check for a domain skill.** If the change touches an area with its own skill
-  (UI/design system, tests, migrations), read it before proposing an approach.
-- **Justify deviations.** Breaking from patterns? Explain why.
-- **Plan, don't code.** Wait for approval before implementing.
 
 ---
 
@@ -138,4 +113,3 @@ done-when) lives in the todo `description`, not here.
    the page and comparing to the reference; for logic, the named test.
 4. Run all tests
 5. Update docs if changes made them incorrect
-
