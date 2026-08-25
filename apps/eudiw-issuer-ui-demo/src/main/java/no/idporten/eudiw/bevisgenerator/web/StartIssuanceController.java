@@ -5,17 +5,21 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.bevisgenerator.config.BevisgeneratorProperties;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +38,9 @@ import java.util.Base64;
 
 @Controller
 public class StartIssuanceController {
+
+    private static final String ISSUANCE_CONFIGURATION_SESSION_KEY = "issuance_credential_configuration_%s";
+    private static final String ISSUANCE_COMPLETED_SESSION_KEY = "issuance_completed_%s";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -87,7 +94,8 @@ public class StartIssuanceController {
     @PostMapping("/start-issuance/{credential_configuration_id}")
     public String startIssuance(@PathVariable("credential_configuration_id") String credentialConfigurationId,
                                 @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
-                                Model model) {
+                                Model model,
+                                HttpSession session) {
         CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
         String normalizedJson = startIssuanceForm.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
@@ -109,9 +117,67 @@ public class StartIssuanceController {
         model.addAttribute("issuance", issuance);
         model.addAttribute("issuedCredentialConfigurationId", credentialConfiguration.credentialConfigurationId());
         model.addAttribute("issuedTransactionId", response.issuanceTransactionId());
+        session.setAttribute(
+                ISSUANCE_CONFIGURATION_SESSION_KEY.formatted(response.issuanceTransactionId()),
+                credentialConfiguration.credentialConfigurationId()
+        );
         return "issuer_response";
     }
 
+    @GetMapping("/issuance/{issuance-transaction-id}/status")
+    public ResponseEntity<Void> issuanceStatus(
+            @PathVariable("issuance-transaction-id") String issuanceTransactionId,
+            HttpSession session
+    ) {
+        String credentialConfigurationId = getCredentialConfigurationId(issuanceTransactionId, session);
+        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
+        IssuanceStatusResponse issuanceStatus = issuerServerService.retrieveIssuanceStatus(
+                credentialConfiguration,
+                issuanceTransactionId
+        );
+
+        return switch (issuanceStatus.status()) {
+            case OFFER_ISSUED -> ResponseEntity.accepted().build();
+            case CREDENTIAL_ISSUED, CREDENTIAL_ACCEPTED -> {
+                session.setAttribute(ISSUANCE_COMPLETED_SESSION_KEY.formatted(issuanceTransactionId), true);
+                yield ResponseEntity.ok().build();
+            }
+            case CREDENTIAL_FAILURE, CREDENTIAL_DELETED -> ResponseEntity.unprocessableContent().build();
+            case UNKNOWN -> ResponseEntity.notFound().build();
+            case UNRECOGNIZED -> ResponseEntity.internalServerError().build();
+        };
+    }
+
+    @GetMapping("/issuance/{issuance-transaction-id}/complete")
+    public String issuanceComplete(
+            @PathVariable("issuance-transaction-id") String issuanceTransactionId,
+            HttpSession session,
+            HttpServletResponse response
+    ) {
+        getCredentialConfigurationId(issuanceTransactionId, session);
+        if (!Boolean.TRUE.equals(
+                session.getAttribute(ISSUANCE_COMPLETED_SESSION_KEY.formatted(issuanceTransactionId)))) {
+            throw new IssuerUiException(
+                    "Issuance is not completed for issuance_transaction_id=" + issuanceTransactionId
+            );
+        }
+
+        response.setHeader("Cache-Control", "no-store, private");
+        response.setHeader("Referrer-Policy", "no-referrer");
+        return "issuance-complete";
+    }
+
+    private static String getCredentialConfigurationId(String issuanceTransactionId, HttpSession session) {
+        Object credentialConfigurationId = session.getAttribute(
+                ISSUANCE_CONFIGURATION_SESSION_KEY.formatted(issuanceTransactionId)
+        );
+        if (!(credentialConfigurationId instanceof String id) || id.isBlank()) {
+            throw new IssuerUiException(
+                    "Missing issuance transaction data for issuance_transaction_id=" + issuanceTransactionId
+            );
+        }
+        return id;
+    }
 
     private IssuanceRequest createRequestTrace(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
         String contentType = "Content-Type: " + MediaType.APPLICATION_JSON;

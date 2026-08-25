@@ -71,23 +71,15 @@ header {
     line-height: 1.5;
 }
 
-/* Mobile menu toggle (CSS-only, no JS required) */
+/* Mobile menu toggle */
 .header__nav-toggle {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    opacity: 0;
-}
-
-.header__nav-toggle-label {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
 }
 
-.header__nav-toggle-label svg {
+.header__nav-toggle svg {
     display: block;
 }
 
@@ -98,17 +90,29 @@ header {
     width: 100%;
 }
 
-.header__nav-toggle:checked ~ .header__nav {
+.header__nav--open {
     display: flex;
 }
 
-.header__nav-toggle:focus-visible ~ .header__nav-toggle-label {
-    outline: 2px solid var(--ds-color-focus-outer);
-    outline-offset: 2px;
+@media (max-width: 767px) {
+    .header__nav {
+        gap: var(--ds-size-2);
+        padding-block-start: var(--ds-size-3);
+        border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    }
+
+    .header__nav .ds-link {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: var(--ds-size-12);
+        padding-block: var(--ds-size-2);
+        font-size: var(--ds-body-lg-font-size);
+    }
 }
 
 @media (min-width: 768px) {
-    .header__nav-toggle-label {
+    .header__nav-toggle {
         display: none;
     }
 
@@ -507,12 +511,14 @@ main {
 }
 
 .credential-card {
+    background-color: var(--ds-color-surface-default);
     cursor: pointer;
     min-width: 0;
     height: 100%;
 }
 
 .credential-card--expanded {
+    background-color: var(--ds-color-surface-tinted);
     grid-column: span 2;
     border-color: var(--ds-color-accent-border-default);
 }
@@ -533,6 +539,7 @@ main {
     align-items: center;
     gap: var(--ds-size-2);
     cursor: pointer;
+    width: fit-content;
 }
 
 @media (max-width: 639px) {
