@@ -41,9 +41,9 @@
                              @click="select(credential.id)"
                              @keydown.enter.self.prevent="select(credential.id)"
                              @keydown.space.self.prevent="select(credential.id)">
-                            <p class="ds-paragraph credential-card__title"
-                               data-weight="medium"
-                               x-text="credential.title"></p>
+                            <h2 class="ds-heading credential-card__title"
+                                data-size="sm"
+                                x-text="credential.title"></h2>
 
                             <div class="credential-card__claims"
                                  x-show="isSelected(credential.id)"
