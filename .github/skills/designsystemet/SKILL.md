@@ -101,6 +101,17 @@ A class name alone is never proof that a component is correct. Verify all of the
 
 Selectors can depend on direct children, `:has()` and exact tags. Extra wrappers can silently break spacing, padding, click delegation or state styles.
 
+## Accessibility baseline
+
+WCAG 2.2 level AA is the minimum acceptance level for every visual change. Designsystemet components and tokens reduce risk but do not prove compliance; verify the rendered composition and custom behaviour.
+
+- Normal text needs at least 4.5:1 contrast and large text at least 3:1. Meaningful component boundaries, controls and state indicators need at least 3:1 where WCAG requires non-text contrast.
+- Check foreground and background contrast in default, hover, active, selected, focus, invalid and disabled states. Never rely on colour alone to communicate meaning or interaction.
+- Every interaction must work with a keyboard, expose the correct accessible name, role, value and state, and keep a visible focus indicator in logical order.
+- Content must reflow without two-dimensional scrolling at 320 CSS pixels where applicable, remain usable when text is enlarged to 200%, and avoid clipping or overlap.
+- Pointer targets must meet the WCAG 2.2 AA minimum of 24 by 24 CSS pixels or its spacing exception. Prefer the documented Designsystemet component sizes, which normally provide larger targets.
+- Automated accessibility checks supplement rather than replace keyboard, contrast, zoom/reflow and screen-reader-oriented DOM inspection.
+
 ### Native semantics first
 
 - Use `<a>` for navigation and `<button>` for actions, regardless of visual appearance.
@@ -149,6 +160,7 @@ Use semantic tokens by purpose, not by whichever value looks closest.
 - `data-color-scheme` resets colour variables at that boundary. Reapply `data-color` when both a new scheme and a non-default colour are needed.
 - Alert, ValidationMessage and ErrorSummary use explicit severity colours and do not inherit arbitrary brand colours.
 - Components documented as neutral in the loaded version, such as Dialog or Modal and Tooltip, ignore arbitrary `data-color`. Other cascading components inherit the nearest applicable `data-color`.
+- Do not assume that a token name alone guarantees contrast in a custom composition. Verify the final foreground/background pair after inheritance and state styles are applied.
 
 ### Size and spacing
 
@@ -215,6 +227,7 @@ A visual task is complete only when the applicable checks that can be run pass. 
 - **Runtime:** loaded package, theme and script versions are understood; no undocumented API or assumed JS behaviour was introduced.
 - **Contract:** tag, direct children, attributes, variant and state markup match the loaded component version.
 - **Semantics:** keyboard path, focus order, accessible names, labels, descriptions, errors and dynamic announcements work.
+- **WCAG:** applicable WCAG 2.2 AA requirements pass, including text and non-text contrast, keyboard access, visible focus, zoom/reflow and target size.
 - **Visual:** alignment, wrapping, content hierarchy and token rhythm hold at relevant mobile and desktop widths.
 - **States:** hover, focus, active, selected, loading, invalid, disabled/read-only and empty states were checked where relevant.
 - **Theme:** semantic colours and surfaces work in every colour scheme the product supports.
