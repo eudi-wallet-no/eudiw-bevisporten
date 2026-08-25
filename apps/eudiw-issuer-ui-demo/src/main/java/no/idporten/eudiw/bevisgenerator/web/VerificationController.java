@@ -209,12 +209,20 @@ public class VerificationController {
     }
 
     private List<ClaimView> buildClaimViews(Map<String, Object> claims) {
+        if (claims == null || claims.isEmpty()) {
+            return List.of();
+        }
+
         return claims.entrySet().stream()
                 .map(entry -> new ClaimView(entry.getKey(), formatClaimValue(entry.getValue())))
                 .toList();
     }
 
     private List<ValidationDetailView> buildValidationDetailViews(List<ValidationDetail> validationDetails) {
+        if (validationDetails == null || validationDetails.isEmpty()) {
+            return List.of();
+        }
+
         return validationDetails.stream()
                 .map(detail -> new ValidationDetailView(
                         validationTypeLabel(detail.validationType()),
