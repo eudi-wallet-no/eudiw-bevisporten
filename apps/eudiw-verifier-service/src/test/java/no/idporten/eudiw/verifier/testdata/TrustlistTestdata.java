@@ -10,8 +10,8 @@ import java.nio.file.Path;
 public class TrustlistTestdata {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistTestdata.class);
-    private String xmlTrustlist;
-    private String jsonTrustlist;
+    private static String xmlTrustlist;
+    private static String jsonTrustlist;
 
     public TrustlistTestdata() {
         setXmlTrustlist();
@@ -27,7 +27,7 @@ public class TrustlistTestdata {
         }
     }
 
-    public String getXmlTrustlist() {
+    public static String getXmlTrustlist() {
         return xmlTrustlist;
     }
 
@@ -39,7 +39,7 @@ public class TrustlistTestdata {
         }
     }
 
-    public String getJsonTrustlist() {
+    public static String getJsonTrustlist() {
         return jsonTrustlist;
     }
 }
