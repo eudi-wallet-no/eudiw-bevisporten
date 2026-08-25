@@ -57,22 +57,29 @@ public class VerificationResultServiceImpl implements VerificationResultService 
 
     private ClaimView buildClaimView(String name, Object value) {
         String label = formatClaimName(name);
+
         if (value instanceof Map<?, ?> map) {
             return new ClaimView(label, null, buildClaimViews(asStringKeyedMap(map)));
         }
-        if (value instanceof List<?> list && list.stream().anyMatch(item -> item instanceof Map<?, ?> || item instanceof List<?>)) {
+
+        if (value instanceof List<?> list && containsNestedValues(list)) {
             List<ClaimView> children = new ArrayList<>();
             for (int i = 0; i < list.size(); i++) {
                 children.add(buildClaimView(name + " " + (i + 1), list.get(i)));
             }
             return new ClaimView(label, null, children);
         }
+
         return new ClaimView(label, formatClaimValue(value), List.of());
     }
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> asStringKeyedMap(Map<?, ?> map) {
         return (Map<String, Object>) map;
+    }
+
+    private boolean containsNestedValues(List<?> list) {
+        return list.stream().anyMatch(item -> item instanceof Map<?, ?> || item instanceof List<?>);
     }
 
     private List<ValidationDetailView> buildValidationDetailViews(List<ValidationDetail> validationDetails) {
