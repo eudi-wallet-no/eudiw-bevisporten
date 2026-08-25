@@ -578,13 +578,28 @@ main {
 
 .verification-result__claim dt {
     color: var(--ds-color-neutral-text-subtle);
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .verification-result__claim dd {
     margin: 0;
     font-weight: var(--ds-font-weight-medium);
     text-align: right;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .verification-result__claim {
+        flex-direction: column;
+        gap: var(--ds-size-1);
+    }
+
+    .verification-result__claim dd {
+        text-align: left;
+    }
 }
 
 .verification-result__validation {
