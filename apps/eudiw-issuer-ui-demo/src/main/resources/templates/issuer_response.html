@@ -144,10 +144,20 @@
         updateStatusMessage("Ventar på at beviset blir utferda ...");
 
         async function poll() {
+            const remaining = endTime - Date.now();
+            if (remaining <= 0) {
+                updateStatusMessage("Tidsavbrot. Gå tilbake og prøv på nytt.");
+                return;
+            }
+
+            const controller = new AbortController();
+            const abortTimer = setTimeout(() => controller.abort(), remaining);
+
             try {
                 const response = await fetch(statusEndpoint, {
                     method: "GET",
-                    headers: {Accept: "application/json"}
+                    headers: {Accept: "application/json"},
+                    signal: controller.signal
                 });
 
                 if (response.status === 200) {
@@ -173,7 +183,13 @@
 
                 updateStatusMessage("Klarte ikkje hente status for utferdinga. Gå tilbake og prøv på nytt.");
             } catch (error) {
+                if (controller.signal.aborted) {
+                    updateStatusMessage("Tidsavbrot. Gå tilbake og prøv på nytt.");
+                    return;
+                }
                 updateStatusMessage("Klarte ikkje hente status for utferdinga. Gå tilbake og prøv på nytt.");
+            } finally {
+                clearTimeout(abortTimer);
             }
         }
 
