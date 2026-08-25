@@ -28,13 +28,9 @@
               th:object="${verificationForm}"
               method="post">
 
-            <fieldset class="ds-fieldset credential-picker"
-                      th:attr="aria-describedby=${#fields.hasErrors('credentialConfigurationId')} ? 'credential-configuration-error' : null,
-                               aria-invalid=${#fields.hasErrors('credentialConfigurationId')} ? 'true' : null">
-                <legend class="ds-label" data-size="lg">Vel bevistype</legend>
-
+            <div class="credential-picker">
                 <div class="credential-grid">
-                    <template x-for="(credential, credentialIndex) in credentials" :key="credential.id">
+                    <template x-for="credential in credentials" :key="credential.id">
                         <div class="credential-card ds-card"
                              data-color="accent"
                              data-variant="default"
@@ -52,17 +48,15 @@
                             <div class="credential-card__claims"
                                  x-show="isSelected(credential.id)"
                                  @click.stop>
-                                <template x-for="(claim, claimIndex) in credential.claims" :key="pathOf(claim)">
-                                   <div class="ds-field credential-card__claim">
+                                <template x-for="claim in credential.claims" :key="pathOf(claim)">
+                                   <label class="credential-card__claim">
                                        <input class="ds-input"
                                               type="checkbox"
-                                              :id="`credential-${credentialIndex}-claim-${claimIndex}`"
                                               :checked="isClaimSelected(credential.id, claim)"
+                                              @keydown.stop
                                               @change="toggleClaim(credential.id, claim, $event.target.checked)">
-                                       <label class="ds-label"
-                                              :for="`credential-${credentialIndex}-claim-${claimIndex}`"
-                                              x-text="claim.label"></label>
-                                   </div>
+                                       <span class="ds-label" x-text="claim.label"></span>
+                                   </label>
                                 </template>
                             </div>
                         </div>
@@ -75,16 +69,14 @@
                 </template>
 
                 <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
-                      id="credential-configuration-error"
                       class="ds-validation-message"
                       data-field="validation"
                       th:errors="*{credentialConfigurationId}"></span>
                 <span th:if="${#fields.hasErrors('selectedClaimPaths')}"
-                      id="selected-claims-error"
                       class="ds-validation-message"
                       data-field="validation"
                       th:errors="*{selectedClaimPaths}"></span>
-            </fieldset>
+            </div>
 
         </form>
 
