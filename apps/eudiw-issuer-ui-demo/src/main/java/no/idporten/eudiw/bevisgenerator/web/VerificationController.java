@@ -25,9 +25,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Controller
 public class VerificationController {
@@ -218,8 +220,27 @@ private List<VerificationResultView> buildVerificationResultViews(Map<String, Li
         }
 
         return claims.entrySet().stream()
-                .map(entry -> new ClaimView(entry.getKey(), formatClaimValue(entry.getValue())))
+                .map(entry -> buildClaimView(entry.getKey(), entry.getValue()))
                 .toList();
+    }
+
+    private ClaimView buildClaimView(String name, Object value) {
+        if (value instanceof Map<?, ?> map) {
+            return new ClaimView(name, null, buildClaimViews(asStringKeyedMap(map)));
+        }
+        if (value instanceof List<?> list && list.stream().anyMatch(item -> item instanceof Map<?, ?> || item instanceof List<?>)) {
+            List<ClaimView> children = new ArrayList<>();
+            for (int i = 0; i < list.size(); i++) {
+                children.add(buildClaimView(name + " " + (i + 1), list.get(i)));
+            }
+            return new ClaimView(name, null, children);
+        }
+        return new ClaimView(name, formatClaimValue(value), List.of());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> asStringKeyedMap(Map<?, ?> map) {
+        return (Map<String, Object>) map;
     }
 
     private List<ValidationDetailView> buildValidationDetailViews(List<ValidationDetail> validationDetails) {
@@ -247,8 +268,8 @@ private List<VerificationResultView> buildVerificationResultViews(Map<String, Li
         if (value instanceof Boolean bool) {
             return bool ? "Ja" : "Nei";
         }
-        if (value instanceof Map<?, ?> || value instanceof List<?>) {
-            return toJsonString(value, false);
+        if (value instanceof List<?> list) {
+            return list.stream().map(this::formatClaimValue).collect(Collectors.joining(", "));
         }
         return value.toString();
     }

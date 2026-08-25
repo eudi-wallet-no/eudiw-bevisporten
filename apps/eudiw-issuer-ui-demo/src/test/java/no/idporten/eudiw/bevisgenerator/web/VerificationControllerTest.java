@@ -233,6 +233,44 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Valideringsdetaljar")))
                 .andExpect(content().string(containsString("verification-result__claims")))
                 .andExpect(content().string(not(containsString(">Heim<"))));
+
+        VerificationTransactionData nestedTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id-nested"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id-nested"),
+                URI.create("http://verifier/result/tx-id-nested")
+        );
+        when(verifierService.retrieveVerificationResult("tx-id-nested")).thenReturn(new VerificationResult(
+                "tx-id-nested",
+                Map.of(
+                        "pid",
+                        List.of(new VerifiedCredential(
+                                Map.of(
+                                        "fornavn", "Kari",
+                                        "adresse", Map.of("gate", "Fjordveien 1", "postnummer", "0150"),
+                                        "statsborgerskap", List.of("NO", "SE")
+                                ),
+                                true,
+                                List.of()
+                        ))
+                )
+        ));
+
+        // Nested (object/array) claim values must render as their own indented name/value
+        // rows via the recursive claim_list_fragment, not as a raw JSON dump in a single <dd>.
+        thymeleafMockMvc.perform(get("/verification-result/nestedKey")
+                        .sessionAttr("verification_transaction_data_nestedKey", nestedTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("adresse")))
+                .andExpect(content().string(containsString("gate")))
+                .andExpect(content().string(containsString("Fjordveien 1")))
+                .andExpect(content().string(containsString("postnummer")))
+                .andExpect(content().string(containsString("0150")))
+                .andExpect(content().string(containsString("statsborgerskap")))
+                .andExpect(content().string(containsString("NO, SE")))
+                .andExpect(content().string(containsString("verification-result__claim--group")))
+                .andExpect(content().string(not(containsString("{\"gate\""))));
     }
 
     @Test

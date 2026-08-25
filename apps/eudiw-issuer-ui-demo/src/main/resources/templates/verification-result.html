@@ -25,12 +25,7 @@
                     <div class="verification-result__group" th:each="credential : ${verificationResults}">
                         <p class="ds-label" th:text="${credential.displayName}"></p>
 
-                        <dl class="verification-result__claims">
-                            <div class="verification-result__claim" th:each="claim : ${credential.claims}">
-                                <dt th:text="${claim.name}"></dt>
-                                <dd th:text="${claim.value}"></dd>
-                            </div>
-                        </dl>
+                        <div th:replace="~{fragments/components :: claim_list_fragment(claims=${credential.claims})}"></div>
                     </div>
                 </div>
 
