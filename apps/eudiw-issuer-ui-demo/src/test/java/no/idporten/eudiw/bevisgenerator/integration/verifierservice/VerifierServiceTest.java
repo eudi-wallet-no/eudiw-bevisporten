@@ -6,10 +6,11 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.config.Verif
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStartResponse;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerifiedCredential;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
@@ -17,15 +18,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.RETURNS_SELF;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class VerifierServiceTest {
 
@@ -130,7 +125,7 @@ public class VerifierServiceTest {
     void retrieveVerificationResultReturnsResponseBody() {
         VerificationResult expected = new VerificationResult(
                 "tx-id",
-                Map.of("proof_of_age", List.of(new VerificationResult.CredentialPresentation(Map.of("age_over_18", true))))
+                Map.of("proof_of_age", List.of(new VerifiedCredential(Map.of("age_over_18", true), true, List.of())))
         );
         when(responseSpec.body(VerificationResult.class)).thenReturn(expected);
 

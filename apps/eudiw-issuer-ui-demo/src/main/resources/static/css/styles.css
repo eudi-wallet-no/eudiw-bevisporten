@@ -548,6 +548,66 @@ main {
     }
 }
 
+/* Verification result */
+.verification-result__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-6);
+}
+
+.verification-result__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+}
+
+.verification-result__claims {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    margin: 0;
+}
+
+.verification-result__claim {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--ds-size-4);
+    border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    padding-block-end: var(--ds-size-2);
+}
+
+.verification-result__claim dt {
+    color: var(--ds-color-neutral-text-subtle);
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.verification-result__claim dd {
+    margin: 0;
+    font-weight: var(--ds-font-weight-medium);
+    text-align: right;
+    overflow-wrap: break-word;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .verification-result__claim {
+        flex-direction: column;
+        gap: var(--ds-size-1);
+    }
+
+    .verification-result__claim dd {
+        text-align: left;
+    }
+}
+
+.verification-result__validation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+}
+
 /* Footer */
 footer {
     background-color: var(--ds-color-neutral-background-tinted);
