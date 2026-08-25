@@ -6,9 +6,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefin
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfigurationMetadata;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLServiceImpl;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.*;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +48,7 @@ class VerificationControllerTest {
         verifierService = mock(VerifierService.class);
         ObjectMapper objectMapper = new ObjectMapper();
         DCQLService dcqlService = new DCQLServiceImpl();
+        VerificationResultService verificationResultService = new VerificationResultServiceImpl();
 
         issuanceDefinitionId = "pid";
         String subjectDefinitionId = "proof_of_age";
@@ -124,7 +123,7 @@ class VerificationControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new VerificationController(issuerServerService, issuerServerProperties, verifierService, objectMapper, dcqlService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new VerificationController(issuerServerService, issuerServerProperties, verifierService, objectMapper, dcqlService, verificationResultService))
                 .setValidator(validator)
                 .setViewResolvers((viewName, locale) -> {
                     if (viewName.startsWith("redirect:")) {
@@ -203,7 +202,7 @@ class VerificationControllerTest {
         ));
 
         MockMvc thymeleafMockMvc = MockMvcBuilders.standaloneSetup(
-                        new VerificationController(issuerServerService, issuerServerProperties, verifierService, new ObjectMapper(), new DCQLServiceImpl()))
+                        new VerificationController(issuerServerService, issuerServerProperties, verifierService, new ObjectMapper(), new DCQLServiceImpl(), new VerificationResultServiceImpl()))
                 .setValidator(validator)
                 .setViewResolvers(viewResolver)
                 .build();
