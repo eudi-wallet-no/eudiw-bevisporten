@@ -106,6 +106,7 @@ class StartIssuanceControllerTest {
     void issuePageOffersCustomCredentialManagementBeforeExistingCredentials() throws Exception {
         mockMvc.perform(get("/issue"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"ds-alert content-narrow landing-intro\"")))
                 .andExpect(content().string(containsString("Vil du lage din eigen bevistype?")))
                 .andExpect(content().string(containsString("href=\"/admin\"")))
                 .andExpect(content().string(containsString("Gå til administrasjon av bevistypar")))
