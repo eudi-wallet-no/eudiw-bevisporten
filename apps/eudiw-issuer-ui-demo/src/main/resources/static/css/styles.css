@@ -591,6 +591,26 @@ main {
     min-width: 0;
 }
 
+.verification-result__claim--group {
+    flex-direction: column;
+    gap: var(--ds-size-2);
+}
+
+.verification-result__claim--group dt {
+    font-weight: var(--ds-font-weight-medium);
+    color: inherit;
+}
+
+.verification-result__claim--group dd {
+    width: 100%;
+    text-align: left;
+}
+
+.verification-result__claim--group > dd > .verification-result__claims {
+    padding-inline-start: var(--ds-size-4);
+    border-inline-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+}
+
 @media (max-width: 768px) {
     .verification-result__claim {
         flex-direction: column;

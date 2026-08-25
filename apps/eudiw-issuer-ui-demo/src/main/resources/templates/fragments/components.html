@@ -99,3 +99,16 @@
         </li>
     </ol>
 </nav>
+
+<dl th:fragment="claim_list_fragment(claims)" class="verification-result__claims">
+    <div class="verification-result__claim"
+         th:each="claim : ${claims}"
+         th:classappend="${claim.group} ? 'verification-result__claim--group' : ''">
+        <dt th:text="${claim.name}"></dt>
+        <dd th:if="${!claim.group}" th:text="${claim.value}"></dd>
+        <dd th:if="${claim.group}">
+            <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
+        </dd>
+    </div>
+</dl>
+

@@ -7,12 +7,13 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerificationResultService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
-import no.idporten.eudiw.bevisgenerator.web.models.ClaimView;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
-import no.idporten.eudiw.bevisgenerator.web.models.ValidationDetailView;
-import no.idporten.eudiw.bevisgenerator.web.models.VerificationResultView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -37,6 +38,7 @@ public class VerificationController {
     private final VerifierService verifierService;
     private final ObjectMapper objectMapper;
     private final DCQLService dcqlService;
+    private final VerificationResultService verificationResultService;
 
     private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Resultat");
 
@@ -44,13 +46,16 @@ public class VerificationController {
             IssuerServerService issuerServerService,
             IssuerServerProperties properties,
             VerifierService verifierService,
-            ObjectMapper objectMapper, DCQLService dcqlService
+            ObjectMapper objectMapper,
+            DCQLService dcqlService,
+            VerificationResultService verificationResultService
     ) {
         this.issuerServerService = issuerServerService;
         this.properties = properties;
         this.verifierService = verifierService;
         this.objectMapper = objectMapper;
         this.dcqlService = dcqlService;
+        this.verificationResultService = verificationResultService;
     }
 
     @ModelAttribute("issuerUrl")
@@ -140,7 +145,7 @@ public class VerificationController {
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("verificationResults", buildVerificationResultViews(result.credentials()))
+                .addObject("verificationResults", verificationResultService.buildVerificationResultViews(result.credentials()))
                 .addObject("steps", STEPS);
     }
 
@@ -195,86 +200,7 @@ public class VerificationController {
         return result;
     }
 
-private List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials) {
-        if (credentials == null || credentials.isEmpty()) {
-            return List.of();
-        }
 
-        return credentials.entrySet().stream()
-                .flatMap(entry -> entry.getValue().stream()
-                        .map(credential -> new VerificationResultView(
-                                entry.getKey(),
-                                formatCredentialType(entry.getKey()),
-                                credential.valid(),
-                                buildClaimViews(credential.claims()),
-                                buildValidationDetailViews(credential.validationDetails())
-                        )))
-                .toList();
-    }
-
-    private List<ClaimView> buildClaimViews(Map<String, Object> claims) {
-        if (claims == null || claims.isEmpty()) {
-            return List.of();
-        }
-
-        return claims.entrySet().stream()
-                .map(entry -> new ClaimView(entry.getKey(), formatClaimValue(entry.getValue())))
-                .toList();
-    }
-
-    private List<ValidationDetailView> buildValidationDetailViews(List<ValidationDetail> validationDetails) {
-        if (validationDetails == null || validationDetails.isEmpty()) {
-            return List.of();
-        }
-
-        return validationDetails.stream()
-                .map(detail -> new ValidationDetailView(
-                        validationTypeLabel(detail.validationType()),
-                        validationStatusLabel(detail.status()),
-                        validationStatusColor(detail.status())
-                ))
-                .toList();
-    }
-
-    private String formatCredentialType(String credentialType) {
-        return credentialType.replace('_', ' ');
-    }
-
-    private String formatClaimValue(Object value) {
-        if (value == null) {
-            return "\u2013";
-        }
-        if (value instanceof Boolean bool) {
-            return bool ? "Ja" : "Nei";
-        }
-        if (value instanceof Map<?, ?> || value instanceof List<?>) {
-            return toJsonString(value, false);
-        }
-        return value.toString();
-    }
-
-    private String validationTypeLabel(ValidationType validationType) {
-        return switch (validationType) {
-            case STATUS_LIST -> "Status";
-            case TRUST_LIST -> "Tillitsliste";
-        };
-    }
-
-    private String validationStatusLabel(ValidationStatus status) {
-        return switch (status) {
-            case VALID -> "Gyldig";
-            case INVALID -> "Ugyldig";
-            case INCONCLUSIVE -> "Usikker";
-        };
-    }
-
-    private String validationStatusColor(ValidationStatus status) {
-        return switch (status) {
-            case VALID -> "success";
-            case INVALID -> "danger";
-            case INCONCLUSIVE -> "warning";
-        };
-    }
 
     private ModelAndView baseView(StartVerificationForm form) {
         List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
