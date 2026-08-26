@@ -218,25 +218,54 @@ public class IssuerServerService {
     }
 
     public OptionalInt revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {
-        boolean richResultEnabled = featureSwitches.isRevocationV2RichResult();
-        String apiVersion = richResultEnabled ? "v2" : "v1";
-        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/" + apiVersion + "/credential/revoke";
+        if (featureSwitches.isRevocationV2RichResult()) {
+            return revokeCredentialV2(credentialConfiguration, issuanceTransactionId);
+        }
+        return revokeCredentialV1(credentialConfiguration, issuanceTransactionId);
+    }
+
+    private OptionalInt revokeCredentialV1(
+            CredentialConfiguration credentialConfiguration,
+            String issuanceTransactionId
+    ) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke";
         String accessToken = createAccessToken(credentialConfiguration);
         RevokeRequest request = new RevokeRequest(credentialConfiguration.credentialConfigurationId(), issuanceTransactionId);
 
         try {
-            RestClient.ResponseSpec response = restClient.put()
+            restClient.put()
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(request)
-                    .retrieve();
-            if (!richResultEnabled) {
-                response.toBodilessEntity();
-                return OptionalInt.empty();
-            }
-            RevocationResult result = response.body(RevocationResult.class);
+                    .retrieve()
+                    .toBodilessEntity();
+            return OptionalInt.empty();
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException("Revoke credential failed for issuance_transaction_id=" + issuanceTransactionId, e);
+        }
+    }
+
+    private OptionalInt revokeCredentialV2(
+            CredentialConfiguration credentialConfiguration,
+            String issuanceTransactionId
+    ) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v2/credential/revoke";
+        String accessToken = createAccessToken(credentialConfiguration);
+        RevokeRequest request = new RevokeRequest(credentialConfiguration.credentialConfigurationId(), issuanceTransactionId);
+
+        try {
+            RevocationResult result = restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .body(RevocationResult.class);
             if (result == null) {
                 throw new IssuerServerException(
                         "Revoke credential returned no outcome for issuance_transaction_id=" + issuanceTransactionId,
@@ -252,9 +281,17 @@ public class IssuerServerService {
     }
 
     public OptionalInt revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
-        boolean richResultEnabled = featureSwitches.isRevocationV2RichResult();
-        String apiVersion = richResultEnabled ? "v2" : "v1";
-        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/" + apiVersion + "/credential/revoke/by-subject";
+        if (featureSwitches.isRevocationV2RichResult()) {
+            return revokeCredentialBySubjectV2(credentialConfiguration, subjectIdentifier);
+        }
+        return revokeCredentialBySubjectV1(credentialConfiguration, subjectIdentifier);
+    }
+
+    private OptionalInt revokeCredentialBySubjectV1(
+            CredentialConfiguration credentialConfiguration,
+            String subjectIdentifier
+    ) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke/by-subject";
         String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
         RevokeBySubjectRequest request = new RevokeBySubjectRequest(
                 credentialConfiguration.credentialConfigurationId(),
@@ -262,18 +299,46 @@ public class IssuerServerService {
         );
 
         try {
-            RestClient.ResponseSpec response = restClient.put()
+            restClient.put()
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(request)
-                    .retrieve();
-            if (!richResultEnabled) {
-                response.toBodilessEntity();
-                return OptionalInt.empty();
-            }
-            RevocationResult result = response.body(RevocationResult.class);
+                    .retrieve()
+                    .toBodilessEntity();
+            return OptionalInt.empty();
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException(
+                    "Revoke credential by subject failed for credential_configuration_id="
+                            + credentialConfiguration.credentialConfigurationId(),
+                    e
+            );
+        }
+    }
+
+    private OptionalInt revokeCredentialBySubjectV2(
+            CredentialConfiguration credentialConfiguration,
+            String subjectIdentifier
+    ) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v2/credential/revoke/by-subject";
+        String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
+        RevokeBySubjectRequest request = new RevokeBySubjectRequest(
+                credentialConfiguration.credentialConfigurationId(),
+                new IssuanceSubject(subjectIdentifier)
+        );
+
+        try {
+            RevocationResult result = restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .body(RevocationResult.class);
             if (result == null) {
                 throw new IssuerServerException(
                         "Revoke credential by subject returned no outcome for credential_configuration_id="
