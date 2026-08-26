@@ -3,11 +3,11 @@
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Presenter bevis | Bevisgenerator</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main>
+<main id="main-content" tabindex="-1">
     <div class="landing-intro landing-copy">
         <h1 class="ds-heading" data-size="xl">
             Presenter bevis
@@ -32,25 +32,32 @@
                 <div class="credential-grid">
                     <template x-for="credential in credentials" :key="credential.id">
                         <div class="credential-card ds-card"
-                             data-color="neutral"
+                             data-color="accent"
                              data-variant="default"
                              :class="{ 'credential-card--expanded': isSelected(credential.id) }"
                              role="button"
                              tabindex="0"
                              :aria-pressed="isSelected(credential.id)"
                              @click="select(credential.id)"
-                             @keydown.enter.prevent="select(credential.id)"
-                             @keydown.space.prevent="select(credential.id)">
-                            <p class="ds-paragraph credential-card__title" data-weight="medium" x-text="credential.title"></p>
+                             @keydown.enter.self.prevent="select(credential.id)"
+                             @keydown.space.self.prevent="select(credential.id)">
+                            <h2 class="ds-heading credential-card__title"
+                                 data-size="2xs"
+                                x-text="credential.title"></h2>
 
-                            <div class="credential-card__claims" x-show="isSelected(credential.id)" @click.stop>
+                            <div class="credential-card__claims"
+                                 x-show="isSelected(credential.id)"
+                                 @click.stop>
                                 <template x-for="claim in credential.claims" :key="pathOf(claim)">
-                                    <label class="credential-card__claim">
-                                        <input type="checkbox"
-                                               :checked="isClaimSelected(credential.id, claim)"
-                                               @change="toggleClaim(credential.id, claim, $event.target.checked)">
-                                        <span x-text="claim.label"></span>
-                                    </label>
+                                   <label class="credential-card__claim">
+                                       <input class="ds-input"
+                                              type="checkbox"
+                                              :checked="isClaimSelected(credential.id, claim)"
+                                              @keydown.enter.prevent.stop="$el.click()"
+                                              @keydown.space.stop
+                                              @change="toggleClaim(credential.id, claim, $event.target.checked)">
+                                       <span class="ds-label" x-text="claim.label"></span>
+                                   </label>
                                 </template>
                             </div>
                         </div>
@@ -64,9 +71,11 @@
 
                 <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
                       class="ds-validation-message"
+                      data-field="validation"
                       th:errors="*{credentialConfigurationId}"></span>
                 <span th:if="${#fields.hasErrors('selectedClaimPaths')}"
                       class="ds-validation-message"
+                      data-field="validation"
                       th:errors="*{selectedClaimPaths}"></span>
             </div>
 
@@ -115,7 +124,7 @@
             claimSelections,
 
             select(id) {
-                this.selectedId = id;
+                this.selectedId = this.selectedId === id ? "" : id;
             },
 
             isSelected(id) {

@@ -20,6 +20,15 @@
     </a>
 </div>
 
+<div th:fragment="qr_code_fragment(src, alt)"
+     id="cross-device-request"
+     class="qr-code-container">
+    <img th:src="${src}"
+         th:alt="${alt}"
+         id="qrcode-cross-device"
+         class="qr-code"/>
+</div>
+
 <nav th:fragment="step_navigation_fragment(previousHref, previousLabel, nextHref, nextLabel, nextForm, nextDisabledUntilSelection, dynamicNextForm, nextColor)"
      class="step-navigation"
      aria-label="Navigasjon mellom steg">
@@ -90,3 +99,16 @@
         </li>
     </ol>
 </nav>
+
+<dl th:fragment="claim_list_fragment(claims)" class="verification-result__claims">
+    <div class="verification-result__claim"
+         th:each="claim : ${claims}"
+         th:classappend="${claim.group} ? 'verification-result__claim--group' : ''">
+        <dt th:text="${claim.name}"></dt>
+        <dd th:if="${!claim.group}" th:text="${claim.value}"></dd>
+        <dd th:if="${claim.group}">
+            <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
+        </dd>
+    </div>
+</dl>
+

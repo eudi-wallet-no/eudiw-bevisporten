@@ -7,6 +7,7 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerificationResultService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
@@ -37,6 +38,7 @@ public class VerificationController {
     private final VerifierService verifierService;
     private final ObjectMapper objectMapper;
     private final DCQLService dcqlService;
+    private final VerificationResultService verificationResultService;
 
     private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Resultat");
 
@@ -44,13 +46,16 @@ public class VerificationController {
             IssuerServerService issuerServerService,
             IssuerServerProperties properties,
             VerifierService verifierService,
-            ObjectMapper objectMapper, DCQLService dcqlService
+            ObjectMapper objectMapper,
+            DCQLService dcqlService,
+            VerificationResultService verificationResultService
     ) {
         this.issuerServerService = issuerServerService;
         this.properties = properties;
         this.verifierService = verifierService;
         this.objectMapper = objectMapper;
         this.dcqlService = dcqlService;
+        this.verificationResultService = verificationResultService;
     }
 
     @ModelAttribute("issuerUrl")
@@ -140,7 +145,7 @@ public class VerificationController {
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("resultJson", toJsonString(result.credentials()))
+                .addObject("verificationResults", verificationResultService.buildVerificationResultViews(result.credentials()))
                 .addObject("steps", STEPS);
     }
 
@@ -194,6 +199,8 @@ public class VerificationController {
         }
         return result;
     }
+
+
 
     private ModelAndView baseView(StartVerificationForm form) {
         List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(

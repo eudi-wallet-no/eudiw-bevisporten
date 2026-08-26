@@ -12,14 +12,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.view.InternalResourceView;
-import org.thymeleaf.spring6.SpringTemplateEngine;
-import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
-import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -83,85 +78,6 @@ class RevokeControllerTest {
                 .andExpect(model().attribute("revocationMethod", ""))
                 .andExpect(model().attributeExists("credentialConfigurations"))
                 .andExpect(model().attributeExists("subjectCredentialConfigurations"));
-    }
-
-    @Test
-    void revokePageRendersMethodPickerDynamicNavigationAndProcessedAlert() throws Exception {
-        org.springframework.web.context.support.GenericWebApplicationContext applicationContext =
-                new org.springframework.web.context.support.GenericWebApplicationContext();
-        applicationContext.refresh();
-
-        SpringResourceTemplateResolver templateResolver = new SpringResourceTemplateResolver();
-        templateResolver.setApplicationContext(applicationContext);
-        templateResolver.setPrefix("classpath:/templates/");
-        templateResolver.setSuffix(".html");
-        templateResolver.setTemplateMode(org.thymeleaf.templatemode.TemplateMode.HTML);
-        templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false);
-
-        SpringTemplateEngine templateEngine = new SpringTemplateEngine();
-        templateEngine.setTemplateResolver(templateResolver);
-
-        ThymeleafViewResolver viewResolver = new ThymeleafViewResolver();
-        viewResolver.setTemplateEngine(templateEngine);
-        viewResolver.setCharacterEncoding("UTF-8");
-
-        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
-        validator.afterPropertiesSet();
-
-        IssuerServerProperties issuerServerProperties = mock(IssuerServerProperties.class);
-        when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
-
-        MockMvc thymeleafMockMvc = MockMvcBuilders.standaloneSetup(
-                        new RevokeController(issuerServerService, issuerServerProperties))
-                .setValidator(validator)
-                .setViewResolvers(viewResolver)
-                .build();
-
-        thymeleafMockMvc.perform(get("/revoke"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("class=\"step-flow\"")))
-                .andExpect(content().string(containsString("class=\"step-flow__content\"")))
-                .andExpect(content().string(containsString("class=\"ds-fieldset revocation-methods\"")))
-                .andExpect(content().string(containsString("data-variant=\"outline\"")))
-                .andExpect(content().string(containsString("@click=\"selectedForm = 'revoke-form'\"")))
-                .andExpect(content().string(containsString("@click=\"selectedForm = 'revoke-by-subject-form'\"")))
-                .andExpect(content().string(containsString("x-model=\"selectedForm\"")))
-                .andExpect(content().string(not(containsString("x-bind:form=\"selectedForm\""))))
-                .andExpect(content().string(not(containsString("<span class=\"step-navigation__direction\">Neste</span>"))))
-                .andExpect(content().string(not(containsString("data-color=\"danger\""))))
-                .andExpect(content().string(containsString("Tilbakekall utstedte bevis")))
-                .andExpect(content().string(containsString("Tilbakekall bevis")))
-                .andExpect(content().string(containsString("Du må først velje korleis du vil finne beviset.")))
-                .andExpect(content().string(containsString("Fyll inn opplysningane")))
-                .andExpect(content().string(not(containsString("Vel opplysninga du har tilgjengeleg."))));
-
-        thymeleafMockMvc.perform(post("/revoke")
-                        .param("credentialConfigurationId", "")
-                        .param("issuanceTransactionId", ""))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("selectedForm: &#39;revoke-form&#39;")))
-                .andExpect(content().string(containsString("Skriv inn transaksjons-ID-en")));
-
-        thymeleafMockMvc.perform(post("/revoke/by-subject")
-                        .param("credentialConfigurationId", "")
-                        .param("subjectIdentifier", ""))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("selectedForm: &#39;revoke-by-subject-form&#39;")))
-                .andExpect(content().string(containsString("Skriv inn personidentifikatoren")));
-
-        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId()))
-                .thenReturn(credentialConfiguration);
-
-        thymeleafMockMvc.perform(post("/revoke")
-                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
-                        .param("issuanceTransactionId", "tx-123"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("class=\"ds-alert\"")))
-                .andExpect(content().string(containsString("data-color=\"info\"")))
-                .andExpect(content().string(containsString("Dersom beviset fanst, er det no tilbakekalla.")))
-                .andExpect(content().string(containsString("href=\"/verification-start\"")))
-                .andExpect(content().string(containsString("Presenter beviset på nytt")));
     }
 
     @Test

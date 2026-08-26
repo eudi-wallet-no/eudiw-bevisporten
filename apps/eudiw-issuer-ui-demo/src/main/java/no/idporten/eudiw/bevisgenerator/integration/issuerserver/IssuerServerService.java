@@ -6,6 +6,7 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceSubject;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
@@ -174,6 +175,39 @@ public class IssuerServerService {
         }
         log.debug("Searched for " + json + ". Returned: " + result);
         return result;
+    }
+
+    public IssuanceStatusResponse retrieveIssuanceStatus(CredentialConfiguration credentialConfiguration,
+                                                         String issuanceTransactionId) {
+        String statusEndpoint = credentialConfiguration.credentialIssuer()
+                + issuerServerProperties.issuanceEndpoint()
+                + "/"
+                + issuanceTransactionId;
+        String accessToken = createAccessToken(credentialConfiguration);
+
+        try {
+            IssuanceStatusResponse result = restClient.get()
+                    .uri(statusEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .retrieve()
+                    .body(IssuanceStatusResponse.class);
+
+            if (result == null || result.status() == null) {
+                throw new IssuerUiException(
+                        "Issuer-server returned null issuance status for issuance_transaction_id="
+                                + issuanceTransactionId
+                );
+            }
+            return result;
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + statusEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException(
+                    "Retrieve issuance status failed for issuance_transaction_id=" + issuanceTransactionId,
+                    e
+            );
+        }
     }
 
     public void revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {

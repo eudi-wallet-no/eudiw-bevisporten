@@ -2,22 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Bevisgenerator testverktøy</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main>
+<main id="main-content" tabindex="-1">
     <div class="landing-intro landing-copy">
         <h1 class="ds-heading" data-size="xl">
             Bevisgenerator testverktøy
         </h1>
         <p class="ds-paragraph" data-size="lg">
-            Bevisgenerator er eit testverktøy som lar deg, på ein enkel måte, lage nye digitale bevis utan å måtte kode eller konfigurere opp din eigen utstedar-teneste.
+            Bevisgenerator er eit testverktøy. Her kan du lage digitale bevis utan å kode eller konfigurere ei eiga utstedarteneste.
         </p>
      </div>
     <div class="step-container">
         <a th:href="@{/issue}" class="ds-card step-card"
-           data-color="neutral"
+           data-color="accent"
            data-variant="default">
             <span class="step-number ds-heading" data-size="2xl" aria-hidden="true">1</span>
             <h2 class="ds-heading">Utsted bevis</h2>
@@ -26,7 +26,7 @@
             </p>
         </a>
         <a th:href="@{/verification-start}" class="ds-card step-card" th:if="${allowVerification}"
-           data-color="neutral"
+           data-color="accent"
            data-variant="default">
             <span class="step-number ds-heading" data-size="2xl" aria-hidden="true">2</span>
             <h2 class="ds-heading">Presenter bevis</h2>
@@ -35,7 +35,7 @@
             </p>
         </a>
         <a th:href="@{/revoke}" class="ds-card step-card"
-           data-color="neutral"
+           data-color="accent"
            data-variant="default">
             <span class="step-number ds-heading" data-size="2xl" aria-hidden="true">3</span>
             <h2 class="ds-heading">Tilbakekall utstedte bevis</h2>
