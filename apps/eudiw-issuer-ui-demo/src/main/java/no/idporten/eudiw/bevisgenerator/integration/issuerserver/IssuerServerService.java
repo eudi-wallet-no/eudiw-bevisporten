@@ -221,6 +221,7 @@ public class IssuerServerService {
         if (featureSwitches.isRevocationV2RichResult()) {
             return revokeCredentialV2(credentialConfiguration, issuanceTransactionId);
         }
+
         return revokeCredentialV1(credentialConfiguration, issuanceTransactionId);
     }
 
@@ -272,6 +273,7 @@ public class IssuerServerService {
                         new IllegalStateException("Missing response body")
                 );
             }
+
             return OptionalInt.of(result.revokedCount());
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
@@ -284,6 +286,7 @@ public class IssuerServerService {
         if (featureSwitches.isRevocationV2RichResult()) {
             return revokeCredentialBySubjectV2(credentialConfiguration, subjectIdentifier);
         }
+
         return revokeCredentialBySubjectV1(credentialConfiguration, subjectIdentifier);
     }
 
@@ -346,6 +349,7 @@ public class IssuerServerService {
                         new IllegalStateException("Missing response body")
                 );
             }
+
             return OptionalInt.of(result.revokedCount());
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);

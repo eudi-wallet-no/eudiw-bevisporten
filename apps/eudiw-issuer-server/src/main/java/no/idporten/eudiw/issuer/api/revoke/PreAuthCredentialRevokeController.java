@@ -70,6 +70,7 @@ public class PreAuthCredentialRevokeController {
             @Valid @RequestBody PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest,
             HttpServletRequest request) {
         revokePreAuth(tenant, preAuthCredentialRevokeRequest, request);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -92,6 +93,7 @@ public class PreAuthCredentialRevokeController {
         if (!revocationV2RichResultFeature.isEnabled()) {
             return ResponseEntity.notFound().build();
         }
+
         return ResponseEntity.ok(new RevocationResult(revokePreAuth(tenant, preAuthCredentialRevokeRequest, request)));
     }
 

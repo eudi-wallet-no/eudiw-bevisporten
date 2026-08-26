@@ -128,6 +128,7 @@ public class StartIssuanceController {
                 ISSUANCE_DESCRIPTION_SESSION_KEY.formatted(response.issuanceTransactionId()),
                 credentialConfiguration.description()
         );
+
         if (StringUtils.hasText(startIssuanceForm.personIdentifier())
                 && issuerServerService.getSubjectCredentialConfigurationById(
                         credentialConfiguration.credentialConfigurationId()) != null) {
@@ -171,6 +172,7 @@ public class StartIssuanceController {
             Model model
     ) {
         String credentialConfigurationId = getCredentialConfigurationId(issuanceTransactionId, session);
+
         if (!Boolean.TRUE.equals(
                 session.getAttribute(ISSUANCE_COMPLETED_SESSION_KEY.formatted(issuanceTransactionId)))) {
             throw new IssuerUiException(
@@ -195,11 +197,13 @@ public class StartIssuanceController {
         Object credentialConfigurationId = session.getAttribute(
                 ISSUANCE_CONFIGURATION_SESSION_KEY.formatted(issuanceTransactionId)
         );
+
         if (!(credentialConfigurationId instanceof String id) || id.isBlank()) {
             throw new IssuerUiException(
                     "Missing issuance transaction data for issuance_transaction_id=" + issuanceTransactionId
             );
         }
+
         return id;
     }
 
@@ -207,6 +211,7 @@ public class StartIssuanceController {
         Object subjectIdentifier = session.getAttribute(
                 ISSUANCE_SUBJECT_IDENTIFIER_SESSION_KEY.formatted(issuanceTransactionId)
         );
+
         return subjectIdentifier instanceof String id ? id : "";
     }
 
@@ -218,6 +223,7 @@ public class StartIssuanceController {
         Object description = session.getAttribute(
                 ISSUANCE_DESCRIPTION_SESSION_KEY.formatted(issuanceTransactionId)
         );
+
         return description instanceof String value && StringUtils.hasText(value)
                 ? value
                 : credentialConfigurationId;

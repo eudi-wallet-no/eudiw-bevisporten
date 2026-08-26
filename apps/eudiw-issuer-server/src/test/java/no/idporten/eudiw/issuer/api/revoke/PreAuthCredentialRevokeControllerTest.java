@@ -67,6 +67,7 @@ public class PreAuthCredentialRevokeControllerTest {
     void testRevokeIssuedCredential() throws Exception {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         when(statusIssuerService.revokeStatus(any())).thenReturn(1);
+
         mockMvc.perform(put("/api/v2/credential/revoke")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer access.token.sign")
@@ -74,8 +75,10 @@ public class PreAuthCredentialRevokeControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.revokedCount").value(1));
+
         verify(statusIssuerService).revokeStatus(credentialRevokeContextCaptor.capture());
         CredentialRevokeContext credentialRevokeContext = credentialRevokeContextCaptor.getValue();
+
         assertAll(
                 () -> assertEquals(issuanceTransactionId, credentialRevokeContext.transactionId()),
                 () -> assertEquals("junitdoc_pre_mso_mdoc", credentialRevokeContext.credentialConfiguration().getCredentialConfigurationId())
@@ -101,6 +104,7 @@ public class PreAuthCredentialRevokeControllerTest {
     @Test
     void testRevokeUnknownCredential() throws Exception {
         when(statusIssuerService.revokeStatus(any())).thenReturn(0);
+
         mockMvc.perform(put("/api/v2/credential/revoke")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "******")

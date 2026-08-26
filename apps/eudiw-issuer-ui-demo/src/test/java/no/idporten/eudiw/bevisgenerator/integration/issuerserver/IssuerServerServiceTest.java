@@ -238,6 +238,7 @@ class IssuerServerServiceTest {
                 List.of(),
                 wellKnownUrls
         );
+
         return new IssuerServerService(
                 restClient,
                 properties,
@@ -260,6 +261,7 @@ class IssuerServerServiceTest {
                 .thenReturn("access-token");
         FeatureSwitches switches = mock(FeatureSwitches.class);
         when(switches.isRevocationV2RichResult()).thenReturn(richResultEnabled);
+
         return new IssuerServerService(
                 restClient,
                 properties,

@@ -78,6 +78,7 @@ public class AuthCodeCredentialRevokeController {
             HttpServletRequest request
     ) {
         revokeBySubject(tenant, revokeRequest, request);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -101,6 +102,7 @@ public class AuthCodeCredentialRevokeController {
         if (!revocationV2RichResultFeature.isEnabled()) {
             return ResponseEntity.notFound().build();
         }
+
         return ResponseEntity.ok(new RevocationResult(revokeBySubject(tenant, revokeRequest, request)));
     }
 

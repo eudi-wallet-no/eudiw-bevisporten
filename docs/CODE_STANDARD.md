@@ -2,8 +2,10 @@
 
 ## Logical grouping
 
-- Tests: arrange, act, assert.
-- Code: fetch, validate, execute, persist. Return early.
+- Separate logical phases with one blank line, also in short methods.
+- Keep statements in the same phase together. Do not add a blank line after every statement.
+- Code: group fetch or derive, validate or guard, execute, persist and return as distinct phases.
+- Tests: group arrange, act and assert as distinct phases.
 
 ## Obvious code
 
