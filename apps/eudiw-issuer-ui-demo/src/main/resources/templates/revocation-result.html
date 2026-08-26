@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
+<head>
+    <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: issued_credential_history_js_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
+    <title>Tilbakekalling av bevis | Bevisgenerator</title>
+</head>
+<body>
+<header th:replace="~{fragments/layout :: page_header_fragment}"></header>
+<main id="main-content"
+      tabindex="-1"
+      x-data="revocationResultHistory()"
+      th:attr="data-issuance-transaction-id=${processedIssuanceTransactionId},
+               data-credential-configuration-id=${processedCredentialConfigurationId},
+               data-subject-identifier=${processedSubjectIdentifier}">
+    <div class="step-flow">
+        <div class="step-flow__content">
+            <div class="landing-intro landing-copy">
+                <h1 class="ds-heading" data-size="xl">
+                    Tilbakekalling av bevis
+                </h1>
+            </div>
+
+            <div th:if="${revokedCount > 0}"
+                 class="ds-alert content-narrow"
+                 data-color="success">
+                <p class="ds-paragraph"
+                   th:text="${revokedCount > 1} ? ${revokedCount + ' bevis er tilbakekalla'} : 'Beviset er tilbakekalla'"></p>
+                <p class="ds-paragraph">
+                    <span th:text="${credentialDescription}"></span>.
+                    Presenter beviset på nytt for å sjå at det ikkje lenger er gyldig.
+                </p>
+            </div>
+
+            <div th:unless="${revokedCount > 0}"
+                 class="ds-alert content-narrow"
+                 data-color="warning">
+                <p class="ds-paragraph">
+                    Fann inga utferding som svara til opplysningane. Ingenting er tilbakekalla.
+                </p>
+                <p class="ds-paragraph">
+                    Kontroller opplysningane og prøv igjen.
+                </p>
+            </div>
+
+            <p x-cloak
+               x-show="storageError"
+               x-text="storageError"
+               class="ds-validation-message"
+               role="alert"></p>
+        </div>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/revoke',
+            previousLabel='Tilbakekall bevis',
+            nextHref=${revokedCount > 0 ? '/verification-start' : null},
+            nextLabel='Presenter bevis',
+            nextForm=${null},
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+</body>
+</html>

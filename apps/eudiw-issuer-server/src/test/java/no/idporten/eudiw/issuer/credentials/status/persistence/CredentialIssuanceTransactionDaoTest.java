@@ -69,10 +69,15 @@ class CredentialIssuanceTransactionDaoTest {
     void updateRevokedMs() {
         long now = System.currentTimeMillis();
         dao.insertTransaction("tx-revoked", "pid", "junit", now);
-        dao.updateRevokedMs("tx-revoked", "junit", now + 5, now + 5);
+        int firstUpdate = dao.updateRevokedMs("tx-revoked", "junit", now + 5, now + 5);
+        int repeatedUpdate = dao.updateRevokedMs("tx-revoked", "junit", now + 10, now + 10);
 
         CredentialIssuanceTransactionEntity entity = dao.findByIssuanceTransactionId("tx-revoked").orElseThrow();
-        assertEquals(now + 5, entity.getRevokedMs());
+        assertAll(
+                () -> assertEquals(1, firstUpdate),
+                () -> assertEquals(0, repeatedUpdate),
+                () -> assertEquals(now + 5, entity.getRevokedMs())
+        );
     }
 
     @DisplayName("then lookup returns empty for unknown notification_id")

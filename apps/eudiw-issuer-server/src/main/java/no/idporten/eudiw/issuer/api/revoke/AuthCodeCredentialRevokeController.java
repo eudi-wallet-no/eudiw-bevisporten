@@ -3,6 +3,8 @@ package no.idporten.eudiw.issuer.api.revoke;
 import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -41,19 +43,22 @@ public class AuthCodeCredentialRevokeController {
     private final AccessTokenValidationService accessTokenValidationService;
     private final SubjectCredentialTransactionDao subjectCredentialTransactionDao;
     private final StatusIssuerService statusIssuerService;
+    private final RevocationResultEndpointFeature revocationResultEndpointFeature;
 
     public AuthCodeCredentialRevokeController(
             CredentialIssuerTenantService credentialIssuerTenantService,
             AuthorizationServerService authorizationServerService,
             AccessTokenValidationService accessTokenValidationService,
             SubjectCredentialTransactionDao subjectCredentialTransactionDao,
-            StatusIssuerService statusIssuerService
+            StatusIssuerService statusIssuerService,
+            RevocationResultEndpointFeature revocationResultEndpointFeature
     ) {
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.subjectCredentialTransactionDao = subjectCredentialTransactionDao;
         this.statusIssuerService = statusIssuerService;
+        this.revocationResultEndpointFeature = revocationResultEndpointFeature;
     }
 
     @Operation(
@@ -63,13 +68,47 @@ public class AuthCodeCredentialRevokeController {
             security = {@SecurityRequirement(name = "Maskinporten")}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Credential(s) revoked."),
+            @ApiResponse(responseCode = "204", description = "Revocation request processed."),
     })
     @PutMapping(path = {Endpoints.AUTH_CODE_CREDENTIAL_REVOKE_BY_SUBJECT_ENDPOINT, Endpoints.AUTH_CODE_CREDENTIAL_REVOKE_BY_SUBJECT_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> revokeBySubjectEndpoint(
             @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @Valid @RequestBody AuthCodeCredentialRevokeRequest revokeRequest,
+            HttpServletRequest request
+    ) {
+        revokeBySubject(tenant, revokeRequest, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Revoke credentials by subject and return outcome",
+            description = "Revokes matching credentials in the authorization code flow and returns the number of issuance transactions revoked.",
+            tags = {SwaggerConfiguration.API_TAG},
+            security = {@SecurityRequirement(name = "Maskinporten")}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Revocation outcome.", content = @Content(schema = @Schema(implementation = RevocationResult.class))),
+            @ApiResponse(responseCode = "404", description = "Revocation outcome endpoint is not enabled."),
+    })
+    @PutMapping(path = {Endpoints.AUTH_CODE_CREDENTIAL_REVOKE_BY_SUBJECT_V2_ENDPOINT, Endpoints.AUTH_CODE_CREDENTIAL_REVOKE_BY_SUBJECT_V2_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RevocationResult> revokeBySubjectV2Endpoint(
+            @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
+            @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
+            @Valid @RequestBody AuthCodeCredentialRevokeRequest revokeRequest,
+            HttpServletRequest request
+    ) {
+        if (!revocationResultEndpointFeature.isEnabled()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new RevocationResult(revokeBySubject(tenant, revokeRequest, request)));
+    }
+
+    /* private */
+
+    private int revokeBySubject(
+            String tenant,
+            AuthCodeCredentialRevokeRequest revokeRequest,
             HttpServletRequest request
     ) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
@@ -86,6 +125,7 @@ public class AuthCodeCredentialRevokeController {
         );
 
         // TODO: avklare hvilke credential vi revokerer ved flere treff, når revokerer vi alt som matcher subject + type.
+        int revokedCount = 0;
         for (SubjectCredentialIssuanceTransactionEntity subjectCredentialIssuanceTransaction : subjectCredentialIssuanceTransactions) {
             CredentialRevokeContext credentialRevokeContext = new CredentialRevokeContext(
                     validatedAuthCodeRevokeRequestContext.accessToken(),
@@ -93,13 +133,11 @@ public class AuthCodeCredentialRevokeController {
                     validatedAuthCodeRevokeRequestContext.credentialConfiguration(),
                     new IssuanceTransactionId(subjectCredentialIssuanceTransaction.getIssuanceTransactionId())
             );
-            statusIssuerService.revokeStatus(credentialRevokeContext);
+            revokedCount += statusIssuerService.revokeStatus(credentialRevokeContext);
         }
 
-        return ResponseEntity.noContent().build();
+        return revokedCount;
     }
-
-    /* private */
 
     private ValidatedAuthCodeRevokeRequestContext validateAuthCodeRevokeRequest(
             HttpServletRequest request,

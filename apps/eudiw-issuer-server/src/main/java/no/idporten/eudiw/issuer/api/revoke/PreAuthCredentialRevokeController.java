@@ -3,6 +3,8 @@ package no.idporten.eudiw.issuer.api.revoke;
 import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -36,12 +38,20 @@ public class PreAuthCredentialRevokeController {
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final StatusIssuerService statusIssuerService;
+    private final RevocationResultEndpointFeature revocationResultEndpointFeature;
 
-    public PreAuthCredentialRevokeController(CredentialIssuerTenantService credentialIssuerTenantService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, StatusIssuerService statusIssuerService) {
+    public PreAuthCredentialRevokeController(
+            CredentialIssuerTenantService credentialIssuerTenantService,
+            AuthorizationServerService authorizationServerService,
+            AccessTokenValidationService accessTokenValidationService,
+            StatusIssuerService statusIssuerService,
+            RevocationResultEndpointFeature revocationResultEndpointFeature
+    ) {
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.statusIssuerService = statusIssuerService;
+        this.revocationResultEndpointFeature = revocationResultEndpointFeature;
     }
 
     @Operation(
@@ -51,7 +61,7 @@ public class PreAuthCredentialRevokeController {
             security = {@SecurityRequirement(name = "Maskinporten")}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Credential revoked."),
+            @ApiResponse(responseCode = "204", description = "Revocation request processed."),
     })
     @PutMapping(path = {Endpoints.PRE_AUTH_CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_ENDPOINT, Endpoints.PRE_AUTH_CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> revokePreAuthEndpoint(
@@ -59,6 +69,39 @@ public class PreAuthCredentialRevokeController {
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @Valid @RequestBody PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest,
             HttpServletRequest request) {
+        revokePreAuth(tenant, preAuthCredentialRevokeRequest, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Revoke credential for pre-authorized code flow and return outcome",
+            description = "Revoke credential in the pre-authorized code flow and return the number of issuance transactions revoked.",
+            tags = {SwaggerConfiguration.API_TAG},
+            security = {@SecurityRequirement(name = "Maskinporten")}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Revocation outcome.", content = @Content(schema = @Schema(implementation = RevocationResult.class))),
+            @ApiResponse(responseCode = "404", description = "Revocation outcome endpoint is not enabled."),
+    })
+    @PutMapping(path = {Endpoints.PRE_AUTH_CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_V2_ENDPOINT, Endpoints.PRE_AUTH_CREDENTIAL_ISSUANCE_TRANSACTION_REVOKE_V2_ENDPOINT_TENANT}, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<RevocationResult> revokePreAuthV2Endpoint(
+            @Parameter(description = "Tenant identifier.", example = "bevisgenerator")
+            @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
+            @Valid @RequestBody PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest,
+            HttpServletRequest request) {
+        if (!revocationResultEndpointFeature.isEnabled()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(new RevocationResult(revokePreAuth(tenant, preAuthCredentialRevokeRequest, request)));
+    }
+
+    /* private */
+
+    private int revokePreAuth(
+            String tenant,
+            PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest,
+            HttpServletRequest request
+    ) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         ValidatedPreAuthRevokeRequestContext validatedPreAuthRevokeRequestContext = validatePreAuthRevokeRequest(
                 request,
@@ -73,12 +116,8 @@ public class PreAuthCredentialRevokeController {
                 new IssuanceTransactionId(preAuthCredentialRevokeRequest.issuanceTransactionId())
         );
 
-        statusIssuerService.revokeStatus(context);
-
-        return ResponseEntity.noContent().build();
+        return statusIssuerService.revokeStatus(context);
     }
-
-    /* private */
 
     private ValidatedPreAuthRevokeRequestContext validatePreAuthRevokeRequest(
             HttpServletRequest request,

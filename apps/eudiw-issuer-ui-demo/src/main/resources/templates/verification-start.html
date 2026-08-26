@@ -31,7 +31,7 @@
             <div class="credential-picker">
                 <div class="credential-grid">
                     <template x-for="credential in credentials" :key="credential.id">
-                        <div class="credential-card ds-card"
+                        <div class="credential-card ds-card interactive-card"
                              data-color="accent"
                              data-variant="default"
                              :class="{ 'credential-card--expanded': isSelected(credential.id) }"

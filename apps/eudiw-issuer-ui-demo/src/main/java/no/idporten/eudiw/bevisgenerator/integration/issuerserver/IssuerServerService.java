@@ -9,6 +9,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefin
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceSubject;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevocationResult;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeRequest;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
@@ -210,20 +211,27 @@ public class IssuerServerService {
         }
     }
 
-    public void revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {
-        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke";
+    public int revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v2/credential/revoke";
         String accessToken = createAccessToken(credentialConfiguration);
         RevokeRequest request = new RevokeRequest(credentialConfiguration.credentialConfigurationId(), issuanceTransactionId);
 
         try {
-            restClient.put()
+            RevocationResult result = restClient.put()
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
                     .body(request)
                     .retrieve()
-                    .toBodilessEntity();
+                    .body(RevocationResult.class);
+            if (result == null) {
+                throw new IssuerServerException(
+                        "Revoke credential returned no outcome for issuance_transaction_id=" + issuanceTransactionId,
+                        new IllegalStateException("Missing response body")
+                );
+            }
+            return result.revokedCount();
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
         } catch (HttpServerErrorException e) {
@@ -231,8 +239,8 @@ public class IssuerServerService {
         }
     }
 
-    public void revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
-        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke/by-subject";
+    public int revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v2/credential/revoke/by-subject";
         String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
         RevokeBySubjectRequest request = new RevokeBySubjectRequest(
                 credentialConfiguration.credentialConfigurationId(),
@@ -240,14 +248,22 @@ public class IssuerServerService {
         );
 
         try {
-            restClient.put()
+            RevocationResult result = restClient.put()
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
                     .body(request)
                     .retrieve()
-                    .toBodilessEntity();
+                    .body(RevocationResult.class);
+            if (result == null) {
+                throw new IssuerServerException(
+                        "Revoke credential by subject returned no outcome for credential_configuration_id="
+                                + credentialConfiguration.credentialConfigurationId(),
+                        new IllegalStateException("Missing response body")
+                );
+            }
+            return result.revokedCount();
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
         } catch (HttpServerErrorException e) {

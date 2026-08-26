@@ -17,6 +17,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.16.2/dist/cdn.min.js"></script>
 </th:block>
 
+<th:block th:fragment="issued_credential_history_js_fragment">
+    <script defer th:src="@{/js/issued-credential-history.js}"></script>
+</th:block>
+
 <header th:fragment="page_header_fragment">
     <a class="ds-skip-link" href="#main-content">Hopp til hovudinnhaldet</a>
 
@@ -32,20 +36,39 @@
                 class="header__nav-toggle ds-button"
                 type="button"
                 data-variant="tertiary"
+                data-color="neutral"
                 data-size="md"
+                aria-label="Meny"
                 aria-expanded="false"
                 aria-controls="header-navigation">
             <div th:replace="~{:: menu_icon_fragment}"></div>
-            <span id="header-nav-toggle-label" class="ds-sr-only">Opne meny</span>
+            <span id="header-nav-toggle-label"
+                 class="header__nav-toggle-label"
+                 aria-hidden="true">Meny</span>
         </button>
 
         <nav id="header-navigation"
              class="header__nav"
              aria-label="Hovudnavigasjon">
-            <a class="ds-link"
+            <a class="ds-link header__nav-link"
+               th:href="@{/issue}"
+               data-color="neutral">
+                Utsted
+            </a>
+            <a class="ds-link header__nav-link"
+               th:href="@{/verification-start}"
+               data-color="neutral">
+                Presenter
+            </a>
+            <a class="ds-link header__nav-link"
+               th:href="@{/revoke}"
+               data-color="neutral">
+                Tilbakekall
+            </a>
+            <a class="ds-link header__nav-link"
                th:href="@{/admin}"
                data-color="neutral">
-                Administrer bevistypar
+                Administrer
             </a>
         </nav>
     </div>
@@ -58,7 +81,9 @@
 
             function setNavigationOpen(open) {
                 toggle.setAttribute("aria-expanded", String(open));
-                toggleLabel.textContent = open ? "Lukk meny" : "Opne meny";
+                const label = open ? "Lukk" : "Meny";
+                toggle.setAttribute("aria-label", label);
+                toggleLabel.textContent = label;
                 navigation.classList.toggle("header__nav--open", open);
             }
 
@@ -84,22 +109,22 @@
             <h2 class="ds-heading">Digitaliseringsdirektoratet</h2>
 
             <ul>
-                <li><a class="ds-link" href="https://www.digdir.no/digdir/om-digitaliseringsdirektoratet/1547">Om Digitaliseringsdirektoratet</a></li>
-                <li><a class="ds-link" href="https://www.digdir.no/digdir/jobb-i-digdir/6851">Jobb hos oss</a></li>
-                <li><a class="ds-link" href="https://www.digdir.no/node/1340">Digitaliseringsbloggen</a></li>
-                <li><a class="ds-link" href="https://www.digdir.no/digdir/presse/704">For presse</a></li>
-                <li><a class="ds-link" href="https://www.digdir.no/digdir/personvernombod-i-digitaliseringsdirektoratet/944">Personvernombod</a></li>
-                <li><a class="ds-link" href="https://www.digdir.no/digdir/about-norwegian-digitalisation-agency/887">About us</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/om-digitaliseringsdirektoratet/1547">Om Digitaliseringsdirektoratet</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/jobb-i-digdir/6851">Jobb hos oss</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/node/1340">Digitaliseringsbloggen</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/presse/704">For presse</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/personvernombod-i-digitaliseringsdirektoratet/944">Personvernombod</a></li>
+                <li><a class="ds-link footer__link" href="https://www.digdir.no/digdir/about-norwegian-digitalisation-agency/887">About us</a></li>
             </ul>
         </div>
 
         <div>
             <h2 class="ds-heading">Teknisk informasjon</h2>
 
-            <a class="ds-link" th:href="${issuer}">
+            <a class="ds-link footer__link" th:href="${issuer}">
                 Credential issuer API og metadata
             </a>
-            <a class="ds-link" href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
+            <a class="ds-link footer__link" href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
                 Om EUDI-wallet sandkassa
             </a>
         </div>
@@ -107,11 +132,11 @@
         <div>
             <h2 class="ds-heading">Treng du hjelp?</h2>
 
-            <a class="ds-link" href="mailto:servicedesk@digdir.no">
+            <a class="ds-link footer__link" href="mailto:servicedesk@digdir.no">
                 servicedesk@digdir.no
             </a>
 
-            <a class="ds-link" href="https://www.digdir.no/digdir/kontakt-oss/943">
+            <a class="ds-link footer__link" href="https://www.digdir.no/digdir/kontakt-oss/943">
                 Kontakt oss
             </a>
         </div>
