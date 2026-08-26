@@ -46,6 +46,7 @@ bevisgenerator:
   features:
     allow-bevistyper-v2: true
     allow-verification: true
+    revocation-v2-rich-result: false
   byob-service:
     create-endpoint: /v1/public/credential-configurations
     get-all-edit-endpoint: /v1/public/credential-configurations

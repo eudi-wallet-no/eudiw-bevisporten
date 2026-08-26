@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.OptionalInt;
+
 @Controller
 public class RevokeController {
 
@@ -53,7 +55,7 @@ public class RevokeController {
             return baseView(revokeForm, new RevokeBySubjectForm(), TRANSACTION_ID_METHOD);
         }
 
-        int revokedCount;
+        OptionalInt revokedCount;
         try {
             revokedCount = issuerServerService.revokeCredential(credentialConfiguration, revokeForm.issuanceTransactionId());
         } catch (IssuerServerException e) {
@@ -78,7 +80,7 @@ public class RevokeController {
                     .addObject("subjectErrorMessage", "Bevistypen finst ikkje");
         }
 
-        int revokedCount;
+        OptionalInt revokedCount;
         try {
             revokedCount = issuerServerService.revokeCredentialBySubject(credentialConfiguration, revokeBySubjectForm.subjectIdentifier());
         } catch (IssuerServerException e) {
@@ -92,9 +94,10 @@ public class RevokeController {
                 .addObject("processedSubjectIdentifier", revokeBySubjectForm.subjectIdentifier());
     }
 
-    private ModelAndView resultView(int revokedCount, String credentialDescription) {
+    private ModelAndView resultView(OptionalInt revokedCount, String credentialDescription) {
         return new ModelAndView("revocation-result")
-                .addObject("revokedCount", revokedCount)
+                .addObject("revocationOutcomeKnown", revokedCount.isPresent())
+                .addObject("revokedCount", revokedCount.orElse(0))
                 .addObject("credentialDescription", credentialDescription);
     }
 

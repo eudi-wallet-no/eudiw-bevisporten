@@ -22,7 +22,7 @@
                 </h1>
             </div>
 
-            <div th:if="${revokedCount > 0}"
+            <div th:if="${revocationOutcomeKnown and revokedCount > 0}"
                  class="ds-alert content-narrow"
                  data-color="success">
                 <p class="ds-paragraph"
@@ -32,7 +32,18 @@
                 </p>
             </div>
 
-            <div th:unless="${revokedCount > 0}"
+            <div th:unless="${revocationOutcomeKnown}"
+                 class="ds-alert content-narrow"
+                 data-color="success">
+                <p class="ds-paragraph">
+                    Førespurnaden er behandla. Dersom beviset fanst, er det no tilbakekalla.
+                </p>
+                <p class="ds-paragraph">
+                    Presenter beviset på nytt for å kontrollere at det er tilbakekalla.
+                </p>
+            </div>
+
+            <div th:if="${revocationOutcomeKnown and revokedCount == 0}"
                  class="ds-alert content-narrow"
                  data-color="warning">
                 <p class="ds-paragraph">
@@ -53,7 +64,7 @@
         <div th:replace="~{fragments/components :: step_navigation_fragment(
             previousHref='/revoke',
             previousLabel='Tilbakekall bevis',
-            nextHref=${revokedCount > 0 ? '/verification-start' : null},
+            nextHref=${!revocationOutcomeKnown or revokedCount > 0 ? '/verification-start' : null},
             nextLabel='Presenter bevis',
             nextForm=${null},
             nextDisabledUntilSelection=${false},

@@ -18,6 +18,7 @@ import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 
 import java.util.List;
+import java.util.OptionalInt;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
@@ -104,7 +105,8 @@ class RevokeControllerTest {
     @Test
     void postRevokeRendersSuccessResultPage() throws Exception {
         when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
-        when(issuerServerService.revokeCredential(eq(credentialConfiguration), anyString())).thenReturn(1);
+        when(issuerServerService.revokeCredential(eq(credentialConfiguration), anyString()))
+                .thenReturn(OptionalInt.of(1));
 
         thymeleafMockMvc().perform(post("/revoke")
                         .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
@@ -119,7 +121,8 @@ class RevokeControllerTest {
     @Test
     void postRevokeRendersWarningResultPageWhenNothingMatched() throws Exception {
         when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
-        when(issuerServerService.revokeCredential(eq(credentialConfiguration), anyString())).thenReturn(0);
+        when(issuerServerService.revokeCredential(eq(credentialConfiguration), anyString()))
+                .thenReturn(OptionalInt.of(0));
 
         thymeleafMockMvc().perform(post("/revoke")
                         .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
@@ -128,6 +131,22 @@ class RevokeControllerTest {
                 .andExpect(content().string(containsString("data-color=\"warning\"")))
                 .andExpect(content().string(containsString("Ingenting er tilbakekalla")))
                 .andExpect(content().string(not(containsString("<span>Presenter bevis</span>"))));
+    }
+
+    @Test
+    void postRevokeRendersGenericResultPageWhenV1DoesNotReturnCount() throws Exception {
+        when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId()))
+                .thenReturn(credentialConfiguration);
+        when(issuerServerService.revokeCredential(eq(credentialConfiguration), anyString()))
+                .thenReturn(OptionalInt.empty());
+
+        thymeleafMockMvc().perform(post("/revoke")
+                        .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
+                        .param("issuanceTransactionId", "tx-123"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Førespurnaden er behandla")))
+                .andExpect(content().string(not(containsString("Ingenting er tilbakekalla"))))
+                .andExpect(content().string(containsString("<span>Presenter bevis</span>")));
     }
 
     private MockMvc thymeleafMockMvc() {
@@ -157,7 +176,8 @@ class RevokeControllerTest {
     @Test
     void postRevokeShowsResultWhenCredentialWasRevoked() throws Exception {
         when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
-        when(issuerServerService.revokeCredential(eq(credentialConfiguration), eq("tx-123"))).thenReturn(1);
+        when(issuerServerService.revokeCredential(eq(credentialConfiguration), eq("tx-123")))
+                .thenReturn(OptionalInt.of(1));
 
         mockMvc.perform(post("/revoke")
                         .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
@@ -174,7 +194,8 @@ class RevokeControllerTest {
     @Test
     void postRevokeShowsWarningAndClearsLocalEntryWhenNothingMatched() throws Exception {
         when(issuerServerService.getById(credentialConfiguration.credentialConfigurationId())).thenReturn(credentialConfiguration);
-        when(issuerServerService.revokeCredential(eq(credentialConfiguration), eq("tx-unknown"))).thenReturn(0);
+        when(issuerServerService.revokeCredential(eq(credentialConfiguration), eq("tx-unknown")))
+                .thenReturn(OptionalInt.of(0));
 
         mockMvc.perform(post("/revoke")
                         .param("credentialConfigurationId", credentialConfiguration.credentialConfigurationId())
@@ -225,7 +246,7 @@ class RevokeControllerTest {
         when(issuerServerService.getSubjectCredentialConfigurationById(subjectCredentialConfiguration.credentialConfigurationId()))
                 .thenReturn(subjectCredentialConfiguration);
         when(issuerServerService.revokeCredentialBySubject(eq(subjectCredentialConfiguration), eq("abc-123-anything")))
-                .thenReturn(2);
+                .thenReturn(OptionalInt.of(2));
 
         mockMvc.perform(post("/revoke/by-subject")
                         .param("credentialConfigurationId", subjectCredentialConfiguration.credentialConfigurationId())
@@ -247,7 +268,7 @@ class RevokeControllerTest {
         when(issuerServerService.getSubjectCredentialConfigurationById(subjectCredentialConfiguration.credentialConfigurationId()))
                 .thenReturn(subjectCredentialConfiguration);
         when(issuerServerService.revokeCredentialBySubject(eq(subjectCredentialConfiguration), anyString()))
-                .thenReturn(0);
+                .thenReturn(OptionalInt.of(0));
 
         mockMvc.perform(post("/revoke/by-subject")
                         .param("credentialConfigurationId", subjectCredentialConfiguration.credentialConfigurationId())
