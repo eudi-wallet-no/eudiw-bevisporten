@@ -223,6 +223,7 @@ public class IssuerServerService {
                     .contentType(MediaType.APPLICATION_JSON)
                     .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(request)
+                    .retrieve()
                     .body(RevocationResult.class);
             if (result == null) {
                 throw new IssuerServerException(
