@@ -41,7 +41,7 @@ public class VerificationController {
                                                                                description = "Set to true to include verification details in the response. Defaults to false.",
                                                                                example = "false",
                                                                                schema = @Schema(type = "boolean", defaultValue = "false"))
-                                                                       @RequestParam(defaultValue = "false") boolean includeValidationDetails) throws Exception {
+                                                                       @RequestParam(name = "include_validation_details", defaultValue = "false") boolean includeValidationDetails) throws Exception {
         return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest, verifierServiceProperties.findClientApplication(clientApplicationId), includeValidationDetails));
     }
 
