@@ -74,7 +74,7 @@ credential-issuer-server:
   metadata-refresh-rate-in-millis: 30000 # 30 seconds (must be > cache TTL)
   features:
     status-list-enabled: true
-    revocation-result-endpoint:
+    revocation-v2-rich-result:
       enabled: false
   cryptographic-bindings:
     - jwk

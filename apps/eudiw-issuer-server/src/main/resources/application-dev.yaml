@@ -18,7 +18,7 @@ spring:
 
 credential-issuer-server:
   features:
-    revocation-result-endpoint:
+    revocation-v2-rich-result:
       enabled: true
 #  credential-issuer: http://localhost:9240 # bevisporten funkar/lommebok
   credential-issuer: http://issuer-server:9240 # demo-issuer-ui funkar

@@ -43,7 +43,7 @@ public class AuthCodeCredentialRevokeController {
     private final AccessTokenValidationService accessTokenValidationService;
     private final SubjectCredentialTransactionDao subjectCredentialTransactionDao;
     private final StatusIssuerService statusIssuerService;
-    private final RevocationResultEndpointFeature revocationResultEndpointFeature;
+    private final RevocationV2RichResultFeature revocationV2RichResultFeature;
 
     public AuthCodeCredentialRevokeController(
             CredentialIssuerTenantService credentialIssuerTenantService,
@@ -51,14 +51,14 @@ public class AuthCodeCredentialRevokeController {
             AccessTokenValidationService accessTokenValidationService,
             SubjectCredentialTransactionDao subjectCredentialTransactionDao,
             StatusIssuerService statusIssuerService,
-            RevocationResultEndpointFeature revocationResultEndpointFeature
+            RevocationV2RichResultFeature revocationV2RichResultFeature
     ) {
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.subjectCredentialTransactionDao = subjectCredentialTransactionDao;
         this.statusIssuerService = statusIssuerService;
-        this.revocationResultEndpointFeature = revocationResultEndpointFeature;
+        this.revocationV2RichResultFeature = revocationV2RichResultFeature;
     }
 
     @Operation(
@@ -98,7 +98,7 @@ public class AuthCodeCredentialRevokeController {
             @Valid @RequestBody AuthCodeCredentialRevokeRequest revokeRequest,
             HttpServletRequest request
     ) {
-        if (!revocationResultEndpointFeature.isEnabled()) {
+        if (!revocationV2RichResultFeature.isEnabled()) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(new RevocationResult(revokeBySubject(tenant, revokeRequest, request)));

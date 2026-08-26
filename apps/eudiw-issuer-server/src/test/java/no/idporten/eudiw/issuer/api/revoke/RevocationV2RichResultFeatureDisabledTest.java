@@ -28,8 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("When the revocation result endpoint is disabled")
 @AutoConfigureMockMvc
 @ActiveProfiles("junit")
-@SpringBootTest(properties = "credential-issuer-server.features.revocation-result-endpoint.enabled=false")
-class RevocationResultEndpointFeatureDisabledTest {
+@SpringBootTest(properties = "credential-issuer-server.features.revocation-v2-rich-result.enabled=false")
+class RevocationV2RichResultFeatureDisabledTest {
 
     @Autowired
     private MockMvc mockMvc;

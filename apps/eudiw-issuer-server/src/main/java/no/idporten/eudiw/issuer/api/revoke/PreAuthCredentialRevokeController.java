@@ -38,20 +38,20 @@ public class PreAuthCredentialRevokeController {
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final StatusIssuerService statusIssuerService;
-    private final RevocationResultEndpointFeature revocationResultEndpointFeature;
+    private final RevocationV2RichResultFeature revocationV2RichResultFeature;
 
     public PreAuthCredentialRevokeController(
             CredentialIssuerTenantService credentialIssuerTenantService,
             AuthorizationServerService authorizationServerService,
             AccessTokenValidationService accessTokenValidationService,
             StatusIssuerService statusIssuerService,
-            RevocationResultEndpointFeature revocationResultEndpointFeature
+            RevocationV2RichResultFeature revocationV2RichResultFeature
     ) {
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.statusIssuerService = statusIssuerService;
-        this.revocationResultEndpointFeature = revocationResultEndpointFeature;
+        this.revocationV2RichResultFeature = revocationV2RichResultFeature;
     }
 
     @Operation(
@@ -89,7 +89,7 @@ public class PreAuthCredentialRevokeController {
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @Valid @RequestBody PreAuthCredentialRevokeRequest preAuthCredentialRevokeRequest,
             HttpServletRequest request) {
-        if (!revocationResultEndpointFeature.isEnabled()) {
+        if (!revocationV2RichResultFeature.isEnabled()) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(new RevocationResult(revokePreAuth(tenant, preAuthCredentialRevokeRequest, request)));

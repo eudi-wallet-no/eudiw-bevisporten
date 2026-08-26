@@ -7,10 +7,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "credential-issuer-server.features.revocation-result-endpoint")
-public class RevocationResultEndpointFeature implements InitializingBean {
+@ConfigurationProperties(prefix = "credential-issuer-server.features.revocation-v2-rich-result")
+public class RevocationV2RichResultFeature implements InitializingBean {
 
-    private static final Logger log = LoggerFactory.getLogger(RevocationResultEndpointFeature.class);
+    private static final Logger log = LoggerFactory.getLogger(RevocationV2RichResultFeature.class);
 
     private boolean enabled;
 
@@ -24,6 +24,6 @@ public class RevocationResultEndpointFeature implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        log.info("Will set revocation-result-endpoint enabled to {}", isEnabled());
+        log.info("Will set revocation-v2-rich-result enabled to {}", isEnabled());
     }
 }

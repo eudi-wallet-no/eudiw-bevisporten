@@ -15,7 +15,7 @@ spring:
 
 credential-issuer-server:
   features:
-    revocation-result-endpoint:
+    revocation-v2-rich-result:
       enabled: true
   credential-issuer: https://utsteder.test.eidas2sandkasse.net
   authorization-servers:
