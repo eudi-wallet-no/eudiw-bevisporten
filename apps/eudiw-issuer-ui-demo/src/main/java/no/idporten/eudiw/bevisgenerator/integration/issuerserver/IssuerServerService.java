@@ -221,9 +221,8 @@ public class IssuerServerService {
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(request)
-                    .retrieve()
                     .body(RevocationResult.class);
             if (result == null) {
                 throw new IssuerServerException(
