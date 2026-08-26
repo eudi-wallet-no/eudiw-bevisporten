@@ -14,8 +14,12 @@ public record VerifiedCredential (
         @JsonProperty("claims")
         Map<String, Object> claims,
         @JsonProperty("valid")
-        boolean valid,
+        Boolean valid,
         @JsonProperty("validation_details")
         List<ValidationDetail> validationDetails
 ) implements Serializable {
+
+    public boolean isValid() {
+        return Boolean.TRUE.equals(valid);
+    }
 }
