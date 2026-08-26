@@ -26,8 +26,7 @@
                  class="ds-alert content-narrow"
                  data-color="success">
                 <p class="ds-paragraph"
-                   th:text="${revokedCount > 1} ? ${revokedCount + ' bevis er tilbakekalla'} : 'Beviset er tilbakekalla'"></p>
-                <p class="ds-paragraph">
+                   th:text="${revokedCount > 1} ? (${revokedCount} + ' bevis er tilbakekalla') : 'Beviset er tilbakekalla'"></p>
                     <span th:text="${credentialDescription}"></span>.
                     Presenter beviset på nytt for å sjå at det ikkje lenger er gyldig.
                 </p>
