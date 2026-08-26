@@ -1,5 +1,6 @@
 package no.idporten.eudiw.bevisgenerator.integration.verifierservice.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import tools.jackson.databind.annotation.JsonSerialize;
@@ -14,8 +15,13 @@ public record VerifiedCredential (
         @JsonProperty("claims")
         Map<String, Object> claims,
         @JsonProperty("valid")
-        boolean valid,
+        Boolean valid,
         @JsonProperty("validation_details")
         List<ValidationDetail> validationDetails
 ) implements Serializable {
+
+    @JsonIgnore
+    public boolean isValid() {
+        return Boolean.TRUE.equals(valid);
+    }
 }

@@ -27,7 +27,7 @@ public class VerificationResultServiceImpl implements VerificationResultService 
                         .map(credential -> new VerificationResultView(
                                 entry.getKey(),
                                 formatCredentialType(entry.getKey()),
-                                credential.valid(),
+                                credential.isValid(),
                                 buildClaimViews(credential.claims()),
                                 buildValidationDetailViews(credential.validationDetails())
                         )))
