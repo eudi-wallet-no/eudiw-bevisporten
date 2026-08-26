@@ -20,7 +20,7 @@ public record ValueCertificate(
 
     public String getValidCertString() {
         if (!hasCertificate()) {
-            throw new IllegalStateException("DigitalId cert is null/blank for this DigitalId entry");
+            throw new VerificationException("invalid_request", "DigitalId cert is null/blank for this DigitalId entry");
         }
         String prefix = "-----BEGIN CERTIFICATE-----";
         String suffix = "-----END CERTIFICATE-----";
