@@ -2,8 +2,6 @@ package no.idporten.eudiw.verifier.trustlist.etsi602;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import no.idporten.eudiw.verifier.VerificationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
