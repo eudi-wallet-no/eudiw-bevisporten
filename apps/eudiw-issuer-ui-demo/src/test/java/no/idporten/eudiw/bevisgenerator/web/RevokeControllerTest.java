@@ -113,7 +113,7 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-123"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-color=\"success\"")))
-                .andExpect(content().string(containsString("Beviset er tilbakekalla")))
+                .andExpect(content().string(containsString("Beviset er revokert")))
                 .andExpect(content().string(containsString("<span>Presenter bevis</span>")))
                 .andExpect(content().string(containsString("x-data=\"revocationResultHistory()\"")));
     }
@@ -129,7 +129,7 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-unknown"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-color=\"warning\"")))
-                .andExpect(content().string(containsString("Ingenting er tilbakekalla")))
+                .andExpect(content().string(containsString("Ingenting er revokert")))
                 .andExpect(content().string(not(containsString("<span>Presenter bevis</span>"))));
     }
 
@@ -145,7 +145,7 @@ class RevokeControllerTest {
                         .param("issuanceTransactionId", "tx-123"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Førespurnaden er behandla")))
-                .andExpect(content().string(not(containsString("Ingenting er tilbakekalla"))))
+                .andExpect(content().string(not(containsString("Ingenting er revokert"))))
                 .andExpect(content().string(containsString("<span>Presenter bevis</span>")));
     }
 

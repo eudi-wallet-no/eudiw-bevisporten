@@ -224,7 +224,7 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("href=\"/verification-start\"")))
                 .andExpect(content().string(containsString("Presenter nytt bevis")))
                 .andExpect(content().string(containsString("href=\"/revoke\"")))
-                .andExpect(content().string(containsString("Tilbakekall bevis")))
+                .andExpect(content().string(containsString("Revoker bevis")))
                 .andExpect(content().string(containsString("age over 18")))
                 .andExpect(content().string(containsString("Ja")))
                 .andExpect(content().string(containsString("Beviset er gyldig")))

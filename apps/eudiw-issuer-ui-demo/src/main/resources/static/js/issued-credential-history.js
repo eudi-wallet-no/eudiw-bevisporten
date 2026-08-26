@@ -170,7 +170,7 @@
                     return "";
                 }
                 const suffix = this.prefilledForm === "revoke-by-subject-form"
-                    ? " Tilbakekallinga kan gjelde fleire bevis."
+                    ? " Revokeringa kan gjelde fleire bevis."
                     : "";
                 return `Skjemaet er fylt ut frå ${this.prefilledCredential.credentialDescription}, utferda ${formatDateTime(this.prefilledCredential.issuedAt)}.${suffix}`;
             },
