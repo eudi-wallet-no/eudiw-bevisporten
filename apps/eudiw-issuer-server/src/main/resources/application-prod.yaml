@@ -14,6 +14,9 @@ spring:
           - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
 
 credential-issuer-server:
+  features:
+    revocation-v2-rich-result:
+      enabled: false
   credential-issuer: https://utsteder.eidas2sandkasse.net
   authorization-servers:
     - id: auth-eidas2sandkasse

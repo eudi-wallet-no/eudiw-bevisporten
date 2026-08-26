@@ -36,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("When revoking authorization code credentials by subject")
@@ -89,18 +90,37 @@ class AuthCodeCredentialRevokeControllerTest {
                             subjectCredentialIssuanceTransactionEntity("transaction-1", "12345678901", "junitdoc_pre_mso_mdoc", "junit"),
                             subjectCredentialIssuanceTransactionEntity("transaction-2", "12345678901", "junitdoc_pre_mso_mdoc", "junit")
                     ));
+            when(statusIssuerService.revokeStatus(any())).thenReturn(1);
 
-            mockMvc.perform(put("/api/v1/credential/revoke/by-subject")
+            mockMvc.perform(put("/api/v2/credential/revoke/by-subject")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "******")
                             .content(revokeRequestBody("junitdoc_pre_mso_mdoc", "12345678901"))
                             .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.revokedCount").value(2));
 
             verify(statusIssuerService, times(2)).revokeStatus(credentialRevokeContextCaptor.capture());
             List<CredentialRevokeContext> capturedContexts = credentialRevokeContextCaptor.getAllValues();
             assertEquals("transaction-1", capturedContexts.get(0).transactionId().getValue());
             assertEquals("transaction-2", capturedContexts.get(1).transactionId().getValue());
+        }
+
+        @Test
+        @DisplayName("preserves the v1 no-content response")
+        void v1Response() throws Exception {
+            when(accessTokenValidationService.validateAccessToken(any())).thenReturn(org.mockito.Mockito.mock(JWT.class));
+            when(subjectCredentialTransactionDao.findBySubjectAndType(
+                    eq("12345678901"),
+                    eq("junitdoc_pre_mso_mdoc"),
+                    anyString()
+            )).thenReturn(List.of());
+
+            mockMvc.perform(put("/api/v1/credential/revoke/by-subject")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "******")
+                            .content(revokeRequestBody("junitdoc_pre_mso_mdoc", "12345678901")))
+                    .andExpect(status().isNoContent());
         }
 
         @Test
@@ -110,12 +130,13 @@ class AuthCodeCredentialRevokeControllerTest {
             when(subjectCredentialTransactionDao.findBySubjectAndType(eq("12345678901"), eq("junitdoc_pre_mso_mdoc"), anyString()))
                     .thenReturn(List.of());
 
-            mockMvc.perform(put("/api/v1/credential/revoke/by-subject")
+            mockMvc.perform(put("/api/v2/credential/revoke/by-subject")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "******")
                             .content(revokeRequestBody("junitdoc_pre_mso_mdoc", "12345678901"))
                             .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isNoContent());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.revokedCount").value(0));
 
             verifyNoInteractions(statusIssuerService);
         }

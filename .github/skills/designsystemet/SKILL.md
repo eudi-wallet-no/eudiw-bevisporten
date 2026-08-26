@@ -50,6 +50,8 @@ This decides which valid composition belongs in the product:
 
 Upstream examples explain how to use Designsystemet; they do not define this product's page layout. When several valid variants exist, preserve the established local choice. If official sources conflict, prefer the applicable component contract and accessibility outcome, keep existing product behaviour, and do not invent a redesign to resolve the ambiguity.
 
+When the runtime contract and local product patterns do not resolve a composition question, inspect the closest comparable implementation on Digdir.no before inventing a pattern. Compare the element's role, semantics, tokens and states. Use Digdir.no as product evidence, never to override the loaded component contract or an explicit product decision.
+
 ## Resolve the runtime before editing
 
 Do this first for every application in scope:
@@ -191,6 +193,8 @@ Standardise elements only when they share role, hierarchy and context:
 - Repeated cards, form groups, action groups and navigation regions use the same component, variant, structure, token rhythm and responsive behaviour.
 - Persistent actions or step navigation are separated from the content they complete with a shared composition and semantic border token.
 - Mobile may be denser, but keeps the same hierarchy, semantics, states and repeated rhythm.
+
+Before changing a repeated visual role, search the whole application for every comparable instance and state. Explicitly include shared consumers or exclude them because their role differs; do not finish a one-instance fix while equivalent components remain inconsistent.
 
 Classify every finding before changing it:
 

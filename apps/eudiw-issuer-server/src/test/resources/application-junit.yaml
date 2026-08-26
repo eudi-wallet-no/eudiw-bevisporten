@@ -12,6 +12,9 @@ spring:
     locations: classpath:/db/migration
 
 credential-issuer-server:
+  features:
+    revocation-v2-rich-result:
+      enabled: true
   credential-issuer: https://junit.eidas2sandkasse.dev
   authorization-servers:
     - id: junit

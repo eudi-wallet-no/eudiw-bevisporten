@@ -17,6 +17,9 @@ spring:
       host: redis
 
 credential-issuer-server:
+  features:
+    revocation-v2-rich-result:
+      enabled: true
   credential-issuer: http://issuer-server:9240
   authorization-servers:
     - id: auth-eidas2sandkasse

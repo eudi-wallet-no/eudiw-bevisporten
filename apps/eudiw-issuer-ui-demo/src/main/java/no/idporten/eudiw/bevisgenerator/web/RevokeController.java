@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.OptionalInt;
+
 @Controller
 public class RevokeController {
 
@@ -53,16 +55,17 @@ public class RevokeController {
             return baseView(revokeForm, new RevokeBySubjectForm(), TRANSACTION_ID_METHOD);
         }
 
+        OptionalInt revokedCount;
         try {
-            issuerServerService.revokeCredential(credentialConfiguration, revokeForm.issuanceTransactionId());
+            revokedCount = issuerServerService.revokeCredential(credentialConfiguration, revokeForm.issuanceTransactionId());
         } catch (IssuerServerException e) {
             logger.error("Failed to revoke credential", e);
             return baseView(revokeForm, new RevokeBySubjectForm(), TRANSACTION_ID_METHOD)
                     .addObject("txIdErrorMessage", e.getCauseMessage());
         }
 
-        return baseView(new RevokeForm(), new RevokeBySubjectForm(), TRANSACTION_ID_METHOD)
-                .addObject("txIdRevocationProcessed", true);
+        return resultView(revokedCount, credentialConfiguration.description())
+                .addObject("processedIssuanceTransactionId", revokeForm.issuanceTransactionId());
     }
 
     @PostMapping("/revoke/by-subject")
@@ -77,16 +80,25 @@ public class RevokeController {
                     .addObject("subjectErrorMessage", "Bevistypen finst ikkje");
         }
 
+        OptionalInt revokedCount;
         try {
-            issuerServerService.revokeCredentialBySubject(credentialConfiguration, revokeBySubjectForm.subjectIdentifier());
+            revokedCount = issuerServerService.revokeCredentialBySubject(credentialConfiguration, revokeBySubjectForm.subjectIdentifier());
         } catch (IssuerServerException e) {
             logger.error("Failed to revoke credential by subject", e);
             return baseView(new RevokeForm(), revokeBySubjectForm, PERSON_IDENTIFIER_METHOD)
                     .addObject("subjectErrorMessage", e.getCauseMessage());
         }
 
-        return baseView(new RevokeForm(), new RevokeBySubjectForm(), PERSON_IDENTIFIER_METHOD)
-                .addObject("subjectRevocationProcessed", true);
+        return resultView(revokedCount, credentialConfiguration.description())
+                .addObject("processedCredentialConfigurationId", revokeBySubjectForm.credentialConfigurationId())
+                .addObject("processedSubjectIdentifier", revokeBySubjectForm.subjectIdentifier());
+    }
+
+    private ModelAndView resultView(OptionalInt revokedCount, String credentialDescription) {
+        return new ModelAndView("revocation-result")
+                .addObject("revocationOutcomeKnown", revokedCount.isPresent())
+                .addObject("revokedCount", revokedCount.orElse(0))
+                .addObject("credentialDescription", credentialDescription);
     }
 
     private ModelAndView baseView(

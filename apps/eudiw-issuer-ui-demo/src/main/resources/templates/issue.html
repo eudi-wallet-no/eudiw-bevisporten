@@ -29,14 +29,14 @@
             På administrasjonssida kan du opprette eigne bevistypar og finne tekniske instruksjonar.
             Du kan òg bruke ein av bevistypane under.
         </p>
-        <a class="ds-link" th:href="@{/admin}">
+        <a class="ds-link content-link" th:href="@{/admin}">
             Gå til administrasjon av bevistypar
         </a>
     </aside>
     <div class="step-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
             <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
-               class="ds-card"
+               class="ds-card interactive-card link-card"
                data-color="accent"
                data-variant="default">
                 <h2 class="ds-heading"

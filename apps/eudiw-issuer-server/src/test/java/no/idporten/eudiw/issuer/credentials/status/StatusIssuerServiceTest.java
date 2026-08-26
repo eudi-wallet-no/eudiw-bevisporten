@@ -136,9 +136,10 @@ public class StatusIssuerServiceTest {
         ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
         IssuanceTransactionId transactionId = new IssuanceTransactionId();
         CredentialStatusInfo credentialStatusInfo = new CredentialStatusInfo(tenant.getId(), credentialConfiguration.getCredentialConfigurationId(), List.of(new StatusEntry(7, URI.create("https://junit.eidas2sandkasse.dev/lists/0"))));
-        when(credentialStatusService.retrieveCredentialStatus(tenant, transactionId)).thenReturn(credentialStatusInfo);
+        when(credentialStatusService.retrieveRevocableCredentialStatus(tenant, transactionId)).thenReturn(credentialStatusInfo);
+        when(credentialStatusService.markCredentialRevoked(tenant, transactionId)).thenReturn(true);
         CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
-        service.revokeStatus(context);
+        assertEquals(1, service.revokeStatus(context));
         verify(statusIssuerIntegration).updateStatusEntries(updatedStatusEntryListCaptor.capture());
         List<UpdatedStatusEntry> updatedStatusEntries = updatedStatusEntryListCaptor.getValue();
         assertAll(
@@ -159,7 +160,7 @@ public class StatusIssuerServiceTest {
         ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
         IssuanceTransactionId transactionId = new IssuanceTransactionId();
         CredentialStatusInfo credentialStatusInfo = new CredentialStatusInfo(tenant.getId(), "somethingelse", List.of(new StatusEntry(7, URI.create("https://junit.eidas2sandkasse.dev/lists/0"))));
-        when(credentialStatusService.retrieveCredentialStatus(tenant, transactionId)).thenReturn(credentialStatusInfo);
+        when(credentialStatusService.retrieveRevocableCredentialStatus(tenant, transactionId)).thenReturn(credentialStatusInfo);
         CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
         IssuerServerException exception = assertThrows(IssuerServerException.class, () -> service.revokeStatus(context));
         assertTrue(exception.getErrorDescription().contains("Not allowed to revoke credential status"));
@@ -171,9 +172,9 @@ public class StatusIssuerServiceTest {
         CredentialIssuerTenant tenant = junitIssuerTenant();
         ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
         IssuanceTransactionId transactionId = new IssuanceTransactionId();
-        when(credentialStatusService.retrieveCredentialStatus(tenant, transactionId)).thenReturn(null);
+        when(credentialStatusService.retrieveRevocableCredentialStatus(tenant, transactionId)).thenReturn(null);
         CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
-        service.revokeStatus(context);
+        assertEquals(0, service.revokeStatus(context));
         verifyNoInteractions(statusIssuerIntegration);
     }
 

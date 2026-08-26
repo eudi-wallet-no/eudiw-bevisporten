@@ -2,11 +2,19 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: issued_credential_history_js_fragment}"></th:block>
+    <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
     <title>Beviset er utferda | Bevisgenerator</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main id="main-content" tabindex="-1">
+<main id="main-content"
+      tabindex="-1"
+      x-data="issuanceCompletionHistory()"
+      th:attr="data-credential-configuration-id=${issuedCredentialConfigurationId},
+               data-credential-description=${issuedCredentialDescription},
+               data-issuance-transaction-id=${issuedTransactionId},
+               data-subject-identifier=${issuedSubjectIdentifier}">
     <div class="step-flow">
         <div class="step-flow__content">
             <div class="landing-intro landing-copy">
@@ -17,6 +25,11 @@
                     Du kan no presentere beviset eller utferde eit nytt.
                 </p>
             </div>
+            <p x-cloak
+               x-show="storageError"
+               x-text="storageError"
+               class="ds-validation-message"
+               role="alert"></p>
         </div>
 
         <div th:replace="~{fragments/components :: step_navigation_fragment(

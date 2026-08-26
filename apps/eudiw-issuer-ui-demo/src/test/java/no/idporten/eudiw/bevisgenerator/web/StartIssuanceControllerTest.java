@@ -26,8 +26,12 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -41,6 +45,8 @@ class StartIssuanceControllerTest {
 
     private static final String TRANSACTION_CONFIGURATION_KEY = "issuance_credential_configuration_tx-id";
     private static final String TRANSACTION_COMPLETED_KEY = "issuance_completed_tx-id";
+    private static final String TRANSACTION_DESCRIPTION_KEY = "issuance_credential_description_tx-id";
+    private static final String TRANSACTION_SUBJECT_IDENTIFIER_KEY = "issuance_subject_identifier_tx-id";
 
     private MockMvc mockMvc;
     private IssuerServerService issuerServerService;
@@ -65,6 +71,7 @@ class StartIssuanceControllerTest {
         when(properties.credentialIssuer()).thenReturn("http://issuer");
         when(bevisgeneratorProperties.getFeatureSwitches()).thenReturn(featureSwitches);
         when(issuerServerService.getById("pid")).thenReturn(credentialConfiguration);
+        when(issuerServerService.getSubjectCredentialConfigurationById("pid")).thenReturn(credentialConfiguration);
         when(issuerServerService.getAll()).thenReturn(List.of(credentialConfiguration));
 
         mockMvc = MockMvcBuilders.standaloneSetup(
@@ -95,11 +102,13 @@ class StartIssuanceControllerTest {
 
         mockMvc.perform(post("/start-issuance/pid")
                         .param("json", "{}")
-                        .param("personIdentifier", ""))
+                        .param("personIdentifier", "05821098825"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("issuer_response"))
                 .andExpect(model().attribute("issuedTransactionId", "tx-id"))
-                .andExpect(request().sessionAttribute(TRANSACTION_CONFIGURATION_KEY, "pid"));
+                .andExpect(request().sessionAttribute(TRANSACTION_CONFIGURATION_KEY, "pid"))
+                .andExpect(request().sessionAttribute(TRANSACTION_DESCRIPTION_KEY, "PID"))
+                .andExpect(request().sessionAttribute(TRANSACTION_SUBJECT_IDENTIFIER_KEY, "05821098825"));
     }
 
     @Test
@@ -171,12 +180,33 @@ class StartIssuanceControllerTest {
         MockHttpSession session = new MockHttpSession();
         session.setAttribute(TRANSACTION_CONFIGURATION_KEY, "pid");
         session.setAttribute(TRANSACTION_COMPLETED_KEY, true);
+        session.setAttribute(TRANSACTION_DESCRIPTION_KEY, "PID");
+        session.setAttribute(TRANSACTION_SUBJECT_IDENTIFIER_KEY, "05821098825");
+        clearInvocations(issuerServerService);
 
         mockMvc.perform(get("/issuance/tx-id/complete").session(session))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "no-store, private"))
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
-                .andExpect(view().name("issuance-complete"));
+                .andExpect(view().name("issuance-complete"))
+                .andExpect(model().attribute("issuedCredentialConfigurationId", "pid"))
+                .andExpect(model().attribute("issuedCredentialDescription", "PID"))
+                .andExpect(model().attribute("issuedTransactionId", "tx-id"))
+                .andExpect(model().attribute("issuedSubjectIdentifier", "05821098825"));
+
+        verify(issuerServerService, never()).getById(anyString());
+    }
+
+    @Test
+    void completedIssuanceFallsBackToConfigurationIdWhenDescriptionIsMissing() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(TRANSACTION_CONFIGURATION_KEY, "pid");
+        session.setAttribute(TRANSACTION_COMPLETED_KEY, true);
+
+        mockMvc.perform(get("/issuance/tx-id/complete").session(session))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("issuedCredentialDescription", "pid"))
+                .andExpect(model().attribute("issuedSubjectIdentifier", ""));
     }
 
     @Test
