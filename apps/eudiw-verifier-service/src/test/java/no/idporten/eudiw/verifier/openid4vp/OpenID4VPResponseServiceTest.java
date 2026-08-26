@@ -1,13 +1,7 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.idporten.eudiw.verifier.config.TrustlistRestclient;
-import no.idporten.eudiw.verifier.config.TrustlistsProperties;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.etsi612.LoTE;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.util.TrustlistLogic;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
-import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
