@@ -79,7 +79,7 @@ class TrustlistServiceTest {
     void connectToTrustlistReturnsLotResponseeWhenUriIsCorrect602() {
 
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
-                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType("application/jose+json")));
+                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
 
         LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
         assertNotNull(lote);
