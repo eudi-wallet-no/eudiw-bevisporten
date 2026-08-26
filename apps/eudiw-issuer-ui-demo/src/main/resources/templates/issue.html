@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Utsted bevis | Bevisgenerator</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
+<main id="main-content" tabindex="-1">
     <div class="landing-intro landing-copy">
         <h1 class="ds-heading" data-size="xl">
              Utsted bevis
@@ -17,11 +17,27 @@
             Vel ein bevistype. Fyll deretter inn opplysningane som skal vere med i beviset.
         </p>
     </div>
+    <aside class="ds-alert content-narrow landing-intro"
+           data-color="info"
+           aria-labelledby="custom-credential-heading">
+        <h2 id="custom-credential-heading"
+            class="ds-heading"
+            data-size="xs">
+            Vil du lage din eigen bevistype?
+        </h2>
+        <p class="ds-paragraph">
+            På administrasjonssida kan du opprette eigne bevistypar og finne tekniske instruksjonar.
+            Du kan òg bruke ein av bevistypane under.
+        </p>
+        <a class="ds-link" th:href="@{/admin}">
+            Gå til administrasjon av bevistypar
+        </a>
+    </aside>
     <div class="step-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
             <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
                class="ds-card"
-               data-color="neutral"
+               data-color="accent"
                data-variant="default">
                 <h2 class="ds-heading"
                     data-size="sm"

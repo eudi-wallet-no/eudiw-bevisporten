@@ -28,6 +28,7 @@ Ikkje rekn fagtermar, sitat, kode, namn eller tekst på andre språk som ei blan
 ## Grunnreglar
 
 - Skriv så korte og aktive setningar som innhaldet tillèt. Bruk ikkje ei fast ordgrense.
+- Unngå lange setningar med innskot og fleire komma. Del teksten når kommaet skil sjølvstendige poeng, men bevar komma som rettskrivinga krev.
 - Ha éin idé per setning og eitt tema per avsnitt. Set verbet tidleg og bruk aktiv form.
 - Start med det lesaren treng å vite eller gjere. Grupper og plasser informasjonen slik at målgruppa finn det viktigaste først.
 - Bruk vanlege, konkrete ord framfor abstrakte formuleringar. Skriv «du» og «vi» når teksten vender seg direkte til folk.

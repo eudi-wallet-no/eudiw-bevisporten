@@ -20,19 +20,33 @@
 
 ---
 
+## Continuous improvement
+
+After a larger change or a long conversation, take a brief retrospective before finishing. Capture only reusable lessons and corrections, then update the most relevant instruction or skill in a few lines so future work improves without turning these files into a session log.
+
+---
+
+## Preserve production behaviour
+
+For visual UI work, treat production interaction, state, validation, submission and navigation logic as fixed unless the user explicitly asks to change it. Do not replace control types or interaction patterns because another solution seems better.
+
+If a different solution would improve accessibility or maintainability, describe it as a separate proposal with its benefits and risks. Do not include it in the implementation without an explicit request.
+
+---
+
 ## JIRA-ID, branch and PR
 
 All tasks have a JIRA-ID. **Always ask the user for the JIRA-ID** if not provided — do not assume or make one up.
 
 - **Branch name:** `<jira-id>`, e.g. `euw-1234`, whether created via `rename_branch` or directly with git. Do not use free-text descriptions. If the branch already exists, increment: `euw-1234-2`, `euw-1234-3` etc.
-- **PR title:** `<JIRA-ID>: <PR title>`, e.g. `EUW-1234: New feature`. The part after the JIRA-ID prefix is written in **English**. Without the prefix, the `validate-pr-title` check in GitHub Actions will fail.
-- **PR description:** human-friendly, short and concrete. Avoid AI language ("This PR introduces..."), emojis, excessive structure, self-praise, and summary walls. One line is fine for trivial changes.
+- **PR title:** `<JIRA-ID>: <PR title>`, e.g. `EUW-1234: Ny funksjon`. The part after the JIRA-ID prefix must be written in **Norwegian**. Without the prefix, the `validate-pr-title` check in GitHub Actions will fail.
+- **PR description:** must be written in Norwegian. Keep it human-friendly, short and concrete. Avoid AI language ("Denne PR-en introduserer ..."), emojis, excessive structure, self-praise, and summary walls. One line is fine for trivial changes.
 
 Template:
 ```
-## What and why
-1-2 sentences: what changes and why.
+## Hva og hvorfor
+1-2 setninger: Hva endres, og hvorfor?
 
-## Changes
-- Key points, not every file/detail.
+## Endringer
+- Viktigste endringer, ikke alle filer og detaljer.
 ```

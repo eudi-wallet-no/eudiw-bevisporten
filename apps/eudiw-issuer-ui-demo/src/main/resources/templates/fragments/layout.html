@@ -7,6 +7,7 @@
 <th:block th:fragment="base_head_fragment">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
 
     <link rel="icon" th:href="@{/favicon.ico}">
     <th:block th:replace="~{:: default_stylesheets_fragment}"></th:block>
@@ -17,6 +18,8 @@
 </th:block>
 
 <header th:fragment="page_header_fragment">
+    <a class="ds-skip-link" href="#main-content">Hopp til hovudinnhaldet</a>
+
     <div class="page-container header__inner">
         <a aria-label="Til framsida"
            class="ds-focus header__brand"
@@ -25,12 +28,20 @@
             <span>Bevisgenerator</span>
         </a>
 
-        <input type="checkbox" id="header-nav-toggle" class="header__nav-toggle">
-        <label for="header-nav-toggle" class="header__nav-toggle-label ds-button" data-variant="tertiary" data-size="sm" aria-label="Opne meny">
+        <button id="header-nav-toggle"
+                class="header__nav-toggle ds-button"
+                type="button"
+                data-variant="tertiary"
+                data-size="md"
+                aria-expanded="false"
+                aria-controls="header-navigation">
             <div th:replace="~{:: menu_icon_fragment}"></div>
-        </label>
+            <span id="header-nav-toggle-label" class="ds-sr-only">Opne meny</span>
+        </button>
 
-        <nav class="header__nav" aria-label="Hovudnavigasjon">
+        <nav id="header-navigation"
+             class="header__nav"
+             aria-label="Hovudnavigasjon">
             <a class="ds-link"
                th:href="@{/admin}"
                data-color="neutral">
@@ -38,6 +49,32 @@
             </a>
         </nav>
     </div>
+
+    <script>
+        (() => {
+            const toggle = document.getElementById("header-nav-toggle");
+            const toggleLabel = document.getElementById("header-nav-toggle-label");
+            const navigation = document.getElementById("header-navigation");
+
+            function setNavigationOpen(open) {
+                toggle.setAttribute("aria-expanded", String(open));
+                toggleLabel.textContent = open ? "Lukk meny" : "Opne meny";
+                navigation.classList.toggle("header__nav--open", open);
+            }
+
+            toggle.addEventListener("click", () => {
+                const expanded = toggle.getAttribute("aria-expanded") === "true";
+                setNavigationOpen(!expanded);
+            });
+
+            document.addEventListener("keydown", (event) => {
+                if (event.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+                    setNavigationOpen(false);
+                    toggle.focus();
+                }
+            });
+        })();
+    </script>
 </header>
 
 <footer th:fragment="page_footer_fragment(issuer)"

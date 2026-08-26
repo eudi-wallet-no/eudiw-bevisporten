@@ -6,17 +6,11 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefin
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialConfigurationMetadata;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLServiceImpl;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStartResponse;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.*;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.verification.VerificationMode;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,9 +26,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -56,6 +48,7 @@ class VerificationControllerTest {
         verifierService = mock(VerifierService.class);
         ObjectMapper objectMapper = new ObjectMapper();
         DCQLService dcqlService = new DCQLServiceImpl();
+        VerificationResultService verificationResultService = new VerificationResultServiceImpl();
 
         issuanceDefinitionId = "pid";
         String subjectDefinitionId = "proof_of_age";
@@ -123,16 +116,14 @@ class VerificationControllerTest {
                 "tx-id",
                 Map.of(
                         "proof_of_age",
-                        List.of(new VerificationResult.CredentialPresentation(
-                                Map.of("age_over_18", true)
-                        ))
+                        List.of(new VerifiedCredential( Map.of("age_over_18", true), true, List.of())
                 )
-        ));
+        )));
 
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new VerificationController(issuerServerService, issuerServerProperties, verifierService, objectMapper, dcqlService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new VerificationController(issuerServerService, issuerServerProperties, verifierService, objectMapper, dcqlService, verificationResultService))
                 .setValidator(validator)
                 .setViewResolvers((viewName, locale) -> {
                     if (viewName.startsWith("redirect:")) {
@@ -211,7 +202,7 @@ class VerificationControllerTest {
         ));
 
         MockMvc thymeleafMockMvc = MockMvcBuilders.standaloneSetup(
-                        new VerificationController(issuerServerService, issuerServerProperties, verifierService, new ObjectMapper(), new DCQLServiceImpl()))
+                        new VerificationController(issuerServerService, issuerServerProperties, verifierService, new ObjectMapper(), new DCQLServiceImpl(), new VerificationResultServiceImpl()))
                 .setValidator(validator)
                 .setViewResolvers(viewResolver)
                 .build();
@@ -234,7 +225,88 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Presenter nytt bevis")))
                 .andExpect(content().string(containsString("href=\"/revoke\"")))
                 .andExpect(content().string(containsString("Tilbakekall bevis")))
+                .andExpect(content().string(containsString("age over 18")))
+                .andExpect(content().string(containsString("Ja")))
+                .andExpect(content().string(containsString("Beviset er gyldig")))
+                .andExpect(content().string(containsString("Attributt")))
+                .andExpect(content().string(containsString("Valideringsdetaljar")))
+                .andExpect(content().string(containsString("verification-result__claims")))
                 .andExpect(content().string(not(containsString(">Heim<"))));
+
+        VerificationTransactionData nestedTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id-nested"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id-nested"),
+                URI.create("http://verifier/result/tx-id-nested")
+        );
+        when(verifierService.retrieveVerificationResult("tx-id-nested")).thenReturn(new VerificationResult(
+                "tx-id-nested",
+                Map.of(
+                        "pid",
+                        List.of(new VerifiedCredential(
+                                Map.of(
+                                        "fornavn", "Kari",
+                                        "adresse", Map.of("gate", "Fjordveien 1", "postnummer", "0150"),
+                                        "statsborgerskap", List.of("NO", "SE")
+                                ),
+                                true,
+                                List.of()
+                        ))
+                )
+        ));
+
+        // Nested (object/array) claim values must render as their own indented name/value
+        // rows via the recursive claim_list_fragment, not as a raw JSON dump in a single <dd>.
+        thymeleafMockMvc.perform(get("/verification-result/nestedKey")
+                        .sessionAttr("verification_transaction_data_nestedKey", nestedTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("adresse")))
+                .andExpect(content().string(containsString("gate")))
+                .andExpect(content().string(containsString("Fjordveien 1")))
+                .andExpect(content().string(containsString("postnummer")))
+                .andExpect(content().string(containsString("0150")))
+                .andExpect(content().string(containsString("statsborgerskap")))
+                .andExpect(content().string(containsString("NO, SE")))
+                .andExpect(content().string(containsString("verification-result__claim--group")))
+                .andExpect(content().string(not(containsString("{\"gate\""))));
+
+        // mso_mdoc credentials wrap every claim under a single namespace key
+        // (e.g. "eu.europa.ec.eudi.pid.1"). That wrapper must be unwrapped so claims
+        // render flat, instead of showing the raw namespace string as a confusing group.
+        VerificationTransactionData mdocTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id-mdoc"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id-mdoc"),
+                URI.create("http://verifier/result/tx-id-mdoc")
+        );
+        when(verifierService.retrieveVerificationResult("tx-id-mdoc")).thenReturn(new VerificationResult(
+                "tx-id-mdoc",
+                Map.of(
+                        "no.digdir.eudiw.pid_mso_mdoc",
+                        List.of(new VerifiedCredential(
+                                Map.of(
+                                        "eu.europa.ec.eudi.pid.1",
+                                        Map.of(
+                                                "personal_administrative_number", "12345678912",
+                                                "given_name", "Kari"
+                                        )
+                                ),
+                                true,
+                                List.of()
+                        ))
+                )
+        ));
+
+        thymeleafMockMvc.perform(get("/verification-result/mdocKey")
+                        .sessionAttr("verification_transaction_data_mdocKey", mdocTransactionData))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("personal administrative number")))
+                .andExpect(content().string(containsString("12345678912")))
+                .andExpect(content().string(containsString("given name")))
+                .andExpect(content().string(containsString("Kari")))
+                .andExpect(content().string(not(containsString("eu.europa.ec.eudi.pid.1"))));
     }
 
     @Test
@@ -286,8 +358,7 @@ class VerificationControllerTest {
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
                 .andExpect(view().name("verification-result"))
                 .andExpect(model().attributeExists("result"))
-                .andExpect(model().attribute("resultJson", containsString("\"proof_of_age\"")))
-                .andExpect(model().attribute("resultJson", containsString("\"age_over_18\" : true")));
+                .andExpect(model().attribute("verificationResults", hasSize(1)));
 
         verify(verifierService).retrieveVerificationResult("tx-id");
     }
