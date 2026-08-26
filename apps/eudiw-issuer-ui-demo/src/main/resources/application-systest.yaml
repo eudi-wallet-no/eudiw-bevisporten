@@ -4,6 +4,8 @@ spring:
     environment: systest
 
 bevisgenerator:
+  features:
+    revocation-v2-rich-result: true
   byob-service:
     base-url: https://byob-service.eidas2sandkasse.dev
   issuer-server:

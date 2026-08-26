@@ -16,7 +16,7 @@
         </p>
      </div>
     <div class="step-container">
-        <a th:href="@{/issue}" class="ds-card step-card"
+        <a th:href="@{/issue}" class="ds-card step-card interactive-card link-card"
            data-color="accent"
            data-variant="default">
             <span class="step-number ds-heading" data-size="2xl" aria-hidden="true">1</span>
@@ -25,7 +25,7 @@
                 Vel ein bevistype og legg inn testdata. Utsted deretter beviset til ei digital lommebok.
             </p>
         </a>
-        <a th:href="@{/verification-start}" class="ds-card step-card" th:if="${allowVerification}"
+        <a th:href="@{/verification-start}" class="ds-card step-card interactive-card link-card" th:if="${allowVerification}"
            data-color="accent"
            data-variant="default">
             <span class="step-number ds-heading" data-size="2xl" aria-hidden="true">2</span>
@@ -34,13 +34,13 @@
                 Vel kva opplysningar lommeboka skal dele. Kontroller deretter beviset som lommeboka presenterer.
             </p>
         </a>
-        <a th:href="@{/revoke}" class="ds-card step-card"
+        <a th:href="@{/revoke}" class="ds-card step-card interactive-card link-card"
            data-color="accent"
            data-variant="default">
             <span class="step-number ds-heading" data-size="2xl" aria-hidden="true">3</span>
-            <h2 class="ds-heading">Tilbakekall utstedte bevis</h2>
+            <h2 class="ds-heading">Revoker utstedt bevis</h2>
             <p class="ds-paragraph">
-                Tilbakekall eit utstedt bevis med transaksjons-ID eller personidentifikator.
+                Revoker eit utstedt bevis med transaksjons-ID eller personidentifikator.
             </p>
         </a>
    </div>

@@ -13,6 +13,8 @@ spring:
     environment: docker
 
 bevisgenerator:
+  features:
+    revocation-v2-rich-result: true
   byob-service:
     base-url: http://byob-service:9296
   issuer-server:

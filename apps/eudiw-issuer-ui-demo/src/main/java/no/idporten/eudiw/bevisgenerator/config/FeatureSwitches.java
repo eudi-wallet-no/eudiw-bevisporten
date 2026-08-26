@@ -20,6 +20,8 @@ public class FeatureSwitches implements InitializingBean {
 
     private boolean allowVerification = false;
 
+    private boolean revocationV2RichResult = false;
+
     public boolean isAllowBevistyperV2() {
         return allowBevistyperV2;
     }
@@ -32,6 +34,7 @@ public class FeatureSwitches implements InitializingBean {
     public void afterPropertiesSet() {
         log.info("Will set allow-bevistyper-v2 to {}", isAllowBevistyperV2());
         log.info("Will set allow-verification to {}", isAllowVerification());
+        log.info("Will set revocation-v2-rich-result to {}", isRevocationV2RichResult());
     }
 
     public boolean isAllowVerification() {
@@ -40,5 +43,13 @@ public class FeatureSwitches implements InitializingBean {
 
     public void setAllowVerification(boolean allowVerification) {
         this.allowVerification = allowVerification;
+    }
+
+    public boolean isRevocationV2RichResult() {
+        return revocationV2RichResult;
+    }
+
+    public void setRevocationV2RichResult(boolean revocationV2RichResult) {
+        this.revocationV2RichResult = revocationV2RichResult;
     }
 }

@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +42,8 @@ public class StartIssuanceController {
 
     private static final String ISSUANCE_CONFIGURATION_SESSION_KEY = "issuance_credential_configuration_%s";
     private static final String ISSUANCE_COMPLETED_SESSION_KEY = "issuance_completed_%s";
+    private static final String ISSUANCE_DESCRIPTION_SESSION_KEY = "issuance_credential_description_%s";
+    private static final String ISSUANCE_SUBJECT_IDENTIFIER_SESSION_KEY = "issuance_subject_identifier_%s";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -121,6 +124,19 @@ public class StartIssuanceController {
                 ISSUANCE_CONFIGURATION_SESSION_KEY.formatted(response.issuanceTransactionId()),
                 credentialConfiguration.credentialConfigurationId()
         );
+        session.setAttribute(
+                ISSUANCE_DESCRIPTION_SESSION_KEY.formatted(response.issuanceTransactionId()),
+                credentialConfiguration.description()
+        );
+
+        if (StringUtils.hasText(startIssuanceForm.personIdentifier())
+                && issuerServerService.getSubjectCredentialConfigurationById(
+                        credentialConfiguration.credentialConfigurationId()) != null) {
+            session.setAttribute(
+                    ISSUANCE_SUBJECT_IDENTIFIER_SESSION_KEY.formatted(response.issuanceTransactionId()),
+                    startIssuanceForm.personIdentifier()
+            );
+        }
         return "issuer_response";
     }
 
@@ -152,9 +168,11 @@ public class StartIssuanceController {
     public String issuanceComplete(
             @PathVariable("issuance-transaction-id") String issuanceTransactionId,
             HttpSession session,
-            HttpServletResponse response
+            HttpServletResponse response,
+            Model model
     ) {
-        getCredentialConfigurationId(issuanceTransactionId, session);
+        String credentialConfigurationId = getCredentialConfigurationId(issuanceTransactionId, session);
+
         if (!Boolean.TRUE.equals(
                 session.getAttribute(ISSUANCE_COMPLETED_SESSION_KEY.formatted(issuanceTransactionId)))) {
             throw new IssuerUiException(
@@ -164,6 +182,14 @@ public class StartIssuanceController {
 
         response.setHeader("Cache-Control", "no-store, private");
         response.setHeader("Referrer-Policy", "no-referrer");
+
+        model.addAttribute("issuedCredentialConfigurationId", credentialConfigurationId);
+        model.addAttribute(
+                "issuedCredentialDescription",
+                getCredentialDescription(issuanceTransactionId, credentialConfigurationId, session)
+        );
+        model.addAttribute("issuedTransactionId", issuanceTransactionId);
+        model.addAttribute("issuedSubjectIdentifier", getSubjectIdentifier(issuanceTransactionId, session));
         return "issuance-complete";
     }
 
@@ -171,12 +197,36 @@ public class StartIssuanceController {
         Object credentialConfigurationId = session.getAttribute(
                 ISSUANCE_CONFIGURATION_SESSION_KEY.formatted(issuanceTransactionId)
         );
+
         if (!(credentialConfigurationId instanceof String id) || id.isBlank()) {
             throw new IssuerUiException(
                     "Missing issuance transaction data for issuance_transaction_id=" + issuanceTransactionId
             );
         }
+
         return id;
+    }
+
+    private static String getSubjectIdentifier(String issuanceTransactionId, HttpSession session) {
+        Object subjectIdentifier = session.getAttribute(
+                ISSUANCE_SUBJECT_IDENTIFIER_SESSION_KEY.formatted(issuanceTransactionId)
+        );
+
+        return subjectIdentifier instanceof String id ? id : "";
+    }
+
+    private static String getCredentialDescription(
+            String issuanceTransactionId,
+            String credentialConfigurationId,
+            HttpSession session
+    ) {
+        Object description = session.getAttribute(
+                ISSUANCE_DESCRIPTION_SESSION_KEY.formatted(issuanceTransactionId)
+        );
+
+        return description instanceof String value && StringUtils.hasText(value)
+                ? value
+                : credentialConfigurationId;
     }
 
     private IssuanceRequest createRequestTrace(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {

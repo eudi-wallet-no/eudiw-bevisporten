@@ -17,6 +17,9 @@ spring:
       host: localhost
 
 credential-issuer-server:
+  features:
+    revocation-v2-rich-result:
+      enabled: true
 #  credential-issuer: http://localhost:9240 # bevisporten funkar/lommebok
   credential-issuer: http://issuer-server:9240 # demo-issuer-ui funkar
   authorization-servers:

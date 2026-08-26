@@ -3,9 +3,11 @@
 ## Before you start
 
 - Read [`docs/`](../docs/) to understand the system, roles, and architecture.
+- All code must follow the [code standard](../docs/CODE_STANDARD.md).
 - Anything visual: use the [`designsystem` skill](skills/designsystemet/SKILL.md). All UI follows [Digitaliseringsdirektoratet's Designsystemet](https://designsystemet.no) — reuse its components and design tokens instead of writing custom CSS.
 - Norwegian UI copy, documentation, or product text: use the [`norsk-klarsprak` skill](skills/norsk-klarsprak/SKILL.md).
 - Non-trivial change (multi-file, unclear scope, or a design/architecture decision): use the [`proposal` skill](skills/proposal/SKILL.md) immediately — as the first action, not after feedback. Sync the branch with the latest default branch (`main`) first, so the plan is never based on stale history.
+- Before delivering code, use the [`code-review` skill](skills/code-review/SKILL.md) to review the complete diff, fix safe high-confidence issues, and remove every change that does not have a concrete task-specific reason.
 
 ---
 

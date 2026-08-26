@@ -16,6 +16,7 @@ import java.util.List;
 import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -137,11 +138,22 @@ class CredentialStatusServiceTest {
                         List.of(new StatusEntry(1, URI.create("https://status.example/lists/pid")))
                 )
         );
-        CredentialStatusInfo retrieved = credentialStatusService.retrieveCredentialStatus(junitIssuerTenant(), transactionId);
+        CredentialStatusInfo retrieved = credentialStatusService.retrieveRevocableCredentialStatus(junitIssuerTenant(), transactionId);
         assertAll(
                 () -> assertEquals("pid", retrieved.credentialConfigurationId()),
                 () -> assertEquals(1, retrieved.statusEntries().getFirst().idx())
         );
+    }
+
+    @DisplayName("then a credential can only be marked revoked once")
+    @Test
+    void testMarkCredentialRevokedOnlyOnce() {
+        IssuanceTransactionId transactionId = new IssuanceTransactionId("tx-revoked");
+        prepareIssuanceTransaction("tx-revoked", "pid", "junit");
+
+        assertTrue(credentialStatusService.markCredentialRevoked(junitIssuerTenant(), transactionId));
+        assertFalse(credentialStatusService.markCredentialRevoked(junitIssuerTenant(), transactionId));
+        assertNull(credentialStatusService.retrieveRevocableCredentialStatus(junitIssuerTenant(), transactionId));
     }
 
     @DisplayName("then missing transaction returns null")
@@ -156,4 +168,3 @@ class CredentialStatusServiceTest {
         assertNull(retrieved);
     }
 }
-
