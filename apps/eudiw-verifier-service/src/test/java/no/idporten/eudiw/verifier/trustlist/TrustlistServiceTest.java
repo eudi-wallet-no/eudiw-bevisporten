@@ -25,6 +25,8 @@ import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonInval
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+
+import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 
@@ -47,10 +49,15 @@ class TrustlistServiceTest {
     @Autowired
     private TrustlistsProperties trustlistProperties;
 
-    private final TrustlistTestdata trustlistTestdata = new TrustlistTestdata();
+    private final TrustlistTestdata trustlistTestdata;
     private final Certificates certificates = new Certificates();
 
     public TrustlistServiceTest() {
+        try {
+            trustlistTestdata = new TrustlistTestdata();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @BeforeEach
