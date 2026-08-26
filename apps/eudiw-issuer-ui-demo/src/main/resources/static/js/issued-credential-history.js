@@ -36,7 +36,7 @@
     };
 
     const readCredentials = () => {
-        const serialized = window.localStorage.getItem(STORAGE_KEY);
+        const serialized = window.sessionStorage.getItem(STORAGE_KEY);
         if (serialized === null) {
             return [];
         }
