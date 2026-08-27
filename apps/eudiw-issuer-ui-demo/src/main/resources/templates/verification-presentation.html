@@ -21,7 +21,7 @@
          data-variant="default">
         <div th:replace="~{fragments/components :: qr_code_fragment(
             src=${qrCode},
-            alt='QR-kode for verifikasjon'
+            credentialName=${credentialName}
         )}"></div>
         <p id="verification-status-message" class="ds-paragraph status-message"></p>
         <div class="button-group">

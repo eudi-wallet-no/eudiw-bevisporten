@@ -30,7 +30,7 @@
 
         <div th:replace="~{fragments/components :: qr_code_fragment(
             src=${'data:image/png;base64,' + issuance.qrCode},
-            alt='QR-kode for bevis'
+            credentialName=${credentialName}
         )}"></div>
 
         <p id="issuance-status-message"

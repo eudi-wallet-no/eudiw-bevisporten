@@ -9,6 +9,9 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefin
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.*;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.*;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
+import no.idporten.eudiw.bevisgenerator.web.models.IssuanceSessionData;
+import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
+import no.idporten.eudiw.bevisgenerator.web.models.VerificationSessionData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
@@ -27,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -37,13 +41,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class VerificationControllerTest {
 
     private MockMvc mockMvc;
+    private IssuerServerService issuerServerService;
     private VerifierService verifierService;
     private String issuanceDefinitionId;
     private VerificationTransactionData verificationTransactionData;
+    private VerificationSessionData verificationSessionData;
+    private CredentialIssuerMetadata credentialIssuerMetadata;
 
     @BeforeEach
     void setUp() {
-        IssuerServerService issuerServerService = mock(IssuerServerService.class);
+        issuerServerService = mock(IssuerServerService.class);
         IssuerServerProperties issuerServerProperties = mock(IssuerServerProperties.class);
         verifierService = mock(VerifierService.class);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -81,7 +88,7 @@ class VerificationControllerTest {
                 ),
                 Map.of()
         );
-        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata(
+        credentialIssuerMetadata = new CredentialIssuerMetadata(
                 "http://issuer",
                 List.of(),
                 "http://issuer/credential",
@@ -98,9 +105,11 @@ class VerificationControllerTest {
                 URI.create("http://verifier/status/tx-id"),
                 URI.create("http://verifier/result/tx-id")
         );
+        verificationSessionData = verificationSession(verificationTransactionData);
 
         when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
         when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(credentialIssuerMetadata));
+        when(issuerServerService.refreshCredentialIssuerMetadata()).thenReturn(List.of(credentialIssuerMetadata));
         when(verifierService.startVerification(anyString())).thenReturn(
                 new VerificationTransactionData(
                         new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id"),
@@ -148,6 +157,136 @@ class VerificationControllerTest {
     }
 
     @Test
+    void getVerificationStartSortsCredentialDefinitionsUsingNorwegianAlphabeticalOrder() throws Exception {
+        var result = mockMvc.perform(get("/verification-start"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<?> definitions = (List<?>) result.getModelAndView().getModel().get("credentialDefinitions");
+        assertEquals(
+                List.of("Aldersbevis", "PID"),
+                definitions.stream()
+                        .map(definition -> ((CredentialDefinitionDisplayData) definition).title())
+                        .toList()
+        );
+    }
+
+    @Test
+    void getVerificationStartUsesCredentialConfigurationIdWhenDisplayNameIsMissingOrBlank() throws Exception {
+        CredentialConfiguration configurationWithoutDisplayName = new CredentialConfiguration(
+                null,
+                "missing-display",
+                "scope",
+                "dc+sd-jwt",
+                List.of(),
+                List.of(),
+                new CredentialConfigurationMetadata(null, List.of()),
+                Map.of()
+        );
+        CredentialConfiguration configurationWithBlankDisplayName = new CredentialConfiguration(
+                null,
+                "blank-display",
+                "scope",
+                "dc+sd-jwt",
+                List.of(),
+                List.of(),
+                new CredentialConfigurationMetadata(List.of(new Display(" ")), List.of()),
+                Map.of()
+        );
+        CredentialIssuerMetadata metadata = new CredentialIssuerMetadata(
+                "http://issuer",
+                List.of(),
+                "http://issuer/credential",
+                null,
+                null,
+                Map.of(
+                        "missing-display", configurationWithoutDisplayName,
+                        "blank-display", configurationWithBlankDisplayName
+                ),
+                List.of()
+        );
+        when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(metadata));
+
+        var result = mockMvc.perform(get("/verification-start"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        List<?> definitions = (List<?>) result.getModelAndView().getModel().get("credentialDefinitions");
+        assertEquals(
+                List.of("blank-display", "missing-display"),
+                definitions.stream()
+                        .map(definition -> ((CredentialDefinitionDisplayData) definition).title())
+                        .toList()
+        );
+    }
+
+    @Test
+    void postAutomaticStartCreatesVerificationWithAllClaims() throws Exception {
+        MockHttpSession session = completedIssuanceSession();
+
+        var result = mockMvc.perform(post("/verification-start")
+                        .session(session)
+                        .param("issuanceTransactionId", "tx-id"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("/verification-presentation/*"))
+                .andReturn();
+
+        mockMvc.perform(get(result.getResponse().getRedirectedUrl()).session(session))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("credentialName", "Utferda PID"));
+
+        verify(issuerServerService).refreshCredentialIssuerMetadata();
+        verify(issuerServerService, never()).getAllCredentialIssuerMetadata();
+        verify(verifierService).startVerification(argThat(requestBody ->
+                requestBody.contains("\"personidentifikator\"")
+                        && requestBody.contains("\"epostadresse\"")
+        ));
+    }
+
+    @Test
+    void postAutomaticStartWithUnavailableCredentialReturnsManualPicker() throws Exception {
+        when(issuerServerService.refreshCredentialIssuerMetadata()).thenReturn(List.of());
+        MockHttpSession session = completedIssuanceSession();
+
+        mockMvc.perform(post("/verification-start")
+                        .session(session)
+                        .param("issuanceTransactionId", "tx-id"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("verification-start"))
+                .andExpect(model().attribute("verificationForm", new StartVerificationForm()));
+
+        verify(issuerServerService).refreshCredentialIssuerMetadata();
+        verify(issuerServerService, never()).getAllCredentialIssuerMetadata();
+    }
+
+    @Test
+    void postAutomaticStartWithCredentialFromAnotherIssuerReturnsManualPicker() throws Exception {
+        MockHttpSession session = completedIssuanceSession("http://another-issuer");
+
+        mockMvc.perform(post("/verification-start")
+                        .session(session)
+                        .param("issuanceTransactionId", "tx-id"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("verification-start"))
+                .andExpect(model().attribute("verificationForm", new StartVerificationForm()));
+
+        verify(issuerServerService).refreshCredentialIssuerMetadata();
+        verifyNoInteractions(verifierService);
+    }
+
+    @Test
+    void postAutomaticStartWithoutCompletedIssuanceReturnsManualPicker() throws Exception {
+        mockMvc.perform(post("/verification-start")
+                        .param("issuanceTransactionId", "unknown"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("verification-start"))
+                .andExpect(model().attribute("verificationForm", new StartVerificationForm()));
+
+        verify(issuerServerService).getAllCredentialIssuerMetadata();
+        verify(issuerServerService, never()).refreshCredentialIssuerMetadata();
+    }
+
+    @Test
     void getVerificationStartRendersTemplateWithCredentialCardGrid() throws Exception {
         // Uses a real Thymeleaf view resolver (instead of the standalone InternalResourceView
         // stub) to verify the actual template renders without errors after the Alpine.js
@@ -177,29 +316,29 @@ class VerificationControllerTest {
         IssuerServerService issuerServerService = mock(IssuerServerService.class);
         IssuerServerProperties issuerServerProperties = mock(IssuerServerProperties.class);
         when(issuerServerProperties.credentialIssuer()).thenReturn("http://issuer");
-        when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(
-                new CredentialIssuerMetadata(
-                        "http://issuer",
+        CredentialIssuerMetadata metadata = new CredentialIssuerMetadata(
+                "http://issuer",
+                List.of(),
+                "http://issuer/credential",
+                null,
+                null,
+                Map.of("pid", new CredentialConfiguration(
+                        null,
+                        "no:kontaktregisteret:kontaktinformasjon:1",
+                        "scope",
+                        "dc+sd-jwt",
                         List.of(),
-                        "http://issuer/credential",
-                        null,
-                        null,
-                        Map.of("pid", new CredentialConfiguration(
-                                null,
-                                "no:kontaktregisteret:kontaktinformasjon:1",
-                                "scope",
-                                "dc+sd-jwt",
-                                List.of(),
-                                List.of(),
-                                new CredentialConfigurationMetadata(
-                                        List.of(new Display("PID")),
-                                        List.of(new ClaimMetadata(List.of("personidentifikator"), true, List.of(new Display("Personidentifikator"))))
-                                ),
-                                Map.of()
-                        )),
-                        List.of()
-                )
-        ));
+                        List.of(),
+                        new CredentialConfigurationMetadata(
+                                List.of(new Display("PID")),
+                                List.of(new ClaimMetadata(List.of("personidentifikator"), true, List.of(new Display("Personidentifikator"))))
+                        ),
+                        Map.of()
+                )),
+                List.of()
+        );
+        when(issuerServerService.getAllCredentialIssuerMetadata()).thenReturn(List.of(metadata));
+        when(issuerServerService.refreshCredentialIssuerMetadata()).thenReturn(List.of(metadata));
 
         MockMvc thymeleafMockMvc = MockMvcBuilders.standaloneSetup(
                         new VerificationController(issuerServerService, issuerServerProperties, verifierService, new ObjectMapper(), new DCQLServiceImpl(), new VerificationResultServiceImpl()))
@@ -216,8 +355,23 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Start verifisering")))
                 .andExpect(content().string(containsString("x-bind:disabled=\"!selectedId\"")));
 
+        MockHttpSession presentationSession = new MockHttpSession();
+        String presentationUrl = thymeleafMockMvc.perform(post("/verification-start")
+                        .session(presentationSession)
+                        .param("credentialConfigurationId", "pid")
+                        .param("selectedClaimPaths", "personidentifikator"))
+                .andExpect(status().is3xxRedirection())
+                .andReturn()
+                .getResponse()
+                .getRedirectedUrl();
+
+        thymeleafMockMvc.perform(get(presentationUrl).session(presentationSession))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Bevis: PID")))
+                .andExpect(content().string(containsString("alt=\"QR-kode for PID\"")));
+
         thymeleafMockMvc.perform(get("/verification-result/uniqueKey")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("class=\"step-flow\"")))
                 .andExpect(content().string(containsString("class=\"step-flow__content\"")))
@@ -259,7 +413,7 @@ class VerificationControllerTest {
         // Nested (object/array) claim values must render as their own indented name/value
         // rows via the recursive claim_list_fragment, not as a raw JSON dump in a single <dd>.
         thymeleafMockMvc.perform(get("/verification-result/nestedKey")
-                        .sessionAttr("verification_transaction_data_nestedKey", nestedTransactionData))
+                        .sessionAttr("verification_session_nestedKey", verificationSession(nestedTransactionData)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("adresse")))
                 .andExpect(content().string(containsString("gate")))
@@ -300,7 +454,7 @@ class VerificationControllerTest {
         ));
 
         thymeleafMockMvc.perform(get("/verification-result/mdocKey")
-                        .sessionAttr("verification_transaction_data_mdocKey", mdocTransactionData))
+                        .sessionAttr("verification_session_mdocKey", verificationSession(mdocTransactionData)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("personal administrative number")))
                 .andExpect(content().string(containsString("12345678912")))
@@ -318,11 +472,18 @@ class VerificationControllerTest {
 
     @Test
     void postVerificationStartWithValidInputRedirectsToPresentation() throws Exception {
-        mockMvc.perform(post("/verification-start")
+        MockHttpSession session = new MockHttpSession();
+        var result = mockMvc.perform(post("/verification-start")
+                        .session(session)
                         .param("credentialConfigurationId", issuanceDefinitionId)
                         .param("selectedClaimPaths", "epostadresse"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("/verification-presentation/*"));
+                .andExpect(redirectedUrlPattern("/verification-presentation/*"))
+                .andReturn();
+
+        mockMvc.perform(get(result.getResponse().getRedirectedUrl()).session(session))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("credentialName", "PID"));
 
         verify(verifierService).startVerification(argThat(requestBody ->
                 requestBody.contains("\"dcql_query\"")
@@ -337,9 +498,10 @@ class VerificationControllerTest {
     @Test
     void getVerificationPresentationReturnsPresentationView() throws Exception {
         mockMvc.perform(get("/verification-presentation/uniqueKey")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-presentation"))
+                .andExpect(model().attribute("credentialName", "PID"))
                 .andExpect(model().attributeExists("qrCode"))
                 .andExpect(model().attributeExists("authorizationRequest"))
                 .andExpect(model().attributeExists("transactionId"))
@@ -352,7 +514,7 @@ class VerificationControllerTest {
     @Test
     void getVerificationResultAddsResultAndPrettyJsonToModel() throws Exception {
         mockMvc.perform(get("/verification-result/uniqueKey")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Cache-Control", "no-store, private"))
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
@@ -366,7 +528,10 @@ class VerificationControllerTest {
     @Test
     void getVerificationResultReusesResultFromSession() throws Exception {
         MockHttpSession session = new MockHttpSession();
-        session.setAttribute("verification_transaction_data_uniqueKey", verificationTransactionData);
+        session.setAttribute(
+                "verification_session_uniqueKey",
+                verificationSessionData
+        );
 
         mockMvc.perform(get("/verification-result/uniqueKey").session(session))
                 .andExpect(status().isOk());
@@ -383,7 +548,7 @@ class VerificationControllerTest {
                 .thenReturn(new VerificationStatus("AVAILABLE", "tx-id"));
 
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isOk());
     }
 
@@ -393,7 +558,7 @@ class VerificationControllerTest {
                 .thenReturn(new VerificationStatus("WAIT", "tx-id"));
 
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isAccepted());
     }
 
@@ -403,7 +568,7 @@ class VerificationControllerTest {
                 .thenReturn(new VerificationStatus("UNKNOWN", "tx-id"));
 
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isNotFound());
     }
 
@@ -413,7 +578,7 @@ class VerificationControllerTest {
                 .thenReturn(new VerificationStatus("", "tx-id"));
 
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isNotFound());
     }
 
@@ -423,7 +588,7 @@ class VerificationControllerTest {
                 .thenReturn(new VerificationStatus("SOMETHING_ELSE", "tx-id"));
 
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
-                        .sessionAttr("verification_transaction_data_uniqueKey", verificationTransactionData))
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isInternalServerError());
     }
 
@@ -463,5 +628,30 @@ class VerificationControllerTest {
                         .param("credentialConfigurationId", ""))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("credentialDefinitions", hasSize(2)));
+    }
+
+    private MockHttpSession completedIssuanceSession() {
+        return completedIssuanceSession("http://issuer");
+    }
+
+    private MockHttpSession completedIssuanceSession(String credentialIssuer) {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(
+                "issuance_session_tx-id",
+                new IssuanceSessionData(
+                        credentialIssuer,
+                        issuanceDefinitionId,
+                        "Utferda PID",
+                        "",
+                        true
+                )
+        );
+        return session;
+    }
+
+    private static VerificationSessionData verificationSession(
+            VerificationTransactionData transactionData
+    ) {
+        return new VerificationSessionData(transactionData, "PID");
     }
 }

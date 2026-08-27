@@ -536,8 +536,17 @@ main {
 
 .qr-code-container {
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+    gap: var(--ds-size-3);
     margin-block-start: var(--ds-size-4);
+}
+
+.qr-code-container__title {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
 }
 
 .qr-code {

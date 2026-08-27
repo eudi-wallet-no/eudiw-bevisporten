@@ -20,11 +20,16 @@
     </a>
 </div>
 
-<div th:fragment="qr_code_fragment(src, alt)"
+<div th:fragment="qr_code_fragment(src, credentialName)"
      id="cross-device-request"
      class="qr-code-container">
+    <h2 class="ds-heading qr-code-container__title"
+        data-size="sm"
+        th:text="|Bevis: ${credentialName}|">
+        Bevis
+    </h2>
     <img th:src="${src}"
-         th:alt="${alt}"
+         th:alt="${'QR-kode for ' + credentialName}"
          id="qrcode-cross-device"
          class="qr-code"/>
 </div>
@@ -111,4 +116,3 @@
         </dd>
     </div>
 </dl>
-
