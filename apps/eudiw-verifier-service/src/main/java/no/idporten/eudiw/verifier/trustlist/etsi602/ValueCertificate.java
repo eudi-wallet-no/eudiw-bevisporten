@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.VerificationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.util.encoders.DecoderException;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -35,7 +36,7 @@ public record ValueCertificate(
     public X509CertificateHolder getCertificate() {
         try (PEMParser pemParser = new PEMParser(new StringReader(getValidCertString()))) {
             return (X509CertificateHolder) pemParser.readObject();
-        } catch (IOException e) {
+        } catch (IOException | DecoderException e) {
             throw new VerificationException("invalid_request", "Certificate cannot be read", e);
         }
     }
