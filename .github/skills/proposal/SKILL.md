@@ -23,6 +23,7 @@ allowed-tools: ['view', 'grep', 'glob', 'bash']
 - **Map before proposing.** Find change locations (`file:line`). Trace who calls in, what flows next, what breaks. Search the monorepo for existing patterns. Keep the findings out of the document unless they shape the decision.
 - **No code claims without `file:line`** — and only from files you actually opened in this workspace. Don't carry over paths or line numbers from another checkout or from memory.
 - **Reuse first.** Pick the simplest, most maintainable approach that fits existing patterns. Only design new patterns when existing ones don't fit, and explain any deviation.
+- **Smallest complete change.** When several options solve the task equally well, prefer the smallest justified change surface: fewer files, concepts, dependencies, state transitions and integrations. Measure impact, not raw line count. Do not prefer a smaller patch when it only hides a symptom, duplicates logic or leaves behavior inconsistent.
 - **Check for a domain skill.** If the change touches an area with its own skill (UI/design system, tests, migrations), read it before proposing an approach.
 - **Hypothesis → test.** Plan tests, don't run them: name the behavior, the expected result, and the command.
 - **Plan, don't code.** Never code without sign-off. The plan is complete when it answers: What? Where? Why this way? How to verify?
