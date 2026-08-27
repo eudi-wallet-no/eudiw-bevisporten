@@ -105,10 +105,9 @@
          th:each="claim : ${claims}"
          th:classappend="${claim.group} ? 'verification-result__claim--group' : ''">
         <dt th:text="${claim.name}"></dt>
-        <dd th:if="${!claim.group}" th:text="${claim.value}"></dd>
+        <dd th:if="${!claim.group}" th:text="${#strings.abbreviate(claim.value, 40)}"></dd>
         <dd th:if="${claim.group}">
             <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
         </dd>
     </div>
 </dl>
-
