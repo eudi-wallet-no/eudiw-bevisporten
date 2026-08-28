@@ -116,44 +116,15 @@
         </dd>
     </div>
     <script th:inline="javascript">
-        (function() {
+        (async function() {
+            const { copyToClipboard } = await import (/*[[@{/js/util.js}]]*/);
+
             const claimValueTagArray = document.querySelectorAll("dd.verification-result__claim-value")
             for (const claimValueTag of claimValueTagArray) {
                 const claimValue = claimValueTag.getAttribute("data-full-value");
 
                 claimValueTag.addEventListener("click", function(event) {
-                    copyToClipboard(claimValue, event.target);
-                });
-            }
-
-            function displayMessage(message, target) {
-                const messageElement = document.createElement("div");
-                messageElement.className = "mini_message"
-                messageElement.textContent = message;
-
-                const coordinates = target
-                    ? target.getBoundingClientRect()
-                    : {
-                        top: window.innerHeight / 2,
-                        left: window.innerWidth / 2
-                    };
-
-                messageElement.style.top = `${coordinates.top}px`;
-                messageElement.style.left = `${coordinates.left}px`;
-
-                document.body.appendChild(messageElement);
-
-                setTimeout(() => {
-                    messageElement.remove();
-                }, 2000);
-            }
-
-            function copyToClipboard(text, target) {
-                navigator.clipboard.writeText(text).then(function() {
-                    console.log("Copied!");
-                    displayMessage('Copied!', target);
-                }, function(err) {
-                    console.error('Could not copy text: ', err);
+                    copyToClipboard(claimValue, "Kopiert!", event);
                 });
             }
         })()
