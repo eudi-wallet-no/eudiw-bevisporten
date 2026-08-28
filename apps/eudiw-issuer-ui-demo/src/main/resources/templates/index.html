@@ -47,4 +47,19 @@
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 </body>
+<script th:inline="javascript">
+    (async function () {
+        const { copyToClipboard } = await import(/*[[@{/js/util.js}]]*/);
+
+        const claimValueTagArray = document.querySelectorAll("h1.ds-heading");
+
+        for (const claimValueTag of claimValueTagArray) {
+            const claimValue = claimValueTag.textContent;
+
+            claimValueTag.addEventListener("click", function(event) {
+                copyToClipboard(claimValue, "Kopiert!", event);
+            });
+        }
+    })()
+</script>
 </html>
