@@ -127,26 +127,24 @@
             }
 
             function displayMessage(message, target) {
-                const messageWrapper = document.createElement("div");
-                messageWrapper.className = "copy-message-wrapper";
                 const messageElement = document.createElement("div");
-
-                const coordinates = target ? target.getBoundingClientRect() : { top: window.innerHeight / 2, left: window.innerWidth / 2 };
-
+                messageElement.className = "mini_message"
                 messageElement.textContent = message;
-                messageElement.className = "copy-message";
-                messageWrapper.style.position = "relative";
 
-                messageElement.style.position = "absolute";
+                const coordinates = target
+                    ? target.getBoundingClientRect()
+                    : {
+                        top: window.innerHeight / 2,
+                        left: window.innerWidth / 2
+                    };
+
                 messageElement.style.top = `${coordinates.top}px`;
                 messageElement.style.left = `${coordinates.left}px`;
 
-                messageWrapper.appendChild(messageElement);
-                document.body.appendChild(messageWrapper);
+                document.body.appendChild(messageElement);
 
                 setTimeout(() => {
-                    messageWrapper.body.removeChild(messageElement);
-                    document.body.removeChild(messageWrapper);
+                    messageElement.remove();
                 }, 2000);
             }
 

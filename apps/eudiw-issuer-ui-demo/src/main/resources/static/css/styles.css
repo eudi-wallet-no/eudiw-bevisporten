@@ -855,3 +855,13 @@ footer ul {
         align-self: flex-start;
     }
 }
+
+.mini_message {
+    position: fixed;
+    background-color: var(--ds-color-info-background-default);
+    color: var(--ds-color-info-text-default);
+    padding: 8px 16px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}
