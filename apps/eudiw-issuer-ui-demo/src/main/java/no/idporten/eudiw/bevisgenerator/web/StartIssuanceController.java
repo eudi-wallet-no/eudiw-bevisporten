@@ -84,9 +84,13 @@ public class StartIssuanceController {
 
     @GetMapping("/issue")
     public ModelAndView issue() {
-        List<CredentialConfiguration> credentialConfigurations = issuerServerService.getAll().stream()
+        List<IssueCredentialConfiguration> credentialConfigurations = issuerServerService.getAll().stream()
+                .map(credentialConfiguration -> new IssueCredentialConfiguration(
+                        credentialConfiguration.credentialConfigurationId(),
+                        credentialName(credentialConfiguration, credentialConfiguration.credentialConfigurationId())
+                ))
                 .sorted(Comparator.comparing(
-                        CredentialConfiguration::description,
+                        IssueCredentialConfiguration::description,
                         Comparator.nullsLast(Collator.getInstance(Locale.forLanguageTag("nb-NO")))
                 ))
                 .toList();
@@ -150,9 +154,7 @@ public class StartIssuanceController {
         validateCredentialOffer(credentialOffer, credentialConfiguration);
 
         String issuedCredentialConfigurationId = credentialOffer.credentialConfigurationIds().getFirst();
-        String credentialName = StringUtils.hasText(credentialConfiguration.description())
-                ? credentialConfiguration.description()
-                : issuedCredentialConfigurationId;
+        String credentialName = credentialName(credentialConfiguration, issuedCredentialConfigurationId);
         boolean storeSubjectIdentifier = StringUtils.hasText(startIssuanceForm.personIdentifier())
                 && issuerServerService.getSubjectCredentialConfigurationById(issuedCredentialConfigurationId) != null;
         String subjectIdentifier = storeSubjectIdentifier
@@ -167,6 +169,17 @@ public class StartIssuanceController {
                 false
         );
     }
+
+    private static String credentialName(CredentialConfiguration credentialConfiguration, String fallback) {
+        return StringUtils.hasText(credentialConfiguration.description())
+                ? credentialConfiguration.description()
+                : fallback;
+    }
+
+    public record IssueCredentialConfiguration(
+            String credentialConfigurationId,
+            String description
+    ) {}
 
     private static void validateCredentialOffer(
             CredentialOffer credentialOffer,

@@ -28,8 +28,8 @@ import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 
 import java.util.List;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,9 +102,42 @@ class StartIssuanceControllerTest {
         CredentialConfiguration aa = credentialConfiguration("aa", "Årsbevis");
         when(issuerServerService.getAll()).thenReturn(List.of(aa, o, ae, a));
 
-        mockMvc.perform(get("/issue"))
+        var result = mockMvc.perform(get("/issue"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("credential_configurations", contains(a, ae, o, aa)));
+                .andReturn();
+
+        List<?> credentialConfigurations = (List<?>) result.getModelAndView()
+                .getModel()
+                .get("credential_configurations");
+        assertEquals(
+                List.of("Aldersbevis", "Æresbevis", "Øvingsbevis", "Årsbevis"),
+                credentialConfigurations.stream()
+                        .map(configuration -> ((StartIssuanceController.IssueCredentialConfiguration) configuration).description())
+                        .toList()
+        );
+    }
+
+    @Test
+    void issueUsesConfigurationIdWhenDescriptionIsMissingOrBlank() throws Exception {
+        CredentialConfiguration missingDescription = credentialConfiguration("missing-description", null);
+        CredentialConfiguration blankDescription = credentialConfiguration("blank-description", " ");
+        when(issuerServerService.getAll()).thenReturn(List.of(missingDescription, blankDescription));
+
+        var result = thymeleafMockMvc().perform(get("/issue"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("blank-description")))
+                .andExpect(content().string(containsString("missing-description")))
+                .andReturn();
+
+        List<?> credentialConfigurations = (List<?>) result.getModelAndView()
+                .getModel()
+                .get("credential_configurations");
+        assertEquals(
+                List.of("blank-description", "missing-description"),
+                credentialConfigurations.stream()
+                        .map(configuration -> ((StartIssuanceController.IssueCredentialConfiguration) configuration).description())
+                        .toList()
+        );
     }
 
     @Test
