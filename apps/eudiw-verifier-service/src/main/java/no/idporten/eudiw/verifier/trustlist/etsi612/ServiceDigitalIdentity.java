@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.verifier.VerificationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,11 @@ public record ServiceDigitalIdentity(
         List<DigitalId> listOfDigitalIdWithCertificate = new ArrayList<>();
         for(DigitalId digitalId : digitalIds) {
             if(digitalId.hasCertificate()) {
-                listOfDigitalIdWithCertificate.add(digitalId);
+                if(digitalId.getCertificateAsX509Object() != null) {
+                    listOfDigitalIdWithCertificate.add(digitalId);
+                } else {
+                    throw new VerificationException("invalid_request", "Certificate cannot be read into x509 object");
+                }
             }
         }
         return  listOfDigitalIdWithCertificate;

@@ -16,14 +16,14 @@
         </div>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=2)}"></div>
-    <div class="ds-card card-narrow"
+    <div id="verification-card"
+         class="ds-card card-narrow"
          data-color="neutral"
          data-variant="default">
-        <div th:replace="~{fragments/components :: qr_code_fragment(
+        <div th:replace="~{fragments/components :: wallet_qr_fragment(
             src=${qrCode},
-            alt='QR-kode for verifikasjon'
+            credentialName=${credentialName}
         )}"></div>
-        <p id="verification-status-message" class="ds-paragraph status-message"></p>
         <div class="button-group">
             <a th:href="@{/verification-result/{verificationId}(verificationId=${verificationId})}" id="navigate-to-result-button" class="ds-button" style="display:none;">
                 Sjå resultatet
@@ -31,10 +31,20 @@
             <a th:href="${authorizationRequest}" id="same-device-button" class="ds-button" data-variant="primary">
                 Opne på mobilen
             </a>
-            <a th:href="@{/verification-start}" class="ds-button" type="button" data-variant="secondary">
-                Tilbake
-            </a>
         </div>
+        <div th:replace="~{fragments/components :: wallet_status_fragment}"></div>
+    </div>
+    <div id="verification-error-alert"
+         class="ds-alert wallet-error-alert"
+         data-color="danger"
+         role="alert"
+         hidden>
+        <p class="ds-paragraph" id="verification-error-message"></p>
+        <a th:href="@{/verification-start}"
+           class="ds-button"
+           data-variant="primary">
+            Prøv igjen
+        </a>
     </div>
     <div id="tracing">
         <details class="ds-details" data-variant="default">
@@ -55,7 +65,11 @@
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script th:inline="javascript">
-    const statusMessage = document.getElementById("verification-status-message");
+    const statusMessage = document.getElementById("wallet-status-message");
+    const statusSpinner = document.getElementById("wallet-status-spinner");
+    const errorAlert = document.getElementById("verification-error-alert");
+    const errorMessage = document.getElementById("verification-error-message");
+    const verificationCard = document.getElementById("verification-card");
     const statusEndpoint = /*[[@{/verification-presentation/{verificationId}/status(verificationId=${verificationId})}]]*/ "";
     const resultUrl = /*[[@{/verification-result/{verificationId}(verificationId=${verificationId})}]]*/ "";
     const sameDeviceButton = document.getElementById("same-device-button");
@@ -72,6 +86,12 @@
 
     function updateStatusMessage(message) {
         statusMessage.textContent = message;
+    }
+
+    function showError(message) {
+        verificationCard.style.display = "none";
+        errorMessage.textContent = message;
+        errorAlert.hidden = false;
     }
 
     function redirectToResultPage() {
@@ -103,7 +123,8 @@
         };
 
         updateStatusMessage("Verifikasjonen er fullført.");
-        navigateToResultButton.style.display = "block";
+        statusSpinner.style.display = "none";
+        navigateToResultButton.style.display = "";
         sameDeviceButton.style.display = "none";
         qrCode.style.display = "none";
 
@@ -120,39 +141,52 @@
         }
     };
 
-    const handle202 = (pollFunc, interval) => {
-        if (stopped) {
-            const resume = () => {
-                window.removeEventListener("focus", resume);
-                document.removeEventListener("visibilitychange", resumeWhenVisible);
-
-                stopped = false;
-                pollFunc();
-            }
-            const resumeWhenVisible = () => {
-                if (document.visibilityState === "visible") {
-                    resume();
-                }
-            };
-            window.addEventListener("focus", resume);
-            document.addEventListener("visibilitychange", resumeWhenVisible);
+    function scheduleNextPoll(pollFunc, interval) {
+        if (!stopped) {
+            setTimeout(pollFunc, interval);
+            return;
         }
-        setTimeout(pollFunc, interval);
+        if (document.visibilityState === "visible") {
+            stopped = false;
+            setTimeout(pollFunc, interval);
+            return;
+        }
+
+        const resume = () => {
+            window.removeEventListener("focus", resume);
+            document.removeEventListener("visibilitychange", resumeWhenVisible);
+            stopped = false;
+            pollFunc();
+        };
+        const resumeWhenVisible = () => {
+            if (document.visibilityState === "visible") {
+                resume();
+            }
+        };
+
+        window.addEventListener("focus", resume);
+        document.addEventListener("visibilitychange", resumeWhenVisible);
     }
 
     async function waitForWallet(interval, timeout) {
-        const endtime = Date.now() + timeout;
-        updateStatusMessage("Ventar på presentasjon frå wallet ...");
+        const endTime = Date.now() + timeout;
+        updateStatusMessage("Ventar på at lommeboka deler beviset ...");
 
         async function poll() {
-            if (Date.now() >= endtime) {
-                updateStatusMessage("Tidsavbrot ved venting på verifisering.");
+            const remaining = endTime - Date.now();
+            if (remaining <= 0) {
+                showError("Vi fekk ikkje svar frå lommeboka i tide.");
                 return;
             }
+
+            const controller = new AbortController();
+            const abortTimer = setTimeout(() => controller.abort(), remaining);
+
             try {
                 const response = await fetch(statusEndpoint, {
                     method: "GET",
-                    headers: {Accept: "application/json"}
+                    headers: {Accept: "application/json"},
+                    signal: controller.signal
                 });
 
                 if (response.status === 200) {
@@ -161,19 +195,29 @@
                 }
 
                 if (response.status === 202) {
-                    handle202(poll, interval);
+                    if (Date.now() >= endTime) {
+                        showError("Vi fekk ikkje svar frå lommeboka i tide.");
+                        return;
+                    }
+                    scheduleNextPoll(poll, interval);
                     return;
                 }
 
                 if (response.status === 404) {
-                    updateStatusMessage("Verifiseringa har ukjend status og blir stoppa.");
+                    showError("Vi fann ikkje denne presentasjonen.");
                     return;
                 }
 
-                updateStatusMessage("Klarte ikkje hente verifiseringsstatus.");
+                showError("Vi klarte ikkje å sjekke om presentasjonen er fullført.");
 
             } catch (error) {
-                updateStatusMessage("Klarte ikkje hente verifiseringsstatus.");
+                if (controller.signal.aborted) {
+                    showError("Vi fekk ikkje svar frå lommeboka i tide.");
+                    return;
+                }
+                showError("Vi klarte ikkje å sjekke om presentasjonen er fullført.");
+            } finally {
+                clearTimeout(abortTimer);
             }
         }
 

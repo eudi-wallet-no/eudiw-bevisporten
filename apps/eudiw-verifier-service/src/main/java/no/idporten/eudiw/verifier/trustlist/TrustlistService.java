@@ -24,6 +24,7 @@ import javax.naming.ldap.Rdn;
 import javax.security.auth.x500.X500Principal;
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -53,8 +54,9 @@ public class TrustlistService {
             return xmlListMapping(trustlist);
         } else if (uri.toString().endsWith("jws")) {
             return jsonListMapping(trustlist);
+        } else {
+            throw new VerificationException("invalid_request", "unsupported trustlist format");
         }
-        return null;
     }
 
     public String issuerName(LdapName ldapName) {
@@ -161,7 +163,11 @@ public class TrustlistService {
     }
 
     protected boolean compareCertificates(X509Certificate certificateFromWalletResponse,X509Certificate certificatesToCompareWith) {
-        return certificatesToCompareWith.getPublicKey().equals(certificateFromWalletResponse.getPublicKey());
+        try {
+            return Arrays.toString(certificatesToCompareWith.getTBSCertificate()).equals(Arrays.toString(certificateFromWalletResponse.getTBSCertificate()));
+        } catch (Exception e) {
+            throw new VerificationException("invalid_request", "Cannot compare certificates", e);
+        }
     }
 
     protected LdapName ldapName(String distinguishedName) {

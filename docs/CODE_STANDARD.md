@@ -9,6 +9,7 @@ Code should read as a short, unsurprising sequence of steps. Optimize for the re
 - Separate logical phases with one blank line, also in short methods. Keep statements in the same phase together.
 - Prefer explicit branches and named methods over compact code that makes the reader reconstruct control flow.
 - When a feature toggle selects between contracts, branch on the toggle first. Do not derive API versions, paths or response handling from a boolean.
+- Extend an existing flow or endpoint before adding a parallel one. A new path needs a reason the existing one cannot serve.
 
 ## Functions and data
 
@@ -22,6 +23,7 @@ Code should read as a short, unsurprising sequence of steps. Optimize for the re
 - Name code by business intent. Use precise verbs and the project's domain language.
 - Name booleans as predicates: `is`, `has`, `can` or `should`.
 - Name a complex condition when the name removes mental work. Keep simple conditions inline.
+- Name a method that returns a transformed copy as a conversion (`toX`, `asX`), not a mutation.
 
 ## Boundaries
 

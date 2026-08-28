@@ -10,36 +10,38 @@ import java.nio.file.Path;
 public class TrustlistTestdata {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistTestdata.class);
-    private String xmlTrustlist;
-    private String jsonTrustlist;
+    private static String xmlTrustlist;
+    private static String jsonTrustlist;
+    private static String jsonInvalidCertList;
 
-    public TrustlistTestdata() {
+    public TrustlistTestdata() throws IOException {
         setXmlTrustlist();
         setJsonTrustlist();
+        setJsonTrustlistWithInvalidCertificate();
     }
 
-    public void setXmlTrustlist() {
-        try {
-            xmlTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlist.xtsl"));
-
-        } catch (IOException e) {
-            log.info(e.getMessage());
-        }
+    public void setXmlTrustlist() throws IOException {
+        xmlTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlist.xtsl"));
     }
 
-    public String getXmlTrustlist() {
+    public static String getXmlTrustlist() {
         return xmlTrustlist;
     }
 
-    public void setJsonTrustlist() {
-        try {
-            jsonTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPid.jws"));
-        } catch (IOException e) {
-            log.info(e.getMessage());
-        }
+    public void setJsonTrustlist() throws IOException {
+        jsonTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPid.jws"));
+
     }
 
-    public String getJsonTrustlist() {
+    public static String getJsonTrustlist() {
         return jsonTrustlist;
+    }
+
+    public void setJsonTrustlistWithInvalidCertificate() throws IOException {
+        jsonInvalidCertList = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPidWithNonParsableCert.jws"));
+
+    }
+    public static String getJsonInvalidCertList() {
+        return jsonInvalidCertList;
     }
 }
