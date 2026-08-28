@@ -18,15 +18,12 @@ import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
-import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -188,19 +185,27 @@ public class OpenID4VPResponseService {
         ValidationStatus status = findStatusFromStatusList(statusRecord);
         List<ValidationDetail> validationDetails = new ArrayList<>();
         if (includeValidationDetails) {
-            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord)));
+            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord, status)));
             // TODO add other checks for validation details, e.g. trustlist
         }
 
         return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
     }
 
-    private static @NonNull String getValidationDetail(StatusSdJwt statusRecord) {
+    private static @NonNull String getValidationDetail(StatusSdJwt statusRecord, ValidationStatus status) {
         if (statusRecord == null || statusRecord.statuslist() == null) {
-            return "No status list found";
+            return "Statusliste: beviset er ikkje revokerbart";
         }
-        StatusSdJwt.Statuslist statuslist = statusRecord.statuslist();
-        return "Status list URI: " + statuslist.uri().content() + ", idx: " + statuslist.idx().content();
+        if(status == null || ValidationStatus.INCONCLUSIVE == status) {
+            return "Statusliste: validering feila";
+        }
+        if (ValidationStatus.VALID == status) {
+            return "Statusliste: bevis er gyldig";
+        }
+        if (ValidationStatus.INVALID == status) {
+            return "Statusliste: bevis er revokert";
+        }
+        return "Statusliste: ukjent status";
     }
 
     private static @NonNull Map<String, Object> getClaimsFromSDJwt(VerificationResult<SDJwt> verificationResult) throws ParseException {
