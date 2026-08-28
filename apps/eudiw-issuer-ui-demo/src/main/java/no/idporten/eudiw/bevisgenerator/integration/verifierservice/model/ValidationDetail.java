@@ -12,6 +12,6 @@ public record ValidationDetail(
         @JsonProperty("status")
         ValidationStatus status,
         @JsonProperty("validationDetails")
-        Object validationDetails
+        String validationDetails
 ) implements Serializable {
 }

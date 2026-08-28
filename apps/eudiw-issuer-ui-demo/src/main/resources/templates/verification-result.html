@@ -45,7 +45,7 @@
                             <p class="ds-validation-message"
                                th:each="detail : ${credential.validationDetails}"
                                th:data-color="${detail.statusColor}"
-                               th:text="${detail.typeLabel} + ': ' + ${detail.statusLabel}"></p>
+                               th:text="${detail.validationDetails}"></p>
 
                             <p class="ds-paragraph" data-size="sm" data-color="neutral"
                                th:if="${#lists.isEmpty(credential.validationDetails)}">
