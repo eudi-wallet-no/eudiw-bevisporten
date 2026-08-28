@@ -40,9 +40,9 @@ git log --oneline -5 -- <file>     # settled area, or mid-migration?
 
 Finally create the tasks as SQL todos with dependencies. Each description carries its own test strategy and done-when condition; do not repeat that detail in the plan.
 
-## Rubber Duck Review
+## Rubber Duck Review (optional, if available)
 
-Before presenting the plan for approval, run a rubber duck pass to catch missing behavior, state, accessibility, and integration cases:
+If rubber duck review is enabled in your Copilot environment, use it before presenting the plan for approval to catch missing behavior, state, accessibility, and integration cases:
 
 1. **For non-trivial changes** (multi-file, architectural decisions, new patterns), invoke the rubber duck agent to review the draft plan
 2. **Ask about:** missing states or behaviors, edge cases, accessibility requirements, integration points with other features, error handling, and data consistency
