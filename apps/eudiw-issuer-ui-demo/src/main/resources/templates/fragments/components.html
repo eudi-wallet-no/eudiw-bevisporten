@@ -105,9 +105,59 @@
          th:each="claim : ${claims}"
          th:classappend="${claim.group} ? 'verification-result__claim--group' : ''">
         <dt th:text="${claim.name}"></dt>
-        <dd th:if="${!claim.group}" th:text="${#strings.abbreviate(claim.value, 40)}"></dd>
+        <dd
+                th:if="${!claim.group}"
+                class="verification-result__claim-value"
+                th:text="${#strings.abbreviate(claim.value, 40)}"
+                th:attr="data-full-value=${claim.value}"
+        ></dd>
         <dd th:if="${claim.group}">
             <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
         </dd>
     </div>
+    <script th:inline="javascript">
+        (function() {
+            const claimValueTagArray = document.querySelectorAll("dd.verification-result__claim-value")
+            for (const claimValueTag of claimValueTagArray) {
+                const claimValue = claimValueTag.getAttribute("data-full-value");
+
+                claimValueTag.addEventListener("click", function(event) {
+                    copyToClipboard(claimValue, event.target);
+                });
+            }
+
+            function displayMessage(message, target) {
+                const messageWrapper = document.createElement("div");
+                messageWrapper.className = "copy-message-wrapper";
+                const messageElement = document.createElement("div");
+
+                const coordinates = target ? target.getBoundingClientRect() : { top: window.innerHeight / 2, left: window.innerWidth / 2 };
+
+                messageElement.textContent = message;
+                messageElement.className = "copy-message";
+                messageWrapper.style.position = "relative";
+
+                messageElement.style.position = "absolute";
+                messageElement.style.top = `${coordinates.top}px`;
+                messageElement.style.left = `${coordinates.left}px`;
+
+                messageWrapper.appendChild(messageElement);
+                document.body.appendChild(messageWrapper);
+
+                setTimeout(() => {
+                    messageWrapper.body.removeChild(messageElement);
+                    document.body.removeChild(messageWrapper);
+                }, 2000);
+            }
+
+            function copyToClipboard(text, target) {
+                navigator.clipboard.writeText(text).then(function() {
+                    console.log("Copied!");
+                    displayMessage('Copied!', target);
+                }, function(err) {
+                    console.error('Could not copy text: ', err);
+                });
+            }
+        })()
+</script>
 </dl>
