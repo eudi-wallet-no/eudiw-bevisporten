@@ -21,22 +21,16 @@
         </div>
     </div>
 
-    <p th:text="${error}" class="ds-validation-message" th:if="${error}">
-    </p>
-
-    <div class="ds-card card-narrow"
+    <div id="issuance-card"
+         class="ds-card card-narrow"
          data-color="neutral"
-         data-variant="default">
+         data-variant="default"
+         th:if="${error == null}">
 
-        <div th:replace="~{fragments/components :: qr_code_fragment(
+        <div th:replace="~{fragments/components :: wallet_qr_fragment(
             src=${'data:image/png;base64,' + issuance.qrCode},
             credentialName=${credentialName}
         )}"></div>
-
-        <p id="issuance-status-message"
-           class="ds-paragraph status-message"
-           role="status"
-           aria-live="polite"></p>
 
         <div class="button-group">
             <a th:href="${issuance.encodedUri}"
@@ -46,6 +40,23 @@
                 Opne på mobilen
             </a>
         </div>
+
+        <div th:replace="~{fragments/components :: wallet_status_fragment}"></div>
+    </div>
+
+    <div id="issuance-error-alert"
+         class="ds-alert qr-error-alert"
+         data-color="danger"
+         role="alert"
+         th:hidden="${error == null}">
+        <p class="ds-paragraph"
+           id="issuance-error-message"
+           th:text="${error}"></p>
+        <a th:href="@{/start-issuance/{id}(id=${credentialConfigurationId})}"
+           class="ds-button"
+           data-variant="primary">
+            Prøv igjen
+        </a>
     </div>
 
     <div id="tracing">
@@ -72,7 +83,11 @@
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script th:inline="javascript">
-    const statusMessage = document.getElementById("issuance-status-message");
+    const statusMessage = document.getElementById("wallet-status-message");
+    const statusSpinner = document.getElementById("wallet-status-spinner");
+    const errorAlert = document.getElementById("issuance-error-alert");
+    const errorMessage = document.getElementById("issuance-error-message");
+    const issuanceCard = document.getElementById("issuance-card");
     const statusEndpoint = /*[[@{/issuance/{transactionId}/status(transactionId=${issuedTransactionId})}]]*/ "";
     const completeUrl = /*[[@{/issuance/{transactionId}/complete(transactionId=${issuedTransactionId})}]]*/ "";
     const sameDeviceButton = document.getElementById("same-device-button");
@@ -80,13 +95,21 @@
     let stopped = false;
     let sameDeviceFlow = false;
 
-    sameDeviceButton.addEventListener("click", () => {
-        stopped = true;
-        sameDeviceFlow = true;
-    });
+    if (sameDeviceButton) {
+        sameDeviceButton.addEventListener("click", () => {
+            stopped = true;
+            sameDeviceFlow = true;
+        });
+    }
 
     function updateStatusMessage(message) {
         statusMessage.textContent = message;
+    }
+
+    function showError(message) {
+        issuanceCard.style.display = "none";
+        errorMessage.textContent = message;
+        errorAlert.hidden = false;
     }
 
     function redirectToCompletePage() {
@@ -108,6 +131,7 @@
         }
 
         updateStatusMessage("Utferdinga er fullført.");
+        statusSpinner.style.display = "none";
         window.addEventListener("focus", redirectToCompletePage, {once: true});
         document.addEventListener("visibilitychange", redirectWhenVisible);
     }
@@ -146,7 +170,7 @@
         async function poll() {
             const remaining = endTime - Date.now();
             if (remaining <= 0) {
-                updateStatusMessage("Tidsavbrot. Gå tilbake og prøv på nytt.");
+                showError("Vi fekk ikkje svar frå lommeboka i tide.");
                 return;
             }
 
@@ -166,28 +190,28 @@
                 }
                 if (response.status === 202) {
                     if (Date.now() >= endTime) {
-                        updateStatusMessage("Tidsavbrot. Gå tilbake og prøv på nytt.");
+                        showError("Vi fekk ikkje svar frå lommeboka i tide.");
                         return;
                     }
                     scheduleNextPoll(poll, interval);
                     return;
                 }
                 if (response.status === 422) {
-                    updateStatusMessage("Utferdinga feila. Gå tilbake og prøv på nytt.");
+                    showError("Vi klarte ikkje å utferde beviset.");
                     return;
                 }
                 if (response.status === 404) {
-                    updateStatusMessage("Utferdinga har ukjend status. Gå tilbake og prøv på nytt.");
+                    showError("Vi fann ikkje denne utferdinga.");
                     return;
                 }
 
-                updateStatusMessage("Klarte ikkje hente status for utferdinga. Gå tilbake og prøv på nytt.");
+                showError("Vi klarte ikkje å sjekke om beviset er utferda.");
             } catch (error) {
                 if (controller.signal.aborted) {
-                    updateStatusMessage("Tidsavbrot. Gå tilbake og prøv på nytt.");
+                    showError("Vi fekk ikkje svar frå lommeboka i tide.");
                     return;
                 }
-                updateStatusMessage("Klarte ikkje hente status for utferdinga. Gå tilbake og prøv på nytt.");
+                showError("Vi klarte ikkje å sjekke om beviset er utferda.");
             } finally {
                 clearTimeout(abortTimer);
             }
@@ -196,7 +220,9 @@
         await poll();
     }
 
-    waitForWallet(2000, 60000);
+    if (issuanceCard) {
+        waitForWallet(2000, 60000);
+    }
 </script>
 </body>
 </html>

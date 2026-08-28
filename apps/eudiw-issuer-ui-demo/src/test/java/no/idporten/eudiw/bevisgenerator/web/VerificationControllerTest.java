@@ -367,7 +367,7 @@ class VerificationControllerTest {
 
         thymeleafMockMvc.perform(get(presentationUrl).session(presentationSession))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Bevis: PID")))
+                .andExpect(content().string(containsString(">PID</h2>")))
                 .andExpect(content().string(containsString("alt=\"QR-kode for PID\"")));
 
         thymeleafMockMvc.perform(get("/verification-result/uniqueKey")

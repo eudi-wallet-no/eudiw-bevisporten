@@ -131,12 +131,16 @@ public class StartIssuanceController {
             qrCode = Base64.getEncoder().encodeToString(createQRCodeImage(uri));
         } catch (IOException | WriterException e) {
             logger.error("Failed to create QRCode for uri=" + uri, e);
-            model.addAttribute("error", "Generering av QR kode feila.");
+            model.addAttribute(
+                    "error",
+                    "Vi klarte ikkje å lage QR-koden."
+            );
         }
 
         Issuance issuance = new Issuance(toPrettyJsonString(response), uri, qrCode);
         model.addAttribute("issuance", issuance);
         model.addAttribute("credentialName", issuanceSessionData.credentialName());
+        model.addAttribute("credentialConfigurationId", credentialConfigurationId);
         model.addAttribute("issuedTransactionId", response.issuanceTransactionId());
         session.setAttribute(
                 getIssuanceSessionKey(response.issuanceTransactionId()),
@@ -155,11 +159,7 @@ public class StartIssuanceController {
 
         String issuedCredentialConfigurationId = credentialOffer.credentialConfigurationIds().getFirst();
         String credentialName = credentialName(credentialConfiguration, issuedCredentialConfigurationId);
-        boolean storeSubjectIdentifier = StringUtils.hasText(startIssuanceForm.personIdentifier())
-                && issuerServerService.getSubjectCredentialConfigurationById(issuedCredentialConfigurationId) != null;
-        String subjectIdentifier = storeSubjectIdentifier
-                ? startIssuanceForm.personIdentifier()
-                : "";
+        String subjectIdentifier = resolveSubjectIdentifier(startIssuanceForm, issuedCredentialConfigurationId);
 
         return new IssuanceSessionData(
                 credentialOffer.credentialIssuer(),
@@ -168,6 +168,15 @@ public class StartIssuanceController {
                 subjectIdentifier,
                 false
         );
+    }
+
+    private String resolveSubjectIdentifier(StartIssuanceForm startIssuanceForm, String issuedCredentialConfigurationId) {
+        boolean isSubjectCredential =
+                issuerServerService.getSubjectCredentialConfigurationById(issuedCredentialConfigurationId) != null;
+        if (isSubjectCredential && StringUtils.hasText(startIssuanceForm.personIdentifier())) {
+            return startIssuanceForm.personIdentifier();
+        }
+        return "";
     }
 
     private static String credentialName(CredentialConfiguration credentialConfiguration, String fallback) {
@@ -189,11 +198,11 @@ public class StartIssuanceController {
                 credentialOffer.credentialIssuer(),
                 requestedCredentialConfiguration.credentialIssuer()
         );
-        boolean hasOnlyRequestedCredential =
+        boolean hasRequestedCredential =
                 List.of(requestedCredentialConfiguration.credentialConfigurationId())
                         .equals(credentialOffer.credentialConfigurationIds());
 
-        if (!hasExpectedIssuer || !hasOnlyRequestedCredential) {
+        if (!hasExpectedIssuer || !hasRequestedCredential) {
             throw new IssuerUiException(
                     "Issuer response does not match requested credential configuration "
                             + requestedCredentialConfiguration.credentialConfigurationId()

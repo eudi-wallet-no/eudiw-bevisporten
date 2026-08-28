@@ -197,7 +197,7 @@ class StartIssuanceControllerTest {
         thymeleafMockMvc().perform(post("/start-issuance/pid")
                         .param("json", "{}"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Bevis: PID")))
+                .andExpect(content().string(containsString(">PID</h2>")))
                 .andExpect(content().string(containsString("alt=\"QR-kode for PID\"")));
     }
 
