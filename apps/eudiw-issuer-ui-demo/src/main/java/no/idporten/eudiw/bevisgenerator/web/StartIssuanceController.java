@@ -90,7 +90,7 @@ public class StartIssuanceController {
                         credentialName(credentialConfiguration, credentialConfiguration.credentialConfigurationId())
                 ))
                 .sorted(Comparator.comparing(
-                        IssueCredentialConfiguration::description,
+                        IssueCredentialConfiguration::credentialName,
                         Comparator.nullsLast(Collator.getInstance(Locale.forLanguageTag("nb-NO")))
                 ))
                 .toList();
@@ -187,7 +187,7 @@ public class StartIssuanceController {
 
     public record IssueCredentialConfiguration(
             String credentialConfigurationId,
-            String description
+            String credentialName
     ) {}
 
     private static void validateCredentialOffer(

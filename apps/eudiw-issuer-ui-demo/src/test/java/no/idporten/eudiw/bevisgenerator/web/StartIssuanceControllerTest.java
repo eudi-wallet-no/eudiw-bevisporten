@@ -112,7 +112,7 @@ class StartIssuanceControllerTest {
         assertEquals(
                 List.of("Aldersbevis", "Æresbevis", "Øvingsbevis", "Årsbevis"),
                 credentialConfigurations.stream()
-                        .map(configuration -> ((StartIssuanceController.IssueCredentialConfiguration) configuration).description())
+                        .map(configuration -> ((StartIssuanceController.IssueCredentialConfiguration) configuration).credentialName())
                         .toList()
         );
     }
@@ -135,7 +135,7 @@ class StartIssuanceControllerTest {
         assertEquals(
                 List.of("blank-description", "missing-description"),
                 credentialConfigurations.stream()
-                        .map(configuration -> ((StartIssuanceController.IssueCredentialConfiguration) configuration).description())
+                        .map(configuration -> ((StartIssuanceController.IssueCredentialConfiguration) configuration).credentialName())
                         .toList()
         );
     }

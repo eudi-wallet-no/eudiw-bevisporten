@@ -88,6 +88,7 @@ public class VerificationController {
             return baseView(new StartVerificationForm(), loadCredentialDefinitions());
         }
 
+        // Bevis kan utferdast frå ein utferdar som ikkje låg i den mellomlagra metadataen, så vi hentar på nytt før oppslaget.
         List<CredentialDefinitionDisplayData> credentialDefinitions = refreshCredentialDefinitions();
         CredentialDefinitionDisplayData credentialDefinition =
                 findIssuedCredentialDefinition(credentialDefinitions, issuance);

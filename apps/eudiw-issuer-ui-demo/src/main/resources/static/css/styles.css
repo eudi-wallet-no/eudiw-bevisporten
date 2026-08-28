@@ -580,12 +580,12 @@ main {
     max-width: 400px;
 }
 
-.qr-error-alert {
+.wallet-error-alert {
     max-width: 600px;
     text-align: start;
 }
 
-.qr-error-alert > .ds-button {
+.wallet-error-alert > .ds-button {
     margin-block-start: var(--ds-size-4);
 }
 

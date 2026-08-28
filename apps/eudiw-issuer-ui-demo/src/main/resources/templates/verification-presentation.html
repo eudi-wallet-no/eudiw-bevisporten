@@ -35,7 +35,7 @@
         <div th:replace="~{fragments/components :: wallet_status_fragment}"></div>
     </div>
     <div id="verification-error-alert"
-         class="ds-alert qr-error-alert"
+         class="ds-alert wallet-error-alert"
          data-color="danger"
          role="alert"
          hidden>
@@ -141,24 +141,31 @@
         }
     };
 
-    const handle202 = (pollFunc, interval) => {
-        if (stopped) {
-            const resume = () => {
-                window.removeEventListener("focus", resume);
-                document.removeEventListener("visibilitychange", resumeWhenVisible);
-
-                stopped = false;
-                pollFunc();
-            }
-            const resumeWhenVisible = () => {
-                if (document.visibilityState === "visible") {
-                    resume();
-                }
-            };
-            window.addEventListener("focus", resume);
-            document.addEventListener("visibilitychange", resumeWhenVisible);
+    function scheduleNextPoll(pollFunc, interval) {
+        if (!stopped) {
+            setTimeout(pollFunc, interval);
+            return;
         }
-        setTimeout(pollFunc, interval);
+        if (document.visibilityState === "visible") {
+            stopped = false;
+            setTimeout(pollFunc, interval);
+            return;
+        }
+
+        const resume = () => {
+            window.removeEventListener("focus", resume);
+            document.removeEventListener("visibilitychange", resumeWhenVisible);
+            stopped = false;
+            pollFunc();
+        };
+        const resumeWhenVisible = () => {
+            if (document.visibilityState === "visible") {
+                resume();
+            }
+        };
+
+        window.addEventListener("focus", resume);
+        document.addEventListener("visibilitychange", resumeWhenVisible);
     }
 
     async function waitForWallet(interval, timeout) {
@@ -192,7 +199,7 @@
                         showError("Vi fekk ikkje svar frå lommeboka i tide.");
                         return;
                     }
-                    handle202(poll, interval);
+                    scheduleNextPoll(poll, interval);
                     return;
                 }
 
