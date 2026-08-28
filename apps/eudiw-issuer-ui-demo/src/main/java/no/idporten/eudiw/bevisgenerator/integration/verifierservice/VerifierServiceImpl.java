@@ -109,9 +109,9 @@ public class VerifierServiceImpl implements VerifierService {
             return restClient
                     .post()
                     .uri(uriBuilder -> uriBuilder
-                            .replacePath(verificationProperties.verificationStartEndpoint().replace("{client_application_id}", verificationProperties.clientApplicationId()))
+                            .replacePath(verificationProperties.verificationStartEndpoint())
                             .queryParam("include_validation_details", true)
-                            .build())
+                            .build(verificationProperties.clientApplicationId()))
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(apiRequest)
