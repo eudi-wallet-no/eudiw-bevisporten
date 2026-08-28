@@ -40,6 +40,17 @@ git log --oneline -5 -- <file>     # settled area, or mid-migration?
 
 Finally create the tasks as SQL todos with dependencies. Each description carries its own test strategy and done-when condition; do not repeat that detail in the plan.
 
+## Rubber Duck Review
+
+Before presenting the plan for approval, run a rubber duck pass to catch missing behavior, state, accessibility, and integration cases:
+
+1. **For non-trivial changes** (multi-file, architectural decisions, new patterns), invoke the rubber duck agent to review the draft plan
+2. **Ask about:** missing states or behaviors, edge cases, accessibility requirements, integration points with other features, error handling, and data consistency
+3. **Revise the plan** based on findings before presenting it for sign-off
+4. **For trivial changes** (one-file, clear scope, no cross-cutting concerns), skip this step and proceed to present
+
+This catches real requirements early, when the plan is cheap to revise—before changes become expensive.
+
 ## Present
 
 Keep it short. Investigate thoroughly, but surface only what decides something. No unchanged lines "for completeness". Use this order, so it reads as an argument:
