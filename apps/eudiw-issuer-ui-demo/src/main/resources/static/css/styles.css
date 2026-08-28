@@ -428,6 +428,11 @@ main {
 
 .card-narrow {
     max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-size-4);
+    text-align: center;
 }
 
 .success-message {
@@ -534,10 +539,39 @@ main {
     gap: var(--ds-size-3);
 }
 
-.qr-code-container {
+.wallet-qr {
+    width: 100%;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-size-2);
+}
+
+.wallet-qr__title {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: center;
+    text-wrap: balance;
+}
+
+.wallet-status {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+}
+
+.wallet-status > .ds-divider {
+    margin: 0;
+}
+
+.wallet-status__content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
-    margin-block-start: var(--ds-size-4);
+    gap: var(--ds-size-2);
+    color: var(--ds-color-neutral-text-subtle);
 }
 
 .qr-code {
@@ -546,8 +580,13 @@ main {
     max-width: 400px;
 }
 
-.status-message {
-    margin-block-start: var(--ds-size-3);
+.wallet-error-alert {
+    max-width: 600px;
+    text-align: start;
+}
+
+.wallet-error-alert > .ds-button {
+    margin-block-start: var(--ds-size-4);
 }
 
 .code-block {

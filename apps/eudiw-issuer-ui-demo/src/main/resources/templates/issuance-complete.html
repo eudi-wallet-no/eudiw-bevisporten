@@ -32,15 +32,23 @@
                role="alert"></p>
         </div>
 
+        <form id="automatic-verification-form"
+                 th:action="@{/verification-start}"
+                 method="post">
+            <input type="hidden"
+                      name="issuanceTransactionId"
+                      th:value="${issuedTransactionId}">
+        </form>
+
         <div th:replace="~{fragments/components :: step_navigation_fragment(
-            previousHref='/issue',
-            previousLabel='Vel bevistype',
-            nextHref='/verification-start',
-            nextLabel='Presenter bevis',
-            nextForm=${null},
-            nextDisabledUntilSelection=${false},
-            dynamicNextForm=${false},
-            nextColor=${null}
+               previousHref='/issue',
+               previousLabel='Vel bevistype',
+               nextHref=${null},
+               nextLabel='Presenter bevis',
+               nextForm='automatic-verification-form',
+               nextDisabledUntilSelection=${false},
+               dynamicNextForm=${false},
+               nextColor=${null}
         )}"></div>
     </div>
 </main>
