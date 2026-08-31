@@ -17,7 +17,6 @@ import org.springframework.web.client.RestClientException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +54,7 @@ public class VerifierServiceTest {
         responseSpec = mock(RestClient.ResponseSpec.class);
 
         when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(any(Function.class))).thenReturn(requestBodySpec);
+        when(requestBodyUriSpec.uri("/verifier/{client_application_id}/start", "client-123")).thenReturn(requestBodySpec);
         when(requestBodySpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.onStatus(any(ResponseErrorHandler.class))).thenReturn(responseSpec);
 
