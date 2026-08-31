@@ -136,6 +136,9 @@ public class OpenID4VPResponseService {
     protected VerifiedCredential handleMDoc(String vpToken, boolean includeValidationDetails) {
         DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
         Map<String, Object> claims = new HashMap<>();
+        if (deviceResponse.getDocuments().isEmpty()) {
+            throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
+        }
         MDoc mdc = deviceResponse.getDocuments().getFirst();
         verifyMDoc(mdc);
         mDocClaims(mdc.getIssuerSigned(), claims);
