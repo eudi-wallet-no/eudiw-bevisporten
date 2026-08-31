@@ -37,6 +37,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
@@ -400,7 +401,7 @@ public class OpenID4VPResponseService {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
                 return cert;
-            } catch (Exception e) {
+            } catch (CertificateException e) {
                 throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc",e);
         }
 
