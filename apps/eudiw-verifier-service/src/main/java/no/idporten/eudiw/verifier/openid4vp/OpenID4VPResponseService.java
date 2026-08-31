@@ -20,6 +20,7 @@ import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
+import no.idporten.eudiw.verifier.statuslist.StatusMDoc;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,7 +88,7 @@ public class OpenID4VPResponseService {
                 if ("dc+sd-jwt".equals(format)) {
                     verifiedCredential = handleSDJwt(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
                 } else if ("mso_mdoc".equals(format)) {
-                    verifiedCredential = retrieveClaimsFromMDocCredential(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
+                    verifiedCredential = handleMDoc(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
                 } else {
                     throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
                 }
@@ -112,8 +113,8 @@ public class OpenID4VPResponseService {
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
         VerificationResult<SDJwt> verificationResult = verificationResult(cryptoProvider, unverifiedSDJwt);
         final Map<String, Object> claims = getClaimsFromSDJwt(verificationResult);
-        StatusSdJwt statusRecord = extractStatuslistUriAndIdx(verificationResult);
-        ValidationStatus status = findStatusFromStatusList(statusRecord);
+        StatusSdJwt statusRecord = extractStatuslistUriAndIdxSdJwt(verificationResult);
+        ValidationStatus status = findStatusFromStatusListSdJwt(statusRecord);
         ValidationStatus trustlistStatus = checkTrustlist(cert);
         List<ValidationDetail> validationDetails = new ArrayList<>();
         if (includeValidationDetails) {
@@ -122,6 +123,77 @@ public class OpenID4VPResponseService {
         }
 
         return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
+    }
+
+    protected VerifiedCredential handleMDoc(String vpToken, boolean includeValidationDetails) {
+        DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
+        Map<String, Object> claims = new HashMap<>();
+        MDoc mdc = deviceResponse.getDocuments().getFirst();
+        verifyMDoc(mdc);
+        mDocClaims(mdc.getIssuerSigned(), claims);
+        ValidationStatus mdocStatuslist = verificationStatusMdoc(mdc);
+        //TODO: trustlist mdoc
+        List<ValidationDetail> validationDetails = new ArrayList<>();
+        if (includeValidationDetails) {
+            //TODO: add validation details both for trustlist and statuslist. Remove hard coded value
+            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, mdocStatuslist, "status list check"));
+        }
+        return new VerifiedCredential(claims, ValidationStatus.VALID == mdocStatuslist, validationDetails);
+    }
+
+    protected void verifyMDoc(MDoc mDoc) {
+        mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
+        // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
+        // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
+        // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
+        mDoc.verifyDocType();
+        mDoc.verifyIssuerSignedItems();
+        mDoc.verifyValidity();
+    }
+
+
+    /**
+     * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
+     * to a map of element identifier to value.
+     **/
+
+    protected Map<String, Object> mDocClaims(IssuerSigned issuerSigned, Map<String, Object> claims) {
+        for (String namespace : issuerSigned.getNameSpaces().keySet()) {
+            List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
+            for (EncodedCBORElement element : elements) {
+                Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
+                String elementIdentifier = null;
+                Object elementValue = null;
+                for (MapKey mapKey : elementMap.keySet()) {
+                    if (mapKey.getStr().equals("elementIdentifier")) {
+                        elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
+                    }
+                    if (mapKey.getStr().equals("elementValue")) {
+                        elementValue = extractValue(elementMap.get(mapKey));
+                    }
+                }
+                Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
+                nameSpaceMap.put(elementIdentifier, elementValue);
+            }
+        }
+        return claims;
+    }
+
+    protected ValidationStatus verificationStatusMdoc(MDoc mDoc) {
+        ValidationStatus validationStatus;
+        StatusMDoc statusMdoc = extractStatuslistUriAndIdxMDoc(mDoc);
+        final int idx;
+        try {
+            idx = Integer.parseInt(statusMdoc.idx());
+        } catch (NumberFormatException e) {
+            throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
+        }
+        if (statusMdoc.uri() != null && StringUtils.hasText(statusMdoc.uri().toString())) {
+           return lookupStatusFromStatuslist(statusMdoc.uri(), idx);
+        } else {
+            validationStatus = ValidationStatus.VALID;
+        }
+        return validationStatus;
     }
 
     protected SDJwt unverifiedSDJwt(String vpToken) {
@@ -230,32 +302,32 @@ public class OpenID4VPResponseService {
         return claims;
     }
 
-    private ValidationStatus findStatusFromStatusList(StatusSdJwt statusRecord) {
+    private ValidationStatus lookupStatusFromStatuslist(URI uri, int idx) {
+        ValidationStatus status;
+        try {
+            status = tokenStatuslistService.checkStatus(
+                    uri,
+                    idx,
+                    tokenStatuslistService.requestStatusList(uri).getParsedString(),
+                    Instant.now());
+        } catch (StatusCommunicationException | IOConnectionException e) {
+            // TODO: create and update metrics for IOConnectionException.
+            status = ValidationStatus.INCONCLUSIVE;
+        }
+        return status;
+    }
+
+    private ValidationStatus findStatusFromStatusListSdJwt(StatusSdJwt statusRecord) {
         ValidationStatus status;
         if (statusRecord != null) {
-            final int idx;
-            try {
-                idx = Integer.parseInt(statusRecord.statuslist().idx().content());
-            } catch (NumberFormatException e) {
-                throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
-            }
-            try {
-                status = tokenStatuslistService.checkStatus(
-                        URI.create(statusRecord.statuslist().uri().content()),
-                        idx,
-                        tokenStatuslistService.requestStatusList(URI.create(statusRecord.statuslist().uri().content())).getParsedString(),
-                        Instant.now());
-            } catch (StatusCommunicationException | IOConnectionException e) {
-                // TODO: create and update metrics for IOConnectionException.
-                status = ValidationStatus.INCONCLUSIVE;
-            }
+            status = lookupStatusFromStatuslist(URI.create(statusRecord.statuslist().uri().content()), Integer.parseInt(statusRecord.statuslist().idx().content()));
         } else {
             status = ValidationStatus.VALID;
         }
         return status;
     }
 
-    protected StatusSdJwt extractStatuslistUriAndIdx(VerificationResult<SDJwt> sdjwt) {
+    protected StatusSdJwt extractStatuslistUriAndIdxSdJwt(VerificationResult<SDJwt> sdjwt) {
         Object statusObj = sdjwt.getSdJwt().getFullPayload().get("status");
         if (Objects.isNull(statusObj) || !StringUtils.hasText(statusObj.toString())) {
             return null;
@@ -263,53 +335,60 @@ public class OpenID4VPResponseService {
         return objectMapper.convertValue(statusObj, StatusSdJwt.class);
     }
 
-    /**
-     * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
-     * to a map of element identifier to value.
-     *
-     * @param vpToken                    token for verifiable presentation containing mdoc credential
-     * @param includeValidationDetails whether to include validationDetails in the returned VerifiedCredential
-     * @return extracted data
-     */
-    protected VerifiedCredential retrieveClaimsFromMDocCredential(String vpToken, boolean includeValidationDetails) {
-        DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
-        Map<String, Object> claims = new HashMap<>();
-        for (MDoc mDoc : deviceResponse.getDocuments()) {
-            mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
-            // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
-            // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
-            // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
-            mDoc.verifyDocType();
-            mDoc.verifyIssuerSignedItems();
-            mDoc.verifyValidity();
-            IssuerSigned issuerSigned = mDoc.getIssuerSigned();
-            for (String namespace : issuerSigned.getNameSpaces().keySet()) {
-                List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
-                for (EncodedCBORElement element : elements) {
-                    Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
-                    String elementIdentifier = null;
-                    Object elementValue = null;
-                    for (MapKey mapKey : elementMap.keySet()) {
-                        if (mapKey.getStr().equals("elementIdentifier")) {
-                            elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
-                        }
-                        if (mapKey.getStr().equals("elementValue")) {
-                            elementValue = extractValue(elementMap.get(mapKey));
-                        }
-                    }
-                    Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
-                    nameSpaceMap.put(elementIdentifier, elementValue);
-                }
-            }
-        }
-        boolean verificationsChecksValid = true; // Set credential to valid until we can check and validate status-list, trust-list etc. for MDoc.
-        List<ValidationDetail> validationDetails = new ArrayList<>();
-        if (includeValidationDetails) {
-            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, ValidationStatus.INCONCLUSIVE, "Not status-list validation performed for MDoc"));
-            // TODO: implement validation checks for MDoc for status-list, trust-list etc. and add to validationDetails list with appropriate ValidationType and ValidationStatus.
-        }
-        return new VerifiedCredential(claims, verificationsChecksValid, validationDetails);
+    protected StatusMDoc extractStatuslistUriAndIdxMDoc(MDoc mDoc) {
+        if(!Objects.isNull(mDoc.getMSO()) && !Objects.isNull(mDoc.getMSO().getStatus()) && !Objects.isNull(mDoc.getMSO().getStatus().getStatusList())) {
+         return new StatusMDoc(mDoc.getMSO().getStatus().getStatusList().toJSON().get("idx").toString(), URI.create(mDoc.getMSO().getStatus().getStatusList().getUri()));
     }
+        return null;
+    }
+//
+//    /**
+//     * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
+//     * to a map of element identifier to value.
+//     *
+//     * @param vpToken                    token for verifiable presentation containing mdoc credential
+//     * @param includeValidationDetails whether to include validationDetails in the returned VerifiedCredential
+//     * @return extracted data
+//     */
+//    protected VerifiedCredential retrieveClaimsFromMDocCredential(String vpToken, boolean includeValidationDetails) {
+//        DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
+//        Map<String, Object> claims = new HashMap<>();
+//        for (MDoc mDoc : deviceResponse.getDocuments()) {
+//            mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
+//            // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
+//            // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
+//            // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
+//            mDoc.verifyDocType();
+//            mDoc.verifyIssuerSignedItems();
+//            mDoc.verifyValidity();
+//            IssuerSigned issuerSigned = mDoc.getIssuerSigned();
+//            for (String namespace : issuerSigned.getNameSpaces().keySet()) {
+//                List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
+//                for (EncodedCBORElement element : elements) {
+//                    Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
+//                    String elementIdentifier = null;
+//                    Object elementValue = null;
+//                    for (MapKey mapKey : elementMap.keySet()) {
+//                        if (mapKey.getStr().equals("elementIdentifier")) {
+//                            elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
+//                        }
+//                        if (mapKey.getStr().equals("elementValue")) {
+//                            elementValue = extractValue(elementMap.get(mapKey));
+//                        }
+//                    }
+//                    Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
+//                    nameSpaceMap.put(elementIdentifier, elementValue);
+//                }
+//            }
+//        }
+//        boolean verificationsChecksValid = true; // Set credential to valid until we can check and validate status-list, trust-list etc. for MDoc.
+//        List<ValidationDetail> validationDetails = new ArrayList<>();
+//        if (includeValidationDetails) {
+//            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, ValidationStatus.INCONCLUSIVE, "Not status-list validation performed for MDoc"));
+//            // TODO: implement validation checks for MDoc for status-list, trust-list etc. and add to validationDetails list with appropriate ValidationType and ValidationStatus.
+//        }
+//        return new VerifiedCredential(claims, verificationsChecksValid, validationDetails);
+//    }
 
     protected Object extractValue(DataElement dataElement) {
         if (dataElement == null) {
