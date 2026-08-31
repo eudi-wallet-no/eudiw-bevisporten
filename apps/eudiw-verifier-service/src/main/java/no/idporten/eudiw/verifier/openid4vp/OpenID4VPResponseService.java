@@ -85,7 +85,8 @@ public class OpenID4VPResponseService {
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
                 VerifiedCredential verifiedCredential;
                 if ("dc+sd-jwt".equals(format)) {
-                    verifiedCredential = retrieveClaimsFromSDJwtCredential(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
+                    verifiedCredential = handleSDJwt(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
+                    //verifiedCredential = retrieveClaimsFromSDJwtCredential(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
                 } else if ("mso_mdoc".equals(format)) {
                     verifiedCredential = retrieveClaimsFromMDocCredential(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
                 } else {
@@ -102,6 +103,50 @@ public class OpenID4VPResponseService {
             walletCallback.setRedirectUri(verificationTransaction.getRedirectUri());
         }
         return walletCallback;
+    }
+
+    protected VerifiedCredential handleSDJwt(String vpToken, boolean includeValidationDetails) throws Exception {
+        SDJwt unverifiedSDJwt = unverifiedSDJwt(vpToken);
+        X509Certificate cert = certificate(unverifiedSDJwt);
+        JWSVerifier jwsVerifier = jwsVerifier(cert);
+        JWSAlgorithm jwsAlgorithm = algorithm(cert);
+        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
+        VerificationResult<SDJwt> verificationResult = verificationResult(cryptoProvider, unverifiedSDJwt);
+        final Map<String, Object> claims = retrieveClaimsFromSDJwtCredential(verificationResult);
+        StatusSdJwt statusRecord = extractStatuslistUriAndIdx(verificationResult);
+        ValidationStatus status = findStatusFromStatusList(statusRecord);
+        ValidationStatus trustlistStatus = checkTrustlist(cert);
+        List<ValidationDetail> validationDetails = new ArrayList<>();
+        if (includeValidationDetails) {
+            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord, status)));
+            // TODO add other checks for validation details, e.g. trustlist
+        }
+        return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
+    }
+
+    protected SDJwt unverifiedSDJwt(String vpToken) {
+        return SDJwt.Companion.parse(vpToken);
+    }
+
+    protected X509Certificate certificate(SDJwt unverifiedSDJwt) throws Exception{
+        JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
+        return X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
+    }
+
+    protected JWSVerifier jwsVerifier(X509Certificate cert) throws Exception {
+        return new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
+    }
+
+    protected JWSAlgorithm algorithm(X509Certificate cert) {
+        return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
+    }
+
+    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt){
+        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(jwtCryptoProvider, null);
+        if (!verificationResult.getVerified()) {
+            throw new VerificationException("invalid_request", "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(verificationResult.getSignatureVerified(), verificationResult.getDisclosuresVerified()));
+        }
+        return verificationResult;
     }
 
     private VpToken extractVpToken(Map<String, Object> claimsFromJwePayload) {
@@ -156,41 +201,50 @@ public class OpenID4VPResponseService {
         return jwe.getPayload().toJSONObject();
     }
 
-    protected boolean checkTrustlist(X509Certificate cert) {
+    protected ValidationStatus checkTrustlist(X509Certificate cert) {
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
     }
 
-    protected VerifiedCredential retrieveClaimsFromSDJwtCredential(String vpToken, boolean includeValidationDetails) throws Exception {
-
-        SDJwt unverifiedSDJwt = SDJwt.Companion.parse(vpToken);
-        JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
-        X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
-        JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
-        JWSAlgorithm jwsAlgorithm = ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
-        boolean trustlistCheck = checkTrustlist(cert);
-        if (!trustlistCheck) {
-            //TODO: Remove this and throw exception when trustlist feature is complete
-            log.info("Trustlist check failed for credential id: " + vpToken);
-            //throw new VerificationException("invalid_request", "Certificate not on trustlist");
+    protected Map<String, Object> retrieveClaimsFromSDJwtCredential(VerificationResult<SDJwt> verificationResult) throws ParseException {
+        Map<String, Object> claims = new HashMap<>();
+        for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
+            List<Object> parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
+            claims.put((String) parsedDisclosure.get(1), parsedDisclosure.get(2));
         }
-        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
-        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(cryptoProvider, null);
-        if (!verificationResult.getVerified()) {
-            throw new VerificationException("invalid_request", "Invalid vp_token signature or unverified disclosures");
-        }
-
-        Map<String, Object> claims = getClaimsFromSDJwt(verificationResult);
-
-        StatusSdJwt statusRecord = extractStatuslistUriAndIdx(verificationResult);
-        ValidationStatus status = findStatusFromStatusList(statusRecord);
-        List<ValidationDetail> validationDetails = new ArrayList<>();
-        if (includeValidationDetails) {
-            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord, status)));
-            // TODO add other checks for validation details, e.g. trustlist
-        }
-
-        return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
+        return claims;
     }
+
+//    protected VerifiedCredential retrieveClaimsFromSDJwtCredential(String vpToken, boolean includeValidationDetails) throws Exception {
+//
+//        SDJwt unverifiedSDJwt = SDJwt.Companion.parse(vpToken);
+//        JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
+//        X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
+//        JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
+//        JWSAlgorithm jwsAlgorithm = ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
+//        boolean trustlistCheck = checkTrustlist(cert);
+//        if (!trustlistCheck) {
+//            //TODO: Remove this and throw exception when trustlist feature is complete
+//            log.info("Trustlist check failed for credential id: " + vpToken);
+//            //throw new VerificationException("invalid_request", "Certificate not on trustlist");
+//        }
+//        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
+//        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(cryptoProvider, null);
+//        if (!verificationResult.getVerified()) {
+//            throw new VerificationException("invalid_request", "Invalid vp_token signature or unverified disclosures");
+//        }
+//
+//        Map<String, Object> claims = getClaimsFromSDJwt(verificationResult);
+//
+//        StatusSdJwt statusRecord = extractStatuslistUriAndIdx(verificationResult);
+//        ValidationStatus status = findStatusFromStatusList(statusRecord);
+//        List<ValidationDetail> validationDetails = new ArrayList<>();
+//        if (includeValidationDetails) {
+//            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord, status)));
+//            // TODO add other checks for validation details, e.g. trustlist
+//        }
+//
+//        return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
+//    }
 
     private static @NonNull String getValidationDetail(StatusSdJwt statusRecord, ValidationStatus status) {
         if (statusRecord == null || statusRecord.statuslist() == null) {
