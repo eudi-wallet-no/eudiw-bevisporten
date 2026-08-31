@@ -89,8 +89,7 @@ public class VerificationResultServiceImpl implements VerificationResultService 
 
         return validationDetails.stream()
                 .map(detail -> new ValidationDetailView(
-                        validationTypeLabel(detail.validationType()),
-                        validationStatusLabel(detail.status()),
+                        detail.validationDetails(),
                         validationStatusColor(detail.status())
                 ))
                 .toList();
@@ -110,21 +109,6 @@ public class VerificationResultServiceImpl implements VerificationResultService 
             case Boolean bool -> bool ? "Ja" : "Nei";
             case List<?> list -> list.stream().map(this::formatClaimValue).collect(Collectors.joining(", "));
             default -> value.toString();
-        };
-    }
-
-    private String validationTypeLabel(ValidationType validationType) {
-        return switch (validationType) {
-            case STATUS_LIST -> "Status";
-            case TRUST_LIST -> "Tillitsliste";
-        };
-    }
-
-    private String validationStatusLabel(ValidationStatus status) {
-        return switch (status) {
-            case VALID -> "Gyldig";
-            case INVALID -> "Ugyldig";
-            case INCONCLUSIVE -> "Usikker";
         };
     }
 
