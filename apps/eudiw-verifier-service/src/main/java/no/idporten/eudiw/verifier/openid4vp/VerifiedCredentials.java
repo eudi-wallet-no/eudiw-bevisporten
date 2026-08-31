@@ -1,6 +1,5 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import tools.jackson.databind.annotation.JsonSerialize;
 
 import java.io.Serializable;
