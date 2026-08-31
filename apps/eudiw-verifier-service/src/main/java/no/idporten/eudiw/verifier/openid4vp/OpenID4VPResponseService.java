@@ -121,8 +121,16 @@ public class OpenID4VPResponseService {
             validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord, status)));
             validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
         }
+        ValidationStatus statusForCredential;
+        if(status == ValidationStatus.INVALID || trustlistStatus == ValidationStatus.INVALID) {
+            statusForCredential = ValidationStatus.INVALID;
+        } else if(status == ValidationStatus.INCONCLUSIVE || trustlistStatus == ValidationStatus.INCONCLUSIVE) {
+            statusForCredential = ValidationStatus.INCONCLUSIVE;
+        } else {
+            statusForCredential = ValidationStatus.VALID;
+        }
 
-        return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
+        return new VerifiedCredential(claims, ValidationStatus.VALID == statusForCredential, validationDetails);
     }
 
     protected VerifiedCredential handleMDoc(String vpToken, boolean includeValidationDetails) {
