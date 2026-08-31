@@ -190,6 +190,10 @@ public class OpenID4VPResponseService {
     protected ValidationStatus verificationStatusMdoc(MDoc mDoc) {
         ValidationStatus validationStatus;
         StatusMDoc statusMdoc = extractStatuslistUriAndIdxMDoc(mDoc);
+        if(statusMdoc == null) {
+            validationStatus = ValidationStatus.VALID;
+            return validationStatus;
+        }
         final int idx;
         try {
             idx = Integer.parseInt(statusMdoc.idx());
