@@ -341,54 +341,6 @@ public class OpenID4VPResponseService {
     }
         return null;
     }
-//
-//    /**
-//     * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
-//     * to a map of element identifier to value.
-//     *
-//     * @param vpToken                    token for verifiable presentation containing mdoc credential
-//     * @param includeValidationDetails whether to include validationDetails in the returned VerifiedCredential
-//     * @return extracted data
-//     */
-//    protected VerifiedCredential retrieveClaimsFromMDocCredential(String vpToken, boolean includeValidationDetails) {
-//        DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
-//        Map<String, Object> claims = new HashMap<>();
-//        for (MDoc mDoc : deviceResponse.getDocuments()) {
-//            mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
-//            // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
-//            // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
-//            // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
-//            mDoc.verifyDocType();
-//            mDoc.verifyIssuerSignedItems();
-//            mDoc.verifyValidity();
-//            IssuerSigned issuerSigned = mDoc.getIssuerSigned();
-//            for (String namespace : issuerSigned.getNameSpaces().keySet()) {
-//                List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
-//                for (EncodedCBORElement element : elements) {
-//                    Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
-//                    String elementIdentifier = null;
-//                    Object elementValue = null;
-//                    for (MapKey mapKey : elementMap.keySet()) {
-//                        if (mapKey.getStr().equals("elementIdentifier")) {
-//                            elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
-//                        }
-//                        if (mapKey.getStr().equals("elementValue")) {
-//                            elementValue = extractValue(elementMap.get(mapKey));
-//                        }
-//                    }
-//                    Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
-//                    nameSpaceMap.put(elementIdentifier, elementValue);
-//                }
-//            }
-//        }
-//        boolean verificationsChecksValid = true; // Set credential to valid until we can check and validate status-list, trust-list etc. for MDoc.
-//        List<ValidationDetail> validationDetails = new ArrayList<>();
-//        if (includeValidationDetails) {
-//            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, ValidationStatus.INCONCLUSIVE, "Not status-list validation performed for MDoc"));
-//            // TODO: implement validation checks for MDoc for status-list, trust-list etc. and add to validationDetails list with appropriate ValidationType and ValidationStatus.
-//        }
-//        return new VerifiedCredential(claims, verificationsChecksValid, validationDetails);
-//    }
 
     protected Object extractValue(DataElement dataElement) {
         if (dataElement == null) {
