@@ -308,8 +308,8 @@ public class VerificationController {
                 selectedClaimPaths,
                 verificationId
         );
-        VerificationTransactionData verificationTransactionData =
-                verifierService.startVerification(requestBody);
+
+        VerificationTransactionData verificationTransactionData = verifierService.startVerification(requestBody);
 
         session.setAttribute(
                 getVerificationSessionKey(verificationId),
