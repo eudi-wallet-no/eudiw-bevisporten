@@ -8,57 +8,41 @@
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-
-<template id="claim-template">
-    <th:block th:replace="~{fragments/claim :: claim('INDEX', null)}"/>
-</template>
-
 <main id="main-content" tabindex="-1">
     <div class="landing-intro">
-        <h1 class="ds-heading" data-size="xl">
-            Legg til bevistype
-        </h1>
+        <h1 class="ds-heading" data-size="xl">Legg til bevistype</h1>
     </div>
+
     <div class="content-narrow">
         <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er tilgjengelig i utstederen.</p>
     </div>
 
-    <form class="form-container content-narrow"
-            th:fragment="add_attributes_form_fragment"
-            id="add_attributes_form"
-            th:action="@{/add-credential-new}"
-            th:object="${form}" method="post">
+    <form class="form-container"
+          th:fragment="add_attributes_form_fragment"
+          id="add_attributes_form"
+          th:action="@{/add-credential-new}"
+          th:object="${form}"
+          method="post">
 
         <div class="ds-alert"
              data-color="danger"
              th:if="${#fields.hasAnyErrors()}">
-            <p class="ds-paragraph" data-size="lg">
-                Skjemaet inneholder feil:
-            </p>
-
+            <p class="ds-paragraph" data-size="lg">Skjemaet inneheld feil:</p>
             <ul class="error-list">
-                <li th:each="error : ${#fields.allErrors()}"
-                    th:text="${error}">
-                </li>
+                <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
             </ul>
         </div>
 
+        <!-- Top metadata -->
         <div class="metadata-fields">
-            <div class="ds-field"
-                 th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
-
-                <label class="ds-label" for="credentialType">Credential type</label>
-
-                <input class="ds-input"
-                       type="text"
-                       id="credentialType"
-                       th:field="*{credentialType}">
-
-            </div>
-
             <div class="ds-field">
-                <label for="name-field" class="ds-label">Name</label>
-                <input id="name-field" class="ds-input" type="text" th:field="*{name}" />
+                <label for="name-field" class="ds-label">Bevisnavn</label>
+                <input id="name-field" class="ds-input" type="text" th:field="*{name}"
+                       placeholder="t.d. Studentbevis" />
+            </div>
+            <div class="ds-field" th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
+                <label class="ds-label" for="credentialType">Credential type</label>
+                <input class="ds-input" type="text" id="credentialType" th:field="*{credentialType}" />
             </div>
             <div class="ds-field">
                 <label for="format-field" class="ds-label">Format</label>
@@ -70,23 +54,96 @@
             </div>
         </div>
 
-        <hr class="form-divider"/>
+        <hr class="form-divider" />
 
-        <h2 class="ds-heading" data-size="sm">Claims</h2>
+        <!-- Mode toggle -->
+        <div class="mode-toggle" role="tablist" aria-label="Redigeringsmodus">
+            <button class="ds-button mode-toggle__btn"
+                    type="button"
+                    role="tab"
+                    data-mode-btn="schema"
+                    aria-selected="true"
+                    aria-controls="schema-panel"
+                    onclick="switchMode('schema')">
+                Skjema
+            </button>
+            <button class="ds-button mode-toggle__btn"
+                    type="button"
+                    role="tab"
+                    data-mode-btn="json"
+                    aria-selected="false"
+                    aria-controls="json-panel"
+                    onclick="switchMode('json')">
+                JSON
+            </button>
+        </div>
 
-        <div id="claims" class="claims-list">
-            <div th:each="claim, stat : *{claims}">
-                <th:block th:insert="~{fragments/claim :: claim(${stat.index}, ${claim})}"/>
+        <!-- Schema panel -->
+        <div id="schema-panel" role="tabpanel">
+            <div class="credential-editor">
+                <!-- Left: presets + claims -->
+                <div class="credential-editor__left">
+                    <h2 class="ds-heading" data-size="sm">Legg til feltgrupper</h2>
+                    <div class="preset-buttons">
+                        <button class="ds-button preset-btn"
+                                type="button"
+                                data-preset-btn="persondata"
+                                aria-pressed="false"
+                                onclick="togglePreset('persondata')">
+                            Persondata
+                        </button>
+                        <button class="ds-button preset-btn"
+                                type="button"
+                                data-preset-btn="kontaktinfo"
+                                aria-pressed="false"
+                                onclick="togglePreset('kontaktinfo')">
+                            Kontaktinfo
+                        </button>
+                        <button class="ds-button preset-btn"
+                                type="button"
+                                data-preset-btn="bilde"
+                                aria-pressed="false"
+                                onclick="togglePreset('bilde')">
+                            Bilde
+                        </button>
+                    </div>
+
+                    <h2 class="ds-heading" data-size="sm">Claims</h2>
+                    <div id="claims" class="claims-list"></div>
+                    <button type="button" class="ds-button" data-variant="secondary" onclick="addClaim()">
+                        + Legg til claim
+                    </button>
+                </div>
+
+                <!-- Right: preview -->
+                <div class="credential-editor__right">
+                    <div id="preview-panel" class="preview-panel">
+                        <p class="ds-paragraph preview-panel__label" data-size="sm">Førehandsvisning</p>
+                        <p class="ds-heading preview-panel__name" data-size="sm" data-preview-name>Bevisnavn</p>
+                        <div class="preview-fields" data-preview-list></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button type="button" class="ds-button" data-variant="secondary" onclick="addClaim()">Legg til Claim</button>
+        <!-- JSON panel -->
+        <div id="json-panel" role="tabpanel" hidden>
+            <div class="json-editor-wrapper">
+                <textarea id="json-editor"
+                          class="ds-input json-editor"
+                          spellcheck="false"
+                          aria-label="BYOB JSON"></textarea>
+                <span id="json-badge" class="json-badge json-badge--invalid">✗ Ugyldig JSON</span>
+            </div>
+        </div>
 
-        <hr class="form-divider"/>
+        <!-- Hidden field for JSON-mode submission -->
+        <input type="hidden" name="rawJson" id="rawJson-input" />
+
+        <hr class="form-divider" />
 
         <button class="ds-button" type="submit" form="add_attributes_form">Legg til bevistype</button>
     </form>
-
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
