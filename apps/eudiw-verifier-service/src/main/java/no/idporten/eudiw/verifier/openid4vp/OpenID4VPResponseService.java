@@ -384,7 +384,6 @@ public class OpenID4VPResponseService {
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate);
     }
 
-
     protected X509Certificate extractCertificateFromMdoc(MDoc mDoc) {
         IssuerSigned issuerSigned = mDoc.getIssuerSigned();
         if (issuerSigned.getIssuerAuth() == null) {
@@ -392,7 +391,6 @@ public class OpenID4VPResponseService {
             }
         var issuerAuth = issuerSigned.getIssuerAuth();
         List<byte[]> x5chain = issuerAuth.getX5Chain();
-
         if (x5chain == null || x5chain.isEmpty()) {
             throw new VerificationException("invalid_request", "x5chain is missing in issuerAuth of mdoc");
         }
@@ -404,9 +402,5 @@ public class OpenID4VPResponseService {
             } catch (CertificateException e) {
                 throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc",e);
         }
-
     }
-
-
-
 }
