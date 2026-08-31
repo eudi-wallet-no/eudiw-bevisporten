@@ -194,14 +194,8 @@ public class OpenID4VPResponseService {
             validationStatus = ValidationStatus.VALID;
             return validationStatus;
         }
-        final int idx;
-        try {
-            idx = Integer.parseInt(statusMdoc.idx());
-        } catch (NumberFormatException e) {
-            throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
-        }
         if (statusMdoc.uri() != null && StringUtils.hasText(statusMdoc.uri().toString())) {
-           return lookupStatusFromStatuslist(statusMdoc.uri(), idx);
+           return lookupStatusFromStatuslist(statusMdoc.uri(), statusMdoc.idx());
         } else {
             validationStatus = ValidationStatus.VALID;
         }
@@ -314,12 +308,18 @@ public class OpenID4VPResponseService {
         return claims;
     }
 
-    private ValidationStatus lookupStatusFromStatuslist(URI uri, int idx) {
+    private ValidationStatus lookupStatusFromStatuslist(URI uri, String idx) {
+        int index;
+        try {
+            index = Integer.parseInt(idx);
+        } catch (NumberFormatException e) {
+            throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
+        }
         ValidationStatus status;
         try {
             status = tokenStatuslistService.checkStatus(
                     uri,
-                    idx,
+                    index,
                     tokenStatuslistService.requestStatusList(uri).getParsedString(),
                     Instant.now());
         } catch (StatusCommunicationException | IOConnectionException e) {
@@ -332,7 +332,7 @@ public class OpenID4VPResponseService {
     private ValidationStatus findStatusFromStatusListSdJwt(StatusSdJwt statusRecord) {
         ValidationStatus status;
         if (statusRecord != null) {
-            status = lookupStatusFromStatuslist(URI.create(statusRecord.statuslist().uri().content()), Integer.parseInt(statusRecord.statuslist().idx().content()));
+            status = lookupStatusFromStatuslist(URI.create(statusRecord.statuslist().uri().content()), statusRecord.statuslist().idx().content());
         } else {
             status = ValidationStatus.VALID;
         }
