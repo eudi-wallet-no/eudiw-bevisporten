@@ -481,7 +481,8 @@ main {
 }
 
 .metadata-fields .ds-field {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: var(--ds-size-2);
 }
 
@@ -489,12 +490,18 @@ main {
     width: 100%;
 }
 
-@media (min-width: 640px) {
-    .metadata-fields .ds-field {
-        grid-template-columns: 160px minmax(0, 1fr);
-        align-items: center;
-        gap: var(--ds-size-4);
-    }
+/* Section: presets */
+.preset-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+}
+
+/* Section: claims list */
+.claims-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
 }
 
 .credential-table-wrapper {
@@ -865,9 +872,13 @@ footer ul {
     display: flex;
     flex-direction: row;
     gap: var(--ds-size-3);
-    justify-content: center;
     align-items: center;
     margin: 0;
+}
+
+.claim:last-child {
+    border-block-end: none;
+    padding-block-end: 0;
 }
 
 .claims-list {
@@ -876,21 +887,367 @@ footer ul {
     gap: var(--ds-size-4);
 }
 
-.claim_field {
+.claim-preset-label {
+    flex: 0 0 12rem;
+    font-weight: var(--ds-font-weight-medium);
+    color: var(--ds-color-neutral-text-default);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.claim-preset-example {
+    flex: 0 0 auto;
+    width: 14rem;
+    max-width: 100%;
+}
+
+.claim-preset-example-wrapper {
+    flex: 0 0 auto;
     display: flex;
-    flex-direction: column;
     gap: var(--ds-size-2);
-    width: 100%;
-    justify-content: flex-start;
+    align-items: center;
+    width: auto;
+}
+
+.claim-preset-example-wrapper .ds-input {
+    display: none;
+}
+
+.claim-preset-example-wrapper .ds-button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.claim-remove-btn {
+    flex: 0 0 auto;
+    min-width: unset;
+    padding: var(--ds-size-1) var(--ds-size-2);
+    line-height: 1;
 }
 
 @media (max-width: 639px) {
     .claim {
-        flex-direction: column;
-        align-items: stretch;
+        flex-wrap: wrap;
+        gap: var(--ds-size-2);
+        padding: var(--ds-size-3);
+        background: var(--ds-color-neutral-background-default);
+        border-radius: var(--ds-border-radius-md);
+        border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
     }
 
-    .claim > .ds-button {
-        align-self: flex-start;
+    .claim-preset-label {
+        flex: 1 1 auto;
     }
+
+    .claim-remove-btn {
+        flex: 0 0 auto;
+    }
+
+    .claim-preset-example,
+    .claim-preset-example-wrapper {
+        width: 100%;
+        text-align: left;
+    }
+
+    .claim-preset-example-wrapper .ds-button {
+        width: 100%;
+    }
+}
+
+/* =========================================================================
+   Credential editor — mode toggle, preset buttons, two-column layout,
+   preview panel, JSON editor panel
+   ========================================================================= */
+
+/* Mode toggle (tab-like) */
+.mode-toggle {
+    display: flex;
+    gap: var(--ds-size-4);
+    border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    margin-block-start: var(--ds-size-2);
+}
+
+.mode-toggle__btn {
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--ds-color-neutral-text-subtle);
+    font-weight: var(--ds-font-weight-regular);
+    padding-inline: var(--ds-size-2);
+    padding-block: var(--ds-size-3);
+    border-block-end: 2px solid transparent !important;
+    margin-block-end: calc(-1 * var(--ds-border-width-default));
+}
+
+.mode-toggle__btn[aria-selected="true"] {
+    color: var(--ds-color-accent-text-default);
+    font-weight: var(--ds-font-weight-medium);
+    border-block-end-color: var(--ds-color-accent-base-default) !important;
+}
+
+.mode-toggle__btn:hover:not([aria-selected="true"]) {
+    color: var(--ds-color-neutral-text-default);
+}
+
+/* Two-column editor layout */
+.credential-editor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 350px;
+    gap: var(--ds-size-8);
+    align-items: start;
+    margin-block-start: var(--ds-size-10);
+}
+
+.credential-editor__left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-8);
+    min-width: 0;
+}
+
+.credential-editor__right {
+    position: sticky;
+    top: var(--ds-size-6);
+    width: 350px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .credential-editor {
+        grid-template-columns: 1fr;
+        gap: var(--ds-size-8);
+        background: var(--ds-color-neutral-surface-hover);
+        border-radius: var(--ds-border-radius-lg);
+        padding: var(--ds-size-5);
+        border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    }
+
+    .credential-editor__right {
+        position: static;
+        width: 100%;
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+    }
+}
+
+/* Preset buttons */
+.preset-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-size-3);
+}
+
+/* Preview as credential card — like a real credential in the wallet */
+.preview-card {
+    background: var(--ds-color-neutral-background-default, #fff);
+    border-radius: var(--ds-border-radius-lg, 12px);
+    padding: var(--ds-size-8);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-size-5);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--ds-color-neutral-border-subtle);
+    position: relative;
+    color: inherit;
+}
+
+.preview-card__name {
+    font-weight: var(--ds-font-weight-semibold);
+    font-size: var(--ds-body-lg-font-size, 1.125rem);
+    line-height: var(--ds-line-height-sm);
+    text-align: center;
+}
+
+.preview-card__spinner {
+    position: absolute;
+    inset-block-start: var(--ds-size-3);
+    inset-inline-end: var(--ds-size-3);
+}
+
+.preview-card__body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ds-size-5);
+    width: 100%;
+}
+
+.preview-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    width: 100%;
+}
+
+.preview-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--ds-size-3);
+    font-size: var(--ds-body-sm-font-size, 0.875rem);
+    padding-block: var(--ds-size-1);
+}
+
+.preview-label {
+    font-weight: var(--ds-font-weight-regular);
+    opacity: 0.7;
+}
+
+.preview-value {
+    font-weight: var(--ds-font-weight-medium);
+    color: inherit;
+    overflow-wrap: break-word;
+    text-align: right;
+}
+
+.preview-card__portrait {
+    width: 96px;
+    height: 96px;
+    border-radius: var(--ds-border-radius-md, 4px);
+    overflow: hidden;
+    border: 1px solid var(--ds-color-neutral-border-subtle);
+    background: var(--ds-color-neutral-background-tinted);
+    flex: 0 0 auto;
+}
+
+.preview-card__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#preview-spinner[hidden] {
+    display: none !important;
+}
+
+.preview-actions {
+    display: flex;
+    justify-content: center;
+    margin-block-start: var(--ds-size-4);
+}
+
+.preview-reset-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-size-2);
+    color: var(--ds-color-neutral-text-subtle);
+}
+
+.preview-reset-btn:hover {
+    color: var(--ds-color-neutral-text-default);
+}
+
+/* Form actions */
+.form-actions {
+    display: flex;
+    gap: var(--ds-size-4);
+    align-items: center;
+    margin-block-start: var(--ds-size-10);
+    padding-block-start: var(--ds-size-6);
+    border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+}
+
+/* JSON editor panel */
+.json-editor-wrapper {
+    position: relative;
+    margin-block-start: var(--ds-size-10);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-3);
+}
+
+.json-editor-wrapper .ds-heading {
+    margin: 0;
+}
+
+/* Card design section under JSON */
+.json-design-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    padding: var(--ds-size-5);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-md);
+    background: var(--ds-color-neutral-background-default);
+    margin-block-start: var(--ds-size-6);
+}
+
+.json-design-section .ds-heading {
+    margin: 0;
+    font-size: var(--ds-body-md-font-size);
+}
+
+/* Color controls in JSON mode */
+.color-controls {
+    display: flex;
+    gap: var(--ds-size-4);
+    flex-wrap: wrap;
+}
+
+.color-control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    flex: 1;
+    min-width: 150px;
+}
+
+.color-control .ds-label {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+}
+
+.color-input {
+    height: 40px;
+    padding: var(--ds-size-2);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-sm);
+    cursor: pointer;
+}
+
+.color-input:hover {
+    border-color: var(--ds-color-accent-border-default);
+}
+
+/* Override existing .json-editor rule to work in the wrapper */
+.json-editor {
+    display: block;
+    width: 100%;
+    min-block-size: 300px;
+    block-size: min(60vh, 600px);
+    max-block-size: 70vh;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: var(--ds-body-sm-font-size);
+    resize: vertical;
+    overflow-y: auto;
+    white-space: pre;
+    padding: var(--ds-size-4);
+}
+
+.json-badge {
+    position: absolute;
+    bottom: var(--ds-size-3);
+    right: var(--ds-size-3);
+    font-size: var(--ds-body-xs-font-size);
+    font-weight: var(--ds-font-weight-medium);
+    padding: var(--ds-size-1) var(--ds-size-3);
+    border-radius: var(--ds-border-radius-full, 99px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.json-badge--valid {
+    background: var(--ds-color-success-surface-tinted);
+    color: var(--ds-color-success-text-default);
+}
+
+.json-badge--invalid {
+    background: var(--ds-color-danger-surface-tinted);
+    color: var(--ds-color-danger-text-default);
 }

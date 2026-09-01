@@ -102,6 +102,17 @@ Use semantic tokens by purpose, never by whichever value looks closest. Do not i
 
 Product-specific layout values, such as an established container width, breakpoint, intrinsic media size or aspect ratio, may stay local when no token exists. Reuse the existing layout contract and explain any genuinely new value.
 
+## Page composition
+
+Always treat the page as one whole, not a sequence of local fixes. An element that is correct in isolation can still break the page when placed next to its neighbours.
+
+- **Think in blocks.** A block is a semantic group with one job: metadata fields, mode toggle, claims list, preview, form actions. Group the markup so the block is one container with its own internal rhythm.
+- **Related blocks sit together.** Blocks that belong to the same task or context share one parent and internal gap. Blocks that are distinct concerns are separated by a larger margin — `margin-block-start/end` on the block itself, not one-off offsets inside children. Distance inside a group is always smaller than distance between groups.
+- **Generous separation beats cramped.** Err on the side of more space between component groups, not less. When blocks blur together the page reads as one undifferentiated mass; distinct margins make each group's role legible at a glance.
+- **One spacing source per level.** The parent owns spacing between blocks; a block owns spacing between its children. Never let a child reach outside its block with margins, and never stack margins and padding to patch a gap.
+- **Judge the whole, not the crop.** Before finishing, view the page top to bottom at mobile and desktop widths. Check that blocks read as blocks: clear separation between concerns, no cramped stacking, no element floating without belonging to a group. Compare against digdir.no and the closest equivalent surface in the repository for how blocks are grouped and separated.
+- **Consistency over local fixes.** When a block pattern exists elsewhere in the product (form actions with top border, card with padding, section with heading + content), reuse that contract instead of composing a new arrangement for the same role.
+
 ## Consistency
 
 Standardise elements only when they share role, hierarchy and context.
@@ -136,7 +147,7 @@ Scale to the risk. A one-property correction inside an already valid component n
 4. Map comparable roles: component, semantic element, DOM structure, variant, colour, size, tokens, parent-owned gaps, states and responsive behaviour.
 5. Classify the findings, then take the smallest valid fix from the reuse ladder. Structure before styling.
 6. Implement coherently: correct directly coupled token, spacing, state and accessibility drift inside the perimeter.
-7. Zoom out. Never judge the result from the edited crop. Inspect the whole page or flow at mobile and desktop widths, compare it against the shared shell and the closest equivalent surface, and ask whether it reads as one coherent product. Fix obvious in-scope drift before finishing.
+7. Zoom out. Never judge the result from the edited crop. Inspect the whole page or flow at mobile and desktop widths: every element must belong to a clear block, related blocks sit together, and distinct blocks are separated by a visibly larger margin. Compare against the shared shell and the closest equivalent surface, and ask whether it reads as one coherent product. Fix obvious in-scope drift before finishing.
 8. Run a skeptic pass. Remove anything that introduces a new visual direction, duplicates a contract, broadens scope without evidence, or cannot be justified by Designsystemet.
 
 **Done when** the runtime is understood and no undocumented API or assumed behaviour was introduced; the markup matches the loaded component contract; keyboard path, focus order, accessible names and announcements work; applicable WCAG 2.2 AA requirements pass; layout, states and every supported colour scheme hold at mobile and desktop widths; one corrected instance and one comparable reference were checked side by side and shared consumers remain correct; the whole page reads as one system; and no unnecessary custom value, duplicate class or override was added. Any rendered or interactive check you could not run stays explicit, never reported as verified.
