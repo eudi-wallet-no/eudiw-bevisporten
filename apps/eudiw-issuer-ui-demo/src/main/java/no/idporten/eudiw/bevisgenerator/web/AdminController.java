@@ -3,6 +3,7 @@ package no.idporten.eudiw.bevisgenerator.web;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.bevisgenerator.byob.CredentialService;
 import no.idporten.eudiw.bevisgenerator.config.BevisgeneratorProperties;
+import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.web.models.AddCredentialForm;
@@ -126,7 +127,7 @@ public class AdminController {
 
             SimpleCredentialForm resolved = resolveFromRawJson(form, bindingResult);
             if (bindingResult.hasErrors()) {
-                return new ModelAndView("add-new", "form", form);
+                return addCredentialFormWithErrors(form);
             }
 
             credentialService.storeCredential(resolved);
@@ -136,12 +137,28 @@ public class AdminController {
 
         if (bindingResult.hasErrors()) {
             logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
-            return new ModelAndView("add-new", "form", form);
+            return addCredentialFormWithErrors(form);
         }
 
         credentialService.storeCredential(form);
 
         return new ModelAndView("redirect:/admin");
+    }
+
+    private ModelAndView addCredentialFormWithErrors(SimpleCredentialForm form) {
+        if (form.rawJson() != null && !form.rawJson().isBlank()) {
+            return new ModelAndView("add-new", "form", form)
+                    .addObject("credentialJson", form.rawJson());
+        }
+
+        try {
+            String credentialJson = objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(new CredentialDefinition(form));
+            return new ModelAndView("add-new", "form", form)
+                    .addObject("credentialJson", credentialJson);
+        } catch (JacksonException e) {
+            throw new IssuerUiException("Failed to serialize invalid credential form", e);
+        }
     }
 
     @GetMapping("/edit-credential-new/{credential_type}")
