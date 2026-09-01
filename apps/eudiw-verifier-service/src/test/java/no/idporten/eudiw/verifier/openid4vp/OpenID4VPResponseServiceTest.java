@@ -33,6 +33,9 @@ class OpenID4VPResponseServiceTest {
     JsonMapper jsonMapper;
 
     @Mock
+    MDocService mDocService;
+
+    @Mock
     private VerificationTransactionService verificationService;
 
     @Autowired
@@ -44,7 +47,7 @@ class OpenID4VPResponseServiceTest {
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
         RestClient trustlistRestClient = builder.build();
-        openID4VPResponseService = new OpenID4VPResponseService(verificationService,tokenStatuslistService, trustlistService, jsonMapper);
-        trustlistService = new TrustlistService(trustlistRestClient, trustlistConfig);
+//        openID4VPResponseService = new OpenID4VPResponseService(verificationService,tokenStatuslistService, trustlistService, jsonMapper, mDocService);
+//        trustlistService = new TrustlistService(trustlistRestClient, trustlistConfig);
     }
 }

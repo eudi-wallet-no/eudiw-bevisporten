@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.net.URI;
 
-public record StatusMDoc(
+public record StatuslistEntry(
         @NotBlank String idx,
         @NotNull URI uri
 ) {
