@@ -1052,12 +1052,12 @@ footer ul {
     gap: var(--ds-size-5);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--ds-color-neutral-border-subtle);
     position: relative;
+    color: inherit;
 }
 
 .preview-card__name {
     font-weight: var(--ds-font-weight-semibold);
     font-size: var(--ds-body-lg-font-size, 1.125rem);
-    color: var(--ds-color-neutral-text-default);
     line-height: var(--ds-line-height-sm);
     text-align: center;
 }
@@ -1093,13 +1093,13 @@ footer ul {
 }
 
 .preview-label {
-    color: var(--ds-color-neutral-text-subtle);
     font-weight: var(--ds-font-weight-regular);
+    opacity: 0.7;
 }
 
 .preview-value {
     font-weight: var(--ds-font-weight-medium);
-    color: var(--ds-color-neutral-text-default);
+    color: inherit;
     overflow-wrap: break-word;
     text-align: right;
 }
