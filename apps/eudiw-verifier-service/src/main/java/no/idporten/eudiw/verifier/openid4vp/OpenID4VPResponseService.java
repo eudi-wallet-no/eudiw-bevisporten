@@ -35,7 +35,10 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
@@ -121,16 +124,7 @@ public class OpenID4VPResponseService {
             validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord, status)));
             validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
         }
-        ValidationStatus statusForCredential;
-        if(status == ValidationStatus.INVALID || trustlistStatus == ValidationStatus.INVALID) {
-            statusForCredential = ValidationStatus.INVALID;
-        } else if(status == ValidationStatus.INCONCLUSIVE || trustlistStatus == ValidationStatus.INCONCLUSIVE) {
-            statusForCredential = ValidationStatus.INCONCLUSIVE;
-        } else {
-            statusForCredential = ValidationStatus.VALID;
-        }
-
-        return new VerifiedCredential(claims, ValidationStatus.VALID == statusForCredential, validationDetails);
+        return new VerifiedCredential(claims, ValidationStatus.VALID == status && ValidationStatus.VALID == trustlistStatus, validationDetails);
     }
 
     protected VerifiedCredential handleMDoc(String vpToken, boolean includeValidationDetails) {
@@ -143,13 +137,14 @@ public class OpenID4VPResponseService {
         verifyMDoc(mdc);
         mDocClaims(mdc.getIssuerSigned(), claims);
         ValidationStatus mdocStatuslist = verificationStatusMdoc(mdc);
-        //TODO: trustlist mdoc
+        ValidationStatus mdocTrustlist = mdocTrustlistCheck(extractCertificateFromMdoc(mdc));
         List<ValidationDetail> validationDetails = new ArrayList<>();
         if (includeValidationDetails) {
-            //TODO: add validation details both for trustlist and statuslist. Remove hard coded value
+            //TODO: move method for validationDetail for sdjwt into fitting place and generalize for mdoc and sdjwt
             validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, mdocStatuslist, "status list check"));
+            validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, mdocTrustlist, trustlistService.getValidationDetail(mdocTrustlist)));
         }
-        return new VerifiedCredential(claims, ValidationStatus.VALID == mdocStatuslist, validationDetails);
+        return new VerifiedCredential(claims, ValidationStatus.VALID == mdocStatuslist && ValidationStatus.VALID == mdocTrustlist, validationDetails);
     }
 
     protected void verifyMDoc(MDoc mDoc) {
@@ -161,7 +156,6 @@ public class OpenID4VPResponseService {
         mDoc.verifyIssuerSignedItems();
         mDoc.verifyValidity();
     }
-
 
     /**
      * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
@@ -197,6 +191,7 @@ public class OpenID4VPResponseService {
             validationStatus = ValidationStatus.VALID;
             return validationStatus;
         }
+
         if (statusMdoc.uri() != null && StringUtils.hasText(statusMdoc.uri().toString())) {
            return lookupStatusFromStatuslist(statusMdoc.uri(), statusMdoc.idx());
         } else {
@@ -385,5 +380,27 @@ public class OpenID4VPResponseService {
 
     }
 
+    protected ValidationStatus mdocTrustlistCheck(X509Certificate certificate) {
+        return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate);
+    }
 
+    protected X509Certificate extractCertificateFromMdoc(MDoc mDoc) {
+        IssuerSigned issuerSigned = mDoc.getIssuerSigned();
+        if (issuerSigned.getIssuerAuth() == null) {
+            throw new VerificationException("invalid_request", "issuerAuth is missing in mdoc");
+            }
+        var issuerAuth = issuerSigned.getIssuerAuth();
+        List<byte[]> x5chain = issuerAuth.getX5Chain();
+        if (x5chain == null || x5chain.isEmpty()) {
+            throw new VerificationException("invalid_request", "x5chain is missing in issuerAuth of mdoc");
+        }
+        byte[] leafDer = x5chain.getFirst();
+        try {
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
+            return cert;
+        } catch (CertificateException e) {
+            throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc",e);
+        }
+    }
 }
