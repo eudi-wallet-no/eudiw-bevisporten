@@ -15,6 +15,7 @@ Code should read as a short, unsurprising sequence of steps. Optimize for the re
 
 - Give each function one responsibility: perform one step or orchestrate clearly named steps.
 - Extract a helper only when its name makes the workflow easier to read.
+- When parsing or transforming structured data (JSON, XML, domain objects), extract each field or branch into a named helper method. This keeps the primary flow readable and each extraction logic self-documenting.
 - Prefer returned values over mutating inputs.
 - Keep decisions and transformations separate from I/O and state changes.
 

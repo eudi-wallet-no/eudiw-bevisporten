@@ -207,32 +207,52 @@ public class AdminController {
                 }
             }
 
-            JsonNode exampleData = root.path("example_credential_data");
-            List<ClaimForm> claims = new ArrayList<>();
-            JsonNode claimsArray = root.path("credential_metadata").path("claims");
-            if (claimsArray.isArray()) {
-                for (JsonNode claimNode : claimsArray) {
-                    String path = claimNode.path("path").asText("");
-                    String displayName = path;
-                    JsonNode claimDisplay = claimNode.path("display");
-                    if (claimDisplay.isArray() && !claimDisplay.isEmpty()) {
-                        displayName = claimDisplay.get(0).path("name").asText(path);
-                    }
-                    String type = claimNode.has("value_type") ? claimNode.path("value_type").asText("string") : "string";
-                    String exampleValue = "";
-                    if (!exampleData.isMissingNode() && exampleData.has(path)) {
-                        JsonNode val = exampleData.get(path);
-                        exampleValue = val.isTextual() ? val.asText() : val.toString();
-                    }
-                    claims.add(new ClaimForm(path, displayName, type, null, exampleValue));
-                }
-            }
-
+            List<ClaimForm> claims = parseClaimsFromJson(root);
             return new SimpleCredentialForm(form.credentialType(), form.format(), form.scope(), name, claims, null);
         } catch (JacksonException e) {
             bindingResult.reject("rawJson.invalid", "Ugyldig JSON: " + e.getMessage());
             return form;
         }
+    }
+
+    private List<ClaimForm> parseClaimsFromJson(JsonNode root) {
+        List<ClaimForm> claims = new ArrayList<>();
+        JsonNode exampleData = root.path("example_credential_data");
+        JsonNode claimsArray = root.path("credential_metadata").path("claims");
+
+        if (!claimsArray.isArray()) {
+            return claims;
+        }
+
+        for (JsonNode claimNode : claimsArray) {
+            String path = claimNode.path("path").asText("");
+            String displayName = extractClaimDisplayName(claimNode, path);
+            String type = extractClaimType(claimNode);
+            String exampleValue = extractClaimExampleValue(exampleData, path);
+            claims.add(new ClaimForm(path, displayName, type, null, exampleValue));
+        }
+
+        return claims;
+    }
+
+    private String extractClaimDisplayName(JsonNode claimNode, String defaultValue) {
+        JsonNode claimDisplay = claimNode.path("display");
+        if (claimDisplay.isArray() && !claimDisplay.isEmpty()) {
+            return claimDisplay.get(0).path("name").asText(defaultValue);
+        }
+        return defaultValue;
+    }
+
+    private String extractClaimType(JsonNode claimNode) {
+        return claimNode.has("value_type") ? claimNode.path("value_type").asText("string") : "string";
+    }
+
+    private String extractClaimExampleValue(JsonNode exampleData, String path) {
+        if (exampleData.isMissingNode() || !exampleData.has(path)) {
+            return "";
+        }
+        JsonNode val = exampleData.get(path);
+        return val.isTextual() ? val.asText() : val.toString();
     }
 
 }
