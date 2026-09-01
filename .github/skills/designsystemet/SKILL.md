@@ -12,13 +12,13 @@ Use its components directly in applications that already load it or are being mi
 
 ## Mandate
 
-Make the existing design more correct, consistent and accessible without redesigning it. Preserve information architecture, content, behaviour, brand, visual direction and hierarchy unless the task changes them. The result must still look and behave like the same product: no new layout model, component role, colour strategy, density, navigation pattern or visual identity slipped in as "polish".
+Make the existing design more correct, consistent and accessible without redesigning it. Information architecture, content, brand, visual identity, visual direction, hierarchy, layout model, component roles, colour strategy, density and navigation pattern stay as they are unless the task changes them. Nothing new is slipped in as "polish".
+
+Production behaviour is the baseline contract: control types, interaction model, state transitions, validation, submitted values and navigation stay as they are unless the request changes them. Propose an alternative separately; never substitute it into the implementation.
 
 The requested outcome is the main job. Finish it first, and do not let adjacent cleanup dilute or delay it.
 
-Implement the fix, do not only report it. Inspect the whole affected composition and correct directly coupled violations and drift in the same change, even where the user did not name them. Keep the perimeter narrow: the edited component, comparable instances with the same role, shared consumers, and the closest reference surface. A contained correction inside that perimeter goes straight in. If it changes a shared component used by several flows, spans applications, or needs a layout or interaction decision, follow the repository's proposal rule first.
-
-Production behaviour is the baseline contract. Control types, interaction model, state transitions, validation, submitted values and navigation stay as they are unless the request changes them. Propose an alternative separately; never substitute it into the implementation.
+Implement the fix, do not only report it. Inspect the whole affected composition and correct directly coupled violations and drift in the same change, even where the user did not name them, inside a narrow perimeter: the edited component, comparable instances with the same role, shared consumers, and the closest reference surface. A contained correction goes straight in. Follow the repository's proposal rule first when the change touches a shared component used by several flows, spans applications, or needs a layout or interaction decision.
 
 ## Two contracts
 
@@ -96,7 +96,7 @@ Use semantic tokens by purpose, never by whichever value looks closest. Do not i
 
 **Colour.** Prefer `data-color` and semantic `--ds-color-*` over raw values. Background for page layers, Surface for raised content, Border for edges, Text for text and icons, Base for solid emphasis. `border-subtle` is decorative and cannot be the only sign that something is interactive. `data-color-scheme` resets colour variables at that boundary, so reapply `data-color` when you need both. Alert, ValidationMessage and ErrorSummary keep their severity colours and do not inherit brand colours. Components documented as neutral in the loaded version, such as Dialog or Modal and Tooltip, ignore arbitrary `data-color`; other cascading components inherit the nearest one. A token name alone does not guarantee contrast, so verify the final foreground and background pair after inheritance and state styles.
 
-**Size and spacing.** Use `--ds-size-*` for gap, padding and margin, and let the flex or grid parent own spacing between direct children. Keep related content closer than separate sections. Define component, group and section rhythm explicitly instead of relying on browser margins, `<br>`, empty elements or one-off offsets. Hold one `sm`, `md` or `lg` size mode per context; mixing sizes must express real hierarchy, not patch a layout problem. `data-size` sets size mode for most components but sets typography or dimensions for documented exceptions such as Heading, Paragraph, Avatar and Spinner, so verify against the loaded version.
+**Size and spacing.** Use `--ds-size-*` for gap, padding and margin, and let the flex or grid parent own spacing between direct children. Define component, group and section rhythm explicitly instead of relying on browser margins, `<br>`, empty elements or one-off offsets. Hold one `sm`, `md` or `lg` size mode per context; mixing sizes must express real hierarchy, not patch a layout problem. `data-size` sets size mode for most components but sets typography or dimensions for documented exceptions such as Heading, Paragraph, Avatar and Spinner, so verify against the loaded version.
 
 **Typography, shape and elevation.** Use Designsystemet typography classes and variables; semantic heading level and visual size are separate decisions. Use the configured `--ds-font-family`, and with Inter keep the documented weights and lowercase-l feature setting. Use radius, border-width, opacity and shadow tokens. Shadows mean elevation, not decoration, so prefer edges on dark surfaces. Keep the product's icon library; a replacement icon must preserve the meaning.
 
@@ -104,14 +104,12 @@ Product-specific layout values, such as an established container width, breakpoi
 
 ## Page composition
 
-Always treat the page as one whole, not a sequence of local fixes. An element that is correct in isolation can still break the page when placed next to its neighbours.
+Treat the page as one whole, not a sequence of local fixes. An element that is correct in isolation can still break the page next to its neighbours.
 
 - **Think in blocks.** A block is a semantic group with one job: metadata fields, mode toggle, claims list, preview, form actions. Group the markup so the block is one container with its own internal rhythm.
-- **Related blocks sit together.** Blocks that belong to the same task or context share one parent and internal gap. Blocks that are distinct concerns are separated by a larger margin — `margin-block-start/end` on the block itself, not one-off offsets inside children. Distance inside a group is always smaller than distance between groups.
-- **Generous separation beats cramped.** Err on the side of more space between component groups, not less. When blocks blur together the page reads as one undifferentiated mass; distinct margins make each group's role legible at a glance.
+- **Related blocks sit together.** Blocks in the same task or context share one parent and internal gap. Distinct concerns are separated by a larger margin — `margin-block-start/end` on the block itself, not one-off offsets inside children. Distance inside a group is always smaller than distance between groups, and err towards more space between groups: when blocks blur together the page reads as one undifferentiated mass.
 - **One spacing source per level.** The parent owns spacing between blocks; a block owns spacing between its children. Never let a child reach outside its block with margins, and never stack margins and padding to patch a gap.
-- **Judge the whole, not the crop.** Before finishing, view the page top to bottom at mobile and desktop widths. Check that blocks read as blocks: clear separation between concerns, no cramped stacking, no element floating without belonging to a group. Compare against digdir.no and the closest equivalent surface in the repository for how blocks are grouped and separated.
-- **Consistency over local fixes.** When a block pattern exists elsewhere in the product (form actions with top border, card with padding, section with heading + content), reuse that contract instead of composing a new arrangement for the same role.
+- **Judge the whole, not the crop.** Before finishing, view the page top to bottom at mobile and desktop widths: every element belongs to a clear block, related blocks sit together, and distinct blocks are visibly separated. Compare against digdir.no and the closest equivalent surface in the repository.
 
 ## Consistency
 
@@ -119,7 +117,7 @@ Standardise elements only when they share role, hierarchy and context.
 
 - Header, main content and footer use the intended shared container edges, max-width and responsive side padding.
 - Comparable page intros use the same wrapper, readable text width, heading treatment and internal gap.
-- Repeated cards, form groups, action groups and navigation regions use the same component, variant, structure, token rhythm and responsive behaviour.
+- Repeated cards, form groups, action groups, navigation regions and block arrangements use the same component, variant, structure, token rhythm and responsive behaviour. Where a pattern for the role already exists, reuse that contract instead of composing a new arrangement.
 - Persistent actions and step navigation are separated from the content they complete, with a shared composition and a semantic border token.
 - Mobile may be denser, but keeps the same hierarchy, semantics, states and repeated rhythm.
 
@@ -147,7 +145,7 @@ Scale to the risk. A one-property correction inside an already valid component n
 4. Map comparable roles: component, semantic element, DOM structure, variant, colour, size, tokens, parent-owned gaps, states and responsive behaviour.
 5. Classify the findings, then take the smallest valid fix from the reuse ladder. Structure before styling.
 6. Implement coherently: correct directly coupled token, spacing, state and accessibility drift inside the perimeter.
-7. Zoom out. Never judge the result from the edited crop. Inspect the whole page or flow at mobile and desktop widths: every element must belong to a clear block, related blocks sit together, and distinct blocks are separated by a visibly larger margin. Compare against the shared shell and the closest equivalent surface, and ask whether it reads as one coherent product. Fix obvious in-scope drift before finishing.
+7. Zoom out. Never judge the result from the edited crop: run the Page composition check on the whole page or flow, compare against the shared shell, and fix obvious in-scope drift before finishing.
 8. Run a skeptic pass. Remove anything that introduces a new visual direction, duplicates a contract, broadens scope without evidence, or cannot be justified by Designsystemet.
 
 **Done when** the runtime is understood and no undocumented API or assumed behaviour was introduced; the markup matches the loaded component contract; keyboard path, focus order, accessible names and announcements work; applicable WCAG 2.2 AA requirements pass; layout, states and every supported colour scheme hold at mobile and desktop widths; one corrected instance and one comparable reference were checked side by side and shared consumers remain correct; the whole page reads as one system; and no unnecessary custom value, duplicate class or override was added. Any rendered or interactive check you could not run stays explicit, never reported as verified.

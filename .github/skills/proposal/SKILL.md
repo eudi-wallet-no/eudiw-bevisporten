@@ -11,7 +11,7 @@ Deliver a standalone plan before implementing. Use it for multi-file changes, ar
 
 ## Principles
 
-- **Ground truth first.** Read the files you will actually edit, in the workspace you will actually edit them in: right repo root, synced with the default branch, files confirmed to exist in this tree. A monorepo can hold several checkouts of the same repo, and a stale one gives you a plan full of paths and line numbers that do not exist. That is worse than no plan.
+- **Ground truth first.** Read the files you will actually edit, in the workspace you will actually edit them in: right repo root, synced with the default branch, files confirmed to exist in this tree. A monorepo can hold several checkouts of the same repo, and a stale one yields a plan full of paths and line numbers that do not exist — worse than no plan.
 - **Map before proposing.** Find the change locations, who calls in, what flows next, what breaks. Keep the findings out of the plan unless they shape the decision.
 - **No code claim without `file:line`** — from a file you opened in this workspace, never from memory or another checkout.
 - **Reuse first.** Take the simplest approach that fits existing patterns. Design a new pattern only when none fits, and say why.
@@ -40,26 +40,13 @@ git log --oneline -5 -- <file>     # settled area, or mid-migration?
 
 Finally create the tasks as SQL todos with dependencies. Each description carries its own test strategy and done-when condition; do not repeat that detail in the plan.
 
-## Before presenting: resolve ambiguity yourself
+## Before presenting
 
-Before presenting a plan, identify every open question that would block or change the implementation. Try to answer them from the codebase first (existing patterns, data models, examples). Only ask the user what cannot be found or inferred.
+Resolve every question that would block or change the implementation. Answer from the codebase first — existing patterns, data models, examples — and ask the user only what cannot be found or inferred. Never leave a blocking question for the user to discover during review.
 
-Present the plan only when all blocking questions are resolved. Do not leave them for the user to discover during review.
+For significant layout or interaction changes, offer ASCII sketches, so a misreading surfaces before implementation rather than after.
 
-## Rubber Duck Review (optional, if available)
-
-If rubber duck review is enabled in your Copilot environment, use it before presenting the plan for approval to catch missing behavior, state, accessibility, and integration cases:
-
-1. **For non-trivial changes** (multi-file, architectural decisions, new patterns), invoke the rubber duck agent to review the draft plan
-2. **Ask about:** missing states or behaviors, edge cases, accessibility requirements, integration points with other features, error handling, and data consistency
-3. **Revise the plan** based on findings before presenting it for sign-off
-4. **For trivial changes** (one-file, clear scope, no cross-cutting concerns), skip this step and proceed to present
-
-This catches real requirements early, when the plan is cheap to revise—before changes become expensive.
-
-## ASCII sketches for UI changes
-
-For significant layout or interaction changes, offer ASCII sketches before presenting the plan. The goal is shared understanding — catching misinterpretations early, before implementation begins.
+For non-trivial changes, have the rubber duck agent review the draft plan first, if it is available in your Copilot environment: missing states and behaviors, edge cases, accessibility, integration points, error handling, data consistency. Revise, then present. Skip it for one-file changes with clear scope and no cross-cutting concerns. Requirements are cheapest to fix while the plan is still a plan.
 
 ## Present
 
