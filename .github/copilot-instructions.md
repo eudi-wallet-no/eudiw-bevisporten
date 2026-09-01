@@ -24,7 +24,7 @@ After a large change or a long conversation, note what would have helped from th
 
 Every task has a JIRA-ID. **Ask for it** if you did not get one — never invent it.
 
-- **Branch:** `<jira-id>`, for example `euw-1234`. No free text. If the name is taken: `euw-1234-2`, `euw-1234-3`.
+- **Branch:** `<jira-id>`, using the exact casing the user gave, for example `EUW-1234` if that is how it was given. No free text. If the name is taken: `<jira-id>-2`, `<jira-id>-3`.
 - **PR title:** `<JIRA-ID>: <tittel på norsk>`, for example `EUW-1234: Ny funksjon`. Without the prefix the `validate-pr-title` check fails.
 - **PR description:** Norwegian, short and concrete. No AI phrasing ("Denne PR-en introduserer ..."), no emojis, no self-praise, no summary walls. One line is fine for a trivial change.
 
