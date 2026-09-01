@@ -475,7 +475,7 @@ function buildClaimRow(claim, i) {
     fileInput.accept = 'image/*';
     fileInput.style.display = 'none';
     fileInput.addEventListener('change', (e) => {
-      handleImageUpload(e, exampleInput, i);
+      handleImageUpload(e, exampleInput, uploadBtn, i);
     });
 
     const uploadBtn = document.createElement('button');
@@ -483,15 +483,15 @@ function buildClaimRow(claim, i) {
     uploadBtn.className = 'ds-button';
     uploadBtn.setAttribute('data-variant', 'secondary');
     uploadBtn.setAttribute('aria-label', `Last opp bilde for ${claim.displayName || claim.path}`);
-    uploadBtn.textContent = 'Last opp';
+    uploadBtn.textContent = claim.exampleValue ? '✓ Bilde lastet opp' : 'Last opp bilde';
     uploadBtn.addEventListener('click', (e) => {
       e.preventDefault();
       fileInput.click();
     });
 
-    wrapper.appendChild(exampleInput);
     wrapper.appendChild(uploadBtn);
     wrapper.appendChild(fileInput);
+    wrapper.appendChild(exampleInput);  // Hidden input for form submission
     exampleInputContainer = wrapper;
   }
 
@@ -533,7 +533,7 @@ function buildClaimRow(claim, i) {
 // ---------------------------------------------------------------------------
 // Handle image upload for binary claims
 // ---------------------------------------------------------------------------
-function handleImageUpload(event, inputElement, claimIndex) {
+function handleImageUpload(event, inputElement, uploadButton, claimIndex) {
   const file = event.target.files?.[0];
   if (!file) return;
 
@@ -559,6 +559,8 @@ function handleImageUpload(event, inputElement, claimIndex) {
       if (base64String) {
         inputElement.value = base64String;
         state.claims[claimIndex].exampleValue = base64String;
+        // Update button text to show image is uploaded
+        uploadButton.textContent = '✓ Bilde lastet opp';
         schedulePreviewUpdate();
       } else {
         alert('Feil: kunne ikke konvertere bilde til base64');

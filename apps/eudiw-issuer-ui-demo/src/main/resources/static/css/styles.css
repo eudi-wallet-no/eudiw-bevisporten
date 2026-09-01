@@ -909,12 +909,11 @@ footer ul {
     display: flex;
     gap: var(--ds-size-2);
     align-items: center;
-    width: 12rem;
+    width: auto;
 }
 
 .claim-preset-example-wrapper .ds-input {
-    flex: 1 1 auto;
-    min-width: 0;
+    display: none;
 }
 
 .claim-preset-example-wrapper .ds-button {
