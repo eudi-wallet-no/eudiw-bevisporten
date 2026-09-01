@@ -387,7 +387,7 @@ public class OpenID4VPResponseService {
     protected X509Certificate extractCertificateFromMdoc(MDoc mDoc) {
         IssuerSigned issuerSigned = mDoc.getIssuerSigned();
         if (issuerSigned.getIssuerAuth() == null) {
-                throw new VerificationException("invalid_request", "issuerAuth is missing in mdoc");
+            throw new VerificationException("invalid_request", "issuerAuth is missing in mdoc");
             }
         var issuerAuth = issuerSigned.getIssuerAuth();
         List<byte[]> x5chain = issuerAuth.getX5Chain();
@@ -396,11 +396,11 @@ public class OpenID4VPResponseService {
         }
         byte[] leafDer = x5chain.getFirst();
         try {
-                CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
-                return cert;
-            } catch (CertificateException e) {
-                throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc",e);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
+            return cert;
+        } catch (CertificateException e) {
+            throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc",e);
         }
     }
 }
