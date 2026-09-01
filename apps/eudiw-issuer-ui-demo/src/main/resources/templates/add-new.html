@@ -136,8 +136,16 @@
         <div id="json-panel" hidden>
             <div class="json-editor-wrapper">
                 <h2 class="ds-heading" data-size="sm">JSON</h2>
-                
-                <!-- Color controls -->
+                <textarea id="json-editor"
+                          class="ds-input json-editor"
+                          spellcheck="false"
+                          aria-label="BYOB JSON"></textarea>
+                <span id="json-badge" class="json-badge json-badge--invalid">✗ Ugyldig JSON</span>
+            </div>
+            
+            <!-- Card design section -->
+            <div class="json-design-section">
+                <h3 class="ds-heading" data-size="xs">Utforming av kort</h3>
                 <div class="color-controls">
                     <div class="color-control">
                         <label for="bg-color-input" class="ds-label">Bakgrunnsfarge</label>
@@ -150,12 +158,6 @@
                                value="#000000" aria-label="Tekstfarge for bevis">
                     </div>
                 </div>
-                
-                <textarea id="json-editor"
-                          class="ds-input json-editor"
-                          spellcheck="false"
-                          aria-label="BYOB JSON"></textarea>
-                <span id="json-badge" class="json-badge json-badge--invalid">✗ Ugyldig JSON</span>
             </div>
         </div>
 

@@ -1140,6 +1140,21 @@ footer ul {
     margin: 0;
 }
 
+/* Card design section under JSON */
+.json-design-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    padding: var(--ds-size-5);
+    border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    margin-block-start: var(--ds-size-4);
+}
+
+.json-design-section .ds-heading {
+    margin: 0;
+    font-size: var(--ds-body-md-font-size);
+}
+
 /* Color controls in JSON mode */
 .color-controls {
     display: flex;
