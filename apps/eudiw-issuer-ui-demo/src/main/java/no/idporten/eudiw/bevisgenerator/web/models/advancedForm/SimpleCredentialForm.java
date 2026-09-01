@@ -15,8 +15,8 @@ import java.util.Map;
 public record SimpleCredentialForm(
         @NotBlank(message = "Credential type er påkrevd", groups = CreateForm.class)
         @Pattern(
-                regexp = "^[a-z0-9_:]{3,155}",
-                message = "Credential type kan kun bestå av små bokstaver, tall, kolon og understrek.\n Lengde: 3-155 tegn",
+                regexp = "^[a-z0-9_:.]{3,155}$",
+                message = "Credential type kan bare inneholde små bokstaver, tall, kolon, punktum og understrek.\nLengde: 3–155 tegn",
                 groups = CreateForm.class
         )
         @UniqueCredentialType(groups = CreateForm.class)
