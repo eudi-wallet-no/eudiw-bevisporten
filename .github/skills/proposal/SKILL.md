@@ -9,6 +9,10 @@ allowed-tools: ['view', 'grep', 'glob', 'bash']
 
 Deliver a standalone plan before implementing. Use it for multi-file changes, architectural decisions, new patterns, unclear scope, or anything touching other services.
 
+## Challenge the request
+
+Before planning, test the premise at requirements level: does the change conflict with behavior users depend on, treat a symptom where the codebase points to a different cause, create dangerous edge cases, or rest on an assumption you can disprove? If so, stop and say so with evidence before writing the plan — a wrong premise fixed now is the cheapest save there is. Otherwise stay silent and plan.
+
 ## Principles
 
 - **Ground truth first.** Read the files you will actually edit, in the workspace you will actually edit them in: right repo root, synced with the default branch, files confirmed to exist in this tree. A monorepo can hold several checkouts of the same repo, and a stale one yields a plan full of paths and line numbers that do not exist — worse than no plan.
@@ -18,6 +22,7 @@ Deliver a standalone plan before implementing. Use it for multi-file changes, ar
 - **Smallest complete change.** When options solve the task equally well, prefer the smallest change surface: fewer files, concepts, dependencies, state transitions and integrations. Measure impact, not line count. A smaller patch that hides a symptom, duplicates logic or leaves behavior inconsistent is not smaller.
 - **Check for a domain skill.** UI, tests, migrations — read the skill before choosing an approach.
 - **Plan tests, do not run them.** Name the behavior, the expected result and the command.
+- **Scale rigor to risk.** Additive changes and documentation get a thin plan. Auth, payments, schema migrations and core business logic get deeper mapping, more edge-case hunting and a wider caller search.
 - **Never code without sign-off.** The plan is done when it answers: what, where, why this way, how to verify.
 
 ## Investigate
@@ -52,13 +57,13 @@ For non-trivial changes, have the rubber duck agent review the draft plan first,
 
 Keep it short. Investigate thoroughly, but surface only what decides something. No unchanged lines "for completeness". Use this order, so it reads as an argument:
 
-1. **Goal** — one sentence: what outcome, and why.
+1. **Goal** — one sentence: what outcome, and why. State the acceptance criteria and the material assumptions the plan rests on, so disagreement surfaces now, not during implementation.
 2. **Scope** — what changes, what does not, what is out of scope for now.
 3. **Options** — open with prior art: the closest analog in the monorepo (`app/file`), the convention it set, and whether you follow it or deviate. No analog is itself a finding — the choice is then about establishing a pattern, not picking one. Check when the code last changed; an in-progress migration constrains the options more than a settled file does. Then 1-2 realistic approaches, a couple of lines each, with the trade-off stated honestly. If only one approach is sensible, say so in one line instead of inventing a strawman.
 4. **Recommendation** — which option and why. After the options, never before.
 5. **Technical changes** — the locations that change (`file:line`, grouped), the pattern being reused or why none fits, and any gotcha that shapes the approach. 3-6 bullets. Filtered mapping, not dumped mapping.
 6. **Tasks** — task IDs with a one-line goal each. The detail lives in the todo.
-7. **Verification** — how we will know it worked, in one or two lines.
+7. **Verification** — how we will know it worked, in one or two lines. Name the real commands: discover them from instruction files, config and conventions — never invent one.
 
 ## After approval
 
