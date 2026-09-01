@@ -168,6 +168,11 @@ function bindEvents() {
 function switchMode(mode) {
   if (mode === state.mode) return;
 
+  // Hide spinner and cancel any pending preview update
+  clearTimeout(previewTimer);
+  const spinner = document.getElementById('preview-spinner');
+  if (spinner) spinner.hidden = true;
+
   if (state.mode === 'schema') {
     syncStateFromSchemaDOM();
     state.lastValidSchema = JSON.parse(JSON.stringify({ claims: state.claims, name: state.name }));
@@ -213,13 +218,7 @@ function syncTopLevelInputsFromState() {
   if (scopeEl) scopeEl.value = state.scope;
 
   // Sync preset button states
-  document.querySelectorAll('[data-preset-btn]').forEach(btn => {
-    const active = state.activePresets.has(btn.dataset.presetBtn);
-    btn.setAttribute('aria-pressed', String(active));
-    btn.setAttribute('data-variant', active ? 'primary' : 'secondary');
-    const label = PRESET_CLAIMS[btn.dataset.presetBtn]?.label || btn.dataset.presetBtn;
-    btn.textContent = (active ? '✓ ' : '+ ') + label;
-  });
+  syncPresetButtons();
 }
 
 // ---------------------------------------------------------------------------
@@ -271,20 +270,8 @@ function jsonToSchema(jsonStr) {
   hideJsonError();
   populateStateFromJson(parsed);
 
-  // Also sync top-level fields
-  if (parsed.credential_type) {
-    state.credentialType = parsed.credential_type;
-    const el = document.getElementById('credentialType');
-    if (el) el.value = state.credentialType;
-  }
-  if (parsed.scope) {
-    const el = document.getElementById('scope-field');
-    if (el) el.value = state.scope;
-  }
-  if (state.name) {
-    const el = document.getElementById('name-field');
-    if (el) el.value = state.name;
-  }
+  // Sync top-level fields to DOM after state is updated
+  syncTopLevelInputsFromState();
 
   state.lastValidSchema = JSON.parse(JSON.stringify({ claims: state.claims, name: state.name }));
   renderClaims();
@@ -559,6 +546,8 @@ function handleImageUpload(event, inputElement, claimIndex) {
       if (base64String) {
         inputElement.value = base64String;
         state.claims[claimIndex].exampleValue = base64String;
+        // Store the actual MIME type from the file
+        state.claims[claimIndex].mimeType = file.type;
         schedulePreviewUpdate();
       } else {
         alert('Feil: kunne ikke konvertere bilde til base64');
@@ -606,7 +595,8 @@ function renderPreview() {
   const portraitImg = document.getElementById('preview-portrait-img');
   if (portraitContainer && portraitImg) {
     if (portraitClaim && portraitClaim.exampleValue) {
-      portraitImg.src = `data:image/png;base64,${portraitClaim.exampleValue}`;
+      const mimeType = portraitClaim.mimeType || 'image/png';
+      portraitImg.src = `data:${mimeType};base64,${portraitClaim.exampleValue}`;
       portraitContainer.hidden = false;
     } else {
       portraitContainer.hidden = true;
