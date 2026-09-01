@@ -12,7 +12,7 @@ Use its components directly in applications that already load it or are being mi
 
 ## Mandate
 
-Make the existing design more correct, consistent and accessible without redesigning it. Information architecture, content, brand, visual identity, visual direction, hierarchy, layout model, component roles, colour strategy, density and navigation pattern stay as they are unless the task changes them. Nothing new is slipped in as "polish".
+Make the existing design more correct, consistent and accessible without redesigning it. Information architecture, content, brand, visual identity, visual direction, hierarchy, layout model, component roles, colour strategy, density and navigation pattern stay as they are unless the task changes them, or unless they break the runtime contract, which is repaired rather than preserved. Nothing new is slipped in as "polish".
 
 Production behaviour is the baseline contract: control types, interaction model, state transitions, validation, submitted values and navigation stay as they are unless the request changes them. Propose an alternative separately; never substitute it into the implementation.
 
