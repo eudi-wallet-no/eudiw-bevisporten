@@ -167,7 +167,7 @@ function bindEvents() {
   if (bgColorInput) {
     bgColorInput.addEventListener('input', () => {
       state.backgroundColor = bgColorInput.value;
-      if (state.mode === 'avansert') {
+      if (state.mode === 'json') {
         syncJsonTextarea();
       }
       schedulePreviewUpdate();
@@ -178,7 +178,7 @@ function bindEvents() {
   if (textColorInput) {
     textColorInput.addEventListener('input', () => {
       state.textColor = textColorInput.value;
-      if (state.mode === 'avansert') {
+      if (state.mode === 'json') {
         syncJsonTextarea();
       }
       schedulePreviewUpdate();
@@ -307,6 +307,13 @@ function jsonToSchema(jsonStr) {
 
   // Sync top-level fields to DOM after state is updated
   syncTopLevelInputsFromState();
+  
+  // Sync color inputs from state
+  const bgColorInput = document.getElementById('bg-color-input');
+  if (bgColorInput) bgColorInput.value = state.backgroundColor;
+  
+  const textColorInput = document.getElementById('text-color-input');
+  if (textColorInput) textColorInput.value = state.textColor;
 
   state.lastValidSchema = JSON.parse(JSON.stringify({ claims: state.claims, name: state.name }));
   renderClaims();
@@ -617,12 +624,9 @@ function renderPreview() {
   const panel = document.getElementById('preview-panel');
   if (!panel) return;
 
-  // Apply colors to preview card
-  const card = panel.querySelector('.preview-card');
-  if (card) {
-    card.style.backgroundColor = state.backgroundColor;
-    card.style.color = state.textColor;
-  }
+  // Apply colors to preview card (panel is the card)
+  panel.style.backgroundColor = state.backgroundColor;
+  panel.style.color = state.textColor;
 
   const nameEl = panel.querySelector('[data-preview-name]');
   if (nameEl) nameEl.textContent = state.name || 'Bevisnavn';
