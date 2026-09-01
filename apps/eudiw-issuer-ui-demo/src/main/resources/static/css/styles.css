@@ -1007,6 +1007,8 @@ footer ul {
 .credential-editor__right {
     position: sticky;
     top: var(--ds-size-6);
+    max-width: 350px;
+    align-self: start;
 }
 
 @media (max-width: 768px) {
@@ -1017,6 +1019,7 @@ footer ul {
     .credential-editor__right {
         position: static;
         order: -1; /* preview above claims on mobile */
+        max-width: 100%;
     }
 }
 
