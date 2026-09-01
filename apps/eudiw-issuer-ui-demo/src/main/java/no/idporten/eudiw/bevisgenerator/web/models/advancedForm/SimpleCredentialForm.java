@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import no.idporten.eudiw.bevisgenerator.integration.byobservice.CredentialDefinitionFactory;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.web.models.unique.UniqueCredentialType;
 
@@ -37,7 +38,7 @@ public record SimpleCredentialForm(
         String rawJson
 ) {
     public SimpleCredentialForm() {
-        this("", "dc+sd-jwt", "eudiw:eidas2sandkasse:dynamicvc", "", new ArrayList<>(), null);
+        this("", "dc+sd-jwt", CredentialDefinitionFactory.DYNAMIC_CREDENTIAL_SCOPE, "", new ArrayList<>(), null);
     }
 
     public SimpleCredentialForm(CredentialDefinition cd) {
