@@ -67,12 +67,7 @@ function resetCredential() {
   state.textColor = initialState.textColor;
 
   syncTopLevelInputsFromState();
-
-  const bgInput = document.getElementById('bg-color-input');
-  if (bgInput) bgInput.value = state.backgroundColor;
-
-  const textInput = document.getElementById('text-color-input');
-  if (textInput) textInput.value = state.textColor;
+  syncColorInputs();
 
   hideJsonError();
   const customClaimError = document.getElementById('custom-claim-error');
@@ -102,7 +97,7 @@ function populateStateFromJson(json) {
     type: c.value_type || 'string',
     mimeType: c.mime_type || null,
     exampleValue: exampleData[c.path] !== undefined ? String(exampleData[c.path]) : '',
-    presetKey: detectPresetKey(c.path)
+    presetKey: detectPresetKey(c)
   }));
 
   // Sync activePresets from detected claims
@@ -117,9 +112,10 @@ function populateStateFromJson(json) {
   });
 }
 
-function detectPresetKey(path) {
+function detectPresetKey(node) {
+  if (!node || !node.path) return null;
   for (const [key, preset] of Object.entries(PRESET_CLAIMS)) {
-    if (preset.claims.some(p => p.path === path)) return key;
+    if (preset.claims.some(p => p.path === node.path)) return key;
   }
   return null;
 }
@@ -132,6 +128,14 @@ function syncJsonTextarea() {
   }
 }
 
+function syncColorInputs() {
+  const bgInput = document.getElementById('bg-color-input');
+  if (bgInput) bgInput.value = state.backgroundColor;
+
+  const textInput = document.getElementById('text-color-input');
+  if (textInput) textInput.value = state.textColor;
+}
+
 // ---------------------------------------------------------------------------
 // Bind global events (live inputs that exist on page load)
 // ---------------------------------------------------------------------------
@@ -140,13 +144,7 @@ function bindEvents() {
   if (nameInput) {
     nameInput.addEventListener('input', () => {
       generateIds(nameInput.value);
-      if (state.mode === 'json') {
-        const ta = document.getElementById('json-editor');
-        if (ta) {
-          ta.value = schemaToJson();
-          validateJson();
-        }
-      }
+      syncJsonTextarea();
     });
   }
 
@@ -246,12 +244,8 @@ function switchMode(mode) {
     const ta = document.getElementById('json-editor');
     if (ta) ta.value = schemaToJson();
     validateJson();
-    // Sync color inputs
-    const bgInput = document.getElementById('bg-color-input');
-    const textInput = document.getElementById('text-color-input');
-    if (bgInput) bgInput.value = state.backgroundColor;
-    if (textInput) textInput.value = state.textColor;
-  } else {
+    syncColorInputs();
+  } else if (mode === 'schema') {
     renderClaims();
     renderPreview();
     syncTopLevelInputsFromState();
@@ -322,15 +316,9 @@ function jsonToSchema(jsonStr) {
   hideJsonError();
   populateStateFromJson(parsed);
 
-  // Sync top-level fields to DOM after state is updated
+  // Sync top-level fields and color inputs to DOM after state is updated
   syncTopLevelInputsFromState();
-  
-  // Sync color inputs from state
-  const bgColorInput = document.getElementById('bg-color-input');
-  if (bgColorInput) bgColorInput.value = state.backgroundColor;
-  
-  const textColorInput = document.getElementById('text-color-input');
-  if (textColorInput) textColorInput.value = state.textColor;
+  syncColorInputs();
 
   state.lastValidSchema = JSON.parse(JSON.stringify({ claims: state.claims, name: state.name }));
   renderClaims();
@@ -835,7 +823,7 @@ function onSubmit(event) {
       JSON.parse(jsonStr);
     } catch (e) {
       event.preventDefault();
-      showJsonError('Skjemaet kan ikke sendes inn – JSON er ugyldig: ' + e.message);
+      showJsonError('Skjemaet kan ikkje sendast inn – JSON er ugyldig: ' + e.message);
       return;
     }
     if (rawJsonInput) rawJsonInput.value = jsonStr;
@@ -857,22 +845,9 @@ function onSubmit(event) {
 // Render everything
 // ---------------------------------------------------------------------------
 function renderAll() {
-  // Populate top-level inputs from state (useful in edit mode)
-  const nameInput = document.getElementById('name-field');
-  if (nameInput && state.name) nameInput.value = state.name;
-
-  const ctInput = document.getElementById('credentialType');
-  if (ctInput && state.credentialType) ctInput.value = state.credentialType;
-
-  const scopeInput = document.getElementById('scope-field');
-  if (scopeInput && state.scope) scopeInput.value = state.scope;
-
-  // Sync color inputs from state
-  const bgColorInput = document.getElementById('bg-color-input');
-  if (bgColorInput) bgColorInput.value = state.backgroundColor;
-
-  const textColorInput = document.getElementById('text-color-input');
-  if (textColorInput) textColorInput.value = state.textColor;
+  // Populate top-level inputs and color inputs from state (useful in edit mode)
+  syncTopLevelInputsFromState();
+  syncColorInputs();
 
   renderClaims();
   renderPreview();
