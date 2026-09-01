@@ -2,6 +2,7 @@ package no.idporten.eudiw.verifier.trustlist;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
 import no.idporten.eudiw.verifier.trustlist.etsi602.ValueCertificate;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
@@ -120,8 +121,8 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getBevisportenCertificate()+ END_CERTIFICATE);
-        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
-        assertTrue(result);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        assertEquals(ValidationStatus.VALID, result);
     }
 
     @Test
@@ -130,8 +131,8 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getSecondBevisporten()+ END_CERTIFICATE);
-        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
-        assertTrue(result);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        assertEquals(ValidationStatus.VALID, result);
     }
 
     @Test
@@ -146,8 +147,8 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         ValueCertificate valueCertificate = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList());
-        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(valueCertificate.getCertificateAsX509Object());
-        assertTrue(result);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(valueCertificate.getCertificateAsX509Object());
+        assertEquals(ValidationStatus.VALID, result);
     }
 
     @Test
@@ -162,8 +163,8 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist()+ END_CERTIFICATE);
-        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
-        assertFalse(result);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        assertEquals(ValidationStatus.INVALID, result);
     }
 
 
@@ -179,8 +180,8 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDSecondOnList() + END_CERTIFICATE);
-        boolean result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
-        assertTrue(result);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+        assertEquals(ValidationStatus.VALID, result);
     }
 
     @Test

@@ -9,6 +9,5 @@ import java.util.Map;
 @JsonSerialize
 public record VerifiedCredentials (
         Map<String, List<VerifiedCredential>> credentials
-
 ) implements Serializable {
 }

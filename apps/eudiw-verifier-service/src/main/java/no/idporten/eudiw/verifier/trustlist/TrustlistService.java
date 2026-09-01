@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import com.nimbusds.jose.JWSObject;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
@@ -11,6 +12,7 @@ import no.idporten.eudiw.verifier.trustlist.etsi612.DigitalId;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TSPService;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -120,23 +122,23 @@ public class TrustlistService {
         return false;
     }
 
-    public boolean checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert)  {
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert)  {
         String jwsHeaderCertificateIssuer = issuerName(ldapName(cert.getIssuerX500Principal().getName(X500Principal.RFC2253)));
         for(URI uri : listOfTrustlists()){
             if (uri.toString().endsWith("xtsl")) {
                 if (checkXml612(uri, cert, jwsHeaderCertificateIssuer)) {
-                    return true;
+                    return ValidationStatus.VALID;
                 }
             } else if (uri.toString().endsWith("jws")) {
                 if (checkJson602(uri, cert, jwsHeaderCertificateIssuer)) {
-                    return true;
+                    return ValidationStatus.VALID;
                 }
             }
             else {
                 throw new VerificationException("invalid_request", "Unknown trustlist format for trustlist " + uri);
             }
         }
-        return false;
+        return ValidationStatus.INVALID;
     }
 
     public LoTEXml xmlListMapping(String trustlist) {
@@ -176,5 +178,18 @@ public class TrustlistService {
         } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot parse distinguished name", e);
         }
+    }
+
+    public @NonNull String getValidationDetail(ValidationStatus status) {
+        if(ValidationStatus.INCONCLUSIVE == status) {
+            return "Tillitsliste: validering feila";
+        }
+        if (ValidationStatus.VALID == status) {
+            return "Tillitsliste: bevisets sertifikat er på tillitslista";
+        }
+        if (ValidationStatus.INVALID == status) {
+            return "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
+        }
+        return "Tillitsliste: ukjent status";
     }
 }
