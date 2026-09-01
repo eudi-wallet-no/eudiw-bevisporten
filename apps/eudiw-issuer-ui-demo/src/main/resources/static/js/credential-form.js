@@ -59,6 +59,20 @@ const state = {
 // ---------------------------------------------------------------------------
 // Initialise
 // ---------------------------------------------------------------------------
+let initialState = null;
+
+function captureInitialState() {
+  initialState = {
+    name: state.name,
+    credentialType: state.credentialType,
+    scope: state.scope,
+    claims: JSON.parse(JSON.stringify(state.claims)),
+    activePresets: new Set(state.activePresets),
+    backgroundColor: state.backgroundColor,
+    textColor: state.textColor
+  };
+}
+
 function init() {
   const dataEl = document.getElementById('credential-data');
   if (dataEl) {
@@ -69,8 +83,38 @@ function init() {
       console.warn('credential-data parse error', e);
     }
   }
+  captureInitialState();
   renderAll();
   bindEvents();
+}
+
+function resetCredential() {
+  if (!initialState) return;
+
+  state.name = initialState.name;
+  state.credentialType = initialState.credentialType;
+  state.scope = initialState.scope;
+  state.claims = JSON.parse(JSON.stringify(initialState.claims));
+  state.activePresets = new Set(initialState.activePresets);
+  state.backgroundColor = initialState.backgroundColor;
+  state.textColor = initialState.textColor;
+
+  syncTopLevelInputsFromState();
+
+  const bgInput = document.getElementById('bg-color-input');
+  if (bgInput) bgInput.value = state.backgroundColor;
+
+  const textInput = document.getElementById('text-color-input');
+  if (textInput) textInput.value = state.textColor;
+
+  hideJsonError();
+  const customClaimError = document.getElementById('custom-claim-error');
+  if (customClaimError) customClaimError.hidden = true;
+
+  renderClaims();
+  renderPreview();
+  syncPresetButtons();
+  syncJsonTextarea();
 }
 
 function populateStateFromJson(json) {
