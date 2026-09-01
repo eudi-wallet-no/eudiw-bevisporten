@@ -1007,8 +1007,9 @@ footer ul {
 .credential-editor__right {
     position: sticky;
     top: var(--ds-size-6);
-    max-width: 350px;
+    width: 350px;
     align-self: start;
+    margin-inline-start: auto;
 }
 
 @media (max-width: 768px) {
