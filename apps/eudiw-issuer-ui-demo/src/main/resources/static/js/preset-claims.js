@@ -22,12 +22,6 @@ const PRESET_CLAIMS = {
       { path: 'birth_date', displayName: 'Fødselsdato', type: 'string', mimeType: null, exampleValue: '1988-01-01' }
     ]
   },
-  persondata: {
-    label: 'Andreas',
-    claims: [
-      { path: 'given_name', displayName: 'Fornavn', type: 'string', mimeType: null, exampleValue: 'Andreas' },
-    ]
-  },
   kontaktinfo: {
     label: 'Kontaktinfo',
     claims: [

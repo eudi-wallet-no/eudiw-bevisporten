@@ -965,6 +965,7 @@ footer ul {
     display: flex;
     gap: var(--ds-size-4);
     border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    margin-block-start: var(--ds-size-2);
 }
 
 .mode-toggle__btn {
@@ -995,13 +996,13 @@ footer ul {
     grid-template-columns: minmax(0, 1fr) 350px;
     gap: var(--ds-size-8);
     align-items: start;
-    margin-block-start: var(--ds-size-6);
+    margin-block-start: var(--ds-size-10);
 }
 
 .credential-editor__left {
     display: flex;
     flex-direction: column;
-    gap: var(--ds-size-5);
+    gap: var(--ds-size-8);
     min-width: 0;
 }
 
@@ -1017,7 +1018,7 @@ footer ul {
 @media (max-width: 768px) {
     .credential-editor {
         grid-template-columns: 1fr;
-        gap: var(--ds-size-6);
+        gap: var(--ds-size-8);
         background: var(--ds-color-neutral-surface-hover);
         border-radius: var(--ds-border-radius-lg);
         padding: var(--ds-size-5);
@@ -1027,7 +1028,6 @@ footer ul {
     .credential-editor__right {
         position: static;
         width: 100%;
-        margin-block-start: var(--ds-size-4);
         background: transparent;
         padding: 0;
         border-radius: 0;
@@ -1129,7 +1129,7 @@ footer ul {
 .preview-actions {
     display: flex;
     justify-content: center;
-    margin-block-start: var(--ds-size-3);
+    margin-block-start: var(--ds-size-4);
 }
 
 .preview-reset-btn {
@@ -1148,7 +1148,7 @@ footer ul {
     display: flex;
     gap: var(--ds-size-4);
     align-items: center;
-    margin-block-start: var(--ds-size-8);
+    margin-block-start: var(--ds-size-10);
     padding-block-start: var(--ds-size-6);
     border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
 }
@@ -1156,7 +1156,7 @@ footer ul {
 /* JSON editor panel */
 .json-editor-wrapper {
     position: relative;
-    margin-block-start: var(--ds-size-6);
+    margin-block-start: var(--ds-size-10);
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-3);
@@ -1175,7 +1175,7 @@ footer ul {
     border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
     border-radius: var(--ds-border-radius-md);
     background: var(--ds-color-neutral-background-default);
-    margin-block-start: var(--ds-size-5);
+    margin-block-start: var(--ds-size-6);
 }
 
 .json-design-section .ds-heading {
