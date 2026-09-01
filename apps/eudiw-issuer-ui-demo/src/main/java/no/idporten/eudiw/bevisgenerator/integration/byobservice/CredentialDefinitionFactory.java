@@ -6,12 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 public class CredentialDefinitionFactory {
+    public static final String DYNAMIC_CREDENTIAL_SCOPE = "eudiw:eidas2sandkasse:dynamicvc";
 
     public static CredentialDefinition empty() {
         return new CredentialDefinition(
                 "your-credential-type (automatically generated)",
                 "dc+sd-jwt", // default format for credential type
-                "eudiw:eidas2sandkasse:dynamicvc", // default scope for credential type
+                DYNAMIC_CREDENTIAL_SCOPE,
                 new ExampleCredentialData(Map.of(
                         "family_name", "Normann",
                         "given_name", "Kari"
@@ -56,4 +57,3 @@ public class CredentialDefinitionFactory {
         );
     }
 }
-
