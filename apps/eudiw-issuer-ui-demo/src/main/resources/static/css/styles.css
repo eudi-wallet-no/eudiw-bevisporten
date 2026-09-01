@@ -888,10 +888,9 @@ footer ul {
 }
 
 .claim-preset-label {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     font-weight: var(--ds-font-weight-medium);
     color: var(--ds-color-neutral-text-default);
-    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
