@@ -377,7 +377,7 @@ function resetJsonFromSchema() {
 }
 
 // ---------------------------------------------------------------------------
-// Auto-generate credentialType and scope from Bevisnavn
+// Auto-generate credentialType from Bevisnavn.
 // ---------------------------------------------------------------------------
 function generateIds(name) {
   state.name = name;
@@ -389,8 +389,8 @@ function generateIds(name) {
     .replace(/\s+/g, '_')
     .replace(/[^a-z0-9_]/g, '');
 
-  state.credentialType = normalized ? `no.bevisgenerator.${normalized}.1` : '';
-  state.scope = normalized ? `eudiw:bevisgenerator:${normalized}` : '';
+  state.credentialType = normalized;
+  state.scope = normalized ? 'eudiw:eidas2sandkasse:dynamicvc' : '';
 
   const ctEl = document.getElementById('credentialType');
   if (ctEl) ctEl.value = state.credentialType;
