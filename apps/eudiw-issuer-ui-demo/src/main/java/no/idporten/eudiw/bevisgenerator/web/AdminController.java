@@ -209,9 +209,9 @@ public class AdminController {
 
             JsonNode exampleData = root.path("example_credential_data");
             List<ClaimForm> claims = new ArrayList<>();
-            JsonNode claimsArr = root.path("claims");
-            if (claimsArr.isArray()) {
-                for (JsonNode claimNode : claimsArr) {
+            JsonNode claimsArray = root.path("claims");
+            if (claimsArray.isArray()) {
+                for (JsonNode claimNode : claimsArray) {
                     String path = claimNode.path("path").asText("");
                     String displayName = path;
                     JsonNode claimDisplay = claimNode.path("display");
