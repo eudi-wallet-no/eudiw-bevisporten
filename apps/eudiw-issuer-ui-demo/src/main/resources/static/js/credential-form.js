@@ -229,7 +229,8 @@ function schemaToJson() {
     path: c.path,
     value_type: c.type || 'string',
     mandatory: false,
-    display: [{ name: c.displayName, locale: 'no' }]
+    display: [{ name: c.displayName, locale: 'no' }],
+    mime_type: c.mimeType || null
   }));
 
   const exampleData = {};
