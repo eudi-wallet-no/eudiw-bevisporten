@@ -552,11 +552,17 @@ function handleImageUpload(event, inputElement, claimIndex) {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    const base64String = e.target?.result;
-    if (typeof base64String === 'string') {
-      inputElement.value = base64String;
-      state.claims[claimIndex].exampleValue = base64String;
-      schedulePreviewUpdate();
+    const dataUrl = e.target?.result;
+    if (typeof dataUrl === 'string') {
+      // Extract base64 part after 'data:image/...;base64,'
+      const base64String = dataUrl.split(',')[1];
+      if (base64String) {
+        inputElement.value = base64String;
+        state.claims[claimIndex].exampleValue = base64String;
+        schedulePreviewUpdate();
+      } else {
+        alert('Feil: kunne ikke konvertere bilde til base64');
+      }
     }
   };
   reader.onerror = () => {
