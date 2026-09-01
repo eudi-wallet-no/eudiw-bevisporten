@@ -43,7 +43,7 @@ function init() {
   const dataEl = document.getElementById('credential-data');
   if (dataEl) {
     try {
-      const json = JSON.parse(dataEl.textContent.trim());
+      const json = JSON.parse(dataEl.dataset.credentialJson);
       populateStateFromJson(json);
     } catch (e) {
       console.warn('credential-data parse error', e);

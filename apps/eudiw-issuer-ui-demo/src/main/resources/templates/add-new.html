@@ -203,6 +203,7 @@
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<div id="credential-data" th:if="${credentialJson != null}" th:attr="data-credential-json=${credentialJson}" hidden></div>
 <script th:src="@{/js/preset-claims.js}"></script>
 <script th:src="@{/js/credential-form.js}"></script>
 </body>
