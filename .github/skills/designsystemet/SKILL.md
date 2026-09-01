@@ -61,8 +61,9 @@ WCAG 2.2 level AA is the floor for every visual change — look criteria up in t
 
 ## 4. Layout
 
-Layout rarely changes — do not redesign it as part of a fix.
+Layout rarely changes — do not redesign it as part of a fix. But leave every page you touch better than you found it.
 
 - Build pages as blocks of Designsystemet elements, separated by vertical spacing. The parent owns spacing between blocks; a block owns spacing between its children. Never stack margin and padding to patch a gap.
+- **Touch up what is cramped.** When content you read is squeezed — even if the task does not involve it — give it air: more vertical spacing between blocks that blur together, breathing room around tight groups. Spacing and rhythm only, never a new structure, and only on the surface you are already working in. The result should feel noticeably tidier, not different.
 - Favour air and short texts. Title, ingress, heading, label and action each have one job — do not repeat the same message at every level.
 - For Norwegian copy use the `norsk-klarsprak` skill; preserve the page's målform and terminology.
