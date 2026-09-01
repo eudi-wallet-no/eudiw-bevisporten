@@ -3,6 +3,7 @@ package no.idporten.eudiw.bevisgenerator.web.models.advancedForm;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.web.models.unique.UniqueCredentialType;
 
@@ -13,6 +14,11 @@ import java.util.Map;
 
 public record SimpleCredentialForm(
         @NotBlank(message = "Credential type er påkrevd", groups = CreateForm.class)
+        @Pattern(
+                regexp = "^[a-z0-9_:.]{3,155}$",
+                message = "Credential type kan bare inneholde små bokstaver, tall, kolon, punktum og understrek.\nLengde: 3–155 tegn",
+                groups = CreateForm.class
+        )
         @UniqueCredentialType(groups = CreateForm.class)
         String credentialType,
         @NotBlank(message = "Format er påkrevd", groups = { CreateForm.class, EditForm.class })
