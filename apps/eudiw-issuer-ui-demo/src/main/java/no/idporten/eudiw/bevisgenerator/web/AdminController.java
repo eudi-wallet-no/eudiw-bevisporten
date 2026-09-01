@@ -199,7 +199,7 @@ public class AdminController {
             JsonNode root = objectMapper.readTree(form.rawJson());
 
             String name = form.name();
-            JsonNode displayArr = root.path("display");
+            JsonNode displayArr = root.path("credential_metadata").path("display");
             if (displayArr.isArray() && !displayArr.isEmpty()) {
                 JsonNode nameNode = displayArr.get(0).path("name");
                 if (!nameNode.isMissingNode()) {
@@ -209,7 +209,7 @@ public class AdminController {
 
             JsonNode exampleData = root.path("example_credential_data");
             List<ClaimForm> claims = new ArrayList<>();
-            JsonNode claimsArray = root.path("claims");
+            JsonNode claimsArray = root.path("credential_metadata").path("claims");
             if (claimsArray.isArray()) {
                 for (JsonNode claimNode : claimsArray) {
                     String path = claimNode.path("path").asText("");
