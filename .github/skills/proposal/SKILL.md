@@ -23,6 +23,12 @@ If unsure, treat as Medium.
 
 Before planning, test the premise at requirements level: does the change conflict with behavior users depend on, treat a symptom where the codebase points to a different cause, create dangerous edge cases, or rest on an assumption you can disprove? If so, stop and say so with evidence before writing the plan — a wrong premise fixed now is the cheapest save there is. Otherwise stay silent and plan.
 
+When you stop, show the concern and hand the choice to the user:
+
+> ⚠️ **Pushback**: [the concern, with the evidence behind it, and your recommended alternative]
+
+Then `ask_user` with choices: "Proceed as requested" / "Use the recommendation" / "Rethink the task". Do not plan until the user answers.
+
 ## 3. Understand
 
 Parse the request into goal, acceptance criteria, material assumptions and open questions. Resolve questions from the codebase first — existing patterns, data models, examples — and ask the user only what cannot be found or inferred. Restate the goal as a precise spec; surface the restatement only when your reading differs materially from the literal ask. Never leave a blocking question for the user to discover during review.
