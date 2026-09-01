@@ -888,7 +888,7 @@ footer ul {
 }
 
 .claim-preset-label {
-    flex: 0 0 auto;
+    flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);
     color: var(--ds-color-neutral-text-default);
     white-space: nowrap;
