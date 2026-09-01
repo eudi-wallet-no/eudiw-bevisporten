@@ -84,6 +84,7 @@ function init() {
     }
   }
   captureInitialState();
+  renderPresetButtons();
   renderAll();
   bindEvents();
 }
@@ -443,6 +444,36 @@ function generateIds(name) {
 // ---------------------------------------------------------------------------
 // Preset toggling
 // ---------------------------------------------------------------------------
+function renderPresetButtons() {
+  const container = document.getElementById('preset-buttons');
+  if (!container) return;
+
+  container.innerHTML = '';
+  Object.keys(PRESET_CLAIMS).forEach(key => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ds-button';
+    btn.setAttribute('data-color', 'accent');
+    btn.setAttribute('data-variant', 'secondary');
+    btn.setAttribute('data-preset-btn', key);
+    btn.setAttribute('aria-pressed', 'false');
+    btn.addEventListener('click', () => togglePreset(key));
+    container.appendChild(btn);
+  });
+
+  const customBtn = document.createElement('button');
+  customBtn.type = 'button';
+  customBtn.className = 'ds-button';
+  customBtn.setAttribute('data-color', 'neutral');
+  customBtn.setAttribute('data-variant', 'secondary');
+  customBtn.setAttribute('aria-label', 'Legg til eget claim');
+  customBtn.textContent = '+ Legg til eget claim';
+  customBtn.addEventListener('click', openCustomClaimModal);
+  container.appendChild(customBtn);
+
+  syncPresetButtons();
+}
+
 function togglePreset(key) {
   const preset = PRESET_CLAIMS[key];
   if (!preset) return;

@@ -74,43 +74,7 @@
                 <div class="credential-editor__left">
                     <div class="preset-section">
                         <h2 class="ds-heading" data-size="sm">Legg til feltgrupper</h2>
-                        <div class="preset-buttons">
-                            <button class="ds-button"
-                                    type="button"
-                                    data-color="accent"
-                                    data-variant="secondary"
-                                    data-preset-btn="persondata"
-                                    aria-pressed="false"
-                                    onclick="togglePreset('persondata')">
-                                + Persondata
-                            </button>
-                            <button class="ds-button"
-                                    type="button"
-                                    data-color="accent"
-                                    data-variant="secondary"
-                                    data-preset-btn="kontaktinfo"
-                                    aria-pressed="false"
-                                    onclick="togglePreset('kontaktinfo')">
-                                + Kontaktinfo
-                            </button>
-                            <button class="ds-button"
-                                    type="button"
-                                    data-color="accent"
-                                    data-variant="secondary"
-                                    data-preset-btn="bilde"
-                                    aria-pressed="false"
-                                    onclick="togglePreset('bilde')">
-                                + Bilde
-                            </button>
-                            <button class="ds-button"
-                                    type="button"
-                                    data-color="neutral"
-                                    data-variant="secondary"
-                                    onclick="openCustomClaimModal()"
-                                    aria-label="Legg til eget claim">
-                                + Legg til eget claim
-                            </button>
-                        </div>
+                        <div class="preset-buttons" id="preset-buttons"></div>
                     </div>
 
                     <div class="claims-section">
