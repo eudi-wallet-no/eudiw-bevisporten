@@ -1140,6 +1140,38 @@ footer ul {
     margin: 0;
 }
 
+/* Color controls in JSON mode */
+.color-controls {
+    display: flex;
+    gap: var(--ds-size-4);
+    flex-wrap: wrap;
+}
+
+.color-control {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    flex: 1;
+    min-width: 150px;
+}
+
+.color-control .ds-label {
+    font-size: var(--ds-body-sm-font-size);
+    color: var(--ds-color-neutral-text-subtle);
+}
+
+.color-input {
+    height: 40px;
+    padding: var(--ds-size-2);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-sm);
+    cursor: pointer;
+}
+
+.color-input:hover {
+    border-color: var(--ds-color-accent-border-default);
+}
+
 /* Override existing .json-editor rule to work in the wrapper */
 .json-editor {
     display: block;

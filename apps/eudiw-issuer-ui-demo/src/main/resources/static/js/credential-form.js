@@ -51,7 +51,9 @@ const state = {
   scope: '',
   claims: [],
   activePresets: new Set(),
-  lastValidSchema: null
+  lastValidSchema: null,
+  backgroundColor: '#ffffff',
+  textColor: '#000000'
 };
 
 // ---------------------------------------------------------------------------
@@ -75,6 +77,10 @@ function populateStateFromJson(json) {
   state.credentialType = json.credential_type || '';
   state.name = json.credential_metadata?.display?.[0]?.name || '';
   state.scope = json.scope || '';
+  
+  // Extract colors from display[0]
+  state.backgroundColor = json.credential_metadata?.display?.[0]?.background_color || '#ffffff';
+  state.textColor = json.credential_metadata?.display?.[0]?.text_color || '#000000';
 
   const rawClaims = json.credential_metadata?.claims || [];
   const exampleData = json.example_credential_data || {};
@@ -156,6 +162,29 @@ function bindEvents() {
     });
   }
 
+  // Color controls
+  const bgColorInput = document.getElementById('bg-color-input');
+  if (bgColorInput) {
+    bgColorInput.addEventListener('input', () => {
+      state.backgroundColor = bgColorInput.value;
+      if (state.mode === 'avansert') {
+        syncJsonTextarea();
+      }
+      schedulePreviewUpdate();
+    });
+  }
+
+  const textColorInput = document.getElementById('text-color-input');
+  if (textColorInput) {
+    textColorInput.addEventListener('input', () => {
+      state.textColor = textColorInput.value;
+      if (state.mode === 'avansert') {
+        syncJsonTextarea();
+      }
+      schedulePreviewUpdate();
+    });
+  }
+
   const form = document.getElementById('add_attributes_form') || document.getElementById('edit_attributes_form');
   if (form) {
     form.addEventListener('submit', onSubmit);
@@ -200,6 +229,11 @@ function switchMode(mode) {
     const ta = document.getElementById('json-editor');
     if (ta) ta.value = schemaToJson();
     validateJson();
+    // Sync color inputs
+    const bgInput = document.getElementById('bg-color-input');
+    const textInput = document.getElementById('text-color-input');
+    if (bgInput) bgInput.value = state.backgroundColor;
+    if (textInput) textInput.value = state.textColor;
   } else {
     renderClaims();
     renderPreview();
@@ -248,8 +282,8 @@ function schemaToJson() {
       display: [{
         name: state.name,
         locale: 'no',
-        background_color: '#afcee9',
-        text_color: '#002c54'
+        background_color: state.backgroundColor,
+        text_color: state.textColor
       }],
       claims: claimsMetadata
     },
@@ -583,6 +617,13 @@ function renderPreview() {
   const panel = document.getElementById('preview-panel');
   if (!panel) return;
 
+  // Apply colors to preview card
+  const card = panel.querySelector('.preview-card');
+  if (card) {
+    card.style.backgroundColor = state.backgroundColor;
+    card.style.color = state.textColor;
+  }
+
   const nameEl = panel.querySelector('[data-preview-name]');
   if (nameEl) nameEl.textContent = state.name || 'Bevisnavn';
 
@@ -690,6 +731,13 @@ function renderAll() {
 
   const scopeInput = document.getElementById('scope-field');
   if (scopeInput && state.scope) scopeInput.value = state.scope;
+
+  // Sync color inputs from state
+  const bgColorInput = document.getElementById('bg-color-input');
+  if (bgColorInput) bgColorInput.value = state.backgroundColor;
+
+  const textColorInput = document.getElementById('text-color-input');
+  if (textColorInput) textColorInput.value = state.textColor;
 
   renderClaims();
   renderPreview();

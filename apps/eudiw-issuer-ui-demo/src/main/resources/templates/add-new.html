@@ -136,6 +136,21 @@
         <div id="json-panel" hidden>
             <div class="json-editor-wrapper">
                 <h2 class="ds-heading" data-size="sm">JSON</h2>
+                
+                <!-- Color controls -->
+                <div class="color-controls">
+                    <div class="color-control">
+                        <label for="bg-color-input" class="ds-label">Bakgrunnsfarge</label>
+                        <input type="color" id="bg-color-input" class="ds-input color-input" 
+                               value="#ffffff" aria-label="Bakgrunnsfarge for bevis">
+                    </div>
+                    <div class="color-control">
+                        <label for="text-color-input" class="ds-label">Tekstfarge</label>
+                        <input type="color" id="text-color-input" class="ds-input color-input" 
+                               value="#000000" aria-label="Tekstfarge for bevis">
+                    </div>
+                </div>
+                
                 <textarea id="json-editor"
                           class="ds-input json-editor"
                           spellcheck="false"
