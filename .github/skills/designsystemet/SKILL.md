@@ -6,35 +6,35 @@ license: Digitaliseringsdirektoratet
 
 # Designsystemet
 
-All UI follows [Designsystemet](https://designsystemet.no). It is the default contract, not a suggestion.
+All UI follows [Designsystemet](https://designsystemet.no). It is the default contract, not a suggestion. If a surface deliberately uses another design language, or has no Designsystemet runtime, preserve that direction, do not add the dependency as part of an ordinary fix, and apply the transferable semantics, accessibility and consistency principles instead.
 
-Use its components directly in applications that already load it or are being migrated to it. If a surface deliberately uses another design language, or has no Designsystemet runtime, preserve that direction and do not add the dependency as part of an ordinary fix. Apply the transferable semantics, accessibility and consistency principles instead.
+This skill holds only what the documentation cannot know: which version this application loads, and which valid composition belongs in this product. Component structure, roles, tokens and patterns are looked up against the loaded version, never recalled from memory.
 
-## Mandate
+## 1. Preserve the design
 
 Make the existing design more correct, consistent and accessible without redesigning it. Information architecture, content, brand, visual identity, visual direction, hierarchy, layout model, component roles, colour strategy, density and navigation pattern stay as they are unless the task changes them, or unless they break the runtime contract, which is repaired rather than preserved. Nothing new is slipped in as "polish".
 
-Production behaviour is the baseline contract: control types, interaction model, state transitions, validation, submitted values and navigation stay as they are unless the request changes them. Propose an alternative separately; never substitute it into the implementation.
+Production behaviour is the baseline contract: control types, interaction model, state transitions, validation, submitted values and navigation stay as they are unless the request changes them. Propose an alternative separately; never substitute it into the implementation. Do not reorder actions, steps or content as visual cleanup — changing the journey is a product decision.
 
-The requested outcome is the main job. Finish it first, and do not let adjacent cleanup dilute or delay it.
+The requested outcome is the main job. Finish it first, implement it rather than only reporting it, and correct directly coupled drift in the same change — but keep a narrow perimeter: the edited component, comparable instances with the same role, shared consumers, and the closest reference surface. A contained correction goes straight in. Follow the repository's proposal rule first when the change touches a shared component used by several flows, spans applications, or needs a layout or interaction decision.
 
-Implement the fix, do not only report it. Inspect the whole affected composition and correct directly coupled violations and drift in the same change, even where the user did not name them, inside a narrow perimeter: the edited component, comparable instances with the same role, shared consumers, and the closest reference surface. A contained correction goes straight in. Follow the repository's proposal rule first when the change touches a shared component used by several flows, spans applications, or needs a layout or interaction decision.
+## 2. Two contracts
 
-## Two contracts
+**Runtime — non-negotiable.** How a component must be implemented, set by the packages, theme and scripts this application actually loads. A local pattern cannot override an invalid DOM contract, a removed API, a missing accessible name or required behaviour.
 
-**Runtime — non-negotiable.** How a component must be implemented: the packages, theme and scripts the application actually loads; the documentation, component code and accessibility guidance for those versions; the generated theme tokens and documented custom properties; and package source, types, changelogs and migration notes when the documentation is unclear. A local pattern cannot override an invalid DOM contract, a removed API, a missing accessible name or required behaviour.
+**Product composition — preserve intent.** Which valid composition belongs here, set by the user's task, explicit product decisions, shared local compositions and established patterns with the same role and context. Upstream examples show how to use Designsystemet; they do not define this product's layout. When several valid variants exist, keep the established local choice. If official sources conflict, follow the applicable component contract and the accessibility outcome, keep existing behaviour, and do not invent a redesign to settle the ambiguity. Still unresolved: compare role, semantics, tokens and states against the closest comparable surface in this repository, then on [Digdir.no](https://www.digdir.no) — as product evidence only, never to override the loaded contract.
 
-**Product composition — preserve intent.** Which valid composition belongs here: the user's task and explicit product decisions; shared local compositions that already follow the runtime contract; established patterns with the same role, hierarchy and context; and the closest comparable surface in the repository. Upstream examples show how to use Designsystemet, but do not define this product's layout. When several valid variants exist, keep the established local choice. If official sources conflict, follow the applicable component contract and the accessibility outcome, keep existing behaviour, and do not invent a redesign to settle the ambiguity. Still unresolved: compare role, semantics, tokens and states against the closest surface on Digdir.no, as product evidence only, never to override the loaded contract.
-
-## Resolve the runtime first
+## 3. Resolve the runtime before reading any documentation
 
 1. **Find the integration.** Package manifests and lockfiles, CDN URLs, imported stylesheets and scripts, generated theme files, `designsystemet.config.json`.
-2. **Identify the active layers.** `@digdir/designsystemet-css`, `@digdir/designsystemet-web` custom elements and observers, `@digdir/designsystemet-react`, and whether the theme is generated or default.
-3. **Resolve the version per package.** Packages are versioned independently, so read each relevant changelog instead of expecting matching numbers. If CSS is vendored without a reliable version marker, do not guess from current documentation: treat the local stylesheet as the contract and inspect its selectors, attributes and states directly.
-4. **Use matching documentation.** Do not apply examples from `main` or the latest Storybook to an older pinned application. Check the matching tag, package source, changelog or migration guide.
-5. **Verify the cascade.** The official setup imports component CSS before the theme. Inspect the declared `ds` layers before reordering anything. Put global resets in a layer ordered before `ds`, and avoid specificity fights and `!important`.
+2. **Identify the active layers.** `@digdir/designsystemet-css` for styling, `@digdir/designsystemet-web` for custom elements and observers, `@digdir/designsystemet-react`, `@digdir/designsystemet-theme`.
+3. **Resolve each package separately.** They are versioned independently and do drift: at v1.21.0 of css, react, web and types, theme was still 1.11.0. Read each relevant `CHANGELOG.md`; never infer a version from a sibling's number.
+4. **Treat vendored CSS as the contract** when there is no reliable version marker. Inspect the local stylesheet's selectors, attributes and states rather than guessing from current documentation.
+5. **Verify the cascade.** Component CSS imports before the theme, and the declared order is `@layer ds.theme, ds.base, ds.components`. Put global resets in a layer ordered before `ds`; avoid specificity fights and `!important`.
 
 Do not upgrade Designsystemet, regenerate the theme or add the JavaScript layer as part of an ordinary visual fix.
+
+## 4. Look it up, do not remember it
 
 The official site serves agent-readable Markdown:
 
@@ -42,11 +42,25 @@ The official site serves agent-readable Markdown:
 curl -H 'Accept: text/markdown' https://designsystemet.no/no/components/docs/button/overview
 ```
 
-Read **Overview**, **Code** and **Accessibility** for every component you change, plus the relevant **Pattern** or **Best practice** when the task concerns a flow such as validation, button placement or system messages.
+| Question | Source |
+| --- | --- |
+| Which component for this role, and when to avoid it | `/no/components/docs/<component>/overview` |
+| Required markup, properties, `data-*`, variants, states | `/no/components/docs/<component>/code` |
+| Accessible name, roles, keyboard behaviour | `/no/components/docs/<component>/accessibility` |
+| Token names and values | [Design tokens](https://designsystemet.no/no/fundamentals/theme/variables) |
+| Validation, button placement, system messages | [Patterns](https://designsystemet.no/no/patterns), [Best practices](https://designsystemet.no/no/best-practices) |
+| Rendered variants and states | [Storybook](https://storybook.designsystemet.no) |
+| Behaviour the docs leave unclear, migration history | [Source](https://github.com/digdir/designsystemet) at the matching tag: `packages/*/src`, `packages/*/CHANGELOG.md` |
 
-## Reuse ladder
+Read Overview, Code and Accessibility for every component you change, plus the relevant Pattern when the task concerns a flow. Match the application's pinned version; never apply docs from `main` to an older pinned application. Offline, read the installed package under `node_modules` and the loaded stylesheet instead, and record which checks you could not run.
 
-Take the first level that fully solves the task:
+Three things the documentation will not warn you about:
+
+- **A class name is not proof.** Selectors depend on direct children, `:has()` and exact tags, so an extra wrapper silently breaks spacing, padding, click delegation or state styles. Verify the rendered DOM against the loaded contract.
+- **CSS, web and React are separate contracts.** CSS gives styling only; behaviour comes from `@digdir/designsystemet-web` custom elements and observers, or from React. `packages/web/src` covers breadcrumbs, details, dialog, error-summary, field, fieldset, focusgroup, pagination, popover, search, suggestion, tabs, toggle-group and tooltip, plus click delegation, invokers and readonly. CSS-only use is valid only when the application implements and tests the interaction, ARIA wiring and focus management itself. If that layer is absent, deliver the same accessible outcome within scope or surface the missing contract; never claim that CSS classes provide it. In React, `asChild` takes exactly one child, which must spread the properties it receives and forward its ref — otherwise Designsystemet's handlers, ARIA wiring and refs are dropped silently.
+- **A token name does not guarantee contrast.** Verify the final foreground and background pair after inheritance and state styles.
+
+## 5. Take the smallest fix that holds
 
 1. Repair the existing component's markup, properties, variant or state.
 2. Reuse or improve an existing shared local composition.
@@ -54,74 +68,16 @@ Take the first level that fully solves the task:
 4. Compose Designsystemet primitives with theme tokens and existing layout utilities.
 5. Build custom only when nothing documented or local fits.
 
-Custom work keeps native semantics, uses Designsystemet tokens and states, and needs a product-specific reason. Do not add a parallel class or wrapper for a role that already has a shared composition. Fix markup before adding CSS: an override must never compensate for the wrong component, variant, child structure or missing behaviour layer.
+Fix markup before adding CSS: an override must never compensate for the wrong component, variant, child structure or missing behaviour layer. Do not add a parallel class or wrapper for a role that already has a shared composition. Use semantic tokens by purpose, never by whichever value looks closest, and do not invent tokens. Custom work keeps native semantics, uses Designsystemet tokens and states, and needs a product-specific reason. Product-specific layout values, such as an established container width, breakpoint or aspect ratio, may stay local when no token exists.
 
-## Component contract
+## 6. Keep the product coherent
 
-A class name is not proof. Against the loaded version, verify the semantic element or required custom-element tag; the wrapper and direct-child structure; supported classes, properties and `data-*` attributes; variant, colour and size inheritance; required JavaScript; accessible name, description, state and focus; and the hover, active, selected, loading, invalid, disabled and read-only states.
+Judge the page as one whole. An element that is correct in isolation can still break the page next to its neighbours.
 
-Selectors can depend on direct children, `:has()` and exact tags. An extra wrapper silently breaks spacing, padding, click delegation or state styles.
-
-**CSS, web and React are separate contracts.** CSS gives styling; `@digdir/designsystemet-web` custom elements and observers, or the React library, give behaviour. CSS-only use is valid only when the application implements and tests the interaction, ARIA wiring and focus management itself. Field, fieldset, error summary, tabs, pagination, dialog and popover can all depend on custom elements, observers or polyfills. If that layer is absent, either deliver the same accessible outcome within scope or surface the missing contract; never claim that CSS classes provide it.
-
-**Choose by role.** Button for actions, Link for navigation, usually one primary action per task context. Card groups content or functionality; it is not a generic box around long text or an important message. Alert for short important messages, ValidationMessage for a field error, ErrorSummary for errors blocking a page or step. Field for one control with its label, description, validation and counter; Fieldset with a real Legend for a group. Prefer native controls and documented compositions over clickable `div` elements or hand-built selectable cards. Do not reorder actions, steps or content as visual cleanup — changing the journey is a product decision.
-
-## Accessibility
-
-WCAG 2.2 level AA is the minimum for every visual change. Designsystemet reduces risk but does not prove compliance, so verify the rendered result.
-
-- **Contrast:** 4.5:1 for normal text, 3:1 for large text, and 3:1 for meaningful boundaries, controls and state indicators. Check default, hover, active, selected, focus, invalid and disabled states. Never let colour alone carry meaning.
-- **Keyboard:** every interaction works, exposes the correct accessible name, role, value and state, and keeps a visible focus indicator. Test the whole path, not only the edited control: Tab and Shift+Tab follow reading order without traps, and arrow keys drive native radio groups and documented composite widgets. Never repair source order with a positive `tabindex`.
-- **Screen readers:** descriptive page title and language, landmarks, heading hierarchy, grouped controls, labels, descriptions, errors, expanded and selected state, and live-region updates announced once at the right priority. ARIA supplements native HTML; it must not disguise an invalid structure.
-- **Reflow and size:** content reflows at 320 CSS pixels without two-dimensional scrolling, stays usable at 200% text, and does not clip or overlap. Pointer targets meet 24 by 24 CSS pixels or the spacing exception; documented component sizes normally give more.
-- **Automated checks** supplement keyboard, contrast, zoom and DOM inspection. They never replace them.
-
-**Native semantics first.** `<a>` navigates and `<button>` acts, whatever they look like. Headings run in logical order, and visual size is a separate decision from the `h1`-`h6` level. Use real labels, legends, lists, tables and landmarks before ARIA. Keep DOM order, visual order and focus order aligned. Decorative icons get `aria-hidden`; icon-only controls need an accessible name that describes the action.
-
-In React, use documented `asChild` composition to change the rendered element: it takes one child, which must spread received properties and forward its ref. In HTML, put the documented classes and attributes on the correct native element.
-
-## Forms and feedback
-
-- Group one-of-many choices with Fieldset and Radio. Use the documented `outline` variant for a larger card-like target, and keep choices vertical unless content and width support a row.
-- Do not preselect a radio option without a user or domain reason. Preserve entered values and revealed fields after validation or service errors.
-- In React, prefer the documented group hook. In CSS-only applications, wire shared names, descriptions, invalid state and group validation explicitly.
-- Keep field errors next to their field. When several errors block progress, show an ErrorSummary in the documented location, link each message to its field and move focus as required.
-- Avoid disabled actions. Prefer an active submit that explains the validation errors. Where disabled or `aria-disabled` is unavoidable, explain why and prevent the action in code, because ARIA alone does not disable behaviour.
-- Loading controls use the documented loading state and `aria-busy`, while application logic prevents duplicate execution.
-- Dynamic status messages use an existing live region with `role="status"` or `role="alert"`. Do not combine live-region attributes so that announcements duplicate.
-
-## Tokens
-
-Use semantic tokens by purpose, never by whichever value looks closest. Do not invent tokens.
-
-**Colour.** Prefer `data-color` and semantic `--ds-color-*` over raw values. Background for page layers, Surface for raised content, Border for edges, Text for text and icons, Base for solid emphasis. `border-subtle` is decorative and cannot be the only sign that something is interactive. `data-color-scheme` resets colour variables at that boundary, so reapply `data-color` when you need both. Alert, ValidationMessage and ErrorSummary keep their severity colours and do not inherit brand colours. Components documented as neutral in the loaded version, such as Dialog or Modal and Tooltip, ignore arbitrary `data-color`; other cascading components inherit the nearest one. A token name alone does not guarantee contrast, so verify the final foreground and background pair after inheritance and state styles.
-
-**Size and spacing.** Use `--ds-size-*` for gap, padding and margin, and let the flex or grid parent own spacing between direct children. Define component, group and section rhythm explicitly instead of relying on browser margins, `<br>`, empty elements or one-off offsets. Hold one `sm`, `md` or `lg` size mode per context; mixing sizes must express real hierarchy, not patch a layout problem. `data-size` sets size mode for most components but sets typography or dimensions for documented exceptions such as Heading, Paragraph, Avatar and Spinner, so verify against the loaded version.
-
-**Typography, shape and elevation.** Use Designsystemet typography classes and variables; semantic heading level and visual size are separate decisions. Use the configured `--ds-font-family`, and with Inter keep the documented weights and lowercase-l feature setting. Use radius, border-width, opacity and shadow tokens. Shadows mean elevation, not decoration, so prefer edges on dark surfaces. Keep the product's icon library; a replacement icon must preserve the meaning.
-
-Product-specific layout values, such as an established container width, breakpoint, intrinsic media size or aspect ratio, may stay local when no token exists. Reuse the existing layout contract and explain any genuinely new value.
-
-## Page composition
-
-Treat the page as one whole, not a sequence of local fixes. An element that is correct in isolation can still break the page next to its neighbours.
-
-- **Think in blocks.** A block is a semantic group with one job: metadata fields, mode toggle, claims list, preview, form actions. Group the markup so the block is one container with its own internal rhythm.
-- **Related blocks sit together.** Blocks in the same task or context share one parent and internal gap. Distinct concerns are separated by a larger margin — `margin-block-start/end` on the block itself, not one-off offsets inside children. Distance inside a group is always smaller than distance between groups, and err towards more space between groups: when blocks blur together the page reads as one undifferentiated mass.
-- **One spacing source per level.** The parent owns spacing between blocks; a block owns spacing between its children. Never let a child reach outside its block with margins, and never stack margins and padding to patch a gap.
-- **Judge the whole, not the crop.** Before finishing, view the page top to bottom at mobile and desktop widths: every element belongs to a clear block, related blocks sit together, and distinct blocks are visibly separated. Compare against digdir.no and the closest equivalent surface in the repository.
-
-## Consistency
-
-Standardise elements only when they share role, hierarchy and context.
-
-- Header, main content and footer use the intended shared container edges, max-width and responsive side padding.
-- Comparable page intros use the same wrapper, readable text width, heading treatment and internal gap.
-- Repeated cards, form groups, action groups, navigation regions and block arrangements use the same component, variant, structure, token rhythm and responsive behaviour. Where a pattern for the role already exists, reuse that contract instead of composing a new arrangement.
-- Persistent actions and step navigation are separated from the content they complete, with a shared composition and a semantic border token.
-- Mobile may be denser, but keeps the same hierarchy, semantics, states and repeated rhythm.
-
-Before changing a repeated role, search the whole application for every comparable instance and state. Include shared consumers explicitly, or exclude them because their role differs; do not finish a one-instance fix while equivalents stay inconsistent. Apply the correction at the narrowest shared level whose consumers should all receive it, and change a shared component only after checking every consumer.
+- **Think in blocks.** A block is a semantic group with one job: metadata fields, mode toggle, claims list, preview, form actions. The parent owns spacing between blocks; a block owns spacing between its children. Never let a child reach outside its block with margins, and never stack margins and padding to patch a gap. Persistent actions and step navigation are separated from the content they complete, with a shared composition and a semantic border token.
+- **Distance encodes grouping.** Distance inside a group is always smaller than distance between groups, and err towards more space between groups: when blocks blur together the page reads as one undifferentiated mass.
+- **Same role, same treatment.** Header, main content and footer share container edges, max-width and responsive side padding. Comparable page intros, cards, form groups, action groups, navigation regions and block arrangements share component, variant, structure, token rhythm and responsive behaviour. Hold one `sm`, `md` or `lg` size mode per context; mixing sizes must express real hierarchy, not patch a layout problem. Keep the product's icon library, and let a replacement icon preserve the original meaning. Mobile may be denser, but keeps the same hierarchy, semantics, states and rhythm.
+- **Standardise only on shared role, hierarchy and context.** Before changing a repeated role, search the whole application for every comparable instance and state. Apply the correction at the narrowest shared level whose consumers should all receive it, and change a shared component only after checking every consumer.
 
 Classify every finding before changing it:
 
@@ -133,31 +89,23 @@ Classify every finding before changing it:
 | Established production interaction | Preserve it; propose alternatives separately |
 | Ambiguous product or interaction decision | Leave it or ask |
 
-Read the page in visual order. Title, ingress, section heading, description, label, validation message and action each have a distinct job, so do not repeat the same instruction at every level. When Norwegian copy changes, use the `norsk-klarsprak` skill and preserve the page's målform, terminology and factual meaning.
+Title, ingress, section heading, description, label, validation message and action each have a distinct job, so do not repeat the same instruction at every level. When Norwegian copy changes, use the `norsk-klarsprak` skill and preserve the page's målform, terminology and factual meaning.
+
+## 7. Verify what you rendered
+
+WCAG 2.2 level AA is the floor for every visual change. Designsystemet reduces risk but does not prove compliance, and automated checks supplement keyboard, contrast, zoom and DOM inspection rather than replacing them.
+
+- **Contrast** 4.5:1 normal text, 3:1 large text, 3:1 meaningful boundaries, controls and state indicators — across default, hover, active, selected, focus, invalid and disabled. Never let colour alone carry meaning.
+- **Keyboard** every interaction works, exposes the correct accessible name, role, value and state, and keeps a visible focus indicator. Tab and Shift+Tab follow reading order without traps. Never repair source order with a positive `tabindex`.
+- **Announcements** descriptive title and language, landmarks, heading hierarchy, labels, descriptions, errors, expanded and selected state, live regions announced once at the right priority.
+- **Reflow** 320 CSS pixels without two-dimensional scrolling, usable at 200% text, no clipping. Pointer targets 24 by 24 CSS pixels or the spacing exception.
+
+**Native semantics first.** `<a>` navigates and `<button>` acts, whatever they look like. Visual size is a separate decision from the `h1`-`h6` level. Use real labels, legends, lists, tables and landmarks before ARIA; ARIA supplements native HTML and must not disguise an invalid structure. Keep DOM order, visual order and focus order aligned. Prefer native controls over clickable `div` elements. Avoid disabled actions; where `aria-disabled` is unavoidable, prevent the action in code, because ARIA alone does not disable behaviour.
 
 ## Workflow
 
-Scale to the risk. A one-property correction inside an already valid component needs only runtime confirmation, the smallest fix and a focused rendered check. Use the full sequence for shared components, repeated roles, forms and validation, interaction changes or several surfaces.
+Scale to the risk: a one-property correction inside an already valid component needs only runtime confirmation, the smallest fix and a focused rendered check.
 
-1. Set the repair perimeter: affected surface, comparable roles, shared consumers, out-of-scope product decisions.
-2. Resolve runtime and version: packages, scripts, theme, import order, matching documentation.
-3. Inspect the baseline. With a browser or preview, check the real UI, DOM, computed styles and behaviour at relevant mobile and desktop widths. Without one, verify the rendered markup and loaded CSS selectors statically, and record which checks could not be run rather than assuming they pass.
-4. Map comparable roles: component, semantic element, DOM structure, variant, colour, size, tokens, parent-owned gaps, states and responsive behaviour.
-5. Classify the findings, then take the smallest valid fix from the reuse ladder. Structure before styling.
-6. Implement coherently: correct directly coupled token, spacing, state and accessibility drift inside the perimeter.
-7. Zoom out. Never judge the result from the edited crop: run the Page composition check on the whole page or flow, compare against the shared shell, and fix obvious in-scope drift before finishing.
-8. Run a skeptic pass. Remove anything that introduces a new visual direction, duplicates a contract, broadens scope without evidence, or cannot be justified by Designsystemet.
+Set the perimeter → resolve runtime and look up the matching documentation → inspect the baseline in a browser at mobile and desktop widths → map comparable roles → classify findings and take the smallest valid fix, structure before styling → implement coherently inside the perimeter → zoom out and judge the whole page, never the edited crop → run a skeptic pass and remove anything that introduces a new visual direction, duplicates a contract or broadens scope without evidence.
 
-**Done when** the runtime is understood and no undocumented API or assumed behaviour was introduced; the markup matches the loaded component contract; keyboard path, focus order, accessible names and announcements work; applicable WCAG 2.2 AA requirements pass; layout, states and every supported colour scheme hold at mobile and desktop widths; one corrected instance and one comparable reference were checked side by side and shared consumers remain correct; the whole page reads as one system; and no unnecessary custom value, duplicate class or override was added. Any rendered or interactive check you could not run stays explicit, never reported as verified.
-
-## Sources
-
-- [Components](https://designsystemet.no/no/components)
-- [Fundamentals](https://designsystemet.no/no/fundamentals)
-- [Design tokens](https://designsystemet.no/no/fundamentals/theme/variables)
-- [Best practices](https://designsystemet.no/no/best-practices)
-- [Patterns](https://designsystemet.no/no/patterns)
-- [Storybook](https://storybook.designsystemet.no)
-- [GitHub source and migration history](https://github.com/digdir/designsystemet)
-
-Prefer the application's pinned version over the latest examples. When a documented contract is uncertain, use the official source, the component CSS and types, and the migration notes.
+**Done when** the markup matches the loaded contract with no assumed API or behaviour; keyboard path, focus order, accessible names and announcements work; applicable WCAG 2.2 AA requirements pass; layout, states and every supported colour scheme hold at mobile and desktop widths; one corrected instance and one comparable reference were checked side by side and shared consumers remain correct; and no unnecessary custom value, duplicate class or override was added. Any rendered or interactive check you could not run stays explicit, never reported as verified.
