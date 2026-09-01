@@ -904,6 +904,24 @@ footer ul {
     text-align: right;
 }
 
+.claim-preset-example-wrapper {
+    flex: 0 0 auto;
+    display: flex;
+    gap: var(--ds-size-2);
+    align-items: center;
+    width: 12rem;
+}
+
+.claim-preset-example-wrapper .ds-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.claim-preset-example-wrapper .ds-button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
 .claim-remove-btn {
     flex: 0 0 auto;
     min-width: unset;
@@ -912,7 +930,8 @@ footer ul {
 }
 
 @media (max-width: 639px) {
-    .claim-preset-example {
+    .claim-preset-example,
+    .claim-preset-example-wrapper {
         width: 100%;
         text-align: left;
     }

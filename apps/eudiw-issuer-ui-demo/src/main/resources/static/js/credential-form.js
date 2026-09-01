@@ -463,6 +463,38 @@ function buildClaimRow(claim, i) {
     schedulePreviewUpdate();
   });
 
+  let exampleInputContainer = exampleInput;
+
+  // For binary claims (images), add an upload button
+  if (claim.type === 'binary') {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'claim-preset-example-wrapper';
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', (e) => {
+      handleImageUpload(e, exampleInput, i);
+    });
+
+    const uploadBtn = document.createElement('button');
+    uploadBtn.type = 'button';
+    uploadBtn.className = 'ds-button';
+    uploadBtn.setAttribute('data-variant', 'secondary');
+    uploadBtn.setAttribute('aria-label', `Last opp bilde for ${claim.displayName || claim.path}`);
+    uploadBtn.textContent = 'Last opp';
+    uploadBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      fileInput.click();
+    });
+
+    wrapper.appendChild(exampleInput);
+    wrapper.appendChild(uploadBtn);
+    wrapper.appendChild(fileInput);
+    exampleInputContainer = wrapper;
+  }
+
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'ds-button claim-remove-btn';
@@ -493,9 +525,44 @@ function buildClaimRow(claim, i) {
   div.appendChild(typeHidden);
   div.appendChild(mimeHidden);
   div.appendChild(label);
-  div.appendChild(exampleInput);
+  div.appendChild(exampleInputContainer);
   div.appendChild(removeBtn);
   return div;
+}
+
+// ---------------------------------------------------------------------------
+// Handle image upload for binary claims
+// ---------------------------------------------------------------------------
+function handleImageUpload(event, inputElement, claimIndex) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  // Validate file is an image
+  if (!file.type.startsWith('image/')) {
+    alert('Kun bildefiler er tillatt');
+    return;
+  }
+
+  // Limit file size to 1MB
+  const MAX_SIZE = 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    alert('Bildefilen må være mindre enn 1MB');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const base64String = e.target?.result;
+    if (typeof base64String === 'string') {
+      inputElement.value = base64String;
+      state.claims[claimIndex].exampleValue = base64String;
+      schedulePreviewUpdate();
+    }
+  };
+  reader.onerror = () => {
+    alert('Feil ved lesing av bildefil');
+  };
+  reader.readAsDataURL(file);
 }
 
 // ---------------------------------------------------------------------------
