@@ -437,6 +437,79 @@ function syncPresetButtons() {
 }
 
 // ---------------------------------------------------------------------------
+// Custom claim modal
+// ---------------------------------------------------------------------------
+function openCustomClaimModal() {
+  const modal = document.getElementById('custom-claim-modal');
+  const nameInput = document.getElementById('custom-claim-name');
+  const valueInput = document.getElementById('custom-claim-value');
+  const errorDiv = document.getElementById('custom-claim-error');
+
+  if (modal && nameInput && valueInput && errorDiv) {
+    nameInput.value = '';
+    valueInput.value = '';
+    errorDiv.hidden = true;
+    modal.showModal();
+    nameInput.focus();
+  }
+}
+
+function closeCustomClaimModal() {
+  const modal = document.getElementById('custom-claim-modal');
+  if (modal) modal.close();
+}
+
+function submitCustomClaim() {
+  const nameInput = document.getElementById('custom-claim-name');
+  const valueInput = document.getElementById('custom-claim-value');
+  const errorDiv = document.getElementById('custom-claim-error');
+
+  if (!nameInput || !valueInput || !errorDiv) return;
+
+  const name = nameInput.value.trim();
+  const value = valueInput.value.trim();
+
+  if (!name) {
+    showCustomClaimError(errorDiv, 'Claim navn er påkrevd');
+    return;
+  }
+
+  // Generate path from name (same logic as credentialType)
+  const path = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+
+  if (!path) {
+    showCustomClaimError(errorDiv, 'Claim namn må innehalde bokstavar eller tal');
+    return;
+  }
+
+  // Check for duplicate path
+  if (state.claims.some(c => c.path === path)) {
+    showCustomClaimError(errorDiv, `Claim med path "${path}" finst allereie`);
+    return;
+  }
+
+  // Add the claim
+  state.claims.push({
+    path,
+    displayName: name,
+    type: 'string',
+    mimeType: null,
+    exampleValue: value,
+    presetKey: null
+  });
+
+  renderClaims();
+  renderPreview();
+  syncJsonTextarea();
+  closeCustomClaimModal();
+}
+
+function showCustomClaimError(errorDiv, message) {
+  errorDiv.textContent = message;
+  errorDiv.hidden = false;
+}
+
+// ---------------------------------------------------------------------------
 // Render claims list (schema mode — preset claims with locked name/type,
 // plus any custom claims parsed from JSON shown read-only)
 // ---------------------------------------------------------------------------

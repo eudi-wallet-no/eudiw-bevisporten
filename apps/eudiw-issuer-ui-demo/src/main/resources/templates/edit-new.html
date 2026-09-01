@@ -100,6 +100,14 @@
                                     onclick="togglePreset('bilde')">
                                 + Bilde
                             </button>
+                            <button class="ds-button"
+                                    type="button"
+                                    data-color="neutral"
+                                    data-variant="secondary"
+                                    onclick="openCustomClaimModal()"
+                                    aria-label="Legg til eget claim">
+                                + Legg til eget claim
+                            </button>
                         </div>
                     </div>
 
@@ -162,6 +170,51 @@
         <!-- Hidden field for JSON-mode submission -->
         <input type="hidden" name="rawJson" id="rawJson-input" />
 
+        <!-- Custom claim modal -->
+        <dialog id="custom-claim-modal" class="ds-dialog">
+            <div class="ds-dialog__block">
+                <h2 class="ds-heading" data-size="md" id="custom-claim-modal-title">Legg til eget claim</h2>
+            </div>
+
+            <div class="ds-dialog__block">
+                <div class="ds-field">
+                    <label for="custom-claim-name" class="ds-label">Claim navn</label>
+                    <input type="text"
+                           id="custom-claim-name"
+                           class="ds-input"
+                           placeholder="f.eks. E-post"
+                           aria-label="Claim navn">
+                </div>
+
+                <div class="ds-field" style="margin-block-start: var(--ds-size-5);">
+                    <label for="custom-claim-value" class="ds-label">Eksempelverdi</label>
+                    <input type="text"
+                           id="custom-claim-value"
+                           class="ds-input"
+                           placeholder="f.eks. test@example.com"
+                           aria-label="Eksempelverdi">
+                </div>
+
+                <div id="custom-claim-error" class="ds-error-message" hidden
+                     style="margin-block-start: var(--ds-size-3);">
+                </div>
+            </div>
+
+            <div class="ds-dialog__block" style="display: flex; gap: var(--ds-size-3); justify-content: flex-end;">
+                <button class="ds-button"
+                        type="button"
+                        data-variant="secondary"
+                        onclick="closeCustomClaimModal()">
+                    Avbryt
+                </button>
+                <button class="ds-button"
+                        type="button"
+                        data-variant="primary"
+                        onclick="submitCustomClaim()">
+                    Legg til
+                </button>
+            </div>
+        </dialog>
 
         <button class="ds-button" type="submit" form="edit_attributes_form">Rediger bevistype</button>
     </form>
