@@ -1016,6 +1016,10 @@ footer ul {
     .credential-editor {
         grid-template-columns: 1fr;
         gap: var(--ds-size-6);
+        background: var(--ds-color-neutral-surface-hover);
+        border-radius: var(--ds-border-radius-md);
+        padding: var(--ds-size-6);
+        margin-inline: var(--ds-size-3);
     }
 
     .credential-editor__right {
@@ -1023,6 +1027,9 @@ footer ul {
         width: 100%;
         margin-inline-start: 0;
         margin-block-start: var(--ds-size-8);
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
     }
 }
 
