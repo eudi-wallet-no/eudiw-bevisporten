@@ -42,6 +42,10 @@ public class CredentialService {
         return mapper.toSimpleCredentialForm(cd);
     }
 
+    public CredentialDefinition findCredentialDefinition(String credentialType) {
+        return byobService.getByCredentialType(credentialType);
+    }
+
     public void storeCredential(CredentialDto dto) {
         CredentialDefinition cd =  mapper.fromDto(dto);
 

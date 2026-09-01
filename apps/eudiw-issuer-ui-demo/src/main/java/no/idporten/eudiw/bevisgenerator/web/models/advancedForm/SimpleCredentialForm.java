@@ -32,10 +32,12 @@ public record SimpleCredentialForm(
                 message = "Beviset må ha minimum 1. claim",
                 groups = { CreateForm.class, EditForm.class }
         )
-        List<ClaimForm> claims
+        List<ClaimForm> claims,
+
+        String rawJson
 ) {
     public SimpleCredentialForm() {
-        this("", "dc+sd-jwt", "eudiw:eidas2sandkasse:dynamicvc", "", new ArrayList<>());
+        this("", "dc+sd-jwt", "eudiw:eidas2sandkasse:dynamicvc", "", new ArrayList<>(), null);
     }
 
     public SimpleCredentialForm(CredentialDefinition cd) {
@@ -52,6 +54,6 @@ public record SimpleCredentialForm(
                 return new ClaimForm(claim.path(), fieldName, exampleValue);
             }).toList();
 
-        this(cd.getCredentialType(), cd.getFormat(), cd.getScope(), name, claims);
+        this(cd.getCredentialType(), cd.getFormat(), cd.getScope(), name, claims, null);
     }
 }

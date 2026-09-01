@@ -39,17 +39,11 @@
                 <label for="name-field" class="ds-label">Bevisnavn</label>
                 <input id="name-field" class="ds-input" type="text" th:field="*{name}" />
             </div>
-            <div class="ds-field">
-                <label for="format-field" class="ds-label">Format</label>
-                <input id="format-field" class="ds-input" type="text" th:field="*{format}" />
-            </div>
-            <div class="ds-field">
-                <label for="scope-field" class="ds-label">Scope</label>
-                <input id="scope-field" class="ds-input" type="text" th:field="*{scope}" />
-            </div>
+            <!-- Format and scope are edited in JSON mode -->
+            <input type="hidden" id="format-field" th:field="*{format}" />
+            <input type="hidden" id="scope-field" th:field="*{scope}" />
         </div>
 
-        <hr class="form-divider" />
 
         <!-- Mode toggle -->
         <div class="mode-toggle" role="tablist" aria-label="Redigeringsmodus">
@@ -78,44 +72,61 @@
             <div class="credential-editor">
                 <!-- Left: presets + claims -->
                 <div class="credential-editor__left">
-                    <h2 class="ds-heading" data-size="sm">Legg til feltgrupper</h2>
-                    <div class="preset-buttons">
-                        <button class="ds-button preset-btn"
-                                type="button"
-                                data-preset-btn="persondata"
-                                aria-pressed="false"
-                                onclick="togglePreset('persondata')">
-                            Persondata
-                        </button>
-                        <button class="ds-button preset-btn"
-                                type="button"
-                                data-preset-btn="kontaktinfo"
-                                aria-pressed="false"
-                                onclick="togglePreset('kontaktinfo')">
-                            Kontaktinfo
-                        </button>
-                        <button class="ds-button preset-btn"
-                                type="button"
-                                data-preset-btn="bilde"
-                                aria-pressed="false"
-                                onclick="togglePreset('bilde')">
-                            Bilde
-                        </button>
+                    <div class="preset-section">
+                        <h2 class="ds-heading" data-size="sm">Legg til feltgrupper</h2>
+                        <div class="preset-buttons">
+                            <button class="ds-button"
+                                    type="button"
+                                    data-color="accent"
+                                    data-variant="secondary"
+                                    data-preset-btn="persondata"
+                                    aria-pressed="false"
+                                    onclick="togglePreset('persondata')">
+                                + Persondata
+                            </button>
+                            <button class="ds-button"
+                                    type="button"
+                                    data-color="accent"
+                                    data-variant="secondary"
+                                    data-preset-btn="kontaktinfo"
+                                    aria-pressed="false"
+                                    onclick="togglePreset('kontaktinfo')">
+                                + Kontaktinfo
+                            </button>
+                            <button class="ds-button"
+                                    type="button"
+                                    data-color="accent"
+                                    data-variant="secondary"
+                                    data-preset-btn="bilde"
+                                    aria-pressed="false"
+                                    onclick="togglePreset('bilde')">
+                                + Bilde
+                            </button>
+                        </div>
                     </div>
 
-                    <h2 class="ds-heading" data-size="sm">Claims</h2>
-                    <div id="claims" class="claims-list"></div>
-                    <button type="button" class="ds-button" data-variant="secondary" onclick="addClaim()">
-                        + Legg til claim
-                    </button>
+                    <div class="claims-section">
+                        <div id="claims" class="claims-list"></div>
+                    </div>
                 </div>
 
                 <!-- Right: preview -->
                 <div class="credential-editor__right">
-                    <div id="preview-panel" class="preview-panel">
-                        <p class="ds-paragraph preview-panel__label" data-size="sm">Førehandsvisning</p>
-                        <p class="ds-heading preview-panel__name" data-size="sm" data-preview-name>Bevisnavn</p>
-                        <div class="preview-fields" data-preview-list></div>
+                    <p class="ds-paragraph" data-size="sm" style="color: var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-2);">Førehandsvisning</p>
+                    <div id="preview-panel" class="preview-card" role="img" aria-label="Bevis-forhåndsvisning">
+                        <svg id="preview-spinner" class="ds-spinner preview-card__spinner" data-size="xs"
+                             role="img" aria-label="Oppdaterer førehandsvisning"
+                             viewBox="0 0 50 50" hidden>
+                            <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
+                            <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
+                        </svg>
+                        <span class="preview-card__name" data-preview-name>Bevisnavn</span>
+                        <div class="preview-card__body">
+                            <div id="preview-portrait" class="preview-card__portrait" hidden>
+                                <img id="preview-portrait-img" src="" alt="Profilbilde" />
+                            </div>
+                            <div class="preview-fields" data-preview-list></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -135,7 +146,6 @@
         <!-- Hidden field for JSON-mode submission -->
         <input type="hidden" name="rawJson" id="rawJson-input" />
 
-        <hr class="form-divider" />
 
         <button class="ds-button" type="submit" form="edit_attributes_form">Rediger bevistype</button>
     </form>

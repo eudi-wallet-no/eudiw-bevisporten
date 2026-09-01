@@ -34,8 +34,8 @@ const PRESET_CLAIMS = {
         displayName: 'Profilbilde',
         type: 'binary',
         mimeType: 'image/png',
-        // Minimal 1×1 gray PNG in base64
-        exampleValue: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVQI12NgAAAAAgAB4iG8MwAAAABJRU5ErkJggg=='
+        // 96×96 gray person-silhouette placeholder PNG
+        exampleValue: 'iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAIAAABt+uBvAAABDElEQVR42u3ayRHDIBBFQeUfzQ9Jofjug8qSxTLQL4KpLi7AHKcuOxAAAgQIECBAgAAJEKANgJIA+ha5bl+g3GkvoDxtC6D81+JAeaNlgfJeCwLl7ZYCSpsWAUrLAK0OlPYBArQtUHoFCBAgQIAAFdVpauQEAQIECBAgQG7zgAB5kwZUFOj0LzbEqM/Y/YBOf/PdjHoO3BvotB/U1Kj/qGOAHjCNGnIk0O9GAycEBAgQIECAAAEC5KrhNu/BrC6QJ9feNNaAbZhtvmGWEZUByrgKAGV0gCoDZY4mBcpMAaoGlPmaCCizBgjQAkCZO0BzA6VCgAAVBUqdAAECtBpQqgUIECBAgAABAgToTh/IbgDJoD1MpAAAAABJRU5ErkJggg=='
       }
     ]
   }
@@ -82,11 +82,37 @@ function populateStateFromJson(json) {
   state.claims = rawClaims.map(c => ({
     path: c.path || '',
     displayName: c.display?.[0]?.name || c.path || '',
-    type: c.type || 'string',
-    mimeType: c.mimeType || null,
+    type: c.value_type || 'string',
+    mimeType: c.mime_type || null,
     exampleValue: exampleData[c.path] !== undefined ? String(exampleData[c.path]) : '',
-    presetKey: null
+    presetKey: detectPresetKey(c.path)
   }));
+
+  // Sync activePresets from detected claims
+  state.activePresets.clear();
+  state.claims.forEach(c => {
+    if (c.presetKey) {
+      const preset = PRESET_CLAIMS[c.presetKey];
+      // Only mark preset active if all its paths are present
+      const allPresent = preset.claims.every(p => state.claims.some(sc => sc.path === p.path));
+      if (allPresent) state.activePresets.add(c.presetKey);
+    }
+  });
+}
+
+function detectPresetKey(path) {
+  for (const [key, preset] of Object.entries(PRESET_CLAIMS)) {
+    if (preset.claims.some(p => p.path === path)) return key;
+  }
+  return null;
+}
+
+function syncJsonTextarea() {
+  if (state.mode === 'json') {
+    const ta = document.getElementById('json-editor');
+    if (ta) ta.value = schemaToJson();
+    validateJson();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -95,13 +121,17 @@ function populateStateFromJson(json) {
 function bindEvents() {
   const nameInput = document.getElementById('name-field');
   if (nameInput) {
-    nameInput.addEventListener('input', () => generateIds(nameInput.value));
+    nameInput.addEventListener('input', () => {
+      generateIds(nameInput.value);
+      if (state.mode === 'schema') syncJsonTextarea();
+    });
   }
 
   const credTypeInput = document.getElementById('credentialType');
   if (credTypeInput) {
     credTypeInput.addEventListener('input', () => {
       state.credentialType = credTypeInput.value;
+      if (state.mode === 'schema') syncJsonTextarea();
     });
   }
 
@@ -109,12 +139,21 @@ function bindEvents() {
   if (scopeInput) {
     scopeInput.addEventListener('input', () => {
       state.scope = scopeInput.value;
+      if (state.mode === 'schema') syncJsonTextarea();
     });
   }
 
   const jsonTextarea = document.getElementById('json-editor');
   if (jsonTextarea) {
-    jsonTextarea.addEventListener('input', () => validateJson());
+    let jsonDebounce = null;
+    jsonTextarea.addEventListener('input', () => {
+      validateJson();
+      clearTimeout(jsonDebounce);
+      jsonDebounce = setTimeout(() => {
+        jsonToSchema(jsonTextarea.value);
+        schedulePreviewUpdate();
+      }, 500);
+    });
   }
 
   const form = document.getElementById('add_attributes_form') || document.getElementById('edit_attributes_form');
@@ -130,9 +169,12 @@ function switchMode(mode) {
   if (mode === state.mode) return;
 
   if (state.mode === 'schema') {
-    // Collect any manual edits from the DOM before switching
     syncStateFromSchemaDOM();
     state.lastValidSchema = JSON.parse(JSON.stringify({ claims: state.claims, name: state.name }));
+  } else {
+    // Leaving JSON mode: parse current textarea into state
+    const ta = document.getElementById('json-editor');
+    if (ta) jsonToSchema(ta.value);
   }
 
   state.mode = mode;
@@ -153,7 +195,31 @@ function switchMode(mode) {
     const ta = document.getElementById('json-editor');
     if (ta) ta.value = schemaToJson();
     validateJson();
+  } else {
+    renderClaims();
+    renderPreview();
+    syncTopLevelInputsFromState();
   }
+}
+
+function syncTopLevelInputsFromState() {
+  const nameEl = document.getElementById('name-field');
+  if (nameEl) nameEl.value = state.name;
+
+  const ctEl = document.getElementById('credentialType');
+  if (ctEl) ctEl.value = state.credentialType;
+
+  const scopeEl = document.getElementById('scope-field');
+  if (scopeEl) scopeEl.value = state.scope;
+
+  // Sync preset button states
+  document.querySelectorAll('[data-preset-btn]').forEach(btn => {
+    const active = state.activePresets.has(btn.dataset.presetBtn);
+    btn.setAttribute('aria-pressed', String(active));
+    btn.setAttribute('data-variant', active ? 'primary' : 'secondary');
+    const label = PRESET_CLAIMS[btn.dataset.presetBtn]?.label || btn.dataset.presetBtn;
+    btn.textContent = (active ? '✓ ' : '+ ') + label;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -162,6 +228,7 @@ function switchMode(mode) {
 function schemaToJson() {
   const claimsMetadata = state.claims.map(c => ({
     path: c.path,
+    value_type: c.type || 'string',
     mandatory: false,
     display: [{ name: c.displayName, locale: 'no' }]
   }));
@@ -297,7 +364,7 @@ function generateIds(name) {
   const scopeEl = document.getElementById('scope-field');
   if (scopeEl) scopeEl.value = state.scope;
 
-  renderPreview();
+  schedulePreviewUpdate();
 }
 
 // ---------------------------------------------------------------------------
@@ -308,15 +375,8 @@ function togglePreset(key) {
   if (!preset) return;
 
   if (state.activePresets.has(key)) {
-    // Remove claims that belong to this preset and haven't been manually edited
-    state.claims = state.claims.filter(c => {
-      if (c.presetKey !== key) return true;
-      // Keep if manually edited (displayName or exampleValue differ from preset)
-      const original = preset.claims.find(p => p.path === c.path);
-      if (!original) return false;
-      const edited = c.displayName !== original.displayName || c.exampleValue !== original.exampleValue;
-      return edited;
-    });
+    // Remove all claims that belong to this preset, regardless of edits
+    state.claims = state.claims.filter(c => c.presetKey !== key);
     state.activePresets.delete(key);
   } else {
     // Add preset claims that aren't already present
@@ -330,18 +390,26 @@ function togglePreset(key) {
   }
 
   // Update button active state
-  document.querySelectorAll('[data-preset-btn]').forEach(btn => {
-    const active = state.activePresets.has(btn.dataset.presetBtn);
-    btn.classList.toggle('preset-btn--active', active);
-    btn.setAttribute('aria-pressed', String(active));
-  });
+  syncPresetButtons();
 
   renderClaims();
   renderPreview();
+  syncJsonTextarea();
+}
+
+function syncPresetButtons() {
+  document.querySelectorAll('[data-preset-btn]').forEach(btn => {
+    const active = state.activePresets.has(btn.dataset.presetBtn);
+    btn.setAttribute('aria-pressed', String(active));
+    btn.setAttribute('data-variant', active ? 'primary' : 'secondary');
+    const label = PRESET_CLAIMS[btn.dataset.presetBtn]?.label || btn.dataset.presetBtn;
+    btn.textContent = (active ? '✓ ' : '+ ') + label;
+  });
 }
 
 // ---------------------------------------------------------------------------
-// Render claims list (schema mode)
+// Render claims list (schema mode — preset claims with locked name/type,
+// plus any custom claims parsed from JSON shown read-only)
 // ---------------------------------------------------------------------------
 function renderClaims() {
   const container = document.getElementById('claims');
@@ -358,149 +426,96 @@ function buildClaimRow(claim, i) {
   div.className = 'claim';
   div.dataset.claimIndex = i;
 
-  // Left column: path + displayName
-  const left = document.createElement('div');
-  left.className = 'claim_field';
+  const label = document.createElement('span');
+  label.className = 'claim-preset-label';
+  label.textContent = claim.displayName || claim.path;
 
-  const pathInput = document.createElement('input');
-  pathInput.className = 'ds-input';
-  pathInput.type = 'text';
-  pathInput.name = `claims[${i}].path`;
-  pathInput.value = claim.path;
-  pathInput.placeholder = 'Path';
-  pathInput.addEventListener('input', () => {
-    state.claims[i].path = pathInput.value;
-    renderPreview();
-  });
+  // Hidden inputs so Spring MVC gets the full claim on submit
+  const pathHidden = document.createElement('input');
+  pathHidden.type = 'hidden';
+  pathHidden.name = `claims[${i}].path`;
+  pathHidden.value = claim.path;
 
-  const nameInput = document.createElement('input');
-  nameInput.className = 'ds-input';
-  nameInput.type = 'text';
-  nameInput.name = `claims[${i}].name`;
-  nameInput.value = claim.displayName;
-  nameInput.placeholder = 'Visningsnavn';
-  nameInput.addEventListener('input', () => {
-    state.claims[i].displayName = nameInput.value;
-    renderPreview();
-  });
+  const nameHidden = document.createElement('input');
+  nameHidden.type = 'hidden';
+  nameHidden.name = `claims[${i}].name`;
+  nameHidden.value = claim.displayName;
 
-  left.appendChild(pathInput);
-  left.appendChild(nameInput);
+  const typeHidden = document.createElement('input');
+  typeHidden.type = 'hidden';
+  typeHidden.name = `claims[${i}].type`;
+  typeHidden.value = claim.type || 'string';
 
-  // Right column: type + mimeType (conditional) + exampleValue
-  const right = document.createElement('div');
-  right.className = 'claim_field';
-
-  const typeSelect = document.createElement('select');
-  typeSelect.className = 'ds-input';
-  typeSelect.name = `claims[${i}].type`;
-  [
-    { value: '', label: 'Velg en type', disabled: true },
-    { value: 'string', label: 'string' },
-    { value: 'binary', label: 'binary' },
-    { value: 'number', label: 'number', disabled: true },
-    { value: 'boolean', label: 'boolean', disabled: true },
-    { value: 'iso_date', label: 'iso_date', disabled: true },
-    { value: 'iso_datetime', label: 'iso_datetime', disabled: true },
-    { value: 'map', label: 'map', disabled: true },
-    { value: 'list', label: 'list', disabled: true }
-  ].forEach(opt => {
-    const o = document.createElement('option');
-    o.value = opt.value;
-    o.textContent = opt.label;
-    if (opt.disabled) o.disabled = true;
-    if (opt.value === claim.type) o.selected = true;
-    typeSelect.appendChild(o);
-  });
-
-  const mimeInput = document.createElement('input');
-  mimeInput.className = 'ds-input';
-  mimeInput.type = 'text';
-  mimeInput.name = `claims[${i}].mimeType`;
-  mimeInput.value = claim.mimeType || '';
-  mimeInput.placeholder = 'MIME-type (f.eks. image/png)';
-  mimeInput.hidden = claim.type !== 'binary';
-  mimeInput.addEventListener('input', () => {
-    state.claims[i].mimeType = mimeInput.value;
-  });
-
-  typeSelect.addEventListener('change', () => {
-    state.claims[i].type = typeSelect.value;
-    mimeInput.hidden = typeSelect.value !== 'binary';
-    renderPreview();
-  });
+  const mimeHidden = document.createElement('input');
+  mimeHidden.type = 'hidden';
+  mimeHidden.name = `claims[${i}].mimeType`;
+  mimeHidden.value = claim.mimeType || '';
 
   const exampleInput = document.createElement('input');
-  exampleInput.className = 'ds-input';
+  exampleInput.className = 'ds-input claim-preset-example';
   exampleInput.type = 'text';
   exampleInput.name = `claims[${i}].exampleValue`;
   exampleInput.value = claim.exampleValue || '';
   exampleInput.placeholder = 'Eksempelverdi';
+  exampleInput.setAttribute('aria-label', `Eksempelverdi for ${claim.displayName || claim.path}`);
   exampleInput.addEventListener('input', () => {
-    updatePreviewValue(claim.path, exampleInput.value);
+    state.claims[i].exampleValue = exampleInput.value;
+    schedulePreviewUpdate();
   });
 
-  right.appendChild(typeSelect);
-  right.appendChild(mimeInput);
-  right.appendChild(exampleInput);
-
-  // Delete button
-  const delBtn = document.createElement('button');
-  delBtn.className = 'ds-button';
-  delBtn.setAttribute('data-color', 'danger');
-  delBtn.setAttribute('data-variant', 'tertiary');
-  delBtn.type = 'button';
-  delBtn.textContent = 'Slett';
-  delBtn.addEventListener('click', () => {
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'ds-button claim-remove-btn';
+  removeBtn.setAttribute('data-color', 'danger');
+  removeBtn.setAttribute('data-variant', 'tertiary');
+  removeBtn.setAttribute('aria-label', `Fjern ${claim.displayName || claim.path}`);
+  removeBtn.textContent = '✕';
+  removeBtn.addEventListener('click', () => {
     state.claims.splice(i, 1);
+
+    // Check if removing this claim means the preset is no longer complete
+    if (claim.presetKey) {
+      const preset = PRESET_CLAIMS[claim.presetKey];
+      const allPresent = preset.claims.every(p => state.claims.some(c => c.path === p.path));
+      if (!allPresent) {
+        state.activePresets.delete(claim.presetKey);
+        syncPresetButtons();
+      }
+    }
+
     renderClaims();
     renderPreview();
+    syncJsonTextarea();
   });
 
-  div.appendChild(left);
-  div.appendChild(right);
-  div.appendChild(delBtn);
+  div.appendChild(pathHidden);
+  div.appendChild(nameHidden);
+  div.appendChild(typeHidden);
+  div.appendChild(mimeHidden);
+  div.appendChild(label);
+  div.appendChild(exampleInput);
+  div.appendChild(removeBtn);
   return div;
 }
 
 // ---------------------------------------------------------------------------
-// Add claim (button handler, also used from HTML onclick)
+// Preview panel (debounced, with spinner while pending)
 // ---------------------------------------------------------------------------
-function addClaim() {
-  state.claims.push({ path: '', displayName: '', type: 'string', mimeType: null, exampleValue: '', presetKey: null });
-  renderClaims();
-  renderPreview();
-  // Focus the newly added path input
-  const container = document.getElementById('claims');
-  if (container) {
-    const last = container.lastElementChild;
-    if (last) last.querySelector('input')?.focus();
-  }
-}
+let previewTimer = null;
+const PREVIEW_DEBOUNCE_MS = 300;
 
-/**
- * removeClaim — compatibility shim for the server-side Thymeleaf claim fragment.
- * In add-new/edit-new this is never called (rows are JS-generated).
- * Kept here so pages that still render claims server-side don't break.
- */
-function removeClaim(button) {
-  const row = button.closest('.claim');
-  if (!row) return;
-  // If state-driven, find by index and splice
-  const idx = row.dataset.claimIndex !== undefined ? Number(row.dataset.claimIndex) : -1;
-  if (idx >= 0 && idx < state.claims.length) {
-    state.claims.splice(idx, 1);
-    renderClaims();
+function schedulePreviewUpdate() {
+  const spinner = document.getElementById('preview-spinner');
+  if (spinner) spinner.hidden = false;
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => {
     renderPreview();
-  } else {
-    // Fallback for server-rendered rows
-    row.remove();
-  }
+    // Only sync JSON textarea if we are in schema mode (schema drives JSON)
+    if (state.mode === 'schema') syncJsonTextarea();
+    if (spinner) spinner.hidden = true;
+  }, PREVIEW_DEBOUNCE_MS);
 }
 
-// ---------------------------------------------------------------------------
-// Preview panel
-// ---------------------------------------------------------------------------
 function renderPreview() {
   const panel = document.getElementById('preview-panel');
   if (!panel) return;
@@ -512,8 +527,24 @@ function renderPreview() {
   if (!list) return;
   list.innerHTML = '';
 
+  // Handle portrait separately
+  const portraitClaim = state.claims.find(c => c.path === 'portrait' && c.type === 'binary');
+  const portraitContainer = document.getElementById('preview-portrait');
+  const portraitImg = document.getElementById('preview-portrait-img');
+  if (portraitContainer && portraitImg) {
+    if (portraitClaim && portraitClaim.exampleValue) {
+      portraitImg.src = `data:image/png;base64,${portraitClaim.exampleValue}`;
+      portraitContainer.hidden = false;
+    } else {
+      portraitContainer.hidden = true;
+    }
+  }
+
   state.claims.forEach(claim => {
     if (!claim.path) return;
+    // Portrait is shown as image, not as a field row
+    if (claim.path === 'portrait' && claim.type === 'binary') return;
+
     const row = document.createElement('div');
     row.className = 'preview-field';
 
@@ -525,9 +556,7 @@ function renderPreview() {
     val.className = 'preview-value';
     val.contentEditable = 'true';
     val.spellcheck = false;
-    val.textContent = claim.type === 'binary'
-      ? '[bilde]'
-      : (claim.exampleValue || '—');
+    val.textContent = claim.type === 'binary' ? '[binærdata]' : (claim.exampleValue || '—');
     val.addEventListener('input', () => {
       updatePreviewValue(claim.path, val.textContent);
     });
