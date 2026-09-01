@@ -439,6 +439,8 @@ function syncPresetButtons() {
 // ---------------------------------------------------------------------------
 // Custom claim modal
 // ---------------------------------------------------------------------------
+let customClaimModalTrigger = null;
+
 function openCustomClaimModal() {
   const modal = document.getElementById('custom-claim-modal');
   const nameInput = document.getElementById('custom-claim-name');
@@ -446,6 +448,9 @@ function openCustomClaimModal() {
   const errorDiv = document.getElementById('custom-claim-error');
 
   if (modal && nameInput && valueInput && errorDiv) {
+    // Store reference to the button that opened the modal
+    customClaimModalTrigger = document.activeElement;
+    
     nameInput.value = '';
     valueInput.value = '';
     errorDiv.hidden = true;
@@ -456,7 +461,13 @@ function openCustomClaimModal() {
 
 function closeCustomClaimModal() {
   const modal = document.getElementById('custom-claim-modal');
-  if (modal) modal.close();
+  if (modal) {
+    modal.close();
+    // Return focus to the button that opened the modal
+    if (customClaimModalTrigger && customClaimModalTrigger.focus) {
+      customClaimModalTrigger.focus();
+    }
+  }
 }
 
 function submitCustomClaim() {
