@@ -627,47 +627,13 @@ function renderPreview() {
 
     const val = document.createElement('span');
     val.className = 'preview-value';
-    val.contentEditable = 'true';
     val.spellcheck = false;
     val.textContent = claim.type === 'binary' ? '[binærdata]' : (claim.exampleValue || '—');
-    val.addEventListener('input', () => {
-      updatePreviewValue(claim.path, val.textContent);
-    });
 
     row.appendChild(label);
     row.appendChild(val);
     list.appendChild(row);
   });
-}
-
-function updatePreviewValue(path, newValue) {
-  const claim = state.claims.find(c => c.path === path);
-  if (claim) {
-    claim.exampleValue = newValue;
-    // Sync to JSON textarea if in json mode
-    if (state.mode === 'json') {
-      const ta = document.getElementById('json-editor');
-      if (ta) {
-        try {
-          const parsed = JSON.parse(ta.value);
-          if (parsed.example_credential_data) {
-            parsed.example_credential_data[path] = newValue;
-            ta.value = JSON.stringify(parsed, null, 2);
-          }
-        } catch (_) { /* leave textarea as-is if invalid */ }
-      }
-    }
-    // Also sync schema input if visible
-    const container = document.getElementById('claims');
-    if (container) {
-      const claimIdx = state.claims.indexOf(claim);
-      const row = container.querySelector(`[data-claim-index="${claimIdx}"]`);
-      if (row) {
-        const exInput = row.querySelector(`input[name="claims[${claimIdx}].exampleValue"]`);
-        if (exInput && exInput.value !== newValue) exInput.value = newValue;
-      }
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------

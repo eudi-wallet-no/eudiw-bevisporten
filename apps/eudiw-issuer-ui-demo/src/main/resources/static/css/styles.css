@@ -1092,16 +1092,6 @@ footer ul {
     color: var(--ds-color-neutral-text-default);
     overflow-wrap: break-word;
     text-align: right;
-    border-block-end: 1px dashed var(--ds-color-neutral-border-subtle);
-    outline: none;
-    cursor: text;
-    padding-block-end: 1px;
-    min-width: 4ch;
-}
-
-.preview-value:focus {
-    border-block-end-color: var(--ds-color-accent-base-default);
-    border-block-end-style: solid;
 }
 
 .preview-card__portrait {
