@@ -69,15 +69,15 @@ For significant layout or interaction changes, offer ASCII sketches, so a misrea
 
 ## 8. Present
 
-Keep it short. Investigate thoroughly, but surface only what decides something. No unchanged lines "for completeness". Use this order, so it reads as an argument:
+Keep it short — surface only what decides something. The plan answers, in order:
 
-1. **Goal** — one sentence: what outcome, and why, plus the acceptance criteria and material assumptions the plan rests on.
-2. **Scope** — what changes, what does not, what is out of scope for now.
-3. **Options** — prior art first (step 5), then 1-2 realistic approaches, a couple of lines each, with the trade-off stated honestly. If only one approach is sensible, say so in one line instead of inventing a strawman.
-4. **Recommendation** — which option and why. After the options, never before.
-5. **Technical changes** — the locations that change (`file:line`, grouped), the pattern being reused or why none fits, high-risk touch points flagged, and any gotcha that shapes the approach. 3-6 bullets. Filtered mapping, not dumped mapping.
-6. **Tasks** — task IDs with a one-line goal each. The detail lives in the todo.
-7. **Verification** — how we will know it worked, in one or two lines. Name the real commands: discover them from instruction files, config and conventions — never invent one.
+1. **Why** — the outcome, the acceptance criteria, and the assumptions the plan rests on.
+2. **What** — what changes, and what deliberately does not.
+3. **Why this way** — prior art first, then the realistic alternative, then the recommendation with the trade-off stated honestly. One line when only one approach is sensible; recommendation never before options.
+4. **Where** — the changing locations as grouped `file:line` bullets, high-risk touch points flagged, the pattern reused or why none fits.
+5. **Verify** — the real commands, discovered from instruction files and config — never invented.
+
+Tasks are todo IDs with a one-line goal each; the detail lives in the todo.
 
 ## After approval
 
