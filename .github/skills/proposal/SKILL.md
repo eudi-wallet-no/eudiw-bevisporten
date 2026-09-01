@@ -83,3 +83,9 @@ Tasks are todo IDs with a one-line goal each; the detail lives in the todo.
 ## After approval
 
 Before the first edit, run the discovered build and test commands once to pin the baseline — a red baseline is noted, not fixed. Then execute in dependency order. Keep todo status current: `in_progress` when you start, `done` only once verified against its done-when condition, not just "it ran". Run the tests. Update documentation the change made wrong.
+
+## Rules
+
+1. **Don't spin.** Two failed attempts to locate a file, pattern or answer — say what failed and ask, instead of guessing.
+2. **Parallelize.** Independent searches and reads are batched, never serialized.
+3. **Pay knowledge forward.** A convention you discovered and relied on goes into the nearest instruction file, not only into the plan.
