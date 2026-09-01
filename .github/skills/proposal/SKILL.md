@@ -72,11 +72,11 @@ For significant layout or interaction changes, offer ASCII sketches, so a misrea
 
 Keep it short — surface only what decides something. The plan answers, in order:
 
-1. **Why** — the outcome, the acceptance criteria, and the assumptions the plan rests on.
-2. **What** — what changes, and what deliberately does not.
-3. **Why this way** — prior art first, then the realistic alternative, then the recommendation with the trade-off stated honestly. One line when only one approach is sensible; recommendation never before options.
-4. **Where** — the changing locations as grouped `file:line` bullets, high-risk touch points flagged, the pattern reused or why none fits.
-5. **Verify** — the real commands, discovered from instruction files and config — never invented.
+1. **Goal** — the outcome, the acceptance criteria, and the assumptions the plan rests on.
+2. **Scope** — what changes, and what deliberately does not.
+3. **Options** — prior art first, then the realistic alternative, then the recommendation with the trade-off stated honestly. One line when only one approach is sensible; recommendation never before options.
+4. **Technical changes** — the changing locations as grouped `file:line` bullets, high-risk touch points flagged, the pattern reused or why none fits.
+5. **Verification** — the real commands, discovered from instruction files and config — never invented.
 
 Tasks are todo IDs with a one-line goal each; the detail lives in the todo.
 
