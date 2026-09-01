@@ -15,7 +15,7 @@ Size once, up front — it decides how heavy the rest of the loop is.
 
 - **Small** — clear scope, one or two files, additive: thin plan (goal, changes, verification). Skip steps 5 and 7 where they add nothing.
 - **Medium** — multi-file, new pattern, unclear scope: full loop.
-- **Large** — cross-service, architecture, or anything touching auth, payments, schema migrations or core business logic: full loop with deeper mapping, more edge-case hunting and a wider caller search.
+- **Large** — cross-service, architecture, or anything touching auth, payments, schema migrations or core business logic: full loop with deeper mapping, more edge-case hunting and a wider caller search. When runtime behavior changes, the plan also states how it stays observable, what happens when a dependency fails, and where secrets live.
 
 If unsure, treat as Medium.
 
@@ -41,9 +41,10 @@ Read the files you will actually edit, in the workspace you will actually edit t
 git rev-parse --show-toplevel      # the repo root you expect
 git fetch origin <default-branch>
 git rev-list --left-right --count HEAD...origin/<default-branch>   # must not be behind
+git status --short                 # uncommitted work under the map?
 ```
 
-Sync if behind. Glob the directory to confirm the files exist in this tree; do not trust a remembered path. Never map or edit outside the current workspace. No code claim without `file:line` — from a file you opened here, never from memory or another checkout.
+Sync if behind. Note dirty paths — if they overlap the files you will map, say so: attribution and rollback are weak on a poisoned tree. Glob the directory to confirm the files exist in this tree; do not trust a remembered path. Never map or edit outside the current workspace. No code claim without `file:line` — from a file you opened here, never from memory or another checkout.
 
 ## 5. Survey
 
@@ -81,4 +82,4 @@ Tasks are todo IDs with a one-line goal each; the detail lives in the todo.
 
 ## After approval
 
-Execute in dependency order. Keep todo status current: `in_progress` when you start, `done` only once verified against its done-when condition, not just "it ran". Run the tests. Update documentation the change made wrong.
+Before the first edit, run the discovered build and test commands once to pin the baseline — a red baseline is noted, not fixed. Then execute in dependency order. Keep todo status current: `in_progress` when you start, `done` only once verified against its done-when condition, not just "it ran". Run the tests. Update documentation the change made wrong.
