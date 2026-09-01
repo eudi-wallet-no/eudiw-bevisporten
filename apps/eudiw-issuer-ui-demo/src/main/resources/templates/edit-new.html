@@ -46,10 +46,9 @@
 
 
         <!-- Mode toggle -->
-        <div class="mode-toggle" role="tablist" aria-label="Redigeringsmodus">
+        <div class="mode-toggle" aria-label="Redigeringsmodus">
             <button class="ds-button mode-toggle__btn"
                     type="button"
-                    role="tab"
                     data-mode-btn="schema"
                     aria-selected="true"
                     aria-controls="schema-panel"
@@ -58,7 +57,6 @@
             </button>
             <button class="ds-button mode-toggle__btn"
                     type="button"
-                    role="tab"
                     data-mode-btn="json"
                     aria-selected="false"
                     aria-controls="json-panel"
@@ -68,7 +66,7 @@
         </div>
 
         <!-- Schema panel -->
-        <div id="schema-panel" role="tabpanel">
+        <div id="schema-panel">
             <div class="credential-editor">
                 <!-- Left: presets + claims -->
                 <div class="credential-editor__left">
@@ -133,7 +131,7 @@
         </div>
 
         <!-- JSON panel -->
-        <div id="json-panel" role="tabpanel" hidden>
+        <div id="json-panel" hidden>
             <div class="json-editor-wrapper">
                 <h2 class="ds-heading" data-size="sm">JSON</h2>
                 <textarea id="json-editor"
