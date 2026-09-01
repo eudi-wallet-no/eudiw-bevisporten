@@ -3,43 +3,9 @@
  *
  * Drives the add-new and edit-new credential forms.
  * State is the single source of truth; DOM is always derived from state.
+ *
+ * PRESET_CLAIMS is defined in preset-claims.js, loaded before this file.
  */
-
-// ---------------------------------------------------------------------------
-// Preset claims
-// ---------------------------------------------------------------------------
-const PRESET_CLAIMS = {
-  persondata: {
-    label: 'Persondata',
-    claims: [
-      { path: 'given_name', displayName: 'Fornavn', type: 'string', mimeType: null, exampleValue: 'Ola' },
-      { path: 'family_name', displayName: 'Etternavn', type: 'string', mimeType: null, exampleValue: 'Nordmann' },
-      { path: 'middle_name', displayName: 'Mellomnavn', type: 'string', mimeType: null, exampleValue: '' },
-      { path: 'personal_administrative_number', displayName: 'Fødselsnummer', type: 'string', mimeType: null, exampleValue: '01018812345' },
-      { path: 'birth_date', displayName: 'Fødselsdato', type: 'string', mimeType: null, exampleValue: '1988-01-01' }
-    ]
-  },
-  kontaktinfo: {
-    label: 'Kontaktinfo',
-    claims: [
-      { path: 'phone_number', displayName: 'Telefonnummer', type: 'string', mimeType: null, exampleValue: '+4712345678' },
-      { path: 'email', displayName: 'E-post', type: 'string', mimeType: null, exampleValue: 'ola@example.no' }
-    ]
-  },
-  bilde: {
-    label: 'Bilde',
-    claims: [
-      {
-        path: 'portrait',
-        displayName: 'Profilbilde',
-        type: 'binary',
-        mimeType: 'image/png',
-        // 96×96 gray person-silhouette placeholder PNG
-        exampleValue: 'iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAIAAABt+uBvAAABDElEQVR42u3ayRHDIBBFQeUfzQ9Jofjug8qSxTLQL4KpLi7AHKcuOxAAAgQIECBAgAAJEKANgJIA+ha5bl+g3GkvoDxtC6D81+JAeaNlgfJeCwLl7ZYCSpsWAUrLAK0OlPYBArQtUHoFCBAgQIAAFdVpauQEAQIECBAgQG7zgAB5kwZUFOj0LzbEqM/Y/YBOf/PdjHoO3BvotB/U1Kj/qGOAHjCNGnIk0O9GAycEBAgQIECAAAEC5KrhNu/BrC6QJ9feNNaAbZhtvmGWEZUByrgKAGV0gCoDZY4mBcpMAaoGlPmaCCizBgjQAkCZO0BzA6VCgAAVBUqdAAECtBpQqgUIECBAgAABAgToTh/IbgDJoD1MpAAAAABJRU5ErkJggg=='
-      }
-    ]
-  }
-};
 
 // ---------------------------------------------------------------------------
 // State
