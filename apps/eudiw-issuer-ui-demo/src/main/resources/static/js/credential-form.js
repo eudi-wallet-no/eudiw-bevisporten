@@ -140,7 +140,13 @@ function bindEvents() {
   if (nameInput) {
     nameInput.addEventListener('input', () => {
       generateIds(nameInput.value);
-      if (state.mode === 'schema') syncJsonTextarea();
+      if (state.mode === 'json') {
+        const ta = document.getElementById('json-editor');
+        if (ta) {
+          ta.value = schemaToJson();
+          validateJson();
+        }
+      }
     });
   }
 
@@ -148,7 +154,7 @@ function bindEvents() {
   if (credTypeInput) {
     credTypeInput.addEventListener('input', () => {
       state.credentialType = credTypeInput.value;
-      if (state.mode === 'schema') syncJsonTextarea();
+      if (state.mode === 'json') syncJsonTextarea();
     });
   }
 
@@ -156,7 +162,7 @@ function bindEvents() {
   if (scopeInput) {
     scopeInput.addEventListener('input', () => {
       state.scope = scopeInput.value;
-      if (state.mode === 'schema') syncJsonTextarea();
+      if (state.mode === 'json') syncJsonTextarea();
     });
   }
 
