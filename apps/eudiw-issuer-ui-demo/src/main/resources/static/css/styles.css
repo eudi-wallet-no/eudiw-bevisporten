@@ -1015,12 +1015,14 @@ footer ul {
 @media (max-width: 768px) {
     .credential-editor {
         grid-template-columns: 1fr;
+        gap: var(--ds-size-6);
     }
 
     .credential-editor__right {
         position: static;
-        order: -1; /* preview above claims on mobile */
-        max-width: 100%;
+        width: 100%;
+        margin-inline-start: 0;
+        margin-block-start: var(--ds-size-8);
     }
 }
 
