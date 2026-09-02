@@ -194,10 +194,6 @@
     return object;
   }
 
-  function roundTripUnedited(str) {
-    return serializeIssuance(parseIssuanceJson(str));
-  }
-
   function initDom() {
     const form = document.getElementById('send_attributes_form');
     const textarea = document.getElementById('eaa_data_field');
@@ -286,9 +282,13 @@
         label.className = 'claim-preset-label';
         label.textContent = field.label;
         claim.appendChild(label);
-        const inputId = 'issuance-' + field.path.replace(/[^a-zA-Z0-9_-]/g, '-');
+        const input = document.createElement('input');
+        label.htmlFor = input.id =
+          'issuance-' + field.path.replace(/[^a-zA-Z0-9_-]/g, '-');
 
-        let input;
+        // Bilet-feltet legg input inne i knappe-wrapperen, dei andre rett i .claim
+        let inputParent = claim;
+
         if (field.kind === 'image') {
           const image = document.createElement('img');
           image.src = imageSource(field);
@@ -299,7 +299,6 @@
           claim.appendChild(frame);
           const wrapper = document.createElement('div');
           wrapper.className = 'claim-preset-example-wrapper';
-          input = document.createElement('input');
           input.type = 'file';
           input.accept = field.mime || 'image/*';
           input.style.display = 'none';
@@ -329,35 +328,28 @@
             input.click();
           });
           wrapper.appendChild(uploadBtn);
-          wrapper.appendChild(input);
-          input.id = inputId;
           claim.appendChild(wrapper);
-          container.appendChild(claim);
-          return;
+          inputParent = wrapper;
+        } else if (field.kind === 'boolean') {
+          input.className = 'ds-input';
+          input.type = 'checkbox';
+          input.checked = field.value;
+          input.addEventListener('change', function () {
+            editField(field, input.checked);
+          });
         } else {
-          input = document.createElement('input');
-          if (field.kind === 'boolean') {
-            input.className = 'ds-input';
-            input.type = 'checkbox';
-            input.checked = field.value;
-            input.addEventListener('change', function () {
-              editField(field, input.checked);
-            });
-          } else {
-            input.className = 'ds-input claim-preset-example';
-            input.type = field.kind === 'integer' ? 'number' : 'text';
-            if (field.kind === 'integer') input.step = '1';
-            input.value = field.kind === 'string-list'
-              ? field.value.join(', ')
-              : field.value;
-            input.addEventListener('input', function () {
-              editField(field, input.value);
-            });
-          }
+          input.className = 'ds-input claim-preset-example';
+          input.type = field.kind === 'integer' ? 'number' : 'text';
+          if (field.kind === 'integer') input.step = '1';
+          input.value = field.kind === 'string-list'
+            ? field.value.join(', ')
+            : field.value;
+          input.addEventListener('input', function () {
+            editField(field, input.value);
+          });
         }
 
-        label.htmlFor = input.id = inputId;
-        claim.appendChild(input);
+        inputParent.appendChild(input);
         container.appendChild(claim);
       });
     }
@@ -370,20 +362,18 @@
         setBadge(true);
         hideAlert();
       } catch (error) {
-        showAlert(error.message);
+        showAlert(error.message, 'schema-panel');
       }
     }
 
     function switchMode(nextMode, event) {
       if (nextMode !== 'schema' && nextMode !== 'json') return;
       if (nextMode === 'schema') {
-        const parsed = validateTextarea();
-        if (!parsed) {
+        if (!validateTextarea()) {
           event?.preventDefault();
           showAlert('Ugyldig JSON. Rett feilen i Avansert før du går tilbake til Skjema.');
           return;
         }
-        currentObject = parsed;
         renderFields();
         hideAlert();
       }
@@ -414,14 +404,11 @@
       if (parsed) currentObject = parsed;
     });
     form.addEventListener('submit', function (event) {
-      const parsed = validateTextarea();
-      if (!parsed) {
+      if (!validateTextarea()) {
         event.preventDefault();
         const jsonTab = document.getElementById('json-tab');
         if (jsonTab) jsonTab.click();
         showAlert('Ugyldig JSON. Rett feilen før du sender inn skjemaet.');
-      } else {
-        currentObject = parsed;
       }
     });
     document.addEventListener('modechange', function (event) {
@@ -436,7 +423,6 @@
     serializeIssuance: serializeIssuance,
     listFields: listFields,
     applyField: applyField,
-    roundTripUnedited: roundTripUnedited,
     init: initDom
   };
 }));

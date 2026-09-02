@@ -79,3 +79,6 @@ out/
 /apps/*/node_modules/
 /apps/*/.env
 /apps/*/.env.local
+
+# ========== Agent-artefaktar ==========
+.impeccable/

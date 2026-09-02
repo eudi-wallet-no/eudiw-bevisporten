@@ -3,8 +3,7 @@ const {
   parseIssuanceJson,
   serializeIssuance,
   listFields,
-  applyField,
-  roundTripUnedited
+  applyField
 } = require('../../main/resources/static/js/issuance-form.js');
 
 function payload(credentialData) {
@@ -23,7 +22,7 @@ const pidJson = JSON.stringify(payload({
   nationality: ['NO']
 }));
 assert.deepStrictEqual(
-  JSON.parse(roundTripUnedited(pidJson)),
+  JSON.parse(serializeIssuance(parseIssuanceJson(pidJson))),
   JSON.parse(pidJson)
 );
 const pidFields = listFields(JSON.parse(pidJson).credential_data);
