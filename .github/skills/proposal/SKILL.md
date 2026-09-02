@@ -2,7 +2,7 @@
 name: proposal
 description: "Plan code changes before implementing. Challenge the premise, map exact locations, pick the simplest path, and deliver a testable plan. Do not implement without approval."
 license: Digitaliseringsdirektoratet
-allowed-tools: ['view', 'grep', 'glob', 'bash', 'sql', 'task']
+allowed-tools: ['view', 'grep', 'glob', 'bash']
 ---
 
 # Proposal
@@ -62,7 +62,7 @@ Once you understand the problem, pick the smallest complete change that solves i
 
 Before adding code, check in order: is it needed; does a helper, fragment, CSS class or pattern already exist; does the language, design system, platform or an installed dependency cover it; can it be one line. Then write the minimum. No unrequested abstraction, no new dependency, no boilerplate. Deletion over addition. Same size: take the edge-case-correct option.
 
-Create the tasks as SQL todos with dependencies. Each todo says how to verify it and when it is done; the plan only lists the todo IDs. Plan tests, do not run them: name the behavior, the expected result and the command.
+Break the work into tasks with dependencies. Each task says how to verify it and when it is done; the plan only lists the task names. Plan tests, do not run them: name the behavior, the expected result and the command.
 
 ## 7. Challenge the draft
 
@@ -84,11 +84,11 @@ Keep it short — surface only what decides something. The plan answers, in orde
 4. **Technical changes** — the changing locations as grouped `file:line` bullets, high-risk touch points flagged, the pattern reused or why none fits. Flag a known corner you are cutting, and its ceiling.
 5. **Verification** — the real commands, discovered from instruction files and config — never invented. Name the check that fails if the logic breaks.
 
-Tasks are todo IDs with a one-line goal each; the detail lives in the todo.
+Tasks are listed with a one-line goal each; the detail lives in the task.
 
 ## After approval
 
-Before the first edit, run the discovered build and test commands once to pin the baseline — a red baseline is noted, not fixed. Then execute in dependency order. Keep todo status current: `in_progress` when you start, `done` only once verified against its done-when condition, not just "it ran". Run the tests. Update documentation the change made wrong.
+Before the first edit, run the discovered build and test commands once to pin the baseline — a red baseline is noted, not fixed. Then execute in dependency order. Keep task status current: in progress when you start, done only once verified against its done-when condition, not just "it ran". Run the tests. Update documentation the change made wrong.
 
 ## Rules
 
