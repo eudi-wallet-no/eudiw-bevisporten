@@ -874,6 +874,32 @@ footer ul {
     gap: var(--ds-size-3);
     align-items: center;
     margin: 0;
+    padding-block: var(--ds-size-3);
+    border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+}
+
+/* Utstedelsesskjema: vertikal rad-layout, ikke admin-raden */
+#schema-panel .claim {
+    flex-direction: column;
+    align-items: stretch;
+    padding-block: var(--ds-size-5);
+    gap: var(--ds-size-2);
+}
+
+#schema-panel .ds-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+}
+
+#schema-panel .ds-input {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Luft mellom fanebjelke og innhold */
+.mode-toggle + [role="tabpanel"] {
+    padding-block-start: var(--ds-size-6);
 }
 
 .claim:last-child {
