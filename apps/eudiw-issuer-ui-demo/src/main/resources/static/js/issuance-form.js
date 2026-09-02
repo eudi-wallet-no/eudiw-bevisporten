@@ -288,12 +288,10 @@
       fields.forEach(function (field) {
         const claim = document.createElement('div');
         claim.className = 'claim';
-        const wrapper = document.createElement('div');
-        wrapper.className = 'ds-field';
         const label = document.createElement('label');
-        label.className = 'ds-label';
+        label.className = 'claim-preset-label';
         label.textContent = field.label;
-        wrapper.appendChild(label);
+        claim.appendChild(label);
 
         let input;
         if (field.kind === 'image') {
@@ -303,7 +301,7 @@
           const frame = document.createElement('div');
           frame.className = 'preview-card__portrait';
           frame.appendChild(image);
-          wrapper.appendChild(frame);
+          claim.appendChild(frame);
           input = document.createElement('input');
           input.type = 'file';
           input.accept = field.mime || 'image/*';
@@ -325,14 +323,15 @@
           });
         } else {
           input = document.createElement('input');
-          input.className = 'ds-input';
           if (field.kind === 'boolean') {
+            input.className = 'ds-input';
             input.type = 'checkbox';
             input.checked = field.value;
             input.addEventListener('change', function () {
               editField(field, input.checked);
             });
           } else {
+            input.className = 'ds-input claim-preset-example';
             input.type = field.kind === 'integer' ? 'number' : 'text';
             if (field.kind === 'integer') input.step = '1';
             input.value = field.kind === 'string-list'
@@ -346,8 +345,7 @@
 
         label.htmlFor = input.id = 'issuance-' +
            field.path.replace(/[^a-zA-Z0-9_-]/g, '-');
-        wrapper.appendChild(input);
-        claim.appendChild(wrapper);
+        claim.appendChild(input);
         container.appendChild(claim);
       });
     }
