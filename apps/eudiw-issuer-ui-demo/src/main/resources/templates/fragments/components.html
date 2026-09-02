@@ -160,7 +160,7 @@
                 th:if="${!claim.group}"
                 class="verification-result__claim-value"
                 th:text="${#strings.abbreviate(claim.value, 40)}"
-                th:attr="data-full-value=${claim.value}"
+                th:attr="data-claim-name=${claim.rawName},data-full-value=${claim.value}"
         ></dd>
         <dd th:if="${claim.group}">
             <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
@@ -172,6 +172,9 @@
 
             const claimValueTagArray = document.querySelectorAll("dd.verification-result__claim-value")
             for (const claimValueTag of claimValueTagArray) {
+                if (imageClaims.isImageClaim(claimValueTag.dataset.claimName)) {
+                    continue;
+                }
                 const claimValue = claimValueTag.getAttribute("data-full-value");
 
                 claimValueTag.addEventListener("click", function(event) {

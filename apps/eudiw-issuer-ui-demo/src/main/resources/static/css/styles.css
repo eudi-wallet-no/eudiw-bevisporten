@@ -1190,6 +1190,13 @@ footer ul {
     display: block;
 }
 
+.verification-result__claim-image {
+    display: block;
+    max-width: 100%;
+    max-height: 16rem;
+    object-fit: contain;
+}
+
 #preview-spinner[hidden] {
     display: none !important;
 }

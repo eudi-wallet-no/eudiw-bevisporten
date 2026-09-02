@@ -401,6 +401,7 @@ class VerificationControllerTest {
                         List.of(new VerifiedCredential(
                                 Map.of(
                                         "fornavn", "Kari",
+                                        "portrait_image", "/9j/4AAQ",
                                         "adresse", Map.of("gate", "Fjordveien 1", "postnummer", "0150"),
                                         "statsborgerskap", List.of("NO", "SE")
                                 ),
@@ -422,6 +423,8 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("0150")))
                 .andExpect(content().string(containsString("statsborgerskap")))
                 .andExpect(content().string(containsString("NO, SE")))
+                .andExpect(content().string(containsString("data-claim-name=\"portrait_image\"")))
+                .andExpect(content().string(containsString("src=\"/js/image-claims.js\"")))
                 .andExpect(content().string(containsString("verification-result__claim--group")))
                 .andExpect(content().string(not(containsString("{\"gate\""))));
 

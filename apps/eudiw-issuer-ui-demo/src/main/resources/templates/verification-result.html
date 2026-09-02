@@ -3,6 +3,7 @@
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <title>Resultat av verifikasjon | Bevisgenerator</title>
+    <script th:src="@{/js/image-claims.js}"></script>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
@@ -77,5 +78,18 @@
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script>
+    document.querySelectorAll('.verification-result__claim-value').forEach(claimValue => {
+        if (!imageClaims.isImageClaim(claimValue.dataset.claimName)) {
+            return;
+        }
+
+        const image = document.createElement('img');
+        image.src = imageClaims.dataUrl(claimValue.dataset.fullValue);
+        image.alt = claimValue.previousElementSibling.textContent;
+        image.className = 'verification-result__claim-image';
+        claimValue.replaceChildren(image);
+    });
+</script>
 </body>
 </html>

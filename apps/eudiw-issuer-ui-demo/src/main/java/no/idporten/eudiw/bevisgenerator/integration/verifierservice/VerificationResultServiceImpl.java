@@ -59,7 +59,7 @@ public class VerificationResultServiceImpl implements VerificationResultService 
         String label = formatClaimName(name);
 
         if (value instanceof Map<?, ?> map) {
-            return new ClaimView(label, null, buildClaimViews(asStringKeyedMap(map)));
+            return new ClaimView(name, label, null, buildClaimViews(asStringKeyedMap(map)));
         }
 
         if (value instanceof List<?> list && containsNestedValues(list)) {
@@ -67,10 +67,10 @@ public class VerificationResultServiceImpl implements VerificationResultService 
             for (int i = 0; i < list.size(); i++) {
                 children.add(buildClaimView(name + " " + (i + 1), list.get(i)));
             }
-            return new ClaimView(label, null, children);
+            return new ClaimView(name, label, null, children);
         }
 
-        return new ClaimView(label, formatClaimValue(value), List.of());
+        return new ClaimView(name, label, formatClaimValue(value), List.of());
     }
 
     @SuppressWarnings("unchecked")
