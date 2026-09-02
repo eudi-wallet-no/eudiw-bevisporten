@@ -53,7 +53,7 @@ const mdl = payload({
 const mdlFields = listFields(mdl.credential_data);
 assert.strictEqual(mdlFields.find(field => field.path === 'age_over_18').kind, 'boolean');
 assert.strictEqual(mdlFields.find(field => field.path === 'age_in_years').kind, 'integer');
-applyField(mdl, 'age_over_18', 'true');
+applyField(mdl, 'age_over_18', true);
 applyField(mdl, 'age_in_years', '40');
 assert.strictEqual(mdl.credential_data.age_over_18, true);
 assert.strictEqual(mdl.credential_data.age_in_years, 40);

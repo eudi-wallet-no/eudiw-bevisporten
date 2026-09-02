@@ -67,7 +67,7 @@
     if (!kind) return null;
     return {
       path: path,
-      label: path,
+      label: path.split('.').pop(),
       kind: kind,
       value: value,
       parentPath: parentPath || null,
@@ -92,33 +92,15 @@
         return;
       }
 
-      if (Array.isArray(value)) {
-        if (value.every(isPrimitive)) {
-          fields.push({
-            path: key,
-            label: key,
-            kind: 'string-list',
-            value: value,
-            parentPath: null
-          });
-        }
-        return;
-      }
-
-      if (value !== null && typeof value === 'object') {
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         const keys = Object.keys(value);
         // Only flatten an object when all of its values are primitive.
         if (keys.every(function (nestedKey) {
           return isPrimitive(value[nestedKey]);
         })) {
           keys.forEach(function (nestedKey) {
-            const path = key + '.' + nestedKey;
-            const nested = descriptor(path, value[nestedKey], key);
-            // Innafor ei gruppe er berre bladet nok: «codes», ikkje «driving_privileges.codes».
-            if (nested) {
-              nested.label = nestedKey;
-              fields.push(nested);
-            }
+            const nested = descriptor(key + '.' + nestedKey, value[nestedKey], key);
+            if (nested) fields.push(nested);
           });
         }
         // Anything deeper or mixed is edited only in Avansert.
@@ -135,16 +117,13 @@
     if (object === null || typeof object !== 'object' || Array.isArray(object)) {
       throw new Error('IssuanceDefinition må vere eit objekt.');
     }
-    if (hasOwn(object, 'credential_data')) {
-      if (object.credential_data === null ||
-          typeof object.credential_data !== 'object' ||
-          Array.isArray(object.credential_data)) {
-        throw new Error('credential_data må vere eit objekt.');
-      }
-      return object.credential_data;
+    if (!hasOwn(object, 'credential_data') ||
+        object.credential_data === null ||
+        typeof object.credential_data !== 'object' ||
+        Array.isArray(object.credential_data)) {
+      throw new Error('credential_data må vere eit objekt.');
     }
-    // This also makes the pure function convenient when passed credential_data.
-    return object;
+    return object.credential_data;
   }
 
   function valueAtPath(data, path) {
@@ -168,10 +147,10 @@
   }
 
   function coerceBoolean(rawValue) {
-    if (typeof rawValue === 'boolean') return rawValue;
-    if (rawValue === 'true') return true;
-    if (rawValue === 'false') return false;
-    throw new Error('Feltet må vere sant eller usant.');
+    if (typeof rawValue !== 'boolean') {
+      throw new Error('Feltet må vere sant eller usant.');
+    }
+    return rawValue;
   }
 
   function coerceInteger(rawValue) {
@@ -307,6 +286,7 @@
         label.className = 'claim-preset-label';
         label.textContent = field.label;
         claim.appendChild(label);
+        const inputId = 'issuance-' + field.path.replace(/[^a-zA-Z0-9_-]/g, '-');
 
         let input;
         if (field.kind === 'image') {
@@ -350,7 +330,7 @@
           });
           wrapper.appendChild(uploadBtn);
           wrapper.appendChild(input);
-          input.id = 'issuance-' + field.path.replace(/[^a-zA-Z0-9_-]/g, '-');
+          input.id = inputId;
           claim.appendChild(wrapper);
           container.appendChild(claim);
           return;
@@ -376,8 +356,7 @@
           }
         }
 
-        label.htmlFor = input.id = 'issuance-' +
-           field.path.replace(/[^a-zA-Z0-9_-]/g, '-');
+        label.htmlFor = input.id = inputId;
         claim.appendChild(input);
         container.appendChild(claim);
       });
@@ -416,8 +395,7 @@
       currentObject = originalObject === null
         ? null
         : parseIssuanceJson(serializeIssuance(originalObject));
-      const parsed = validateTextarea();
-      if (parsed) currentObject = parsed;
+      setBadge(originalObject !== null);
       renderFields();
       hideAlert();
     }

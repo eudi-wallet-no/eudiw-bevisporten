@@ -912,6 +912,14 @@ footer ul {
     margin-block-start: var(--ds-size-6);
 }
 
+/* Utstedelse: lange attributt namn (t.d. personal_administrative_number)
+   skal brytast, ikkje kutast med ellipse som i admin */
+#issuance-fields .claim-preset-label {
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: break-word;
+}
+
 .claim-preset-label {
     flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);
