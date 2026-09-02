@@ -72,10 +72,8 @@ public class TrustlistService {
 
     public List<URI> listOfTrustlists () {
         return List.of(
-                trustlistsProperties.getPersonalTrustlist().attestations(),
-                trustlistsProperties.getWebuildTrustlist().attestations(),
-                trustlistsProperties.getPersonalTrustlist().pid(),
-                trustlistsProperties.getWebuildTrustlist().pid()
+                trustlistsProperties.getSandboxTrustlist().attestations(),
+                trustlistsProperties.getSandboxTrustlist().pid()
         );
     }
 
