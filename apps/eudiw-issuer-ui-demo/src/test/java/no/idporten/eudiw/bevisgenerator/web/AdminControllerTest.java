@@ -71,4 +71,29 @@ class AdminControllerTest {
 
         assertEquals(rawJson, result.getModel().get("credentialJson"));
     }
+
+    @Test
+    void retainsEditedCredentialDataWhenValidationFails() throws Exception {
+        SimpleCredentialForm form = new SimpleCredentialForm(
+                "studentbevis",
+                "dc+sd-jwt",
+                "eudiw:eidas2sandkasse:dynamicvc",
+                "Oppdatert studentbevis",
+                List.of(new ClaimForm("student_id", "Studentnummer", "12345")),
+                null
+        );
+        BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
+        bindingResult.rejectValue("name", "invalid", "Ugyldig navn");
+
+        var result = controller.edit("studentbevis", form, bindingResult);
+        CredentialDefinition persistedForm = objectMapper.readValue(
+                (String) result.getModel().get("credentialJson"),
+                CredentialDefinition.class
+        );
+
+        assertEquals("edit-new", result.getViewName());
+        assertEquals(form, result.getModel().get("form"));
+        assertEquals("Oppdatert studentbevis", persistedForm.getCredentialMetadata().display().getFirst().name());
+        assertEquals("12345", persistedForm.getExampleCredentialData().get("student_id"));
+    }
 }

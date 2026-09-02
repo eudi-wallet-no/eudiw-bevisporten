@@ -127,7 +127,7 @@ public class AdminController {
 
             SimpleCredentialForm resolved = resolveFromRawJson(form, bindingResult);
             if (bindingResult.hasErrors()) {
-                return addCredentialFormWithErrors(form);
+                return credentialFormWithErrors("add-new", form);
             }
 
             credentialService.storeCredential(resolved);
@@ -137,7 +137,7 @@ public class AdminController {
 
         if (bindingResult.hasErrors()) {
             logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
-            return addCredentialFormWithErrors(form);
+            return credentialFormWithErrors("add-new", form);
         }
 
         credentialService.storeCredential(form);
@@ -145,16 +145,16 @@ public class AdminController {
         return new ModelAndView("redirect:/admin");
     }
 
-    private ModelAndView addCredentialFormWithErrors(SimpleCredentialForm form) {
+    private ModelAndView credentialFormWithErrors(String viewName, SimpleCredentialForm form) {
         if (form.rawJson() != null && !form.rawJson().isBlank()) {
-            return new ModelAndView("add-new", "form", form)
+            return new ModelAndView(viewName, "form", form)
                     .addObject("credentialJson", form.rawJson());
         }
 
         try {
             String credentialJson = objectMapper.writerWithDefaultPrettyPrinter()
                     .writeValueAsString(new CredentialDefinition(form));
-            return new ModelAndView("add-new", "form", form)
+            return new ModelAndView(viewName, "form", form)
                     .addObject("credentialJson", credentialJson);
         } catch (JacksonException e) {
             throw new IssuerUiException("Failed to serialize invalid credential form", e);
@@ -189,7 +189,7 @@ public class AdminController {
 
             SimpleCredentialForm resolved = resolveFromRawJson(form, bindingResult);
             if (bindingResult.hasErrors()) {
-                return new ModelAndView("edit-new", "form", form);
+                return credentialFormWithErrors("edit-new", form);
             }
 
             credentialService.editCredential(new SimpleCredentialForm(credentialType, resolved.format(), resolved.scope(), resolved.name(), resolved.claims(), null));
@@ -199,7 +199,7 @@ public class AdminController {
 
         if (bindingResult.hasErrors()) {
             logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
-            return new ModelAndView("edit-new", "form", form);
+            return credentialFormWithErrors("edit-new", form);
         }
 
         credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims(), null));
