@@ -22,16 +22,6 @@ const state = {
   textColor: '#000000'
 };
 
-const IMAGE_CLAIM_NAMES = ['portrait', 'portrait_image', 'image'];
-
-function isImageClaim(path) {
-  return IMAGE_CLAIM_NAMES.includes(path);
-}
-
-function imageMimeType(mimeType) {
-  return mimeType || 'image/png';
-}
-
 // ---------------------------------------------------------------------------
 // Initialise
 // ---------------------------------------------------------------------------
@@ -103,12 +93,12 @@ function populateStateFromJson(json) {
 
   state.claims = rawClaims.map(c => {
     const path = c.path || '';
-    const isImage = isImageClaim(path);
+    const isImage = imageClaims.isImageClaim(path);
     return {
       path,
       displayName: c.display?.[0]?.name || path,
       type: isImage ? 'binary' : c.value_type || 'string',
-      mimeType: isImage ? imageMimeType(c.mime_type) : c.mime_type || null,
+      mimeType: isImage ? imageClaims.mimeType(c.mime_type) : c.mime_type || null,
       exampleValue: exampleData[path] !== undefined ? String(exampleData[path]) : '',
       presetKey: detectPresetKey(c)
     };
@@ -549,7 +539,7 @@ function submitCustomClaim() {
   }
 
   // Add the claim
-  const isImage = isImageClaim(path);
+  const isImage = imageClaims.isImageClaim(path);
   state.claims.push({
     path,
     displayName: name,
@@ -629,7 +619,7 @@ function buildClaimRow(claim, i) {
   let exampleInputContainer = exampleInput;
 
   // For binary claims (images), add an upload button
-  if (isImageClaim(claim.path)) {
+  if (imageClaims.isImageClaim(claim.path)) {
     const wrapper = document.createElement('div');
     wrapper.className = 'claim-preset-example-wrapper';
 
@@ -770,13 +760,12 @@ function renderPreview() {
   if (!list) return;
   list.innerHTML = '';
 
-  const portraitClaim = state.claims.find(c => isImageClaim(c.path));
+  const portraitClaim = state.claims.find(c => imageClaims.isImageClaim(c.path));
   const portraitContainer = document.getElementById('preview-portrait');
   const portraitImg = document.getElementById('preview-portrait-img');
   if (portraitContainer && portraitImg) {
     if (portraitClaim && portraitClaim.exampleValue) {
-      const mimeType = imageMimeType(portraitClaim.mimeType);
-      portraitImg.src = `data:${mimeType};base64,${portraitClaim.exampleValue}`;
+      portraitImg.src = imageClaims.dataUrl(portraitClaim.exampleValue, portraitClaim.mimeType);
       portraitContainer.hidden = false;
     } else {
       portraitContainer.hidden = true;
@@ -785,7 +774,7 @@ function renderPreview() {
 
   state.claims.forEach(claim => {
     if (!claim.path) return;
-    if (isImageClaim(claim.path)) return;
+    if (imageClaims.isImageClaim(claim.path)) return;
 
     const row = document.createElement('div');
     row.className = 'preview-field';
