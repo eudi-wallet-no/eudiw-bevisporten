@@ -2,7 +2,7 @@
 name: proposal
 description: "Plan code changes before implementing. Challenge the premise, map exact locations, pick the simplest path, and deliver a testable plan. Do not implement without approval."
 license: Digitaliseringsdirektoratet
-allowed-tools: ['view', 'grep', 'glob', 'bash']
+allowed-tools: ['view', 'grep', 'glob', 'bash', 'sql', 'task']
 ---
 
 # Proposal
@@ -21,7 +21,7 @@ If unsure, treat as Medium.
 
 ## 2. Challenge the request
 
-Before planning, test the premise at requirements level: does the change conflict with behavior users depend on, treat a symptom where the codebase points to a different cause, create dangerous edge cases, or rest on an assumption you can disprove? If so, stop and say so with evidence before writing the plan — a wrong premise fixed now is the cheapest save there is. Otherwise stay silent and plan.
+Before planning, test the premise at requirements level: does the change conflict with behavior users depend on, treat a symptom where the codebase points to a different cause, create dangerous edge cases, or rest on an assumption you can disprove? Ask the same of scope: does Y already cover X? If any of this holds, stop and say so with evidence before writing the plan. Otherwise stay silent and plan.
 
 When you stop, show the concern and hand the choice to the user:
 
@@ -58,13 +58,19 @@ Keep the findings out of the plan unless they shape the decision.
 
 ## 6. Plan
 
-Pick the smallest complete change: when options solve the task equally well, prefer the smallest change surface — fewer files, concepts, dependencies, state transitions, integrations. Measure impact, not line count; a smaller patch that hides a symptom, duplicates logic or leaves behavior inconsistent is not smaller.
+Once you understand the problem, pick the smallest complete change that solves it. Prefer fewer files, concepts, dependencies and state transitions — measure impact, not line count. A smaller patch that hides a symptom, duplicates logic or leaves behavior inconsistent is not smaller.
 
-Create the tasks as SQL todos with dependencies. Each description carries its own test strategy and done-when condition; do not repeat that detail in the plan. Plan tests, do not run them: name the behavior, the expected result and the command.
+Before adding code, check in order: is it needed; does a helper, fragment, CSS class or pattern already exist; does the language, design system, platform or an installed dependency cover it; can it be one line. Then write the minimum. No unrequested abstraction, no new dependency, no boilerplate. Deletion over addition. Same size: take the edge-case-correct option.
+
+Create the tasks as SQL todos with dependencies. Each todo says how to verify it and when it is done; the plan only lists the todo IDs. Plan tests, do not run them: name the behavior, the expected result and the command.
 
 ## 7. Challenge the draft
 
-For non-trivial changes, have the rubber duck agent review the draft plan first, if it is available in your Copilot environment: missing states and behaviors, edge cases, accessibility, integration points, error handling, data consistency. Revise, then present. Skip it for one-file changes with clear scope and no cross-cutting concerns. Requirements are cheapest to fix while the plan is still a plan.
+Never present a first draft. For Medium and Large, launch `rubber-duck` agents in one parallel batch, different `model`s, `reasoning_effort: "low"`. Spend the thinking on the draft; the review is a fast sanity check. If a reviewer has not answered by the time your own verification is done, present without it.
+
+Give each the full draft, the `file:line` map, pointed questions, and the constraint to report defects. Split angles so they do not repeat: logic and state; a fresh reading; UI, accessibility or security when those are in play. Merge by evidence, not vote. Two reviewers on the same defect: treat it as real. The user sees the revised plan, not the review.
+
+Skip for Small: one file, clear scope, no cross-cutting concerns.
 
 For significant layout or interaction changes, offer ASCII sketches, so a misreading surfaces before implementation rather than after.
 
@@ -75,8 +81,8 @@ Keep it short — surface only what decides something. The plan answers, in orde
 1. **Goal** — the outcome, the acceptance criteria, and the assumptions the plan rests on.
 2. **Scope** — what changes, and what deliberately does not.
 3. **Options** — prior art first, then the realistic alternative, then the recommendation with the trade-off stated honestly. One line when only one approach is sensible; recommendation never before options.
-4. **Technical changes** — the changing locations as grouped `file:line` bullets, high-risk touch points flagged, the pattern reused or why none fits.
-5. **Verification** — the real commands, discovered from instruction files and config — never invented.
+4. **Technical changes** — the changing locations as grouped `file:line` bullets, high-risk touch points flagged, the pattern reused or why none fits. Flag a known corner you are cutting, and its ceiling.
+5. **Verification** — the real commands, discovered from instruction files and config — never invented. Name the check that fails if the logic breaks.
 
 Tasks are todo IDs with a one-line goal each; the detail lives in the todo.
 
