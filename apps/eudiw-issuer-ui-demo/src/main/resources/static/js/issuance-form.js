@@ -215,7 +215,10 @@
 
     function hideAlert() {
       const alert = document.getElementById('issuance-json-error');
-      if (alert) alert.hidden = true;
+      if (!alert) return;
+      alert.hidden = true;
+      // Tøm teksten, så same feilmelding blir lesen opp på nytt neste gong.
+      alert.textContent = '';
     }
 
     function showAlert(message, panelId) {
@@ -225,11 +228,15 @@
         alert.id = 'issuance-json-error';
         alert.className = 'ds-alert';
         alert.setAttribute('data-color', 'danger');
+        // role="alert" gir aria-live="assertive" og aria-atomic="true".
+        alert.setAttribute('role', 'alert');
       }
       const panel = document.getElementById(panelId || 'json-panel');
       if (panel && alert.parentElement !== panel) panel.prepend(alert);
-      alert.textContent = message;
+      // Vis elementet før teksten blir sett, så live-regionen ligg i
+      // tilgjengelegheitstreet når innhaldet endrar seg.
       alert.hidden = false;
+      alert.textContent = message;
     }
 
     function validateTextarea() {
