@@ -46,27 +46,10 @@
 
 
         <!-- Mode toggle -->
-        <div class="mode-toggle" aria-label="Redigeringsmodus">
-            <button class="ds-button mode-toggle__btn"
-                    type="button"
-                    data-mode-btn="schema"
-                    aria-selected="true"
-                    aria-controls="schema-panel"
-                    onclick="switchMode('schema')">
-                Skjema
-            </button>
-            <button class="ds-button mode-toggle__btn"
-                    type="button"
-                    data-mode-btn="json"
-                    aria-selected="false"
-                    aria-controls="json-panel"
-                    onclick="switchMode('json')">
-                Avansert
-            </button>
-        </div>
+        <div th:replace="~{fragments/components :: mode_toggle_fragment}"></div>
 
         <!-- Schema panel -->
-        <div id="schema-panel">
+        <div id="schema-panel" role="tabpanel" aria-labelledby="schema-tab">
             <div class="credential-editor">
                 <!-- Left: presets + claims -->
                 <div class="credential-editor__left">
@@ -117,7 +100,7 @@
         </div>
 
         <!-- JSON panel -->
-        <div id="json-panel" hidden>
+        <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>
             <div class="json-editor-wrapper">
                 <h2 class="ds-heading" data-size="sm">JSON</h2>
                 <textarea id="json-editor"
@@ -202,6 +185,7 @@
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script th:src="@{/js/preset-claims.js}"></script>
+<script th:src="@{/js/mode-toggle.js}"></script>
 <script th:src="@{/js/credential-form.js}"></script>
 <div id="credential-data" th:attr="data-credential-json=${credentialJson}" hidden></div>
 </body>

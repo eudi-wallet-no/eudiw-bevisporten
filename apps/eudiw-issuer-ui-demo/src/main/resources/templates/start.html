@@ -41,17 +41,33 @@
                        th:field="*{personIdentifier}" />
             </div>
 
-            <div class="ds-field">
-                <label for="eaa_data_field"
-                       data-weight="medium"
-                       class="ds-label">
-                    Attributter for utferding av bevis (i JSON-format)
-                </label>
-                <textarea id="eaa_data_field"
-                          placeholder=""
-                          class="ds-input json-editor"
-                          th:field="*{json}">
-                    </textarea>
+            <div th:replace="~{fragments/components :: mode_toggle_fragment}"></div>
+
+            <div id="schema-panel" role="tabpanel" aria-labelledby="schema-tab">
+                <fieldset>
+                    <legend class="ds-heading" data-size="sm">Attributtar</legend>
+                    <p id="issuance-empty" class="ds-paragraph" hidden></p>
+                    <div id="issuance-fields" class="claims-list"></div>
+                </fieldset>
+                <button id="issuance-reset"
+                        class="ds-button"
+                        type="button"
+                        data-variant="tertiary"
+                        data-color="neutral">
+                    Tilbakestill bevis
+                </button>
+            </div>
+
+            <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>
+                <div class="json-editor-wrapper">
+                    <h2 class="ds-heading" data-size="sm">JSON</h2>
+                    <textarea id="eaa_data_field"
+                              class="ds-input json-editor"
+                              th:field="*{json}"
+                              spellcheck="false"
+                              aria-label="JSON for utferding av bevis"></textarea>
+                    <span id="json-badge" class="json-badge json-badge--invalid"></span>
+                </div>
             </div>
 
         </form>
@@ -70,5 +86,7 @@
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script th:src="@{/js/mode-toggle.js}"></script>
+<script th:src="@{/js/issuance-form.js}"></script>
 </body>
 </html>

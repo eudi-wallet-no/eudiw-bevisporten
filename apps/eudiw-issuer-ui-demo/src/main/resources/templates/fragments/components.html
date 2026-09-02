@@ -54,6 +54,32 @@
     </div>
 </div>
 
+<div th:fragment="mode_toggle_fragment"
+     class="mode-toggle"
+     role="tablist"
+     aria-label="Redigeringsmodus">
+    <button id="schema-tab"
+            class="ds-button mode-toggle__btn"
+            type="button"
+            role="tab"
+            data-mode-btn="schema"
+            aria-selected="true"
+            aria-controls="schema-panel"
+            tabindex="0">
+        Skjema
+    </button>
+    <button id="json-tab"
+            class="ds-button mode-toggle__btn"
+            type="button"
+            role="tab"
+            data-mode-btn="json"
+            aria-selected="false"
+            aria-controls="json-panel"
+            tabindex="-1">
+        Avansert
+    </button>
+</div>
+
 <nav th:fragment="step_navigation_fragment(previousHref, previousLabel, nextHref, nextLabel, nextForm, nextDisabledUntilSelection, dynamicNextForm, nextColor)"
      class="step-navigation"
      aria-label="Navigasjon mellom steg">

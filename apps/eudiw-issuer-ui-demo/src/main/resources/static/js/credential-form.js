@@ -204,13 +204,29 @@ function bindEvents() {
   if (form) {
     form.addEventListener('submit', onSubmit);
   }
+
+  document.querySelectorAll('.mode-toggle[role="tablist"]').forEach(tablist => {
+    tablist.addEventListener('modechange', event => {
+      handleModeChange(event.detail?.mode, event);
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
 // Mode switching
 // ---------------------------------------------------------------------------
-function switchMode(mode) {
+function handleModeChange(mode, event) {
+  if (mode !== 'schema' && mode !== 'json') return;
   if (mode === state.mode) return;
+
+  if (state.mode === 'json') {
+    // Leaving JSON mode: parse current textarea into state
+    const ta = document.getElementById('json-editor');
+    if (ta && !jsonToSchema(ta.value)) {
+      event?.preventDefault();
+      return;
+    }
+  }
 
   // Hide spinner and cancel any pending preview update
   clearTimeout(previewTimer);
@@ -220,25 +236,9 @@ function switchMode(mode) {
   if (state.mode === 'schema') {
     syncStateFromSchemaDOM();
     state.lastValidSchema = JSON.parse(JSON.stringify({ claims: state.claims, name: state.name }));
-  } else {
-    // Leaving JSON mode: parse current textarea into state
-    const ta = document.getElementById('json-editor');
-    if (ta) jsonToSchema(ta.value);
   }
 
   state.mode = mode;
-
-  // Update tab aria attributes
-  document.querySelectorAll('[data-mode-btn]').forEach(btn => {
-    const active = btn.dataset.modeBtn === mode;
-    btn.setAttribute('aria-selected', String(active));
-  });
-
-  // Show/hide panels
-  const schemaPanel = document.getElementById('schema-panel');
-  const jsonPanel = document.getElementById('json-panel');
-  if (schemaPanel) schemaPanel.hidden = mode !== 'schema';
-  if (jsonPanel) jsonPanel.hidden = mode !== 'json';
 
   if (mode === 'json') {
     const ta = document.getElementById('json-editor');
