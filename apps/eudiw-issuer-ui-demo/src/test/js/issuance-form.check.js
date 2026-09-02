@@ -1,3 +1,13 @@
+/**
+ * Sjølvsjekk for rundturen JSON <-> skjema i issuance-form.js.
+ *
+ * Køyrer IKKJE som del av `mvn test`. CI bruker den delte
+ * felleslosninger-workflowen for spring-boot, som berre køyrer Maven, og
+ * repoet har ingen node-verktøykjede. Køyr manuelt ved endringar i
+ * feltutleiing eller typekonvertering:
+ *
+ *   node apps/eudiw-issuer-ui-demo/src/test/js/issuance-form.check.js
+ */
 const assert = require('assert');
 const {
   parseIssuanceJson,
