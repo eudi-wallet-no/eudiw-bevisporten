@@ -22,6 +22,16 @@ const state = {
   textColor: '#000000'
 };
 
+const IMAGE_CLAIM_NAMES = ['portrait', 'portrait_image', 'image'];
+
+function isImageClaim(path) {
+  return IMAGE_CLAIM_NAMES.includes(path);
+}
+
+function imageMimeType(mimeType) {
+  return mimeType || 'image/png';
+}
+
 // ---------------------------------------------------------------------------
 // Initialise
 // ---------------------------------------------------------------------------
@@ -91,14 +101,18 @@ function populateStateFromJson(json) {
   const rawClaims = json.credential_metadata?.claims || [];
   const exampleData = json.example_credential_data || {};
 
-  state.claims = rawClaims.map(c => ({
-    path: c.path || '',
-    displayName: c.display?.[0]?.name || c.path || '',
-    type: c.value_type || 'string',
-    mimeType: c.mime_type || null,
-    exampleValue: exampleData[c.path] !== undefined ? String(exampleData[c.path]) : '',
-    presetKey: detectPresetKey(c)
-  }));
+  state.claims = rawClaims.map(c => {
+    const path = c.path || '';
+    const isImage = isImageClaim(path);
+    return {
+      path,
+      displayName: c.display?.[0]?.name || path,
+      type: isImage ? 'binary' : c.value_type || 'string',
+      mimeType: isImage ? imageMimeType(c.mime_type) : c.mime_type || null,
+      exampleValue: exampleData[path] !== undefined ? String(exampleData[path]) : '',
+      presetKey: detectPresetKey(c)
+    };
+  });
 
   // Sync activePresets from detected claims
   state.activePresets.clear();
@@ -535,11 +549,12 @@ function submitCustomClaim() {
   }
 
   // Add the claim
+  const isImage = isImageClaim(path);
   state.claims.push({
     path,
     displayName: name,
-    type: 'string',
-    mimeType: null,
+    type: isImage ? 'binary' : 'string',
+    mimeType: isImage ? 'image/png' : null,
     exampleValue: value,
     presetKey: null
   });
@@ -614,7 +629,7 @@ function buildClaimRow(claim, i) {
   let exampleInputContainer = exampleInput;
 
   // For binary claims (images), add an upload button
-  if (claim.type === 'binary') {
+  if (isImageClaim(claim.path)) {
     const wrapper = document.createElement('div');
     wrapper.className = 'claim-preset-example-wrapper';
 
@@ -707,8 +722,9 @@ function handleImageUpload(event, inputElement, claimIndex) {
       if (base64String) {
         inputElement.value = base64String;
         state.claims[claimIndex].exampleValue = base64String;
-        // Store the actual MIME type from the file
+        // Store the actual MIME type from the file before submitting the form.
         state.claims[claimIndex].mimeType = file.type;
+        document.querySelector(`[name="claims[${claimIndex}].mimeType"]`).value = file.type;
         schedulePreviewUpdate();
       } else {
         alert('Feil: kunne ikke konvertere bilde til base64');
@@ -754,13 +770,12 @@ function renderPreview() {
   if (!list) return;
   list.innerHTML = '';
 
-  // Handle portrait separately
-  const portraitClaim = state.claims.find(c => c.path === 'portrait' && c.type === 'binary');
+  const portraitClaim = state.claims.find(c => isImageClaim(c.path));
   const portraitContainer = document.getElementById('preview-portrait');
   const portraitImg = document.getElementById('preview-portrait-img');
   if (portraitContainer && portraitImg) {
     if (portraitClaim && portraitClaim.exampleValue) {
-      const mimeType = portraitClaim.mimeType || 'image/png';
+      const mimeType = imageMimeType(portraitClaim.mimeType);
       portraitImg.src = `data:${mimeType};base64,${portraitClaim.exampleValue}`;
       portraitContainer.hidden = false;
     } else {
@@ -770,8 +785,7 @@ function renderPreview() {
 
   state.claims.forEach(claim => {
     if (!claim.path) return;
-    // Portrait is shown as image, not as a field row
-    if (claim.path === 'portrait' && claim.type === 'binary') return;
+    if (isImageClaim(claim.path)) return;
 
     const row = document.createElement('div');
     row.className = 'preview-field';
