@@ -302,7 +302,7 @@
           // rutenettceller (etikett + verdi) som dei andre felta.
           wrapper.appendChild(frame);
           input.type = 'file';
-          input.accept = field.mime || 'image/*';
+          input.accept = 'image/*';
           input.style.display = 'none';
           input.addEventListener('change', function () {
             const file = input.files && input.files[0];
