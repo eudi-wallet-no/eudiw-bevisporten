@@ -912,6 +912,11 @@ footer ul {
     margin-block-start: var(--ds-size-6);
 }
 
+/* .ds-button set display og overkjører [hidden] frå nettlesaren */
+#issuance-reset[hidden] {
+    display: none;
+}
+
 /* Utstedelse: lange attributt namn (t.d. personal_administrative_number)
    skal brytast, ikkje kutast med ellipse som i admin */
 #issuance-fields .claim-preset-label {
