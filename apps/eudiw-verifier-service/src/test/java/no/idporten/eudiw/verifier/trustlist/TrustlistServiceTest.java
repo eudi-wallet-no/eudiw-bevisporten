@@ -140,10 +140,6 @@ class TrustlistServiceTest {
     void checkIfCertificateDownTheListIsCheckedAgainst602() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(XMLTRUSTLISTURL))
-                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(JSONTRUSTLISTURL))
-                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         ValueCertificate valueCertificate = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList());
@@ -156,10 +152,6 @@ class TrustlistServiceTest {
     void resultIsFalseWhenCertIsNotOnTrustlist() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(XMLTRUSTLISTURL))
-                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(JSONTRUSTLISTURL))
-                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist()+ END_CERTIFICATE);
@@ -173,12 +165,9 @@ class TrustlistServiceTest {
     void pidTrustlistChechValid() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(XMLTRUSTLISTURL))
-                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
-        mockServer.expect(requestTo(JSONTRUSTLISTURL))
-                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDSecondOnList() + END_CERTIFICATE);
         ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertEquals(ValidationStatus.VALID, result);
@@ -206,10 +195,6 @@ class TrustlistServiceTest {
     void invalidCertThrowsErrorInValueCertificate() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(XMLTRUSTLISTURL))
-                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        mockServer.expect(requestTo(JSONTRUSTLISTURL))
-                .andRespond(withSuccess(getJsonInvalidCertList(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonInvalidCertList(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         X509Certificate validCert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist() + END_CERTIFICATE);

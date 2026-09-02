@@ -23,11 +23,8 @@ class TillitslisterPropertiesTest {
         assertAll(
                 () -> assertNotNull(properties),
                 () -> assertNotNull(properties.getSandboxTrustlist()),
-                () -> assertNotNull(properties.getWebuildTrustlist()),
                 () -> assertNotNull(properties.getSandboxTrustlist().attestations()),
-                () -> assertNotNull(properties.getSandboxTrustlist().pid()),
-                () -> assertNotNull(properties.getWebuildTrustlist().pid()),
-                () -> assertNotNull(properties.getWebuildTrustlist().attestations())
+                () -> assertNotNull(properties.getSandboxTrustlist().pid())
         );
     }
 
@@ -35,8 +32,6 @@ class TillitslisterPropertiesTest {
     void tillitslisterEidas2SandkassePropertiesContainExpectedContent() {
         assertAll(
                 () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"), properties.getSandboxTrustlist().attestations()),
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"), properties.getWebuildTrustlist().pid()),
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"), properties.getWebuildTrustlist().attestations()),
                 () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"), properties.getSandboxTrustlist().pid())
         );
     }
