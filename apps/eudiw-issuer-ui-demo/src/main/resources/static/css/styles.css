@@ -926,6 +926,29 @@ footer ul {
     overflow-wrap: break-word;
 }
 
+/* Etikettkolonna følgjer det lengste namnet, slik at alle felta startar
+   på same vertikale linje. Under 640px stablar .claim seg som kort. */
+@media (min-width: 640px) {
+    #issuance-fields {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        align-items: center;
+        column-gap: var(--ds-size-3);
+    }
+
+    #issuance-fields .claim {
+        display: contents;
+    }
+
+    #issuance-fields .claim-group-heading {
+        grid-column: 1 / -1;
+    }
+
+    #issuance-fields .claim-preset-label {
+        flex: none;
+    }
+}
+
 .claim-preset-label {
     flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);
@@ -991,6 +1014,12 @@ footer ul {
 
     .claim-preset-example-wrapper .ds-button {
         width: 100%;
+    }
+
+    /* Utstedelse: portrettet ligg i same boks som opplastingsknappen, så
+       knappen må bryte til eiga linje i staden for å klemme biletet */
+    #issuance-fields .claim-preset-example-wrapper {
+        flex-wrap: wrap;
     }
 }
 

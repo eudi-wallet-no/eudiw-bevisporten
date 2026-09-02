@@ -296,9 +296,11 @@
           const frame = document.createElement('div');
           frame.className = 'preview-card__portrait';
           frame.appendChild(image);
-          claim.appendChild(frame);
           const wrapper = document.createElement('div');
           wrapper.className = 'claim-preset-example-wrapper';
+          // Bilete og opplastingsknapp i éin boks, så .claim held seg til to
+          // rutenettceller (etikett + verdi) som dei andre felta.
+          wrapper.appendChild(frame);
           input.type = 'file';
           input.accept = field.mime || 'image/*';
           input.style.display = 'none';
