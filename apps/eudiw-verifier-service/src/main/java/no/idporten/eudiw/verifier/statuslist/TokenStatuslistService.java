@@ -125,18 +125,12 @@ public class TokenStatuslistService {
         }
     }
 
-    public ValidationStatus lookupStatusFromStatuslist(URI uri, String idx) {
-        int index;
-        try {
-            index = Integer.parseInt(idx);
-        } catch (NumberFormatException e) {
-            throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
-        }
+    public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx) {
         ValidationStatus status;
         try {
             status = checkStatus(
                     uri,
-                    index,
+                    idx,
                     requestStatusList(uri).getParsedString(),
                     Instant.now());
         } catch (StatusCommunicationException | IOConnectionException e) {

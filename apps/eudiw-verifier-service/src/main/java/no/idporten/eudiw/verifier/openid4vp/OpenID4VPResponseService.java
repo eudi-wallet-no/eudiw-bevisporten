@@ -166,10 +166,16 @@ public class OpenID4VPResponseService {
     }
 
 
-    private ValidationStatus checkStatuslist(StatuslistEntry statusRecord) {
+    private ValidationStatus checkStatuslist(StatuslistEntry statuslistEntry) {
         ValidationStatus status;
-        if (statusRecord != null) {
-            status = tokenStatuslistService.lookupStatusFromStatuslist(statusRecord.uri(), statusRecord.idx());
+        if (statuslistEntry != null) {
+            int index;
+            try {
+                index = Integer.parseInt(statuslistEntry.idx());
+            } catch (NumberFormatException e) {
+                throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
+            }
+            status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index);
         } else {
             status = ValidationStatus.VALID;
         }
