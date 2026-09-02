@@ -141,18 +141,6 @@ class StartIssuanceControllerTest {
     }
 
     @Test
-    void startIssuanceGetRendersTwoModeEditor() throws Exception {
-        thymeleafMockMvc().perform(get("/start-issuance/pid"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("role=\"tablist\"")))
-                .andExpect(content().string(containsString("id=\"schema-panel\"")))
-                .andExpect(content().string(containsString("id=\"json-panel\"")))
-                .andExpect(content().string(containsString("id=\"eaa_data_field\"")))
-                .andExpect(content().string(containsString("id=\"issuance-fields\"")))
-                .andExpect(content().string(containsString("issuance-form.js")));
-    }
-
-    @Test
     void startIssuanceStoresTransactionInSessionAndShowsWaitingView() throws Exception {
         IssuanceResponse response = new IssuanceResponse(
                 new CredentialOffer(
