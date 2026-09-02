@@ -281,6 +281,8 @@
         empty.textContent = EMPTY_COPY;
         empty.hidden = fields.length !== 0;
       }
+      const resetButton = document.getElementById('issuance-reset');
+      if (resetButton) resetButton.hidden = fields.length === 0;
       if (!fields.length) return;
 
       fields.forEach(function (field) {
