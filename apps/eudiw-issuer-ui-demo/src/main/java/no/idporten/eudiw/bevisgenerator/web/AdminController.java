@@ -145,22 +145,6 @@ public class AdminController {
         return new ModelAndView("redirect:/admin");
     }
 
-    private ModelAndView credentialFormWithErrors(String viewName, SimpleCredentialForm form) {
-        if (form.rawJson() != null && !form.rawJson().isBlank()) {
-            return new ModelAndView(viewName, "form", form)
-                    .addObject("credentialJson", form.rawJson());
-        }
-
-        try {
-            String credentialJson = objectMapper.writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(new CredentialDefinition(form));
-            return new ModelAndView(viewName, "form", form)
-                    .addObject("credentialJson", credentialJson);
-        } catch (JacksonException e) {
-            throw new IssuerUiException("Failed to serialize invalid credential form", e);
-        }
-    }
-
     @GetMapping("/edit-credential-new/{credential_type}")
     public ModelAndView edit(@PathVariable("credential_type") String credentialType) {
         CredentialDefinition cd = credentialService.findCredentialDefinition(credentialType);
@@ -205,6 +189,22 @@ public class AdminController {
         credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims(), null));
 
         return new ModelAndView("redirect:/admin");
+    }
+
+    private ModelAndView credentialFormWithErrors(String viewName, SimpleCredentialForm form) {
+        if (form.rawJson() != null && !form.rawJson().isBlank()) {
+            return new ModelAndView(viewName, "form", form)
+                    .addObject("credentialJson", form.rawJson());
+        }
+
+        try {
+            String credentialJson = objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(new CredentialDefinition(form));
+            return new ModelAndView(viewName, "form", form)
+                    .addObject("credentialJson", credentialJson);
+        } catch (JacksonException e) {
+            throw new IssuerUiException("Failed to serialize invalid credential form", e);
+        }
     }
 
     /**
