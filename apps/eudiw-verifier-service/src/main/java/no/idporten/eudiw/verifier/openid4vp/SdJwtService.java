@@ -12,13 +12,9 @@ import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
-import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
-import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
-import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
-import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -32,14 +28,9 @@ import java.util.*;
 
 @Service
 public class SdJwtService {
-
-    private final TokenStatuslistService tokenStatuslistService;
-    private final TrustlistService trustlistService;
     private final ObjectMapper objectMapper;
 
-    public SdJwtService(TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, ObjectMapper objectMapper) {
-        this.tokenStatuslistService = tokenStatuslistService;
-        this.trustlistService = trustlistService;
+    public SdJwtService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -67,30 +58,6 @@ public class SdJwtService {
         return getClaimsFromSDJwt(verificationResult);
     }
 
-
-
-
-//
-//
-//    public VerifiedCredential handle(String vpToken, boolean includeValidationDetails) {
-//        SDJwt unverifiedSDJwt = sdJwtFromVpToken(vpToken);
-//        X509Certificate cert = certificate(unverifiedSDJwt);
-//        JWSVerifier jwsVerifier = jwsVerifier(cert);
-//        JWSAlgorithm jwsAlgorithm = algorithm(cert);
-//        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
-//        VerificationResult<SDJwt> verificationResult = verificationResult(cryptoProvider, unverifiedSDJwt);
-//        final Map<String, Object> claims = getClaimsFromSDJwt(verificationResult);
-//        StatuslistEntry statusRecord = extractStatuslistUriAndIdx(verificationResult);
-//        ValidationStatus statuslistStatus = findStatusFromStatusListSdJwt(statusRecord);
-//        ValidationStatus trustlistStatus = checkTrustlist(cert);
-//        List<ValidationDetail> validationDetails = new ArrayList<>();
-//        if (includeValidationDetails) {
-//            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, statuslistStatus, tokenStatuslistService.getValidationDetail(statuslistStatus)));
-//            validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
-//        }
-//        return new VerifiedCredential(claims, ValidationStatus.VALID == statuslistStatus && ValidationStatus.VALID == trustlistStatus, validationDetails);
-//    }
-
     private static @NonNull Map<String, Object> getClaimsFromSDJwt(VerificationResult<SDJwt> verificationResult) {
         Map<String, Object> claims = new HashMap<>();
         for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
@@ -103,16 +70,6 @@ public class SdJwtService {
             claims.put((String) parsedDisclosure.get(1), parsedDisclosure.get(2));
         }
         return claims;
-    }
-
-    private ValidationStatus findStatusFromStatusList(StatuslistEntry statusRecord) {
-        ValidationStatus status;
-        if (statusRecord != null) {
-            status = tokenStatuslistService.lookupStatusFromStatuslist(statusRecord.uri(), statusRecord.idx());
-        } else {
-            status = ValidationStatus.VALID;
-        }
-        return status;
     }
 
     protected StatuslistEntry extractStatuslistUriAndIdx(VerificationResult<SDJwt> sdjwt) {

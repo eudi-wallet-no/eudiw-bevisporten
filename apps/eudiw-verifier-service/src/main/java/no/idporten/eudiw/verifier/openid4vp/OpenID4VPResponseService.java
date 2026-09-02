@@ -33,18 +33,16 @@ public class OpenID4VPResponseService {
 
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
-    private final JsonMapper objectMapper;
     private final TrustlistService trustlistService;
 
     private final MDocService mDocService;
 
     private final SdJwtService sdJwtService;
 
-    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, JsonMapper objectMapper, MDocService mDocService, SdJwtService sdJwtService) {
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, MDocService mDocService, SdJwtService sdJwtService) {
         this.verificationTransactionService = verificationTransactionService;
         this.tokenStatuslistService = tokenStatuslistService;
         this.trustlistService = trustlistService;
-        this.objectMapper = objectMapper;
         this.mDocService = mDocService;
         this.sdJwtService = sdJwtService;
     }
