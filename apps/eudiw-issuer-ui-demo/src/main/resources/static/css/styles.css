@@ -887,6 +887,20 @@ footer ul {
     gap: var(--ds-size-4);
 }
 
+/* Designsystemet resettar fieldset globalt; gjentatt her slik at utanom-DS-render
+   ikkje fell tilbake til nettlesarens groove-border */
+.claims-fieldset {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.claims-fieldset > legend {
+    padding: 0;
+    margin-block-end: var(--ds-size-4);
+}
+
 .claim-preset-label {
     flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);

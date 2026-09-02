@@ -44,42 +44,24 @@
             <div th:replace="~{fragments/components :: mode_toggle_fragment}"></div>
 
             <div id="schema-panel" role="tabpanel" aria-labelledby="schema-tab">
-                <div class="credential-editor">
-                    <div class="credential-editor__left">
-                        <fieldset>
-                            <legend class="ds-heading" data-size="sm">Attributtar</legend>
-                            <p id="issuance-empty" class="ds-paragraph" hidden></p>
-                            <div id="issuance-fields" class="claims-list"></div>
-                        </fieldset>
-                    </div>
-                    <div class="credential-editor__right">
-                        <p class="ds-paragraph" data-size="sm" style="color: var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-2);">Førehandsvising</p>
-                        <div id="preview-panel" class="preview-card" role="img" aria-label="Førehandsvising av bevis">
-                            <span class="preview-card__name" data-preview-name th:text="${credentialConfiguration.description}">Bevis</span>
-                            <div class="preview-card__body">
-                                <div id="preview-portrait" class="preview-card__portrait" hidden>
-                                    <img id="preview-portrait-img" src="" alt="Profilbilde" />
-                                </div>
-                                <div class="preview-fields" data-preview-list></div>
-                            </div>
-                        </div>
-                        <div class="preview-actions">
-                            <button id="issuance-reset"
-                                    class="ds-button preview-reset-btn"
-                                    type="button"
-                                    data-color="neutral"
-                                    data-variant="tertiary"
-                                    aria-label="Tilbakestill bevis"
-                                    hidden>
-                                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                    <path d="M3 3v5h5"/>
-                                </svg>
-                                Tilbakestill bevis
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <fieldset class="claims-fieldset">
+                    <legend class="ds-heading" data-size="sm">Attributtar</legend>
+                    <p id="issuance-empty" class="ds-paragraph" hidden></p>
+                    <div id="issuance-fields" class="claims-list"></div>
+                </fieldset>
+                <button id="issuance-reset"
+                        class="ds-button preview-reset-btn"
+                        type="button"
+                        data-variant="tertiary"
+                        data-color="neutral"
+                        aria-label="Tilbakestill bevis"
+                        hidden>
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    Tilbakestill bevis
+                </button>
             </div>
 
             <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>

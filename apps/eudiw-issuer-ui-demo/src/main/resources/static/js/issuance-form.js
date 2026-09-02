@@ -269,48 +269,6 @@
       return 'data:' + (field.mime || 'image/jpeg') + ';base64,' + field.value;
     }
 
-    function renderPreview(fields) {
-      const panel = document.getElementById('preview-panel');
-      if (!panel) return;
-      const list = panel.querySelector('[data-preview-list]');
-      if (!list) return;
-      while (list.firstChild) list.removeChild(list.firstChild);
-
-      const imageField = fields.find(function (f) { return f.kind === 'image'; });
-      const portraitContainer = document.getElementById('preview-portrait');
-      const portraitImg = document.getElementById('preview-portrait-img');
-      if (portraitContainer && portraitImg) {
-        if (imageField && imageField.value) {
-          portraitImg.src = imageSource(imageField);
-          portraitContainer.hidden = false;
-        } else {
-          portraitContainer.hidden = true;
-        }
-      }
-
-      fields.forEach(function (field) {
-        if (field.kind === 'image') return;
-        const row = document.createElement('div');
-        row.className = 'preview-field';
-        const label = document.createElement('span');
-        label.className = 'preview-label';
-        label.textContent = field.label;
-        const val = document.createElement('span');
-        val.className = 'preview-value';
-        val.spellcheck = false;
-        if (field.kind === 'boolean') {
-          val.textContent = field.value ? 'Ja' : 'Nei';
-        } else if (field.kind === 'string-list') {
-          val.textContent = field.value.join(', ');
-        } else {
-          val.textContent = String(field.value);
-        }
-        row.appendChild(label);
-        row.appendChild(val);
-        list.appendChild(row);
-      });
-    }
-
     function renderFields() {
       const container = document.getElementById('issuance-fields');
       const empty = document.getElementById('issuance-empty');
@@ -325,7 +283,6 @@
       }
       const resetButton = document.getElementById('issuance-reset');
       if (resetButton) resetButton.hidden = fields.length === 0;
-      renderPreview(fields);
       if (!fields.length) return;
 
       fields.forEach(function (field) {
@@ -338,6 +295,13 @@
 
         let input;
         if (field.kind === 'image') {
+          const image = document.createElement('img');
+          image.src = imageSource(field);
+          image.alt = field.label;
+          const frame = document.createElement('div');
+          frame.className = 'preview-card__portrait';
+          frame.appendChild(image);
+          claim.appendChild(frame);
           const wrapper = document.createElement('div');
           wrapper.className = 'claim-preset-example-wrapper';
           input = document.createElement('input');
@@ -355,6 +319,7 @@
             reader.onload = function () {
               const result = String(reader.result);
               const base64 = result.replace(/^data:[^;]+;base64,/, '');
+              image.src = result;
               editField(field, base64);
             };
             reader.readAsDataURL(file);
@@ -410,7 +375,6 @@
         textarea.value = serializeIssuance(currentObject);
         setBadge(true);
         hideAlert();
-        renderPreview(listFields(currentObject.credential_data));
       } catch (error) {
         showAlert(error.message);
       }
