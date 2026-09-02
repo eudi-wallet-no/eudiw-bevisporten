@@ -41,7 +41,7 @@
       (typeof value === 'number' && Number.isFinite(value));
   }
 
-  function sniffImageMime(value) {
+  function imageMimeFromBase64(value) {
     if (typeof value !== 'string') return null;
     if (value.indexOf('/9j/') === 0) return 'image/jpeg';
     if (value.indexOf('iVBOR') === 0) return 'image/png';
@@ -50,7 +50,7 @@
 
   function isImageValue(path, value) {
     return typeof value === 'string' &&
-      (path.split('.').pop() === 'portrait' || sniffImageMime(value) !== null);
+      (path.split('.').pop() === 'portrait' || imageMimeFromBase64(value) !== null);
   }
 
   function kindForValue(path, value) {
@@ -71,7 +71,7 @@
       kind: kind,
       value: value,
       parentPath: parentPath || null,
-      mime: kind === 'image' ? sniffImageMime(value) : undefined
+      mime: kind === 'image' ? imageMimeFromBase64(value) : undefined
     };
   }
 
