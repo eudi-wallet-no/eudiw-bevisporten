@@ -67,3 +67,7 @@ Layout rarely changes — do not redesign it as part of a fix. But leave every p
 - **Touch up what is cramped.** When content you read is squeezed — even if the task does not involve it — give it air: more vertical spacing between blocks that blur together, breathing room around tight groups. Spacing and rhythm only, never a new structure, and only on the surface you are already working in. The result should feel noticeably tidier, not different.
 - Favour air and short texts. Title, ingress, heading, label and action each have one job — do not repeat the same message at every level.
 - For Norwegian copy use the `norsk-klarsprak` skill; preserve the page's målform and terminology.
+
+## 5. Before you deliver
+
+Compare the rendered result against the nearest existing page — computed values, not just markup: same spacing in the same position, same rhythm, same expression. Check both states of conditional visibility (with and without data). Known traps in this stack: `[hidden]` loses to `display` on `ds-*` classes, a bare `fieldset` keeps the browser's default border, and fixed-width labels truncate long names.

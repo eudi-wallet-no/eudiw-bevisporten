@@ -887,6 +887,68 @@ footer ul {
     gap: var(--ds-size-4);
 }
 
+/* Designsystemet resettar fieldset globalt; gjentatt her slik at utanom-DS-render
+   ikkje fell tilbake til nettlesarens groove-border */
+.claims-fieldset {
+    border: 0;
+    margin: 0;
+    margin-block-start: var(--ds-size-10);
+    min-width: 0;
+    padding: 0;
+}
+
+.claims-fieldset > legend {
+    padding: 0;
+    margin-block-end: var(--ds-size-4);
+}
+
+/* Gruppeoverskrift for nesta attributtar (t.d. driving_privileges) */
+.claim-group-heading {
+    margin: 0;
+    margin-block-start: var(--ds-size-6);
+    color: var(--ds-color-neutral-text-subtle);
+}
+
+#issuance-reset {
+    margin-block-start: var(--ds-size-6);
+}
+
+/* .ds-button set display og overkjører [hidden] frå nettlesaren */
+#issuance-reset[hidden] {
+    display: none;
+}
+
+/* Utstedelse: lange attributt namn (t.d. personal_administrative_number)
+   skal brytast, ikkje kutast med ellipse som i admin */
+#issuance-fields .claim-preset-label {
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: break-word;
+}
+
+/* Etikettkolonna følgjer det lengste namnet, slik at alle felta startar
+   på same vertikale linje. Under 640px stablar .claim seg som kort. */
+@media (min-width: 640px) {
+    #issuance-fields {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        align-items: center;
+        column-gap: var(--ds-size-3);
+    }
+
+    #issuance-fields .claim {
+        display: contents;
+    }
+
+    #issuance-fields .claim-group-heading {
+        grid-column: 1 / -1;
+    }
+
+    #issuance-fields .claim-preset-label {
+        flex: none;
+    }
+}
+
 .claim-preset-label {
     flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);
@@ -952,6 +1014,12 @@ footer ul {
 
     .claim-preset-example-wrapper .ds-button {
         width: 100%;
+    }
+
+    /* Utstedelse: portrettet ligg i same boks som opplastingsknappen, så
+       knappen må bryte til eiga linje i staden for å klemme biletet */
+    #issuance-fields .claim-preset-example-wrapper {
+        flex-wrap: wrap;
     }
 }
 
