@@ -114,7 +114,11 @@
           keys.forEach(function (nestedKey) {
             const path = key + '.' + nestedKey;
             const nested = descriptor(path, value[nestedKey], key);
-            if (nested) fields.push(nested);
+            // Innafor ei gruppe er berre bladet nok: «codes», ikkje «driving_privileges.codes».
+            if (nested) {
+              nested.label = nestedKey;
+              fields.push(nested);
+            }
           });
         }
         // Anything deeper or mixed is edited only in Avansert.
@@ -285,7 +289,18 @@
       if (resetButton) resetButton.hidden = fields.length === 0;
       if (!fields.length) return;
 
+      let lastGroup = null;
       fields.forEach(function (field) {
+        if (field.parentPath !== lastGroup) {
+          lastGroup = field.parentPath;
+          if (lastGroup) {
+            const heading = document.createElement('h3');
+            heading.className = 'ds-heading claim-group-heading';
+            heading.setAttribute('data-size', 'xs');
+            heading.textContent = lastGroup;
+            container.appendChild(heading);
+          }
+        }
         const claim = document.createElement('div');
         claim.className = 'claim';
         const label = document.createElement('label');

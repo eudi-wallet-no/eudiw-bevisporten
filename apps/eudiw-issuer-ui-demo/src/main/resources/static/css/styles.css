@@ -901,6 +901,17 @@ footer ul {
     margin-block-end: var(--ds-size-4);
 }
 
+/* Gruppeoverskrift for nesta attributtar (t.d. driving_privileges) */
+.claim-group-heading {
+    margin: 0;
+    margin-block-start: var(--ds-size-6);
+    color: var(--ds-color-neutral-text-subtle);
+}
+
+#issuance-reset {
+    margin-block-start: var(--ds-size-6);
+}
+
 .claim-preset-label {
     flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);
