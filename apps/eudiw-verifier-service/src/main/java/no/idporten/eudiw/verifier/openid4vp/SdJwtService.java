@@ -113,11 +113,11 @@ public class SdJwtService {
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
         switch (status) {
-            case ValidationStatus.INCONCLUSIVE:
+            case INCONCLUSIVE:
                 return "SDJwt: validering feila";
-            case ValidationStatus.VALID:
+            case VALID:
                 return "SDJwt: SDJwt er gyldig";
-            case ValidationStatus.INVALID:
+            case INVALID:
                 return "SDJwt: SDJwt er ugyldig";
             default:
                 return "SDJwt: ukjent status";
