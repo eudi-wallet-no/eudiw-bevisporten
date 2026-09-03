@@ -124,8 +124,6 @@ public class AdminController {
                 return credentialFormWithErrors("add-new", form, bindingResult, null);
             }
 
-            // Store the submitted JSON as-is so metadata the schema editor doesn't
-            // model (e.g. multiple display locales) is not lost.
             credentialService.storeCredential(new CredentialDto(form.credentialType(), form.rawJson()));
 
             return new ModelAndView("redirect:/admin");
@@ -170,8 +168,6 @@ public class AdminController {
                 return credentialFormWithErrors("edit-new", form, bindingResult, credentialType);
             }
 
-            // Store the submitted JSON as-is so metadata the schema editor doesn't
-            // model (e.g. multiple display locales) is not lost.
             credentialService.editCredential(new CredentialDto(credentialType, form.rawJson()));
 
             return new ModelAndView("redirect:/admin");
