@@ -41,13 +41,16 @@ class OpenID4VPResponseServiceTest {
     @Autowired
     private OpenID4VPResponseService openID4VPResponseService;
 
+    @Mock
+    private SdJwtService sdJwtService;
+
 
     @BeforeEach
     void setUp() {
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
         RestClient trustlistRestClient = builder.build();
-//        openID4VPResponseService = new OpenID4VPResponseService(verificationService,tokenStatuslistService, trustlistService, jsonMapper, mDocService);
-//        trustlistService = new TrustlistService(trustlistRestClient, trustlistConfig);
+        openID4VPResponseService = new OpenID4VPResponseService(verificationService,tokenStatuslistService, trustlistService, mDocService, sdJwtService);
+        trustlistService = new TrustlistService(trustlistRestClient, trustlistConfig);
     }
 }
