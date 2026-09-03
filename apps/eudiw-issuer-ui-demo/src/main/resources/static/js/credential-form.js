@@ -861,6 +861,11 @@ function onSubmit(event) {
       return;
     }
     if (rawJsonInput) rawJsonInput.value = jsonStr;
+
+    // Sync the hidden schema/claims inputs to the JSON just submitted so they
+    // don't lag behind an in-flight debounce (see input listener above) and
+    // end up submitting stale claims that no longer match rawJson.
+    jsonToSchema(jsonStr);
   } else {
     // Schema mode — always submit the full JSON representation of the current
     // state (not just the plain schema fields). This carries over metadata the
@@ -869,13 +874,11 @@ function onSubmit(event) {
     if (rawJsonInput) rawJsonInput.value = schemaToJson();
   }
 
-  // Disable schema inputs so they don't interfere with form data
-  const container = document.getElementById('claims');
-  if (container) {
-    container.querySelectorAll('input, select, textarea').forEach(el => {
-      el.disabled = true;
-    });
-  }
+  // Note: schema inputs (including claims[i].*) are intentionally left
+  // enabled so they are still submitted and satisfy SimpleCredentialForm's
+  // "claims" bean validation. The server ignores their values whenever
+  // rawJson is present (both modes always populate it above) and stores
+  // straight from rawJson, so submitting them alongside is harmless.
 }
 
 // ---------------------------------------------------------------------------
