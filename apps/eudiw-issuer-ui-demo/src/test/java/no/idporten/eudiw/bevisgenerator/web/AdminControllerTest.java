@@ -34,6 +34,8 @@ class AdminControllerTest {
                 "eudiw:eidas2sandkasse:dynamicvc",
                 "Studentbevis",
                 List.of(new ClaimForm("student_id", "Studentnummer", "12345")),
+                "#123456",
+                "#abcdef",
                 null
         );
         BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
@@ -50,6 +52,8 @@ class AdminControllerTest {
         assertEquals(bindingResult, result.getModel().get(BindingResult.MODEL_KEY_PREFIX + "form"));
         assertEquals("studentbevis", persistedForm.getCredentialType());
         assertEquals("Studentbevis", persistedForm.getCredentialMetadata().display().getFirst().name());
+        assertEquals("#123456", persistedForm.getCredentialMetadata().display().getFirst().backgroundColor());
+        assertEquals("#abcdef", persistedForm.getCredentialMetadata().display().getFirst().textColor());
         assertEquals("12345", persistedForm.getExampleCredentialData().get("student_id"));
     }
 
@@ -64,6 +68,8 @@ class AdminControllerTest {
                 "eudiw:eidas2sandkasse:dynamicvc",
                 "Studentbevis",
                 List.of(),
+                null,
+                null,
                 rawJson
         );
         BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
@@ -82,6 +88,8 @@ class AdminControllerTest {
                 "eudiw:eidas2sandkasse:dynamicvc",
                 "Oppdatert studentbevis",
                 List.of(new ClaimForm("student_id", "Studentnummer", "12345")),
+                "#654321",
+                "#fedcba",
                 null
         );
         BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(form, "form");
@@ -98,6 +106,8 @@ class AdminControllerTest {
         assertEquals(bindingResult, result.getModel().get(BindingResult.MODEL_KEY_PREFIX + "form"));
         assertEquals("studentbevis", result.getModel().get("editCredentialType"));
         assertEquals("Oppdatert studentbevis", persistedForm.getCredentialMetadata().display().getFirst().name());
+        assertEquals("#654321", persistedForm.getCredentialMetadata().display().getFirst().backgroundColor());
+        assertEquals("#fedcba", persistedForm.getCredentialMetadata().display().getFirst().textColor());
         assertEquals("12345", persistedForm.getExampleCredentialData().get("student_id"));
     }
 }

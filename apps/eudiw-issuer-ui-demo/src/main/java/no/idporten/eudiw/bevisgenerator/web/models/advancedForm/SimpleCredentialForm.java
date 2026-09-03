@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.CredentialDefinitionFactory;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
+import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import no.idporten.eudiw.bevisgenerator.web.models.unique.UniqueCredentialType;
 
 import java.io.Serializable;
@@ -35,14 +36,18 @@ public record SimpleCredentialForm(
         )
         List<ClaimForm> claims,
 
+        String backgroundColor,
+        String textColor,
+
         String rawJson
 ) {
     public SimpleCredentialForm() {
-        this("", "dc+sd-jwt", CredentialDefinitionFactory.DYNAMIC_CREDENTIAL_SCOPE, "", new ArrayList<>(), null);
+        this("", "dc+sd-jwt", CredentialDefinitionFactory.DYNAMIC_CREDENTIAL_SCOPE, "", new ArrayList<>(), null, null, null);
     }
 
     public SimpleCredentialForm(CredentialDefinition cd) {
-        String name = cd.getCredentialMetadata().display().getFirst().name();
+        Display display = cd.getCredentialMetadata().display().getFirst();
+        String name = display.name();
         Map<String, Serializable> exampleData =
             cd.getExampleCredentialData();
         List<ClaimForm> claims = cd
@@ -55,6 +60,7 @@ public record SimpleCredentialForm(
                 return new ClaimForm(claim.path(), fieldName, exampleValue);
             }).toList();
 
-        this(cd.getCredentialType(), cd.getFormat(), cd.getScope(), name, claims, null);
+        this(cd.getCredentialType(), cd.getFormat(), cd.getScope(), name, claims,
+                display.backgroundColor(), display.textColor(), null);
     }
 }

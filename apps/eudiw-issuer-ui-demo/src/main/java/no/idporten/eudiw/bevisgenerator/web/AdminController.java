@@ -176,7 +176,7 @@ public class AdminController {
                 return credentialFormWithErrors("edit-new", form, bindingResult, credentialType);
             }
 
-            credentialService.editCredential(new SimpleCredentialForm(credentialType, resolved.format(), resolved.scope(), resolved.name(), resolved.claims(), null));
+            credentialService.editCredential(new SimpleCredentialForm(credentialType, resolved.format(), resolved.scope(), resolved.name(), resolved.claims(), resolved.backgroundColor(), resolved.textColor(), null));
 
             return new ModelAndView("redirect:/admin");
         }
@@ -186,7 +186,7 @@ public class AdminController {
             return credentialFormWithErrors("edit-new", form, bindingResult, credentialType);
         }
 
-        credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims(), null));
+        credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims(), form.backgroundColor(), form.textColor(), null));
 
         return new ModelAndView("redirect:/admin");
     }
@@ -225,16 +225,27 @@ public class AdminController {
             JsonNode root = objectMapper.readTree(form.rawJson());
 
             String name = form.name();
+            String backgroundColor = form.backgroundColor();
+            String textColor = form.textColor();
             JsonNode displayArr = root.path("credential_metadata").path("display");
             if (displayArr.isArray() && !displayArr.isEmpty()) {
-                JsonNode nameNode = displayArr.get(0).path("name");
+                JsonNode displayNode = displayArr.get(0);
+                JsonNode nameNode = displayNode.path("name");
                 if (!nameNode.isMissingNode()) {
                     name = nameNode.asText(form.name());
+                }
+                JsonNode backgroundColorNode = displayNode.path("background_color");
+                if (!backgroundColorNode.isMissingNode()) {
+                    backgroundColor = backgroundColorNode.asText(form.backgroundColor());
+                }
+                JsonNode textColorNode = displayNode.path("text_color");
+                if (!textColorNode.isMissingNode()) {
+                    textColor = textColorNode.asText(form.textColor());
                 }
             }
 
             List<ClaimForm> claims = parseClaimsFromJson(root);
-            return new SimpleCredentialForm(form.credentialType(), form.format(), form.scope(), name, claims, null);
+            return new SimpleCredentialForm(form.credentialType(), form.format(), form.scope(), name, claims, backgroundColor, textColor, null);
         } catch (JacksonException e) {
             bindingResult.reject("rawJson.invalid", "Ugyldig JSON: " + e.getMessage());
             return form;

@@ -186,6 +186,8 @@ function bindEvents() {
   if (bgColorInput) {
     bgColorInput.addEventListener('input', () => {
       state.backgroundColor = bgColorInput.value;
+      const bgHiddenEl = document.getElementById('bg-color-hidden');
+      if (bgHiddenEl) bgHiddenEl.value = state.backgroundColor;
       if (state.mode === 'json') {
         syncJsonTextarea();
       }
@@ -197,6 +199,8 @@ function bindEvents() {
   if (textColorInput) {
     textColorInput.addEventListener('input', () => {
       state.textColor = textColorInput.value;
+      const textHiddenEl = document.getElementById('text-color-hidden');
+      if (textHiddenEl) textHiddenEl.value = state.textColor;
       if (state.mode === 'json') {
         syncJsonTextarea();
       }
@@ -265,6 +269,12 @@ function syncTopLevelInputsFromState() {
 
   const scopeEl = document.getElementById('scope-field');
   if (scopeEl) scopeEl.value = state.scope;
+
+  const bgHiddenEl = document.getElementById('bg-color-hidden');
+  if (bgHiddenEl) bgHiddenEl.value = state.backgroundColor;
+
+  const textHiddenEl = document.getElementById('text-color-hidden');
+  if (textHiddenEl) textHiddenEl.value = state.textColor;
 
   // Sync preset button states
   syncPresetButtons();
