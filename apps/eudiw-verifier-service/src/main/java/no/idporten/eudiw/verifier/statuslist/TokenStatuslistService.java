@@ -148,8 +148,8 @@ public class TokenStatuslistService {
                 return "Statusliste: bevis er gyldig";
             case INVALID:
                 return "Statusliste: bevis er revokert";
-            case NON_VERIFIABLE:
-                return "Statusliste: bevis inneheld ikkje status, men er gyldig";
+            case NOT_APPLICABLE:
+                return "Bevis er ikke revokerbart";
             default:
                 return "Statusliste: ukjent status";
         }
