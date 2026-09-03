@@ -176,7 +176,7 @@ public class OpenID4VPResponseService {
             }
             status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index);
         } else {
-            status = ValidationStatus.VALID;
+            status = ValidationStatus.NON_VERIFIABLE; // Still valid, but no status in the proof.
         }
         return status;
     }

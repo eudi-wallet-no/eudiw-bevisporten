@@ -142,12 +142,14 @@ public class TokenStatuslistService {
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
         switch (status) {
-            case ValidationStatus.INCONCLUSIVE:
+            case INCONCLUSIVE:
                 return "Statusliste: validering feila";
-            case ValidationStatus.VALID:
+            case VALID:
                 return "Statusliste: bevis er gyldig";
-            case ValidationStatus.INVALID:
+            case INVALID:
                 return "Statusliste: bevis er revokert";
+            case NON_VERIFIABLE:
+                return "Statusliste: bevis inneheld ikkje status, men er gyldig";
             default:
                 return "Statusliste: ukjent status";
         }
