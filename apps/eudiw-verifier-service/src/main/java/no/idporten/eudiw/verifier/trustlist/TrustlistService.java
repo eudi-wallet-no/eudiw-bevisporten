@@ -182,11 +182,11 @@ public class TrustlistService {
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
         switch (status) {
-            case ValidationStatus.INCONCLUSIVE:
+            case INCONCLUSIVE:
                 return "Tillitsliste: validering feila";
-            case ValidationStatus.VALID:
+            case VALID:
                 return "Tillitsliste: bevisets sertifikat er på tillitslista";
-            case ValidationStatus.INVALID:
+            case INVALID:
                 return "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
             default:
                 return "Tillitsliste: ukjent status";
