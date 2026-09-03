@@ -7,7 +7,7 @@ public enum ValidationStatus {
     VALID("success"),
     INVALID("error"),
     INCONCLUSIVE("warning"),
-    NOT_APPLICABLE("success"); // for use for example when no status is provided at all in proof, and the proof is not
+    NOT_APPLICABLE("info"); // for use for example when no status is provided at all in proof, and the proof is not
     // supposed to contain a status. This is then still a valid proof, but for validation details it should have its own message.
 
     private final String status;
