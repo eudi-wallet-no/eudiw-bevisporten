@@ -46,6 +46,3 @@ trustlists:
     eidas2sandkasse:
       pid: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws
       attestations: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl
-    webuild:
-      pid: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws
-      attestations: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl
