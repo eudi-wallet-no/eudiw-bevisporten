@@ -176,7 +176,7 @@ public class OpenID4VPResponseService {
             }
             status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index);
         } else {
-            status = ValidationStatus.NON_VERIFIABLE; // Still valid, but no status in the proof.
+            status = ValidationStatus.NOT_APPLICABLE; // Still valid, but no status in the proof.
         }
         return status;
     }
@@ -191,7 +191,7 @@ public class OpenID4VPResponseService {
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
         ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
         ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verificationResult.getSdJwt()));
-        if (sdJwtStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID && trustlistStatus == ValidationStatus.VALID) {
+        if (sdJwtStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE && trustlistStatus == ValidationStatus.VALID) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
         }
         else {
