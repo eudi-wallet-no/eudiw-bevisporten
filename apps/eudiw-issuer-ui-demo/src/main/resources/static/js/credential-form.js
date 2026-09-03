@@ -113,7 +113,7 @@ function populateStateFromJson(json) {
       // Further display entries for this claim (other locales), preserved
       // as-is so switching to schema mode and back doesn't drop them.
       extraDisplays: (c.display || []).slice(1),
-      type: isImage ? 'binary' : c.value_type || 'string',
+      type: isImage ? 'binary' : c.type || 'string',
       mimeType: isImage ? imageClaims.mimeType(c.mime_type) : c.mime_type || null,
       exampleValue: exampleData[path] !== undefined ? String(exampleData[path]) : '',
       presetKey: detectPresetKey(c)
@@ -300,16 +300,21 @@ function syncTopLevelInputsFromState() {
 // Schema ↔ JSON serialisation
 // ---------------------------------------------------------------------------
 function schemaToJson() {
-  const claimsMetadata = state.claims.map(c => ({
+  // Skip claim rows without a path (e.g. not-yet-configured rows); these were
+  // previously rejected server-side via SimpleCredentialForm's @NotBlank check
+  // and should not be submitted as part of the raw JSON either.
+  const validClaims = state.claims.filter(c => c.path && c.path.trim() !== '');
+
+  const claimsMetadata = validClaims.map(c => ({
     path: c.path,
-    value_type: c.type || 'string',
-    mandatory: false,
+    type: c.type || 'string',
+    mandatory: true,
     display: [{ name: c.displayName, locale: c.displayLocale || 'no' }, ...(c.extraDisplays || [])],
     mime_type: c.mimeType || null
   }));
 
   const exampleData = {};
-  state.claims.forEach(c => {
+  validClaims.forEach(c => {
     if (c.exampleValue !== undefined && c.exampleValue !== null) {
       exampleData[c.path] = c.exampleValue;
     }
@@ -856,17 +861,20 @@ function onSubmit(event) {
       return;
     }
     if (rawJsonInput) rawJsonInput.value = jsonStr;
-
-    // Disable schema inputs so they don't interfere with form data
-    const container = document.getElementById('claims');
-    if (container) {
-      container.querySelectorAll('input, select, textarea').forEach(el => {
-        el.disabled = true;
-      });
-    }
   } else {
-    // schema mode — ensure rawJson is empty
-    if (rawJsonInput) rawJsonInput.value = '';
+    // Schema mode — always submit the full JSON representation of the current
+    // state (not just the plain schema fields). This carries over metadata the
+    // schema editor has no inputs for, e.g. extra display locales added while
+    // editing the JSON tab, so nothing is silently dropped on save.
+    if (rawJsonInput) rawJsonInput.value = schemaToJson();
+  }
+
+  // Disable schema inputs so they don't interfere with form data
+  const container = document.getElementById('claims');
+  if (container) {
+    container.querySelectorAll('input, select, textarea').forEach(el => {
+      el.disabled = true;
+    });
   }
 }
 
