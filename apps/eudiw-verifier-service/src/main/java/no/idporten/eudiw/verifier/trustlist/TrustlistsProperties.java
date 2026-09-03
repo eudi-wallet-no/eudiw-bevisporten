@@ -18,8 +18,7 @@ public record TrustlistsProperties(
         Map<@NotBlank String,@NotNull TrustlistContent> environments
 ) {
 
-    public final static String PERSONAL = "eidas2sandkasse";
-    public final static String WEBUILD = "webuild";
+    public final static String SANDBOX_LIST = "eidas2sandkasse";
 
     private TrustlistContent getTrustlist(String key) {
         TrustlistContent trustlist = environments.get(key);
@@ -29,11 +28,8 @@ public record TrustlistsProperties(
         return trustlist;
     }
 
-    public TrustlistContent getWebuildTrustlist() {
-        return getTrustlist(WEBUILD);
-    }
 
-    public TrustlistContent getPersonalTrustlist(){
-        return getTrustlist(PERSONAL);
+    public TrustlistContent getSandboxTrustlist(){
+        return getTrustlist(SANDBOX_LIST);
     }
 }

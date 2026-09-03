@@ -7,7 +7,7 @@ import java.util.List;
  * a nested object (or a list of objects), {@code children} holds the nested claims and
  * {@code value} is null; the template renders children recursively as a nested list.
  */
-public record ClaimView(String name, String value, List<ClaimView> children) {
+public record ClaimView(String rawName, String name, String value, List<ClaimView> children) {
 
     public boolean isGroup() {
         return children != null && !children.isEmpty();

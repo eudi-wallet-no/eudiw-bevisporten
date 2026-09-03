@@ -11,8 +11,8 @@ public record AddCredentialForm(
 
         @NotBlank(message = "Credential type er påkrevd")
         @Pattern(
-                regexp = "^[a-z0-9_:]{3,155}",
-                message = "Credential type kan kun bestå av små bokstaver, tall, kolon og understrek.\n Lengde: 3-155 tegn"
+                regexp = "^[a-z0-9_:.]{3,155}$",
+                message = "Credential type kan bare inneholde små bokstaver, tall, kolon, punktum og understrek.\nLengde: 3–155 tegn"
         )
         @UniqueCredentialType()
         String credentialType,

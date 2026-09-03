@@ -54,6 +54,32 @@
     </div>
 </div>
 
+<div th:fragment="mode_toggle_fragment"
+     class="mode-toggle"
+     role="tablist"
+     aria-label="Redigeringsmodus">
+    <button id="schema-tab"
+            class="ds-button mode-toggle__btn"
+            type="button"
+            role="tab"
+            data-mode-btn="schema"
+            aria-selected="true"
+            aria-controls="schema-panel"
+            tabindex="0">
+        Skjema
+    </button>
+    <button id="json-tab"
+            class="ds-button mode-toggle__btn"
+            type="button"
+            role="tab"
+            data-mode-btn="json"
+            aria-selected="false"
+            aria-controls="json-panel"
+            tabindex="-1">
+        Avansert
+    </button>
+</div>
+
 <nav th:fragment="step_navigation_fragment(previousHref, previousLabel, nextHref, nextLabel, nextForm, nextDisabledUntilSelection, dynamicNextForm, nextColor)"
      class="step-navigation"
      aria-label="Navigasjon mellom steg">
@@ -134,7 +160,7 @@
                 th:if="${!claim.group}"
                 class="verification-result__claim-value"
                 th:text="${#strings.abbreviate(claim.value, 40)}"
-                th:attr="data-full-value=${claim.value}"
+                th:attr="data-claim-name=${claim.rawName},data-full-value=${claim.value}"
         ></dd>
         <dd th:if="${claim.group}">
             <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
@@ -146,6 +172,9 @@
 
             const claimValueTagArray = document.querySelectorAll("dd.verification-result__claim-value")
             for (const claimValueTag of claimValueTagArray) {
+                if (imageClaims.isImageClaim(claimValueTag.dataset.claimName)) {
+                    continue;
+                }
                 const claimValue = claimValueTag.getAttribute("data-full-value");
 
                 claimValueTag.addEventListener("click", function(event) {

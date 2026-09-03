@@ -16,6 +16,13 @@ Short, direct, plain language. No emojis, no AI phrasing, no structure for its o
 
 In visual work, interaction, state, validation, submission and navigation are fixed unless the user asks to change them. Do not swap control types or interaction patterns because another solution looks better. A better accessibility or maintainability option is a separate proposal with its benefits and risks — never slipped into the implementation.
 
+## Delivering work
+
+- **Verify rendered UI before saying done.** Run the app and check the changed surface in a browser, at mobile and desktop widths. State explicitly what you could not verify — never report it as verified.
+- **Answer from the codebase first.** Resolve what the code can answer, then ask the user in one collected round — only what cannot be inferred.
+- **Measured numbers, not estimates.** Claim a word count, diff size or coverage only after running the command that proves it.
+- **Spot the inconsistency yourself.** Compare a visual change against the nearest existing page before delivering: same role, same expression. The reviewer should not be the one who finds the drift.
+
 ## Keep these files current
 
 After a large change or a long conversation, note what would have helped from the start and add it in a few lines to the closest instruction or skill. These files are rules, not a session log.
