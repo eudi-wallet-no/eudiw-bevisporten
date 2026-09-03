@@ -8,7 +8,7 @@ import java.io.Serializable;
 @JsonSerialize
 public record ValidationDetail(
         @JsonProperty("validationType")
-        ValidationType validationType,
+        String validationType,
         @JsonProperty("status")
         ValidationStatus status,
         @JsonProperty("validationDetails")

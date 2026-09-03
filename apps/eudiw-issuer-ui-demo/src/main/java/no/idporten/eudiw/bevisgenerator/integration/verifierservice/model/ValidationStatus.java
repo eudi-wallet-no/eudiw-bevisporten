@@ -6,7 +6,8 @@ import tools.jackson.databind.annotation.JsonSerialize;
 public enum ValidationStatus {
     VALID("success"),
     INVALID("error"),
-    INCONCLUSIVE("warning");
+    INCONCLUSIVE("warning"),
+    NOT_APPLICABLE("info");
 
     private final String status;
 
