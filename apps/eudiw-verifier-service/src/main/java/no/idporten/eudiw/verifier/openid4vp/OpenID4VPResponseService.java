@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
