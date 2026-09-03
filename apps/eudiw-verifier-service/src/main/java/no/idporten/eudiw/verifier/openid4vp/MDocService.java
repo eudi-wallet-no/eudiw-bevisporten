@@ -140,11 +140,11 @@ public class MDocService  {
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
         switch (status) {
-            case ValidationStatus.INCONCLUSIVE:
+            case INCONCLUSIVE:
                 return "MDoc: validering feila";
-            case ValidationStatus.VALID:
+            case VALID:
                 return "MDoc: MDoc er gyldig";
-            case ValidationStatus.INVALID:
+            case INVALID:
                 return "MDoc: MDoc er ugyldig";
             default:
                 return "MDoc: ukjent status";
