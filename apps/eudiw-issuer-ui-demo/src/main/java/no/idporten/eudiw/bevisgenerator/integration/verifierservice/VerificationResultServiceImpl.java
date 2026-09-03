@@ -2,7 +2,6 @@ package no.idporten.eudiw.bevisgenerator.integration.verifierservice;
 
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.ValidationDetail;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.ValidationStatus;
-import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.ValidationType;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerifiedCredential;
 import no.idporten.eudiw.bevisgenerator.web.models.ClaimView;
 import no.idporten.eudiw.bevisgenerator.web.models.ValidationDetailView;
@@ -117,6 +116,7 @@ public class VerificationResultServiceImpl implements VerificationResultService 
             case VALID -> "success";
             case INVALID -> "danger";
             case INCONCLUSIVE -> "warning";
+            case NOT_APPLICABLE -> "info";
         };
     }
 }

@@ -81,7 +81,7 @@ public class CredentialDefinition {
     }
 
     private static CredentialMetadata extractMetadata(SimpleCredentialForm form) {
-        List<Display> display = List.of(new Display(form.name()));
+        List<Display> display = List.of(new Display(form.name(), "no", form.backgroundColor(), form.textColor()));
 
         if (form.claims() == null) {
             return new CredentialMetadata(display, Collections.emptyList());
