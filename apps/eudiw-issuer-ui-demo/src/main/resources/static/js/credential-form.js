@@ -19,7 +19,12 @@ const state = {
   activePresets: new Set(),
   lastValidSchema: null,
   backgroundColor: '#ffffff',
-  textColor: '#000000'
+  textColor: '#000000',
+  displayLocale: 'no',
+  // Additional credential_metadata.display entries (e.g. other locales) beyond
+  // the single slot the schema editor exposes. Kept as-is so they survive a
+  // JSON -> schema -> JSON round trip instead of being silently discarded.
+  extraDisplays: []
 };
 
 // ---------------------------------------------------------------------------
@@ -35,7 +40,9 @@ function captureInitialState() {
     claims: JSON.parse(JSON.stringify(state.claims)),
     activePresets: new Set(state.activePresets),
     backgroundColor: state.backgroundColor,
-    textColor: state.textColor
+    textColor: state.textColor,
+    displayLocale: state.displayLocale,
+    extraDisplays: JSON.parse(JSON.stringify(state.extraDisplays))
   };
 }
 
@@ -65,6 +72,8 @@ function resetCredential() {
   state.activePresets = new Set(initialState.activePresets);
   state.backgroundColor = initialState.backgroundColor;
   state.textColor = initialState.textColor;
+  state.displayLocale = initialState.displayLocale;
+  state.extraDisplays = JSON.parse(JSON.stringify(initialState.extraDisplays));
 
   syncTopLevelInputsFromState();
   syncColorInputs();
@@ -84,9 +93,12 @@ function populateStateFromJson(json) {
   state.name = json.credential_metadata?.display?.[0]?.name || '';
   state.scope = json.scope || '';
   
-  // Extract colors from display[0]
+  // Extract colors and locale from display[0]; keep any further display
+  // entries (other locales) untouched so they aren't lost on round-trip.
   state.backgroundColor = json.credential_metadata?.display?.[0]?.background_color || '#ffffff';
   state.textColor = json.credential_metadata?.display?.[0]?.text_color || '#000000';
+  state.displayLocale = json.credential_metadata?.display?.[0]?.locale || 'no';
+  state.extraDisplays = (json.credential_metadata?.display || []).slice(1);
 
   const rawClaims = json.credential_metadata?.claims || [];
   const exampleData = json.example_credential_data || {};
@@ -97,6 +109,10 @@ function populateStateFromJson(json) {
     return {
       path,
       displayName: c.display?.[0]?.name || path,
+      displayLocale: c.display?.[0]?.locale || 'no',
+      // Further display entries for this claim (other locales), preserved
+      // as-is so switching to schema mode and back doesn't drop them.
+      extraDisplays: (c.display || []).slice(1),
       type: isImage ? 'binary' : c.value_type || 'string',
       mimeType: isImage ? imageClaims.mimeType(c.mime_type) : c.mime_type || null,
       exampleValue: exampleData[path] !== undefined ? String(exampleData[path]) : '',
@@ -288,7 +304,7 @@ function schemaToJson() {
     path: c.path,
     value_type: c.type || 'string',
     mandatory: false,
-    display: [{ name: c.displayName, locale: 'no' }],
+    display: [{ name: c.displayName, locale: c.displayLocale || 'no' }, ...(c.extraDisplays || [])],
     mime_type: c.mimeType || null
   }));
 
@@ -306,10 +322,10 @@ function schemaToJson() {
     credential_metadata: {
       display: [{
         name: state.name,
-        locale: 'no',
+        locale: state.displayLocale || 'no',
         background_color: state.backgroundColor,
         text_color: state.textColor
-      }],
+      }, ...(state.extraDisplays || [])],
       claims: claimsMetadata
     },
     example_credential_data: exampleData

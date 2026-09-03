@@ -9,7 +9,6 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerSe
 import no.idporten.eudiw.bevisgenerator.web.models.AddCredentialForm;
 import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
 import no.idporten.eudiw.bevisgenerator.web.models.EditCredentialForm;
-import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.ClaimForm;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.CreateForm;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.EditForm;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.SimpleCredentialForm;
@@ -24,11 +23,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 public class AdminController {
@@ -124,13 +120,13 @@ public class AdminController {
     public ModelAndView submitForm(@Validated(CreateForm.class) @Valid @ModelAttribute("form") SimpleCredentialForm form,
                                    BindingResult bindingResult) {
         if (form.rawJson() != null && !form.rawJson().isBlank()) {
-
-            SimpleCredentialForm resolved = resolveFromRawJson(form, bindingResult);
-            if (bindingResult.hasErrors()) {
+            if (!isValidRawJson(form.rawJson(), bindingResult) || bindingResult.hasErrors()) {
                 return credentialFormWithErrors("add-new", form, bindingResult, null);
             }
 
-            credentialService.storeCredential(resolved);
+            // Store the submitted JSON as-is so metadata the schema editor doesn't
+            // model (e.g. multiple display locales) is not lost.
+            credentialService.storeCredential(new CredentialDto(form.credentialType(), form.rawJson()));
 
             return new ModelAndView("redirect:/admin");
         }
@@ -170,13 +166,13 @@ public class AdminController {
                              @Validated(EditForm.class) @Valid SimpleCredentialForm form,
                              BindingResult bindingResult) {
         if (form.rawJson() != null && !form.rawJson().isBlank()) {
-
-            SimpleCredentialForm resolved = resolveFromRawJson(form, bindingResult);
-            if (bindingResult.hasErrors()) {
+            if (!isValidRawJson(form.rawJson(), bindingResult) || bindingResult.hasErrors()) {
                 return credentialFormWithErrors("edit-new", form, bindingResult, credentialType);
             }
 
-            credentialService.editCredential(new SimpleCredentialForm(credentialType, resolved.format(), resolved.scope(), resolved.name(), resolved.claims(), resolved.backgroundColor(), resolved.textColor(), null));
+            // Store the submitted JSON as-is so metadata the schema editor doesn't
+            // model (e.g. multiple display locales) is not lost.
+            credentialService.editCredential(new CredentialDto(credentialType, form.rawJson()));
 
             return new ModelAndView("redirect:/admin");
         }
@@ -217,79 +213,17 @@ public class AdminController {
     }
 
     /**
-     * Parses rawJson from the form, maps claims, and returns a resolved SimpleCredentialForm.
-     * Adds a binding error and returns the original form if JSON is invalid.
+     * Validates that rawJson is parseable as a CredentialDefinition.
+     * Adds a binding error and returns false if the JSON is invalid.
      */
-    private SimpleCredentialForm resolveFromRawJson(SimpleCredentialForm form, BindingResult bindingResult) {
+    private boolean isValidRawJson(String rawJson, BindingResult bindingResult) {
         try {
-            JsonNode root = objectMapper.readTree(form.rawJson());
-
-            String name = form.name();
-            String backgroundColor = form.backgroundColor();
-            String textColor = form.textColor();
-            JsonNode displayArr = root.path("credential_metadata").path("display");
-            if (displayArr.isArray() && !displayArr.isEmpty()) {
-                JsonNode displayNode = displayArr.get(0);
-                JsonNode nameNode = displayNode.path("name");
-                if (!nameNode.isMissingNode()) {
-                    name = nameNode.asText(form.name());
-                }
-                JsonNode backgroundColorNode = displayNode.path("background_color");
-                if (!backgroundColorNode.isMissingNode()) {
-                    backgroundColor = backgroundColorNode.asText(form.backgroundColor());
-                }
-                JsonNode textColorNode = displayNode.path("text_color");
-                if (!textColorNode.isMissingNode()) {
-                    textColor = textColorNode.asText(form.textColor());
-                }
-            }
-
-            List<ClaimForm> claims = parseClaimsFromJson(root);
-            return new SimpleCredentialForm(form.credentialType(), form.format(), form.scope(), name, claims, backgroundColor, textColor, null);
+            objectMapper.readValue(rawJson, CredentialDefinition.class);
+            return true;
         } catch (JacksonException e) {
             bindingResult.reject("rawJson.invalid", "Ugyldig JSON: " + e.getMessage());
-            return form;
+            return false;
         }
-    }
-
-    private List<ClaimForm> parseClaimsFromJson(JsonNode root) {
-        List<ClaimForm> claims = new ArrayList<>();
-        JsonNode exampleData = root.path("example_credential_data");
-        JsonNode claimsArray = root.path("credential_metadata").path("claims");
-
-        if (!claimsArray.isArray()) {
-            return claims;
-        }
-
-        for (JsonNode claimNode : claimsArray) {
-            String path = claimNode.path("path").asText("");
-            String displayName = extractClaimDisplayName(claimNode, path);
-            String type = extractClaimType(claimNode);
-            String exampleValue = extractClaimExampleValue(exampleData, path);
-            claims.add(new ClaimForm(path, displayName, type, null, exampleValue));
-        }
-
-        return claims;
-    }
-
-    private String extractClaimDisplayName(JsonNode claimNode, String defaultValue) {
-        JsonNode claimDisplay = claimNode.path("display");
-        if (claimDisplay.isArray() && !claimDisplay.isEmpty()) {
-            return claimDisplay.get(0).path("name").asText(defaultValue);
-        }
-        return defaultValue;
-    }
-
-    private String extractClaimType(JsonNode claimNode) {
-        return claimNode.has("value_type") ? claimNode.path("value_type").asText("string") : "string";
-    }
-
-    private String extractClaimExampleValue(JsonNode exampleData, String path) {
-        if (exampleData.isMissingNode() || !exampleData.has(path)) {
-            return "";
-        }
-        JsonNode val = exampleData.get(path);
-        return val.isTextual() ? val.asText() : val.toString();
     }
 
 }
