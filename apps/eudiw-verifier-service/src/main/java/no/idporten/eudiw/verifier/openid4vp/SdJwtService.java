@@ -39,14 +39,22 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verificationResultSdJwt(SDJwt sdJwt, X509Certificate cert) {
+    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
-        return sdJwt.verify(cryptoProvider, null);
+        VerificationResult<SDJwt> verificationResult = sdJwt.verify(cryptoProvider, null);
+        if (!verificationResult.getVerified()) {
+            throw new VerificationException(
+                    "invalid_request",
+                    "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(
+                            verificationResult.getSignatureVerified(),
+                            verificationResult.getDisclosuresVerified()));
+        }
+        return verificationResult;
     }
 
-    public ValidationStatus verifySdJwt(VerificationResult<SDJwt> verificationResult) {
+    public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult) {
         if(!verificationResult.getVerified()) {
             return ValidationStatus.INVALID;
         } else {
