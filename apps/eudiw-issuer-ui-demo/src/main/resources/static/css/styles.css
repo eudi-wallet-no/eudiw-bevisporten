@@ -1191,7 +1191,10 @@ footer ul {
 }
 
 .verification-result__claim-image {
-    display: block;
+    /* inline-block so the surrounding dd's text-align controls its position:
+       right-aligned on wide screens, left-aligned on narrow screens (see the
+       max-width: 768px rule for .verification-result__claim dd above). */
+    display: inline-block;
     max-width: 100%;
     max-height: 16rem;
     object-fit: contain;
