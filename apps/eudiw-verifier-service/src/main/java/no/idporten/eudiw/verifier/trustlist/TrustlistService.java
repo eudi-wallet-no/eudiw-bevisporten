@@ -179,15 +179,15 @@ public class TrustlistService {
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
-        if(ValidationStatus.INCONCLUSIVE == status) {
-            return "Tillitsliste: validering feila";
+        switch (status) {
+            case INCONCLUSIVE:
+                return "Tillitsliste: validering feila";
+            case VALID:
+                return "Tillitsliste: bevisets sertifikat er på tillitslista";
+            case INVALID:
+                return "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
+            default:
+                return "Tillitsliste: ukjent status";
         }
-        if (ValidationStatus.VALID == status) {
-            return "Tillitsliste: bevisets sertifikat er på tillitslista";
-        }
-        if (ValidationStatus.INVALID == status) {
-            return "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
-        }
-        return "Tillitsliste: ukjent status";
     }
 }
