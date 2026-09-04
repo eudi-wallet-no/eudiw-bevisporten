@@ -28,3 +28,11 @@ eudiw-idporten-login:
           - https://login.test.idporten.no/authorize/callback/eudiw
           - https://login.test.idporten.no/authorize/callback/eudiw-eu
           - https://login.test.idporten.no/authorize/callback/eudiw-no
+      - client-id: idporten-local
+        client-secret: ${IDPORTEN_LOCAL_CLIENT_SECRET}
+        scopes:
+          - openid
+        redirect-uris:
+          - http://127.0.0.1:7070/authorize/callback/eudiw
+          - http://127.0.0.1:7070/authorize/callback/eudiw-eu
+          - http://127.0.0.1:7070/authorize/callback/eudiw-no
