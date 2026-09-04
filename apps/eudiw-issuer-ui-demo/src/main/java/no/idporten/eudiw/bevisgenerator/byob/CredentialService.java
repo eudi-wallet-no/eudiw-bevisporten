@@ -29,6 +29,7 @@ public class CredentialService {
         return credentialDefinitions
                 .stream()
                 .map(mapper::toDto)
+                .sorted()
                 .toList();
     }
 
