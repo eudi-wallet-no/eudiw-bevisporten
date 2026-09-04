@@ -36,6 +36,16 @@
         const interval = /*[[${pollingInterval}]]*/ 5 * 1000;
         const endtime = Date.now() + timeout;
 
+        function reloadWhenVisible() {
+            if (document.visibilityState !== "visible") {
+                document.addEventListener("visibilitychange", reloadWhenVisible);
+                return;
+            }
+
+            document.removeEventListener("visibilitychange", reloadWhenVisible);
+            window.location.reload();
+        }
+
         async function poll() {
             if (Date.now() >= endtime) {
                 window.location.replace("/cancel")
@@ -44,7 +54,7 @@
             try {
                 const response = await fetch(window.location + '/status');
                 if (response.status === 200) {
-                    window.location.reload();
+                    reloadWhenVisible();
                     return;
                 }
                 if (response.status === 202) {
