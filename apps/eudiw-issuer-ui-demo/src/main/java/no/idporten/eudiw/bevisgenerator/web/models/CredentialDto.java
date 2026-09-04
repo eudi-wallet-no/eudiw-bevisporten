@@ -1,7 +1,7 @@
 package no.idporten.eudiw.bevisgenerator.web.models;
 
 
-public record CredentialDto(String credentialType, String name, String json) implements Comparable<CredentialDto> {
+public record CredentialDto(String credentialType, String name, String json) {
     public CredentialDto {
         name = name == null ? cleanCredentialType(credentialType) : name;
     }
@@ -12,10 +12,5 @@ public record CredentialDto(String credentialType, String name, String json) imp
 
     private static String cleanCredentialType(String credentialType) {
         return credentialType.replaceFirst("^[^:]+:", "");
-    }
-
-    @Override
-    public int compareTo(CredentialDto o) {
-        return name.compareTo(o.name);
     }
 }

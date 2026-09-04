@@ -7,6 +7,7 @@ import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
 import no.idporten.eudiw.bevisgenerator.web.models.advancedForm.SimpleCredentialForm;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -29,7 +30,10 @@ public class CredentialService {
         return credentialDefinitions
                 .stream()
                 .map(mapper::toDto)
-                .sorted()
+                .sorted(Comparator.comparing(
+                        CredentialDto::name,
+                        Comparator.nullsLast(String::compareToIgnoreCase)
+                ))
                 .toList();
     }
 
@@ -48,7 +52,7 @@ public class CredentialService {
     }
 
     public void storeCredential(CredentialDto dto) {
-        CredentialDefinition cd =  mapper.fromDto(dto);
+        CredentialDefinition cd = mapper.fromDto(dto);
 
         cd.setCredentialType(dto.credentialType());
         byobService.addCredentialDefinition(cd);
@@ -64,7 +68,7 @@ public class CredentialService {
     }
 
     public void editCredential(CredentialDto dto) {
-        CredentialDefinition cd =  mapper.fromDto(dto);
+        CredentialDefinition cd = mapper.fromDto(dto);
 
         cd.setCredentialType(dto.credentialType());
         byobService.editCredentialDefinition(cd);
