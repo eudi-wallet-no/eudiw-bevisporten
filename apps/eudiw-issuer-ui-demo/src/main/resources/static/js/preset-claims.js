@@ -17,7 +17,7 @@ const PRESET_CLAIMS = {
     claims: [
       { path: 'given_name', displayName: 'Fornavn', type: 'string', mimeType: null, exampleValue: 'Ola' },
       { path: 'family_name', displayName: 'Etternavn', type: 'string', mimeType: null, exampleValue: 'Nordmann' },
-      { path: 'middle_name', displayName: 'Mellomnavn', type: 'string', mimeType: null, exampleValue: '' },
+      { path: 'middle_name', displayName: 'Mellomnavn', type: 'string', mimeType: null, exampleValue: 'Per' },
       { path: 'personal_administrative_number', displayName: 'Fødselsnummer', type: 'string', mimeType: null, exampleValue: '01018812345' },
       { path: 'birth_date', displayName: 'Fødselsdato', type: 'string', mimeType: null, exampleValue: '1988-01-01' }
     ]
