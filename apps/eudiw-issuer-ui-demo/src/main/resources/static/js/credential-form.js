@@ -666,8 +666,8 @@ function buildClaimRow(claim, i) {
     uploadBtn.type = 'button';
     uploadBtn.className = 'ds-button';
     uploadBtn.setAttribute('data-variant', 'secondary');
-    uploadBtn.setAttribute('aria-label', `Last opp bilde for ${claim.displayName || claim.path}`);
-    uploadBtn.textContent = 'Last opp bilde';
+    uploadBtn.setAttribute('aria-label', `Last opp bilete for ${claim.displayName || claim.path}`);
+    uploadBtn.textContent = 'Last opp bilete';
     uploadBtn.addEventListener('click', (e) => {
       e.preventDefault();
       fileInput.click();
