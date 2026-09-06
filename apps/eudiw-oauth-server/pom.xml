@@ -24,7 +24,7 @@
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <bcpkix-jdk18on.version>1.85</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.85.2</bcprov-jdk18on.version>
-        <lombok.version>1.18.46</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
     </properties>
     <dependencies>
         <dependency>
