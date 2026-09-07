@@ -565,7 +565,7 @@ function submitCustomClaim() {
 
   // Check for duplicate path
   if (state.claims.some(c => c.path === path)) {
-    showCustomClaimError(errorDiv, `Claim med sti "${path}" finst allereie`);
+    showCustomClaimError(errorDiv, `Claim med sti (path) "${path}" finst allereie`);
     return;
   }
 
