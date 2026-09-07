@@ -13,7 +13,7 @@
                type="text"
                th:name="|claims[${index}].path|"
                th:value="${claimData != null ? claimData.path : ''}"
-               placeholder="Path" />
+               placeholder="Sti (path)" />
 
         <input class="ds-input"
                type="text"
@@ -24,7 +24,7 @@
 
     <div class="claim_field">
         <select class="ds-input" th:name="|claims[${index}].type|">
-            <option disabled th:selected="${claimData == null or claimData.type == null}" value="">Velg ein type</option>
+            <option disabled th:selected="${claimData == null or claimData.type == null}" value="">Vel ein type</option>
             <option value="string" th:selected="${claimData != null and claimData.type == 'string'}">string</option>
             <option value="binary" th:selected="${claimData != null and claimData.type == 'binary'}">binary</option>
             <option disabled value="number">number</option>
@@ -39,14 +39,14 @@
                type="text"
                th:name="|claims[${index}].mimeType|"
                th:value="${claimData != null ? claimData.mimeType : ''}"
-               placeholder="MIME-type (f.eks. image/png)"
+               placeholder="MIME-type (t.d. image/png)"
                th:style="${claimData != null and claimData.type == 'binary'} ? '' : 'display:none'" />
 
         <input class="ds-input"
                type="text"
                th:name="|claims[${index}].exampleValue|"
                th:value="${claimData != null ? claimData.exampleValue : ''}"
-               placeholder="Eksempelverdi" />
+               placeholder="Dømeverdi" />
     </div>
 
     <button class="ds-button"

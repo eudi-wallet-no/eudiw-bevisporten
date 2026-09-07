@@ -117,8 +117,8 @@ bevisgenerator:
             "credential_data": {
               "personal_administrative_number": "05821098825",
               "birth_date": "2010-02-05",
-              "given_name": "Fornavn",
-              "family_name": "Etternavn",
+              "given_name": "Førenamn",
+              "family_name": "Etternamn",
               "place_of_birth": {"country": "NO"},
               "nationality": ["NO"],
               "issuing_country": "NO",
@@ -128,7 +128,7 @@ bevisgenerator:
           }
       - credential-configuration-id: org.iso.18013.5.1.mDL_mso_mdoc
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
-        description: Førerkort
+        description: Førarkort
         scope: eudiw:no:vegvesen:mdl
         person-identifier: 16903349844
         json-request: |
