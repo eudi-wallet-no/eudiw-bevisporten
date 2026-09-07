@@ -147,7 +147,7 @@ class OpenID4VPVerificationServiceTest {
             }
         }
 
-        @DisplayName("and something if not right with the result from the verifier")
+        @DisplayName("and something is not right with the result from the verifier")
         @Nested
         class InvalidCredentialTests {
 
@@ -176,7 +176,7 @@ class OpenID4VPVerificationServiceTest {
                 verify(verificationHandler, never()).completeVerification(any());
             }
 
-            @DisplayName("then the shared kinvalid credential will fail the login")
+            @DisplayName("then the shared invalid credential will fail the login")
             @Test
             void testInvalidCredentialThrows() {
                 VerifiedCredential invalidCredential = new VerifiedCredential(false, Map.of());
