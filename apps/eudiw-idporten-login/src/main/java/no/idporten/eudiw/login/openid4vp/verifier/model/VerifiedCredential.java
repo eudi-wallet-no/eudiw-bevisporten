@@ -14,6 +14,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record VerifiedCredential(
+        boolean valid,
         Map<String, Object> claims
 ) {
 
