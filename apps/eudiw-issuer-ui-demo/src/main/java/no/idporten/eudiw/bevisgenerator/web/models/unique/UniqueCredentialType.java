@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UniqueCredentialType {
 
-    String message() default "Credential type finnes allerede";
+    String message() default "Bevistypen finst allereie";
 
     Class<?>[] groups() default {};
 

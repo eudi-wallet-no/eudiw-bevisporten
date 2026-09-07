@@ -14,7 +14,7 @@
     </div>
 
     <div class="content-narrow">
-        <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er tilgjengelig i utstederen.</p>
+        <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevistypen er tilgjengeleg hos utferdaren.</p>
     </div>
 
     <form class="form-container"
@@ -36,7 +36,7 @@
         <!-- Top metadata (no credentialType field in edit mode — it's fixed) -->
         <div class="metadata-fields">
             <div class="ds-field">
-                <label for="name-field" class="ds-label">Bevisnavn</label>
+                <label for="name-field" class="ds-label">Bevisnamn</label>
                 <input id="name-field" class="ds-input" type="text" th:field="*{name}" />
             </div>
             <!-- Format and scope are edited in JSON mode -->
@@ -67,18 +67,18 @@
 
                 <!-- Right: preview -->
                 <div class="credential-editor__right">
-                    <p class="ds-paragraph" data-size="sm" style="color: var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-2);">Førehandsvisning</p>
-                    <div id="preview-panel" class="preview-card" role="img" aria-label="Bevis-forhåndsvisning">
+                    <p class="ds-paragraph" data-size="sm" style="color: var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-2);">Førehandsvising</p>
+                    <div id="preview-panel" class="preview-card" role="img" aria-label="Førehandsvising av bevis">
                         <svg id="preview-spinner" class="ds-spinner preview-card__spinner" data-size="xs"
-                             role="img" aria-label="Oppdaterer førehandsvisning"
+                             role="img" aria-label="Oppdaterer førehandsvising"
                              viewBox="0 0 50 50" hidden>
                             <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
                             <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
                         </svg>
-                        <span class="preview-card__name" data-preview-name>Bevisnavn</span>
+                        <span class="preview-card__name" data-preview-name>Bevisnamn</span>
                         <div class="preview-card__body">
                             <div id="preview-portrait" class="preview-card__portrait" hidden>
-                                <img id="preview-portrait-img" src="" alt="Profilbilde" />
+                                <img id="preview-portrait-img" src="" alt="Profilbilete" />
                             </div>
                             <div class="preview-fields" data-preview-list></div>
                         </div>
@@ -136,26 +136,26 @@
         <!-- Custom claim modal -->
         <dialog id="custom-claim-modal" class="ds-dialog">
             <div class="ds-dialog__block">
-                <h2 class="ds-heading" data-size="md" id="custom-claim-modal-title">Legg til eget claim</h2>
+                <h2 class="ds-heading" data-size="md" id="custom-claim-modal-title">Legg til eige claim</h2>
             </div>
 
             <div class="ds-dialog__block">
                 <div class="ds-field">
-                    <label for="custom-claim-name" class="ds-label">Claim navn</label>
+                    <label for="custom-claim-name" class="ds-label">Namn på claim</label>
                     <input type="text"
                            id="custom-claim-name"
                            class="ds-input"
-                           placeholder="f.eks. E-post"
-                           aria-label="Claim navn">
+                           placeholder="t.d. E-post"
+                           aria-label="Namn på claim">
                 </div>
 
                 <div class="ds-field" style="margin-block-start: var(--ds-size-5);">
-                    <label for="custom-claim-value" class="ds-label">Eksempelverdi</label>
+                    <label for="custom-claim-value" class="ds-label">Dømeverdi</label>
                     <input type="text"
                            id="custom-claim-value"
                            class="ds-input"
-                           placeholder="f.eks. test@example.com"
-                           aria-label="Eksempelverdi">
+                           placeholder="t.d. test@example.com"
+                           aria-label="Dømeverdi">
                 </div>
 
                 <div id="custom-claim-error" class="ds-error-message" hidden

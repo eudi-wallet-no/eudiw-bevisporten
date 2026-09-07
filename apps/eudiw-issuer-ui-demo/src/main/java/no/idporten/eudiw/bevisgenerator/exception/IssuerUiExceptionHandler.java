@@ -59,7 +59,7 @@ public class IssuerUiExceptionHandler {
     @ExceptionHandler(MaskinportenClientException.class)
     public ModelAndView handleMaskinportenClientException(MaskinportenClientException e) {
         log.error("Unexpected exception from Maskinporten", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Integration with Maskinporten failed").addObject("statusCode", HttpStatus.INTERNAL_SERVER_ERROR).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Integrasjonen med Maskinporten feila").addObject("statusCode", HttpStatus.INTERNAL_SERVER_ERROR).addObject("details", e.getMessage());
     }
 
 
@@ -67,7 +67,7 @@ public class IssuerUiExceptionHandler {
     public ModelAndView handleVerifierServiceException(VerifierServiceException e) {
         log.error("Unexpected error from verifier-service", e);
         return getModelAndView("error/error")
-                .addObject("errorMessage", "Verifier-service call failed")
+                .addObject("errorMessage", "Kall til verifier-service feila")
                 .addObject("statusCode", e.getHttpStatusCode())
                 .addObject("details", e.getMessage());
     }
@@ -75,18 +75,18 @@ public class IssuerUiExceptionHandler {
     @ExceptionHandler(VerifierServiceIOException.class)
     public ModelAndView handleVerifierServiceIOException(VerifierServiceIOException e) {
         log.error("Failed to connect with verifier-service", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with verifier-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Klarte ikkje å kontakte verifier-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
     }
 
     @ExceptionHandler(ByobServiceException.class)
     public ModelAndView handleByobServiceException(ByobServiceException e) {
         log.error("Unexpected error from byob-service", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with byob-service").addObject("statusCode", e.getHttpStatusCode()).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Klarte ikkje å kontakte byob-service").addObject("statusCode", e.getHttpStatusCode()).addObject("details", e.getMessage());
     }
 
     @ExceptionHandler(ByobServiceIOException.class)
     public ModelAndView handleByobServiceIOException(ByobServiceIOException e) {
         log.error("Failed to connect with byob-service", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with byob-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Klarte ikkje å kontakte byob-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
     }
 }

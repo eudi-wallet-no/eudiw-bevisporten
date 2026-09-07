@@ -75,7 +75,7 @@ public class CredentialIssuerService {
                 .stream()
                 .findFirst()
                 .map(Display::name)
-                .orElse("Navn ikke funnet");
+                .orElse("Namn ikkje funne");
     }
 
     private IssuanceDefinition convertFromCredentialDefinitionToIssuanceDefinition(CredentialDefinition cd, String personId) {

@@ -10,7 +10,7 @@ public class CredentialDefinitionFactory {
 
     public static CredentialDefinition empty() {
         return new CredentialDefinition(
-                "your-credential-type (automatically generated)",
+                "your-credential-type (generert automatisk)",
                 "dc+sd-jwt", // default format for credential type
                 DYNAMIC_CREDENTIAL_SCOPE,
                 new ExampleCredentialData(Map.of(
@@ -33,7 +33,7 @@ public class CredentialDefinitionFactory {
                                         true,
                                         List.of(
                                                 new Display(
-                                                        "Etternavn",
+                                                        "Etternamn",
                                                         "no",
                                                         null,
                                                         null
@@ -45,7 +45,7 @@ public class CredentialDefinitionFactory {
                                         "string",
                                         true,
                                         List.of(new Display(
-                                                        "Fornavn",
+                                                        "Førenamn",
                                                         "no",
                                                         null,
                                                         null

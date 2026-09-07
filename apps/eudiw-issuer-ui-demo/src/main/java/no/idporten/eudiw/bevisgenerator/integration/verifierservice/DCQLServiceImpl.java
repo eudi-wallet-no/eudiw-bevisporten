@@ -116,8 +116,8 @@ public class DCQLServiceImpl implements DCQLService {
         for (ClaimMetadata claim : claimMetadata) {
             claims.add(new SelectableClaim(
                     claim.display() != null
-                            ? claim.display().stream().findFirst().map(Display::name).orElse("No display name found")
-                            : "No display name found",
+                            ? claim.display().stream().findFirst().map(Display::name).orElse("Visingsnamn ikkje funne")
+                            : "Visingsnamn ikkje funne",
                     claim.path() != null ? claim.path() : List.of())
             );
         }
