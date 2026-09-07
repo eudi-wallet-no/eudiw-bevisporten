@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.Map;
 
 public record SimpleCredentialForm(
-        @NotBlank(message = "Credential type er påkravd", groups = CreateForm.class)
+        @NotBlank(message = "Bevistype er påkravd", groups = CreateForm.class)
         @Pattern(
                 regexp = "^[a-z0-9_:.]{3,155}$",
-                message = "Credential type kan berre innehalde små bokstavar, tal, kolon, punktum og understrek. Lengd: 3–155 teikn",
+                message = "Bevistype kan berre innehalde små bokstavar, tal, kolon, punktum og understrek. Lengd: 3–155 teikn",
                 groups = CreateForm.class
         )
         @UniqueCredentialType(groups = CreateForm.class)
