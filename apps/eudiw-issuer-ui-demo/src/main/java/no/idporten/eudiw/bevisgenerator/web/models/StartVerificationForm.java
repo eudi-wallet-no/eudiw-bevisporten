@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
 public record StartVerificationForm(
-        @NotBlank(message = "Credential configuration må velgast")
+        @NotBlank(message = "Vel ein bevistype")
         String credentialConfigurationId,
         @NotEmpty(message = "Minst eitt claim må velgast")
         List<@NotBlank(message = "Minst eitt claim må velgast") String> selectedClaimPaths

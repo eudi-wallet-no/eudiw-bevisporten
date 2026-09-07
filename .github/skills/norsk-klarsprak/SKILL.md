@@ -41,6 +41,9 @@ Fagtermar, sitat, kode, namn og tekst på andre språk er ikkje ei blanding. Sj�
 - **Hjelpetekst:** feltet eller valet, ikkje interne systemdetaljar.
 - **Stadfestingar:** konkret kva som er lagra, sendt eller endra.
 - **Kort og steg:** handlinga først. Resultatet berre når det hjelper personen å velje.
+- Bruk same brukaromgrep i feltetikettar og valideringsmeldingar. Vis tekniske felt-ID-ar berre når dei hjelper, og skil dei tydeleg frå etiketten.
+- Når fleire valideringsfeil blir samla i ei feilliste, skal kvar melding vere éi linje. Ikkje legg inn linjeskift i sjølve meldinga.
+- Skriv eksplisitt kva som må følgje ein spesifikasjon eller regel. Unngå pronomen med uklar referanse.
 
 Lenkje- og knappetekst skal gi meining åleine. Vurder teksten saman med komponenten, plasseringa og utforminga. Kontroller heile løpet — navigasjon, ledetekstar, knappar, hjelpetekstar, feilmeldingar og kvitteringar — og bruk same omgrep på tvers av skjermbilete og kanalar.
 

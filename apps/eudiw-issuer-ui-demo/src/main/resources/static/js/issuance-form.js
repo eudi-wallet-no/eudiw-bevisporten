@@ -21,7 +21,7 @@
   }
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   const EMPTY_COPY =
-    'Dette beviset hentar data automatisk frå registeret ut frå personidentifikator, og har inga redigerbare attributtar.';
+    'Dette beviset hentar data automatisk frå registeret ut frå personidentifikatoren. Ingen attributt kan redigerast.';
 
   function parseIssuanceJson(str) {
     const parsed = JSON.parse(str);
@@ -187,7 +187,7 @@
     } else if (kind === 'string' || kind === 'image') {
       value = String(rawValue);
     } else {
-      throw new Error('Feltet kan ikkje redigerast i Skjema.');
+      throw new Error('Feltet kan ikkje redigerast i skjemamodus.');
     }
 
     target.parent[target.leaf] = value;

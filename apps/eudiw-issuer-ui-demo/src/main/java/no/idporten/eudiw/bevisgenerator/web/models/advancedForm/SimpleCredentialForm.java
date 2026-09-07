@@ -15,23 +15,23 @@ import java.util.List;
 import java.util.Map;
 
 public record SimpleCredentialForm(
-        @NotBlank(message = "Credential type er påkrevd", groups = CreateForm.class)
+        @NotBlank(message = "Bevistype er påkravd", groups = CreateForm.class)
         @Pattern(
                 regexp = "^[a-z0-9_:.]{3,155}$",
-                message = "Credential type kan bare inneholde små bokstaver, tall, kolon, punktum og understrek.\nLengde: 3–155 tegn",
+                message = "Bevistype kan berre innehalde små bokstavar, tal, kolon, punktum og understrek. Lengd: 3–155 teikn",
                 groups = CreateForm.class
         )
         @UniqueCredentialType(groups = CreateForm.class)
         String credentialType,
-        @NotBlank(message = "Format er påkrevd", groups = { CreateForm.class, EditForm.class })
+        @NotBlank(message = "Format er påkravd", groups = { CreateForm.class, EditForm.class })
         String format,
-        @NotBlank(message = "Scope er påkrevd", groups = { CreateForm.class, EditForm.class })
+        @NotBlank(message = "Scope er påkravd", groups = { CreateForm.class, EditForm.class })
         String scope,
 
         String name,
         @Valid()
         @NotNull(
-                message = "Beviset må ha minimum 1. claim",
+                message = "Beviset må ha minst eitt claim",
                 groups = { CreateForm.class, EditForm.class }
         )
         List<ClaimForm> claims,

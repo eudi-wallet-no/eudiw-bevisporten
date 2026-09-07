@@ -13,28 +13,28 @@
  */
 const PRESET_CLAIMS = {
   persondata: {
-    label: 'Persondata',
+    label: 'Personopplysningar',
     claims: [
-      { path: 'given_name', displayName: 'Fornavn', type: 'string', mimeType: null, exampleValue: 'Ola' },
-      { path: 'family_name', displayName: 'Etternavn', type: 'string', mimeType: null, exampleValue: 'Nordmann' },
-      { path: 'middle_name', displayName: 'Mellomnavn', type: 'string', mimeType: null, exampleValue: 'Per' },
+      { path: 'given_name', displayName: 'Førenamn', type: 'string', mimeType: null, exampleValue: 'Ola' },
+      { path: 'family_name', displayName: 'Etternamn', type: 'string', mimeType: null, exampleValue: 'Nordmann' },
+      { path: 'middle_name', displayName: 'Mellomnamn', type: 'string', mimeType: null, exampleValue: 'Per' },
       { path: 'personal_administrative_number', displayName: 'Fødselsnummer', type: 'string', mimeType: null, exampleValue: '01018812345' },
       { path: 'birth_date', displayName: 'Fødselsdato', type: 'string', mimeType: null, exampleValue: '1988-01-01' }
     ]
   },
   kontaktinfo: {
-    label: 'Kontaktinfo',
+    label: 'Kontaktinformasjon',
     claims: [
       { path: 'phone_number', displayName: 'Telefonnummer', type: 'string', mimeType: null, exampleValue: '+4712345678' },
       { path: 'email', displayName: 'E-post', type: 'string', mimeType: null, exampleValue: 'ola@example.no' }
     ]
   },
   bilde: {
-    label: 'Bilde',
+    label: 'Bilete',
     claims: [
       {
         path: 'portrait',
-        displayName: 'Profilbilde',
+        displayName: 'Profilbilete',
         type: 'binary',
         mimeType: 'image/png',
         // 96×96 gray person-silhouette placeholder PNG

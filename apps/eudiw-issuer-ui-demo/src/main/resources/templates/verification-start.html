@@ -13,7 +13,7 @@
             Presenter bevis
         </h1>
         <p class="ds-paragraph" data-size="lg">
-            Vel ein bevistype og tilhøyrande attributt du ynkjer å henta fra ei lommebok
+            Vel ein bevistype og tilhøyrande opplysningar du ønskjer å hente frå ei lommebok.
         </p>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
@@ -83,7 +83,7 @@
 
         <div th:replace="~{fragments/components :: step_navigation_fragment(
             previousHref='/issue',
-            previousLabel='Utsted nytt bevis',
+            previousLabel='Utferd nytt bevis',
             nextHref=${null},
             nextLabel='Start verifisering',
             nextForm='verification-form',

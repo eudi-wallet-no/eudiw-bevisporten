@@ -344,7 +344,7 @@ function jsonToSchema(jsonStr) {
   try {
     parsed = JSON.parse(jsonStr);
   } catch (e) {
-    showJsonError('Ugyldig JSON – endringer er ikke lagret. ' + e.message);
+    showJsonError('Ugyldig JSON – endringane er ikkje lagra. ' + e.message);
     return false;
   }
 
@@ -412,7 +412,7 @@ function resetJsonFromSchema() {
 }
 
 // ---------------------------------------------------------------------------
-// Auto-generate credentialType from Bevisnavn.
+// Auto-generate credentialType from Bevisnamn.
 // ---------------------------------------------------------------------------
 function generateIds(name) {
   state.name = name;
@@ -461,8 +461,8 @@ function renderPresetButtons() {
   customBtn.className = 'ds-button';
   customBtn.setAttribute('data-color', 'neutral');
   customBtn.setAttribute('data-variant', 'secondary');
-  customBtn.setAttribute('aria-label', 'Legg til eget claim');
-  customBtn.textContent = '+ Legg til eget claim';
+  customBtn.setAttribute('aria-label', 'Legg til eige claim');
+  customBtn.textContent = '+ Legg til eige claim';
   customBtn.addEventListener('click', openCustomClaimModal);
   container.appendChild(customBtn);
 
@@ -551,7 +551,7 @@ function submitCustomClaim() {
   const value = valueInput.value.trim();
 
   if (!name) {
-    showCustomClaimError(errorDiv, 'Claim navn er påkrevd');
+    showCustomClaimError(errorDiv, 'Namn på claim er påkravd');
     return;
   }
 
@@ -559,13 +559,13 @@ function submitCustomClaim() {
   const path = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
 
   if (!path) {
-    showCustomClaimError(errorDiv, 'Claim namn må innehalde bokstavar eller tal');
+    showCustomClaimError(errorDiv, 'Claim-namnet må innehalde bokstavar eller tal');
     return;
   }
 
   // Check for duplicate path
   if (state.claims.some(c => c.path === path)) {
-    showCustomClaimError(errorDiv, `Claim med path "${path}" finst allereie`);
+    showCustomClaimError(errorDiv, `Claim med sti (path) "${path}" finst allereie`);
     return;
   }
 
@@ -640,8 +640,8 @@ function buildClaimRow(claim, i) {
   exampleInput.type = 'text';
   exampleInput.name = `claims[${i}].exampleValue`;
   exampleInput.value = claim.exampleValue || '';
-  exampleInput.placeholder = 'Eksempelverdi';
-  exampleInput.setAttribute('aria-label', `Eksempelverdi for ${claim.displayName || claim.path}`);
+  exampleInput.placeholder = 'Dømeverdi';
+  exampleInput.setAttribute('aria-label', `Dømeverdi for ${claim.displayName || claim.path}`);
   exampleInput.addEventListener('input', () => {
     state.claims[i].exampleValue = exampleInput.value;
     schedulePreviewUpdate();
@@ -723,14 +723,14 @@ function handleImageUpload(event, inputElement, claimIndex) {
 
   // Validate file is an image
   if (!file.type.startsWith('image/')) {
-    alert('Kun bildefiler er tillatt');
+    alert('Berre biletfiler er tillatne');
     return;
   }
 
   // Limit file size to 1MB
   const MAX_SIZE = 1024 * 1024;
   if (file.size > MAX_SIZE) {
-    alert('Bildefilen må være mindre enn 1MB');
+    alert('Biletet må vere mindre enn 1 MB');
     return;
   }
 
@@ -748,12 +748,12 @@ function handleImageUpload(event, inputElement, claimIndex) {
         document.querySelector(`[name="claims[${claimIndex}].mimeType"]`).value = file.type;
         schedulePreviewUpdate();
       } else {
-        alert('Feil: kunne ikke konvertere bilde til base64');
+        alert('Feil: Biletet kunne ikkje konverterast til base64');
       }
     }
   };
   reader.onerror = () => {
-    alert('Feil ved lesing av bildefil');
+    alert('Det oppstod ein feil ved lesing av biletet');
   };
   reader.readAsDataURL(file);
 }
@@ -785,7 +785,7 @@ function renderPreview() {
   panel.style.color = state.textColor;
 
   const nameEl = panel.querySelector('[data-preview-name]');
-  if (nameEl) nameEl.textContent = state.name || 'Bevisnavn';
+  if (nameEl) nameEl.textContent = state.name || 'Bevisnamn';
 
   const list = panel.querySelector('[data-preview-list]');
   if (!list) return;
