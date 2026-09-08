@@ -5,6 +5,7 @@
     <th:block th:replace="~{fragments/layout :: issued_credential_history_js_fragment}"></th:block>
     <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
     <title>Beviset er utferda | Bevisgenerator</title>
+    <script th:src="@{/js/image-claims.js}"></script>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
@@ -15,21 +16,82 @@
                data-credential-description=${issuedCredentialDescription},
                data-issuance-transaction-id=${issuedTransactionId},
                data-subject-identifier=${issuedSubjectIdentifier}">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
+            Beviset er utferda
+        </h1>
+        <p class="ds-paragraph" data-size="lg">
+            Du kan no presentere beviset eller utferde eit nytt.
+        </p>
+    </div>
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=3)}"></div>
+
     <div class="step-flow">
         <div class="step-flow__content">
-            <div class="landing-intro landing-copy">
-                <h1 class="ds-heading" data-size="xl">
-                    Beviset er utferda
-                </h1>
-                <p class="ds-paragraph" data-size="lg">
-                    Du kan no presentere beviset eller utferde eit nytt.
-                </p>
-            </div>
             <p x-cloak
                x-show="storageError"
                x-text="storageError"
                class="ds-validation-message"
                role="alert"></p>
+
+            <div class="flex-container">
+                <div class="ds-card verification-result__card"
+                     data-color="neutral"
+                     data-variant="default">
+                    <h2 class="ds-heading" data-size="sm">Attributt</h2>
+
+                    <div class="verification-result__group">
+                        <p class="ds-label" th:text="${issuedCredentialDescription}"></p>
+
+                        <div th:if="${!#lists.isEmpty(claims)}"
+                             th:replace="~{fragments/components :: claim_list_fragment(claims=${claims})}"></div>
+
+                        <p class="ds-paragraph" data-size="sm" data-color="neutral"
+                           th:if="${#lists.isEmpty(claims)}">
+                            Dette beviset hentar data automatisk frå registeret ut frå personidentifikatoren. Ingen attributt vart sendt inn.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ds-card verification-result__card"
+                     data-color="neutral"
+                     data-variant="default">
+                    <h2 class="ds-heading" data-size="sm">Utferdingsdetaljar</h2>
+
+                    <div class="verification-result__group">
+                        <p class="ds-label" th:text="${issuedCredentialDescription}"></p>
+
+                        <div class="verification-result__validation">
+                            <p class="ds-alert"
+                               data-color="success">
+                                Beviset er utferda til lommeboka
+                            </p>
+
+                            <dl class="verification-result__claims">
+                                <div class="verification-result__claim">
+                                    <dt>Bevistype</dt>
+                                    <dd th:text="${issuedCredentialConfigurationId}"></dd>
+                                </div>
+                                <div class="verification-result__claim"
+                                     th:if="${!#strings.isEmpty(issuedSubjectIdentifier)}">
+                                    <dt>Personidentifikator</dt>
+                                    <dd th:text="${issuedSubjectIdentifier}"></dd>
+                                </div>
+                                <div class="verification-result__claim"
+                                     th:if="${!#strings.isEmpty(issuedCredentialIssuer)}">
+                                    <dt>Utferdar</dt>
+                                    <dd th:text="${issuedCredentialIssuer}"></dd>
+                                </div>
+                                <div class="verification-result__claim">
+                                    <dt>Transaksjons-ID</dt>
+                                    <dd th:text="${#strings.abbreviate(issuedTransactionId, 40)}"
+                                        th:title="${issuedTransactionId}"></dd>
+                                </div>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <form id="automatic-verification-form"
@@ -53,5 +115,18 @@
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script>
+    document.querySelectorAll('.verification-result__claim-value').forEach(claimValue => {
+        if (!window.imageClaims || !imageClaims.isImageClaim(claimValue.dataset.claimName)) {
+            return;
+        }
+
+        const image = document.createElement('img');
+        image.src = imageClaims.dataUrl(claimValue.dataset.fullValue);
+        image.alt = claimValue.previousElementSibling.textContent;
+        image.className = 'verification-result__claim-image';
+        claimValue.replaceChildren(image);
+    });
+</script>
 </body>
 </html>
