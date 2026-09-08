@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
@@ -22,12 +22,12 @@
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
-        <idporten-log-audit.version>4.0.4</idporten-log-audit.version>
+        <idporten-log-audit.version>4.0.5</idporten-log-audit.version>
         <springdoc.version>3.1.0</springdoc.version>
         <maskinporten.client.version>6.0.2</maskinporten.client.version>
         <log-event.version>2.0.4</log-event.version>
         <freg-integration-lib.version>2.0.3</freg-integration-lib.version>
-        <idporten-validators.version>1.6.1</idporten-validators.version>
+        <idporten-validators.version>1.6.2</idporten-validators.version>
     </properties>
 
     <dependencies>

@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.0</version>
+		<version>4.1.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>no.idporten.eudiw</groupId>
@@ -29,7 +29,7 @@
 		<cbor.version>1.21</cbor.version>
 		<bcprov-lts8on.version>2.73.12.1</bcprov-lts8on.version>
 		<zxing.javase.version>3.5.4</zxing.javase.version>
-		<lombok.version>1.18.46</lombok.version>
+		<lombok.version>1.18.48</lombok.version>
 	</properties>
 	
 	<dependencies>
