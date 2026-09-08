@@ -63,7 +63,11 @@ public class OpenID4VPVerificationService {
         if (verifiedCredentials.size() != 1) {
             throw new InvalidVerificationException("Invalid verified credentials", "Recieived %d credentials".formatted(verifiedCredentials.size()));
         }
-        return verificationHandler.completeVerification(verifiedCredentials.getFirst());
+        VerifiedCredential verifiedCredential = verifiedCredentials.getFirst();
+        if (!verifiedCredential.valid()) {
+            throw new InvalidVerificationException("Invalid verified credentials", "Verification failed.");
+        }
+        return verificationHandler.completeVerification(verifiedCredential);
     }
 
     /**
