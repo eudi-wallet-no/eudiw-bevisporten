@@ -12,9 +12,8 @@ updates:
   # MAVEN (Spring Boot-apper)
   # ==============
   # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
-  # Gruppering etter semver-nivå + "group-by: dependency-name":
-  #   - patch/minor: samles bredt i én PR per nivå, på tvers av alle apper som bruker
-  #     avhengigheten (lav risiko, trenger ikke individuell review per app).
+  # Gruppering etter semver-nivå:
+  #   - patch/minor: samles i felles PR per nivå (lav risiko, trenger ikke individuell review per app).
   #   - major: matcher ingen gruppe under, så Dependabot faller tilbake til standard
   #     oppførsel — én individuell PR per avhengighet per app. Gir mest isolasjon og
   #     grundigst review nettopp der risikoen for brudd er størst.
@@ -34,14 +33,12 @@ updates:
           - "*"
         update-types:
           - "patch"
-        group-by: dependency-name
       minor-oppdateringer:
         applies-to: version-updates
         patterns:
           - "*"
         update-types:
           - "minor"
-        group-by: dependency-name
 
   # ==============
   # DOCKER
@@ -61,14 +58,12 @@ updates:
           - "*"
         update-types:
           - "patch"
-        group-by: dependency-name
       minor-oppdateringer:
         applies-to: version-updates
         patterns:
           - "*"
         update-types:
           - "minor"
-        group-by: dependency-name
 
   # ==============
   # GITHUB ACTIONS
@@ -82,4 +77,3 @@ updates:
       alle-actions-oppdateringer:
         patterns:
           - "*"
-        group-by: dependency-name
