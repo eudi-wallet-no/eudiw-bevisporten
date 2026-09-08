@@ -42,6 +42,6 @@ Every task has a JIRA-ID. **Ask for it** if you did not get one — never invent
 ## Endringer
 - Viktigste endringer, ikke alle filer og detaljer.
 
-## Skjermbilde (ved UI-endringer)
+## Skjermbilde (UI-endringer)
 <!-- Skjermbilde av den visuelle endringen -->
 ```
