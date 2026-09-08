@@ -2,46 +2,66 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Send bevis til mobilen | Bevisgenerator</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
-            Send bevis til mobilen
-        </h1>
-        <p class="ds-paragraph">
-            No er me i gong med å utferding av bevis, køyr på med mobilen!
-        </p>
+<main id="main-content" tabindex="-1">
+    <div class="page-heading">
+        <div th:replace="~{fragments/components :: back_link_fragment(href='/issue')}"></div>
+        <div class="landing-intro landing-copy">
+            <h1 class="ds-heading" data-size="xl">
+                Send bevis til mobilen
+            </h1>
+            <p class="ds-paragraph" data-size="lg">
+                Opne beviset på mobilen eller skann QR-koden.
+            </p>
+        </div>
     </div>
 
-    <p th:text="${error}" class="ds-validation-message" th:if="${error}">
-    </p>
+    <div id="issuance-card"
+         class="ds-card card-narrow"
+         data-color="neutral"
+         data-variant="default"
+         th:if="${error == null}">
 
-
-    <div class="ds-card card-narrow">
-
-        <div id="cross-device-request">
-            <img th:src="${'data:image/png;base64,' + issuance.qrCode}" alt="QR kode for bevis" id="qrcode-cross-device"
-                 width="100%"/>
-        </div>
+        <div th:replace="~{fragments/components :: wallet_qr_fragment(
+            src=${'data:image/png;base64,' + issuance.qrCode},
+            credentialName=${credentialName}
+        )}"></div>
 
         <div class="button-group">
-            <a th:href="${issuance.encodedUri}" class="ds-button" data-variant="primary">
+            <a th:href="${issuance.encodedUri}"
+               id="same-device-button"
+               class="ds-button"
+               data-variant="primary">
                 Opne på mobilen
             </a>
-            <a th:href="@{/issue}" class="ds-button" type="button" data-variant="secondary">
-                Tilbake
-            </a>
         </div>
+
+        <div th:replace="~{fragments/components :: wallet_status_fragment}"></div>
+    </div>
+
+    <div id="issuance-error-alert"
+         class="ds-alert wallet-error-alert"
+         data-color="danger"
+         role="alert"
+         th:hidden="${error == null}">
+        <p class="ds-paragraph"
+           id="issuance-error-message"
+           th:text="${error}"></p>
+        <a th:href="@{/start-issuance/{id}(id=${credentialConfigurationId})}"
+           class="ds-button"
+           data-variant="primary">
+            Prøv igjen
+        </a>
     </div>
 
     <div id="tracing">
         <details class="ds-details" data-variant="default">
-            <summary>Request til issuer-server</summary>
+            <summary>Førespurnad til issuer-serveren</summary>
             <div>
                 <code>POST <span th:text="${request.endpoint}"></span></code>
                 <br/>
@@ -53,16 +73,156 @@
             </div>
         </details>
         <details class="ds-details" data-variant="default">
-            <summary>Response frå issuer-server</summary>
+            <summary>Svar frå issuer-serveren</summary>
             <div>
                 <code class="code-block" th:text="${issuance.issuanceResponse}"></code>
             </div>
         </details>
     </div>
-
-
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script th:inline="javascript">
+    const statusMessage = document.getElementById("wallet-status-message");
+    const statusSpinner = document.getElementById("wallet-status-spinner");
+    const errorAlert = document.getElementById("issuance-error-alert");
+    const errorMessage = document.getElementById("issuance-error-message");
+    const issuanceCard = document.getElementById("issuance-card");
+    const statusEndpoint = /*[[@{/issuance/{transactionId}/status(transactionId=${issuedTransactionId})}]]*/ "";
+    const completeUrl = /*[[@{/issuance/{transactionId}/complete(transactionId=${issuedTransactionId})}]]*/ "";
+    const sameDeviceButton = document.getElementById("same-device-button");
+
+    let stopped = false;
+    let sameDeviceFlow = false;
+
+    if (sameDeviceButton) {
+        sameDeviceButton.addEventListener("click", () => {
+            stopped = true;
+            sameDeviceFlow = true;
+        });
+    }
+
+    function updateStatusMessage(message) {
+        statusMessage.textContent = message;
+    }
+
+    function showError(message) {
+        issuanceCard.style.display = "none";
+        errorMessage.textContent = message;
+        errorAlert.hidden = false;
+    }
+
+    function redirectToCompletePage() {
+        document.location.assign(completeUrl);
+    }
+
+    function redirectWhenVisible() {
+        if (document.visibilityState === "visible") {
+            window.removeEventListener("focus", redirectToCompletePage);
+            document.removeEventListener("visibilitychange", redirectWhenVisible);
+            redirectToCompletePage();
+        }
+    }
+
+    function handleCompleted() {
+        if (!sameDeviceFlow || document.visibilityState === "visible") {
+            redirectToCompletePage();
+            return;
+        }
+
+        updateStatusMessage("Utferdinga er fullført.");
+        statusSpinner.style.display = "none";
+        window.addEventListener("focus", redirectToCompletePage, {once: true});
+        document.addEventListener("visibilitychange", redirectWhenVisible);
+    }
+
+    function scheduleNextPoll(poll, interval) {
+        if (!stopped) {
+            setTimeout(poll, interval);
+            return;
+        }
+        if (document.visibilityState === "visible") {
+            stopped = false;
+            setTimeout(poll, interval);
+            return;
+        }
+
+        const resume = () => {
+            window.removeEventListener("focus", resume);
+            document.removeEventListener("visibilitychange", resumeWhenVisible);
+            stopped = false;
+            poll();
+        };
+        const resumeWhenVisible = () => {
+            if (document.visibilityState === "visible") {
+                resume();
+            }
+        };
+
+        window.addEventListener("focus", resume);
+        document.addEventListener("visibilitychange", resumeWhenVisible);
+    }
+
+    async function waitForWallet(interval, timeout) {
+        const endTime = Date.now() + timeout;
+        updateStatusMessage("Ventar på at beviset blir utferda ...");
+
+        async function poll() {
+            const remaining = endTime - Date.now();
+            if (remaining <= 0) {
+                showError("Vi fekk ikkje svar frå lommeboka i tide.");
+                return;
+            }
+
+            const controller = new AbortController();
+            const abortTimer = setTimeout(() => controller.abort(), remaining);
+
+            try {
+                const response = await fetch(statusEndpoint, {
+                    method: "GET",
+                    headers: {Accept: "application/json"},
+                    signal: controller.signal
+                });
+
+                if (response.status === 200) {
+                    handleCompleted();
+                    return;
+                }
+                if (response.status === 202) {
+                    if (Date.now() >= endTime) {
+                        showError("Vi fekk ikkje svar frå lommeboka i tide.");
+                        return;
+                    }
+                    scheduleNextPoll(poll, interval);
+                    return;
+                }
+                if (response.status === 422) {
+                    showError("Vi klarte ikkje å utferde beviset.");
+                    return;
+                }
+                if (response.status === 404) {
+                    showError("Vi fann ikkje denne utferdinga.");
+                    return;
+                }
+
+                showError("Vi klarte ikkje å sjekke om beviset er utferda.");
+            } catch (error) {
+                if (controller.signal.aborted) {
+                    showError("Vi fekk ikkje svar frå lommeboka i tide.");
+                    return;
+                }
+                showError("Vi klarte ikkje å sjekke om beviset er utferda.");
+            } finally {
+                clearTimeout(abortTimer);
+            }
+        }
+
+        await poll();
+    }
+
+    if (issuanceCard) {
+        waitForWallet(2000, 60000);
+    }
+</script>
 </body>
 </html>

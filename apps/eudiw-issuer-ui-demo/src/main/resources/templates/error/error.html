@@ -1,29 +1,53 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Intern feil</title>
+    <title th:text="${(pageTitle ?: 'Vi kunne ikkje fullføre oppgåva') + ' | Bevisgenerator'}">
+        Intern feil | Bevisgenerator
+    </title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
-    <h1 class="ds-heading" data-size="lg">
-        Beklager! Noko gjekk gale.
-    </h1>
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy content-narrow">
+        <h1 class="ds-heading"
+            data-size="xl"
+            th:text="${pageTitle ?: 'Vi kunne ikkje fullføre oppgåva'}">
+            Vi kunne ikkje fullføre oppgåva
+        </h1>
+        <p class="ds-paragraph"
+           data-size="lg"
+           th:text="${userMessage ?: 'Prøv igjen. Dersom feilen held fram, kan du gå til forsida og starte på nytt.'}">
+            Prøv igjen. Dersom feilen held fram, kan du gå til forsida og starte på nytt.
+        </p>
+    </div>
 
-    <p class="ds-paragraph">
-        <div th:text="${errorMessage}"></div>
-        <code th:text="${statusCode}"></code>
-        <code th:text="${details}"></code>
-    </p>
+    <div class="error-content content-narrow">
+        <div class="button-group">
+            <a th:if="${recoveryHref != null}"
+               th:href="@{${recoveryHref}}"
+               class="ds-button"
+               th:text="${recoveryLabel}">
+                Start på nytt
+            </a>
+            <a th:href="@{/}"
+               class="ds-button"
+               th:attr="data-variant=${recoveryHref != null ? 'secondary' : 'primary'}">
+                Gå til forsida
+            </a>
+        </div>
 
-    <p class="ds-paragraph">
-        <a th:href="@{/}" class="ds-button">
-            Heim
-        </a>
-    </p>
+        <details class="ds-details" data-variant="default">
+            <summary>Tekniske detaljar</summary>
+            <div class="error-details">
+                <code th:if="${statusCode != null}" th:text="${statusCode}"></code>
+                <code th:if="${errorMessage != null}" th:text="${errorMessage}"></code>
+                <code th:if="${details != null}" th:text="${details}"></code>
+            </div>
+        </details>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>

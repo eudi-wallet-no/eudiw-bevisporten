@@ -2,81 +2,194 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Rediger bevistype | Bevisgenerator</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-
-<template id="claim-template">
-    <th:block th:replace="~{fragments/claim :: claim('INDEX', null)}"/>
-</template>
-
-<main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
-            Rediger bevistype
-        </h1>
-    </div>
-    <div>
-        <p class="ds-paragraph ds-alert">Det kan ta inntil ett minutt før bevistypen er tilgjengelig i utstederen.</p>
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro">
+        <h1 class="ds-heading" data-size="xl">Rediger bevistype</h1>
     </div>
 
-    <form   th:fragment="edit_attributes_form_fragment"
-            id="edit_attributes_form"
-            th:action="@{/edit-credential-new/{id}(id=*{credentialType()})}"
-            th:object="${form}" method="post">
+    <div class="content-narrow">
+        <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevistypen er tilgjengeleg hos utferdaren.</p>
+    </div>
+
+    <form class="form-container"
+          th:fragment="edit_attributes_form_fragment"
+          id="edit_attributes_form"
+          th:action="@{/edit-credential-new/{id}(id=${editCredentialType ?: form.credentialType()})}"
+          th:object="${form}"
+          method="post">
 
         <div class="ds-alert"
              data-color="danger"
              th:if="${#fields.hasAnyErrors()}">
-            <p class="ds-paragraph" data-size="lg">
-                Skjemaet inneholder feil:
-            </p>
-
+            <p class="ds-paragraph" data-size="lg">Skjemaet inneheld feil:</p>
             <ul class="error-list">
-                <li th:each="error : ${#fields.allErrors()}"
-                    th:text="${error}">
-                </li>
+                <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
             </ul>
         </div>
 
+        <!-- Top metadata (no credentialType field in edit mode — it's fixed) -->
         <div class="metadata-fields">
             <div class="ds-field">
-                <label for="name-field" class="ds-label">Name</label>
+                <label for="name-field" class="ds-label">Bevisnamn</label>
                 <input id="name-field" class="ds-input" type="text" th:field="*{name}" />
             </div>
-            <div class="ds-field">
-                <label for="format-field" class="ds-label">Format</label>
-                <input id="format-field" class="ds-input" type="text" th:field="*{format}" />
-            </div>
-            <div class="ds-field">
-                <label for="scope-field" class="ds-label">Scope</label>
-                <input id="scope-field" class="ds-input" type="text" th:field="*{scope}" />
+            <!-- Format and scope are edited in JSON mode -->
+            <input type="hidden" id="format-field" th:field="*{format}" />
+            <input type="hidden" id="scope-field" th:field="*{scope}" />
+            <input type="hidden" id="bg-color-hidden" th:field="*{backgroundColor}" />
+            <input type="hidden" id="text-color-hidden" th:field="*{textColor}" />
+        </div>
+
+
+        <!-- Mode toggle -->
+        <div th:replace="~{fragments/components :: mode_toggle_fragment}"></div>
+
+        <!-- Schema panel -->
+        <div id="schema-panel" role="tabpanel" aria-labelledby="schema-tab">
+            <div class="credential-editor">
+                <!-- Left: presets + claims -->
+                <div class="credential-editor__left">
+                    <div class="preset-section">
+                        <h2 class="ds-heading" data-size="sm">Legg til feltgrupper</h2>
+                        <div class="preset-buttons" id="preset-buttons"></div>
+                    </div>
+
+                    <div class="claims-section">
+                        <div id="claims" class="claims-list"></div>
+                    </div>
+                </div>
+
+                <!-- Right: preview -->
+                <div class="credential-editor__right">
+                    <p class="ds-paragraph" data-size="sm" style="color: var(--ds-color-neutral-text-subtle); margin-block-end: var(--ds-size-2);">Førehandsvising</p>
+                    <div id="preview-panel" class="preview-card" role="img" aria-label="Førehandsvising av bevis">
+                        <svg id="preview-spinner" class="ds-spinner preview-card__spinner" data-size="xs"
+                             role="img" aria-label="Oppdaterer førehandsvising"
+                             viewBox="0 0 50 50" hidden>
+                            <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
+                            <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
+                        </svg>
+                        <span class="preview-card__name" data-preview-name>Bevisnamn</span>
+                        <div class="preview-card__body">
+                            <div id="preview-portrait" class="preview-card__portrait" hidden>
+                                <img id="preview-portrait-img" src="" alt="Profilbilete" />
+                            </div>
+                            <div class="preview-fields" data-preview-list></div>
+                        </div>
+                    </div>
+                    <div class="preview-actions">
+                        <button class="ds-button preview-reset-btn"
+                                type="button"
+                                data-color="neutral"
+                                data-variant="tertiary"
+                                onclick="resetCredential()"
+                                aria-label="Tilbakestill bevis">
+                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                <path d="M3 3v5h5"/>
+                            </svg>
+                            Tilbakestill bevis
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <hr/>
-
-        <h3>Claims</h3>
-
-        <div id="claims">
-            <div th:each="claim, stat : *{claims}">
-                <th:block th:insert="~{fragments/claim :: claim(${stat.index}, ${claim})}"/>
+        <!-- JSON panel -->
+        <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>
+            <div class="json-editor-wrapper">
+                <h2 class="ds-heading" data-size="sm">JSON</h2>
+                <textarea id="json-editor"
+                          class="ds-input json-editor"
+                          spellcheck="false"
+                          aria-label="BYOB JSON"></textarea>
+                <span id="json-badge" class="json-badge json-badge--invalid">✗ Ugyldig JSON</span>
+            </div>
+            
+            <!-- Card design section -->
+            <div class="json-design-section">
+                <h3 class="ds-heading" data-size="xs">Utforming av kort</h3>
+                <div class="color-controls">
+                    <div class="color-control">
+                        <label for="bg-color-input" class="ds-label">Bakgrunnsfarge</label>
+                        <input type="color" id="bg-color-input" class="ds-input color-input" 
+                               value="#ffffff" aria-label="Bakgrunnsfarge for bevis">
+                    </div>
+                    <div class="color-control">
+                        <label for="text-color-input" class="ds-label">Tekstfarge</label>
+                        <input type="color" id="text-color-input" class="ds-input color-input" 
+                               value="#000000" aria-label="Tekstfarge for bevis">
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button type="button" class="ds-button" data-variant="secondary" onclick="addClaim()">Legg til Claim</button>
+        <!-- Hidden field for JSON-mode submission -->
+        <input type="hidden" name="rawJson" id="rawJson-input" />
 
-        <hr/>
+        <!-- Custom claim modal -->
+        <dialog id="custom-claim-modal" class="ds-dialog">
+            <div class="ds-dialog__block">
+                <h2 class="ds-heading" data-size="md" id="custom-claim-modal-title">Legg til eige claim</h2>
+            </div>
 
-        <button class="ds-button" type="submit" form="edit_attributes_form">Rediger bevistype</button>
+            <div class="ds-dialog__block">
+                <div class="ds-field">
+                    <label for="custom-claim-name" class="ds-label">Namn på claim</label>
+                    <input type="text"
+                           id="custom-claim-name"
+                           class="ds-input"
+                           placeholder="t.d. E-post"
+                           aria-label="Namn på claim">
+                </div>
+
+                <div class="ds-field" style="margin-block-start: var(--ds-size-5);">
+                    <label for="custom-claim-value" class="ds-label">Dømeverdi</label>
+                    <input type="text"
+                           id="custom-claim-value"
+                           class="ds-input"
+                           placeholder="t.d. test@example.com"
+                           aria-label="Dømeverdi">
+                </div>
+
+                <div id="custom-claim-error" class="ds-error-message" hidden
+                     style="margin-block-start: var(--ds-size-3);">
+                </div>
+            </div>
+
+            <div class="ds-dialog__block" style="display: flex; gap: var(--ds-size-3); justify-content: flex-end;">
+                <button class="ds-button"
+                        type="button"
+                        data-variant="secondary"
+                        onclick="closeCustomClaimModal()">
+                    Avbryt
+                </button>
+                <button class="ds-button"
+                        type="button"
+                        data-variant="primary"
+                        onclick="submitCustomClaim()">
+                    Legg til
+                </button>
+            </div>
+        </dialog>
+
+        <div class="form-actions">
+            <button class="ds-button" data-variant="primary" type="submit" form="edit_attributes_form">Rediger bevistype</button>
+        </div>
     </form>
-
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script th:src="@{/js/image-claims.js}"></script>
+<script th:src="@{/js/preset-claims.js}"></script>
+<script th:src="@{/js/mode-toggle.js}"></script>
 <script th:src="@{/js/credential-form.js}"></script>
+<div id="credential-data" th:attr="data-credential-json=${credentialJson}" hidden></div>
 </body>
 </html>

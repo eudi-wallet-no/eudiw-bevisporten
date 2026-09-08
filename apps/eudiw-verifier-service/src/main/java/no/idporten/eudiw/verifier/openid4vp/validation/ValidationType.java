@@ -5,7 +5,9 @@ import tools.jackson.databind.annotation.JsonSerialize;
 @JsonSerialize
 public enum ValidationType {
     STATUS_LIST("statusList"),
-    TRUST_LIST("trustlist");
+    TRUST_LIST("trustlist"),
+    MDOC("mdoc"),
+    SDJWT("sdjwt");
 
 
     ValidationType(String value) {

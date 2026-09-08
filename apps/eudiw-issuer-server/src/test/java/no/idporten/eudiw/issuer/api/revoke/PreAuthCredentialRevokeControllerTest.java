@@ -22,8 +22,11 @@ import org.springframework.web.client.RestClient;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DisplayName("When revoking credentials")
@@ -63,18 +66,52 @@ public class PreAuthCredentialRevokeControllerTest {
     @Test
     void testRevokeIssuedCredential() throws Exception {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
-        mockMvc.perform(put("/api/v1/credential/revoke")
+        when(statusIssuerService.revokeStatus(any())).thenReturn(1);
+
+        mockMvc.perform(put("/api/v2/credential/revoke")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("Authorization", "Bearer access.token.sign")
                         .content(revocationRequestBody("junitdoc_pre_mso_mdoc", issuanceTransactionId.getValue()))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.revokedCount").value(1));
+
         verify(statusIssuerService).revokeStatus(credentialRevokeContextCaptor.capture());
         CredentialRevokeContext credentialRevokeContext = credentialRevokeContextCaptor.getValue();
+
         assertAll(
                 () -> assertEquals(issuanceTransactionId, credentialRevokeContext.transactionId()),
                 () -> assertEquals("junitdoc_pre_mso_mdoc", credentialRevokeContext.credentialConfiguration().getCredentialConfigurationId())
         );
+    }
+
+    @DisplayName("then the v1 endpoint preserves its no-content response")
+    @Test
+    void testV1RevokeResponse() throws Exception {
+        when(statusIssuerService.revokeStatus(any())).thenReturn(1);
+
+        mockMvc.perform(put("/api/v1/credential/revoke")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "******")
+                        .content(revocationRequestBody(
+                                "junitdoc_pre_mso_mdoc",
+                                new IssuanceTransactionId().getValue()
+                        )))
+                .andExpect(status().isNoContent());
+    }
+
+    @DisplayName("then an unknown issuance transaction reports that nothing was revoked")
+    @Test
+    void testRevokeUnknownCredential() throws Exception {
+        when(statusIssuerService.revokeStatus(any())).thenReturn(0);
+
+        mockMvc.perform(put("/api/v2/credential/revoke")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", "******")
+                        .content(revocationRequestBody("junitdoc_pre_mso_mdoc", new IssuanceTransactionId().getValue()))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.revokedCount").value(0));
     }
 
 }

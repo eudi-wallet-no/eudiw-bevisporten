@@ -46,6 +46,7 @@ bevisgenerator:
   features:
     allow-bevistyper-v2: true
     allow-verification: true
+    revocation-v2-rich-result: false
   byob-service:
     create-endpoint: /v1/public/credential-configurations
     get-all-edit-endpoint: /v1/public/credential-configurations
@@ -116,8 +117,8 @@ bevisgenerator:
             "credential_data": {
               "personal_administrative_number": "05821098825",
               "birth_date": "2010-02-05",
-              "given_name": "Fornavn",
-              "family_name": "Etternavn",
+              "given_name": "Førenamn",
+              "family_name": "Etternamn",
               "place_of_birth": {"country": "NO"},
               "nationality": ["NO"],
               "issuing_country": "NO",
@@ -127,7 +128,7 @@ bevisgenerator:
           }
       - credential-configuration-id: org.iso.18013.5.1.mDL_mso_mdoc
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
-        description: Førerkort
+        description: Førarkort
         scope: eudiw:no:vegvesen:mdl
         person-identifier: 16903349844
         json-request: |
@@ -170,7 +171,7 @@ bevisgenerator:
         description: Norsk ID-bevis (SD-JWT VC)
         scope: eudiw:no:pid
   verifier-service:
-    verification-start-endpoint: /api/v1/{client_application_id}/verify/start/
+    verification-start-endpoint: /api/v1/{client_application_id}/verify/start/?include_validation_details=true
     verification-status-endpoint: /api/v1/{client_application_id}/verify/status/{verifier_transaction_id}
     verification-result-endpoint: /api/v1/{client_application_id}/verify/result/{verifier_transaction_id}
     client-application-id: bevisgenerator-login

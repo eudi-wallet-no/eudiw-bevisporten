@@ -2,33 +2,33 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Administrer bevis | Bevisgenerator</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
             Administrer bevis
         </h1>
-        <p class="ds-paragraph">
-            Her kan du definere datamodell for en bevis-type. <br>Den må følge Openid4VCI-spec'en definisjoner for
-            <a class="ds-link" th:href="@{https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata-p}">credential_metadata</a>.
+        <p class="ds-paragraph" data-size="lg">
+            Her kan du definere datamodellen for ein bevistype. <br>Datamodellen må følgje definisjonane i OpenID4VCI-spesifikasjonen for
+            <a class="ds-link content-link" th:href="@{https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-credential-issuer-metadata-p}">credential_metadata</a>.
         </p>
     </div>
     <div class="credential-table-wrapper">
         <table class="credential-table">
             <thead>
             <tr>
-                <th>Beskrivelse</th>
-                <th class="credential-table__actions-column">Handlinger</th>
+                <th>Skildring</th>
+                <th class="credential-table__actions-column">Handlingar</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="c : ${credentials}">
-                <td th:text="${c.name()}">Navn</td>
+                <td th:text="${c.name()}">Namn</td>
                 <td>
                     <div class="credential-table__actions">
                         <a class="ds-button"
@@ -51,10 +51,19 @@
         </table>
     </div>
     <div class="admin-actions">
-        <a class="ds-button" data-variant="neutral" data-size="lg" th:href="@{/add-credential}">
+        <a class="ds-button"
+           data-color="neutral"
+           data-variant="primary"
+           data-size="lg"
+           th:href="@{/add-credential}">
             + Legg til
         </a>
-        <a class="ds-button" data-variant="neutral" data-size="lg" th:href="@{/add-credential-new}" th:if="${allowBevisTyperV2}">
+        <a class="ds-button"
+           data-color="neutral"
+           data-variant="primary"
+           data-size="lg"
+           th:href="@{/add-credential-new}"
+           th:if="${allowBevisTyperV2}">
             + Legg til 2.0
         </a>
     </div>

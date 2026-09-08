@@ -32,13 +32,13 @@ public class CredentialStatusService {
     }
 
     @Transactional(readOnly = true)
-    public CredentialStatusInfo retrieveCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId) {
+    public CredentialStatusInfo retrieveRevocableCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId) {
         Optional<CredentialIssuanceTransactionEntity> transaction = issuanceTransactionDao.findByIssuanceTransactionId(
                 transactionId.getValue(),
                 tenant.getId()
         );
 
-        if (transaction.isEmpty()) {
+        if (transaction.isEmpty() || transaction.get().getRevokedMs() != null) {
             return null;
         }
 
@@ -67,9 +67,9 @@ public class CredentialStatusService {
     }
 
     @Transactional
-    public void markCredentialRevoked(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId) {
+    public boolean markCredentialRevoked(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId) {
         long now = System.currentTimeMillis();
-        issuanceTransactionDao.updateRevokedMs(transactionId.getValue(), tenant.getId(), now, now);
+        return issuanceTransactionDao.updateRevokedMs(transactionId.getValue(), tenant.getId(), now, now) == 1;
     }
 
     private CredentialStatusInfo toCredentialStatusInfo(

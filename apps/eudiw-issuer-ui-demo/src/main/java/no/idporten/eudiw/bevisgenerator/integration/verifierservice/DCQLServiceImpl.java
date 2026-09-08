@@ -9,6 +9,7 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.Creden
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.SelectableClaim;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -78,12 +79,19 @@ public class DCQLServiceImpl implements DCQLService {
 
         return new CredentialDefinitionDisplayData(
                 key,
-                display != null ? display.name() : "No display name found",
+                getCredentialTitle(key, display),
                 issuer,
                 config.format(),
                 meta,
                 claims
         );
+    }
+
+    private static String getCredentialTitle(String credentialConfigurationId, Display display) {
+        if (display == null || !StringUtils.hasText(display.name())) {
+            return credentialConfigurationId;
+        }
+        return display.name();
     }
 
     private static @NonNull List<Map<String, List<String>>> getClaimsWithFullPath(CredentialDefinitionDisplayData credentialDefinitionDisplayData, List<String> selectedClaimPaths) {
@@ -108,8 +116,8 @@ public class DCQLServiceImpl implements DCQLService {
         for (ClaimMetadata claim : claimMetadata) {
             claims.add(new SelectableClaim(
                     claim.display() != null
-                            ? claim.display().stream().findFirst().map(Display::name).orElse("No display name found")
-                            : "No display name found",
+                            ? claim.display().stream().findFirst().map(Display::name).orElse("Visingsnamn ikkje funne")
+                            : "Visingsnamn ikkje funne",
                     claim.path() != null ? claim.path() : List.of())
             );
         }

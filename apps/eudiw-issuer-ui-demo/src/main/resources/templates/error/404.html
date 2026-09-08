@@ -1,27 +1,28 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="nb-no">
+<html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Sida finst ikkje</title>
+    <title>Sida finst ikkje | Bevisgenerator</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
-    <h1 class="ds-heading" data-size="lg">
-        Beklager! Me fann ikkje sida.
-    </h1>
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy content-narrow">
+        <h1 class="ds-heading" data-size="xl">
+            Orsak! Vi fann ikkje sida.
+        </h1>
+        <p class="ds-paragraph" data-size="lg">
+            Kontroller lenkja. Send oss ei melding i Slack-kanalen vår dersom du meiner dette er ein feil.
+        </p>
+    </div>
 
-    <p class="ds-paragraph">
-        Dobbeltsjekk om du har rett lenke eller gi ei melding på slack-kanalen vår viss du trur det er ein bug.
-    </p>
-
-    <p class="ds-paragraph">
+    <div class="button-group content-narrow">
         <a th:href="@{/}" class="ds-button">
             Heim
         </a>
-    </p>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>

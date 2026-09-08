@@ -2,63 +2,97 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title th:text="${'Start utferding av ' + credentialConfiguration.description + ' | Bevisgenerator'}">
+        Start utferding | Bevisgenerator
+    </title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
-            Start utferdig av bevis
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
+            Start utferding av bevis
         </h1>
         <p class="ds-paragraph"
-           th:text="|Start utferdig av ${credentialConfiguration.description} med Digdir sin generelle utferdar (issuer)|">
+           data-size="lg"
+           th:text="|Start utferding av ${credentialConfiguration.description} med Digdirs generelle utferdar (issuer)|">
         </p>
     </div>
 
-    <form th:fragment="send_attributes_form_fragment"
-          id="send_attributes_form"
-          th:action="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
-          th:object="${startIssuanceForm}"
-          method="POST">
+    <div class="step-flow">
+        <form th:fragment="send_attributes_form_fragment"
+              id="send_attributes_form"
+              class="form-container content-narrow"
+              th:action="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
+              th:object="${startIssuanceForm}"
+              method="POST">
 
-        <p class="ds-paragraph" th:if="${credentialConfiguration.personIdentifier()}">
-            <label for="person_identifier"
-                   data-weight="medium"
-                   class="ds-label">
-                Personidentifikator
-            </label>
-            <input id="person_identifier"
-                      placeholder=""
-                      class="ds-input"
-                      th:field="*{personIdentifier}" />
-        </p>
+            <div class="ds-field" th:if="${credentialConfiguration.personIdentifier()}">
+                <label for="person_identifier"
+                       data-weight="medium"
+                       class="ds-label">
+                    Personidentifikator
+                </label>
+                <input id="person_identifier"
+                       placeholder=""
+                       class="ds-input"
+                       th:field="*{personIdentifier}" />
+            </div>
 
-        <p class="ds-paragraph">
-            <label for="eaa_data_field"
-                   data-weight="medium"
-                   class="ds-label">
-                Attributter for utferding av bevis (i JSON-format)
-            </label>
-            <textarea id="eaa_data_field"
-                      placeholder=""
-                      class="ds-input json-editor"
-                      th:field="*{json}">
-                    </textarea>
-        </p>
+            <div th:replace="~{fragments/components :: mode_toggle_fragment}"></div>
 
-        <button class="ds-button ds-button--primary"
-                type="submit"
-                form="send_attributes_form"
-                data-variant="primary">
-            Start utferding av bevis
-        </button>
-    </form>
+            <div id="schema-panel" role="tabpanel" aria-labelledby="schema-tab">
+                <fieldset class="claims-fieldset">
+                    <legend class="ds-heading" data-size="sm">Attributtar</legend>
+                    <p id="issuance-empty" class="ds-paragraph" hidden></p>
+                    <div id="issuance-fields" class="claims-list"></div>
+                </fieldset>
+                <button id="issuance-reset"
+                        class="ds-button preview-reset-btn"
+                        type="button"
+                        data-variant="tertiary"
+                        data-color="neutral"
+                        aria-label="Tilbakestill bevis"
+                        hidden>
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    Tilbakestill bevis
+                </button>
+            </div>
 
+            <div id="json-panel" role="tabpanel" aria-labelledby="json-tab" hidden>
+                <div class="json-editor-wrapper">
+                    <h2 class="ds-heading" data-size="sm">JSON</h2>
+                    <textarea id="eaa_data_field"
+                              class="ds-input json-editor"
+                              th:field="*{json}"
+                              spellcheck="false"
+                              aria-label="JSON for utferding av bevis"></textarea>
+                    <span id="json-badge" class="json-badge json-badge--invalid"></span>
+                </div>
+            </div>
+
+        </form>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/issue',
+            previousLabel='Vel bevistype',
+            nextHref=${null},
+            nextLabel='Start utferding av bevis',
+            nextForm='send_attributes_form',
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script th:src="@{/js/mode-toggle.js}"></script>
+<script th:src="@{/js/issuance-form.js}"></script>
 </body>
 </html>

@@ -10,22 +10,38 @@ import java.nio.file.Path;
 public class TrustlistTestdata {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistTestdata.class);
-    private String trustlist;
+    private static String xmlTrustlist;
+    private static String jsonTrustlist;
+    private static String jsonInvalidCertList;
 
-    public TrustlistTestdata() {
-        setTrustlist();
+    public TrustlistTestdata() throws IOException {
+        setXmlTrustlist();
+        setJsonTrustlist();
+        setJsonTrustlistWithInvalidCertificate();
     }
 
-    public void setTrustlist() {
-        try {
-            trustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlist.xtsl"));
-
-        } catch (IOException e) {
-            log.info(e.getMessage());
-        }
+    public void setXmlTrustlist() throws IOException {
+        xmlTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlist.xtsl"));
     }
 
-    public String getTrustlist() {
-        return trustlist;
+    public static String getXmlTrustlist() {
+        return xmlTrustlist;
+    }
+
+    public void setJsonTrustlist() throws IOException {
+        jsonTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPid.jws"));
+
+    }
+
+    public static String getJsonTrustlist() {
+        return jsonTrustlist;
+    }
+
+    public void setJsonTrustlistWithInvalidCertificate() throws IOException {
+        jsonInvalidCertList = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistPidWithNonParsableCert.jws"));
+
+    }
+    public static String getJsonInvalidCertList() {
+        return jsonInvalidCertList;
     }
 }

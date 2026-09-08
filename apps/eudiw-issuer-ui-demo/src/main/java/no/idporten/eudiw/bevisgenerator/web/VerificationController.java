@@ -6,27 +6,37 @@ import jakarta.validation.Valid;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.IssuerServerService;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.DCQLService;
+import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerificationResultService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.VerifierService;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.CredentialDefinitionDisplayData;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationResult;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationStatus;
 import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.VerificationTransactionData;
+import no.idporten.eudiw.bevisgenerator.web.models.IssuanceSessionData;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
+import no.idporten.eudiw.bevisgenerator.web.models.VerificationSessionData;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import java.text.Collator;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Controller
@@ -37,6 +47,7 @@ public class VerificationController {
     private final VerifierService verifierService;
     private final ObjectMapper objectMapper;
     private final DCQLService dcqlService;
+    private final VerificationResultService verificationResultService;
 
     private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Resultat");
 
@@ -44,13 +55,16 @@ public class VerificationController {
             IssuerServerService issuerServerService,
             IssuerServerProperties properties,
             VerifierService verifierService,
-            ObjectMapper objectMapper, DCQLService dcqlService
+            ObjectMapper objectMapper,
+            DCQLService dcqlService,
+            VerificationResultService verificationResultService
     ) {
         this.issuerServerService = issuerServerService;
         this.properties = properties;
         this.verifierService = verifierService;
         this.objectMapper = objectMapper;
         this.dcqlService = dcqlService;
+        this.verificationResultService = verificationResultService;
     }
 
     @ModelAttribute("issuerUrl")
@@ -60,26 +74,55 @@ public class VerificationController {
 
     @GetMapping("/verification-start")
     public ModelAndView verify() {
-        return baseView(new StartVerificationForm());
+        return baseView(new StartVerificationForm(), loadCredentialDefinitions());
     }
 
-    @PostMapping("/verification-start")
+    @PostMapping(value = "/verification-start", params = "issuanceTransactionId")
+    public ModelAndView startVerificationFromIssuance(
+            @RequestParam String issuanceTransactionId,
+            HttpSession session
+    ) {
+        IssuanceSessionData issuance =
+                StartIssuanceController.findCompletedIssuance(issuanceTransactionId, session);
+        if (issuance == null) {
+            return baseView(new StartVerificationForm(), loadCredentialDefinitions());
+        }
+
+        List<CredentialDefinitionDisplayData> credentialDefinitions = refreshCredentialDefinitions();
+        CredentialDefinitionDisplayData credentialDefinition =
+                findIssuedCredentialDefinition(credentialDefinitions, issuance);
+        if (credentialDefinition == null) {
+            return baseView(new StartVerificationForm(), credentialDefinitions);
+        }
+
+        List<String> selectedClaimPaths = allClaimPaths(credentialDefinition);
+        if (selectedClaimPaths.isEmpty()) {
+            return baseView(new StartVerificationForm(), credentialDefinitions);
+        }
+
+        return createVerification(
+                credentialDefinition,
+                selectedClaimPaths,
+                issuance.credentialName(),
+                session
+        );
+    }
+
+    @PostMapping(value = "/verification-start", params = "!issuanceTransactionId")
     public ModelAndView startVerification(
             @Valid @ModelAttribute("verificationForm")
             StartVerificationForm form,
             BindingResult bindingResult,
             HttpSession session
     ) {
-        List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
-                issuerServerService.getAllCredentialIssuerMetadata()
-        );
+        List<CredentialDefinitionDisplayData> credentialDefinitions = loadCredentialDefinitions();
 
         if (bindingResult.hasErrors()) {
             return baseView(form, credentialDefinitions);
         }
 
         CredentialDefinitionDisplayData credentialDefinition = credentialDefinitions.stream()
-                .filter(definition -> definition.id().equals(form.credentialConfigurationId()))
+                .filter(definition -> form.credentialConfigurationId().equals(definition.id()))
                 .findFirst()
                 .orElse(null);
 
@@ -93,33 +136,29 @@ public class VerificationController {
             return baseView(form, credentialDefinitions);
         }
 
-        String verificationId = UUID.randomUUID().toString();
-        String requestBody = buildStartVerificationRequestBody(credentialDefinition, form.selectedClaimPaths(), verificationId);
-
-        VerificationTransactionData verificationTransactionData = verifierService.startVerification(requestBody);
-
-        session.setAttribute(getVerificationTransactionKey(verificationId), verificationTransactionData);
-
-        return new ModelAndView("redirect:/verification-presentation/" + verificationId);
+        return createVerification(
+                credentialDefinition,
+                form.selectedClaimPaths(),
+                credentialDefinition.title(),
+                session
+        );
     }
 
     @GetMapping("/verification-presentation/{verification-id}")
     public ModelAndView verificationPresentation(@PathVariable("verification-id") String verificationId, HttpSession session) {
-        VerificationTransactionData verificationTransactionData = (VerificationTransactionData) session.getAttribute(getVerificationTransactionKey(verificationId));
-
-        if (verificationTransactionData == null) {
-            throw new IssuerUiException("Missing verification transaction data for verificationId: " + verificationId);
-        }
+        VerificationSessionData verification = getVerificationSessionData(verificationId, session);
+        VerificationTransactionData transactionData = verification.transactionData();
 
         return new ModelAndView("verification-presentation")
                 .addObject("verificationId", verificationId)
-                .addObject("qrCode", verificationTransactionData.verificationStartResponse().authorizationRequestQrCode())
-                .addObject("authorizationRequest", verificationTransactionData.verificationStartResponse().authorizationRequest())
-                .addObject("transactionId", verificationTransactionData.verificationStartResponse().verifierTransactionId())
-                .addObject("statusUri", verificationTransactionData.statusUri())
-                .addObject("requestBody", toJsonString(verificationTransactionData.requestBody()))
-                .addObject("requestUri", verificationTransactionData.requestUri())
-                .addObject("responseBody", toJsonString(verificationTransactionData.verificationStartResponse()))
+                .addObject("qrCode", transactionData.verificationStartResponse().authorizationRequestQrCode())
+                .addObject("credentialName", verification.credentialName())
+                .addObject("authorizationRequest", transactionData.verificationStartResponse().authorizationRequest())
+                .addObject("transactionId", transactionData.verificationStartResponse().verifierTransactionId())
+                .addObject("statusUri", transactionData.statusUri())
+                .addObject("requestBody", toJsonString(transactionData.requestBody()))
+                .addObject("requestUri", transactionData.requestUri())
+                .addObject("responseBody", toJsonString(transactionData.verificationStartResponse()))
                 .addObject("steps", STEPS);
     }
 
@@ -140,7 +179,7 @@ public class VerificationController {
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("resultJson", toJsonString(result.credentials()))
+                .addObject("verificationResults", verificationResultService.buildVerificationResultViews(result.credentials()))
                 .addObject("steps", STEPS);
     }
 
@@ -168,15 +207,25 @@ public class VerificationController {
     }
 
     private static String getTransactionIdFromSession(String verificationId, HttpSession session) {
-        VerificationTransactionData verificationTransactionData = (VerificationTransactionData) session.getAttribute(getVerificationTransactionKey(verificationId));
-        if (verificationTransactionData == null) {
-            throw new IssuerUiException("Missing verification transaction data for verificationId=" + verificationId);
-        }
-        return verificationTransactionData.verificationStartResponse().verifierTransactionId();
+        return getVerificationSessionData(verificationId, session)
+                .transactionData()
+                .verificationStartResponse()
+                .verifierTransactionId();
     }
 
-    private static String getVerificationTransactionKey(String verificationId) {
-        return "verification_transaction_data_%s".formatted(verificationId);
+    private static VerificationSessionData getVerificationSessionData(
+            String verificationId,
+            HttpSession session
+    ) {
+        Object verification = session.getAttribute(getVerificationSessionKey(verificationId));
+        if (verification instanceof VerificationSessionData data) {
+            return data;
+        }
+        throw new IssuerUiException("Missing verification transaction data for verificationId=" + verificationId);
+    }
+
+    private static String getVerificationSessionKey(String verificationId) {
+        return "verification_session_%s".formatted(verificationId);
     }
 
     private static String getVerificationResultKey(String verificationId) {
@@ -195,12 +244,7 @@ public class VerificationController {
         return result;
     }
 
-    private ModelAndView baseView(StartVerificationForm form) {
-        List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
-                issuerServerService.getAllCredentialIssuerMetadata()
-        );
-        return baseView(form, credentialDefinitions);
-    }
+
 
     private ModelAndView baseView(StartVerificationForm form, List<CredentialDefinitionDisplayData> credentialDefinitions) {
         return new ModelAndView("verification-start")
@@ -209,6 +253,70 @@ public class VerificationController {
                 .addObject("credentialDefinitionsJson", toJsonString(credentialDefinitions, false))
                 .addObject("selectedClaimPathsJson", toJsonString(form.selectedClaimPaths(), false))
                 .addObject("steps", STEPS);
+    }
+
+    private static List<String> allClaimPaths(CredentialDefinitionDisplayData credentialDefinition) {
+        return credentialDefinition.claims().stream()
+                .map(claim -> String.join(".", claim.path()))
+                .filter(StringUtils::hasText)
+                .toList();
+    }
+
+    private static CredentialDefinitionDisplayData findIssuedCredentialDefinition(
+            List<CredentialDefinitionDisplayData> credentialDefinitions,
+            IssuanceSessionData issuance
+    ) {
+        return credentialDefinitions.stream()
+                .filter(definition ->
+                        Objects.equals(issuance.credentialConfigurationId(), definition.id())
+                                && Objects.equals(issuance.credentialIssuer(), definition.issuer()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private List<CredentialDefinitionDisplayData> loadCredentialDefinitions() {
+        return createCredentialDefinitions(issuerServerService.getAllCredentialIssuerMetadata());
+    }
+
+    private List<CredentialDefinitionDisplayData> refreshCredentialDefinitions() {
+        return createCredentialDefinitions(issuerServerService.refreshCredentialIssuerMetadata());
+    }
+
+    private List<CredentialDefinitionDisplayData> createCredentialDefinitions(
+            List<CredentialIssuerMetadata> credentialIssuerMetadata
+    ) {
+        List<CredentialDefinitionDisplayData> credentialDefinitions = dcqlService.createCredentialDefinitionDisplayData(
+                credentialIssuerMetadata
+        );
+        return credentialDefinitions.stream()
+                .sorted(Comparator.comparing(
+                        CredentialDefinitionDisplayData::title,
+                        Comparator.nullsLast(Collator.getInstance(Locale.forLanguageTag("nb-NO")))
+                ))
+                .toList();
+    }
+
+    private ModelAndView createVerification(
+            CredentialDefinitionDisplayData credentialDefinition,
+            List<String> selectedClaimPaths,
+            String credentialName,
+            HttpSession session
+    ) {
+        String verificationId = UUID.randomUUID().toString();
+        String requestBody = buildStartVerificationRequestBody(
+                credentialDefinition,
+                selectedClaimPaths,
+                verificationId
+        );
+
+        VerificationTransactionData verificationTransactionData = verifierService.startVerification(requestBody);
+
+        session.setAttribute(
+                getVerificationSessionKey(verificationId),
+                new VerificationSessionData(verificationTransactionData, credentialName)
+        );
+
+        return new ModelAndView("redirect:/verification-presentation/" + verificationId);
     }
 
     private String buildStartVerificationRequestBody(CredentialDefinitionDisplayData credentialDefinition, List<String> selectedClaimPaths, String verificationId) {

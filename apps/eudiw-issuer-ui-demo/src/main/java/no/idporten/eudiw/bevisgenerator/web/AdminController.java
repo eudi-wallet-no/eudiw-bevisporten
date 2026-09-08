@@ -3,6 +3,8 @@ package no.idporten.eudiw.bevisgenerator.web;
 import jakarta.validation.Valid;
 import no.idporten.eudiw.bevisgenerator.byob.CredentialService;
 import no.idporten.eudiw.bevisgenerator.config.BevisgeneratorProperties;
+import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
+import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.web.models.AddCredentialForm;
 import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
@@ -20,6 +22,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+
 
 @Controller
 public class AdminController {
@@ -28,11 +33,13 @@ public class AdminController {
     private final CredentialService credentialService;
     private final IssuerServerProperties properties;
     private final BevisgeneratorProperties bevisgeneratorProperties;
+    private final ObjectMapper objectMapper;
 
-    public AdminController(CredentialService credentialService, IssuerServerProperties properties, BevisgeneratorProperties bevisgeneratorProperties) {
+    public AdminController(CredentialService credentialService, IssuerServerProperties properties, BevisgeneratorProperties bevisgeneratorProperties, ObjectMapper objectMapper) {
         this.credentialService = credentialService;
         this.properties = properties;
         this.bevisgeneratorProperties = bevisgeneratorProperties;
+        this.objectMapper = objectMapper;
     }
 
     @ModelAttribute("allowBevisTyperV2")
@@ -90,6 +97,7 @@ public class AdminController {
         logger.info("Editing credential with credentialType {}", credentialType);
 
         credentialService.editCredential(new CredentialDto(credentialType, editCredentialForm.json()));
+
         return new ModelAndView("redirect:/admin", "credentials", credentialService.getCredentialsForEdit());
     }
 
@@ -111,32 +119,107 @@ public class AdminController {
     @PostMapping("/add-credential-new")
     public ModelAndView submitForm(@Validated(CreateForm.class) @Valid @ModelAttribute("form") SimpleCredentialForm form,
                                    BindingResult bindingResult) {
+        if (form.rawJson() != null && !form.rawJson().isBlank()) {
+            if (!isValidRawJson(form.rawJson(), bindingResult) || bindingResult.hasErrors()) {
+                return credentialFormWithErrors("add-new", form, bindingResult, null);
+            }
+
+            credentialService.storeCredential(new CredentialDto(form.credentialType(), form.rawJson()));
+
+            return new ModelAndView("redirect:/admin");
+        }
+
         if (bindingResult.hasErrors()) {
             logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
-            return new ModelAndView("add-new", "form", form);
+            return credentialFormWithErrors("add-new", form, bindingResult, null);
         }
 
         credentialService.storeCredential(form);
+
         return new ModelAndView("redirect:/admin");
     }
 
     @GetMapping("/edit-credential-new/{credential_type}")
     public ModelAndView edit(@PathVariable("credential_type") String credentialType) {
-        SimpleCredentialForm form = credentialService.findSimpleCredential(credentialType);
-        return new ModelAndView("edit-new", "form", form);
+        CredentialDefinition cd = credentialService.findCredentialDefinition(credentialType);
+        SimpleCredentialForm form = new SimpleCredentialForm(cd);
+        String credentialJson;
+
+        try {
+            credentialJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(cd);
+        } catch (JacksonException e) {
+            logger.error("Failed to serialize CredentialDefinition for {}", credentialType, e);
+            credentialJson = "{}";
+        }
+
+        ModelAndView mav = new ModelAndView("edit-new");
+        mav.addObject("form", form);
+        mav.addObject("credentialJson", credentialJson);
+
+        return mav;
     }
 
     @PostMapping("/edit-credential-new/{credential_type}")
     public ModelAndView edit(@PathVariable("credential_type") String credentialType,
                              @Validated(EditForm.class) @Valid SimpleCredentialForm form,
                              BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
-            return new ModelAndView("edit-new", "form", form);
+        if (form.rawJson() != null && !form.rawJson().isBlank()) {
+            if (!isValidRawJson(form.rawJson(), bindingResult) || bindingResult.hasErrors()) {
+                return credentialFormWithErrors("edit-new", form, bindingResult, credentialType);
+            }
+
+            credentialService.editCredential(new CredentialDto(credentialType, form.rawJson()));
+
+            return new ModelAndView("redirect:/admin");
         }
 
-        credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims()));
+        if (bindingResult.hasErrors()) {
+            logger.error("BindingResult errors: {}", bindingResult.getAllErrors());
+            return credentialFormWithErrors("edit-new", form, bindingResult, credentialType);
+        }
+
+        credentialService.editCredential(new SimpleCredentialForm(credentialType, form.format(), form.scope(), form.name(), form.claims(), form.backgroundColor(), form.textColor(), null));
+
         return new ModelAndView("redirect:/admin");
+    }
+
+    private ModelAndView credentialFormWithErrors(
+            String viewName,
+            SimpleCredentialForm form,
+            BindingResult bindingResult,
+            String editCredentialType
+    ) {
+        ModelAndView modelAndView = new ModelAndView(viewName, "form", form)
+                .addObject(BindingResult.MODEL_KEY_PREFIX + "form", bindingResult);
+        if (editCredentialType != null) {
+            modelAndView.addObject("editCredentialType", editCredentialType);
+        }
+
+        if (form.rawJson() != null && !form.rawJson().isBlank()) {
+            return modelAndView.addObject("credentialJson", form.rawJson());
+        }
+
+        try {
+            String credentialJson = objectMapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(new CredentialDefinition(form));
+            return modelAndView.addObject("credentialJson", credentialJson);
+        } catch (JacksonException e) {
+            throw new IssuerUiException("Failed to serialize invalid credential form", e);
+        }
+    }
+
+    /**
+     * Validates that rawJson is parseable as a CredentialDefinition.
+     * Adds a binding error and returns false if the JSON is invalid.
+     */
+    private boolean isValidRawJson(String rawJson, BindingResult bindingResult) {
+        try {
+            objectMapper.readValue(rawJson, CredentialDefinition.class);
+            return true;
+        } catch (JacksonException e) {
+            bindingResult.reject("rawJson.invalid", "Ugyldig JSON: " + e.getMessage());
+            return false;
+        }
     }
 
 }

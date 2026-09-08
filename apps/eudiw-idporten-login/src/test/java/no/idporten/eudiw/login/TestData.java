@@ -17,6 +17,7 @@ public class TestData {
     public static VerifiedCredential verifiedCredentialNO(String personIdentifier) {
         String json = """
                 {
+                  "valid": true,
                   "claims": {
                     "eu.europa.ec.eudi.pid.1": {
                       "given_name": "LEGITIM",
@@ -36,6 +37,7 @@ public class TestData {
     public static VerifiedCredential verifiedCredentialEUWithPersonalAdministrativeNumber(String personalAdministrativeNumber) {
         String json = """
                 {
+                  "valid": true,
                   "claims": {
                     "eu.europa.ec.eudi.pid.1": {
                       "place_of_birth": {
@@ -60,6 +62,7 @@ public class TestData {
     public static VerifiedCredential verifiedCredentialEUWithoutPersonalAdministrativeNumber() {
         String json = """
                 {
+                  "valid": true,
                   "claims": {
                     "eu.europa.ec.eudi.pid.1": {
                       "place_of_birth": {

@@ -2,30 +2,46 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Utferd bevis | Bevisgenerator</title>
 </head>
 
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
 
-<main>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
-             Utsted bevis
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
+             Utferd bevis
         </h1>
-        <p class="ds-paragraph">
-            Klikk på et bevis og fyll deretter inn dataene som du ønsker skal inn i beviset.
+        <p class="ds-paragraph" data-size="lg">
+            Vel ein bevistype. Fyll deretter inn opplysningane som skal vere med i beviset.
         </p>
     </div>
-    <div class="flex-container">
+    <aside class="ds-alert content-narrow landing-intro"
+           data-color="info"
+           aria-labelledby="custom-credential-heading">
+        <h2 id="custom-credential-heading"
+            class="ds-heading"
+            data-size="xs">
+            Vil du lage din eigen bevistype?
+        </h2>
+        <p class="ds-paragraph">
+            På administrasjonssida kan du opprette eigne bevistypar og finne tekniske instruksjonar.
+            Du kan òg bruke ein av bevistypane under.
+        </p>
+        <a class="ds-link content-link" th:href="@{/admin}">
+            Gå til administrasjonen av bevistypar
+        </a>
+    </aside>
+    <div class="step-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
             <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
-               class="ds-card issue-card"
-               data-variant="neutral">
-                <div>
-                    <h2 class="ds-heading" th:text="${credentialConfiguration.description}">PID</h2>
-                    <p class="ds-paragraph" data-variant="neutral" th:text="${credentialConfiguration.credentialConfigurationId}"></p>
-                </div>
+               class="ds-card interactive-card link-card"
+               data-color="accent"
+               data-variant="default">
+                <h2 class="ds-heading"
+                    data-size="sm"
+                    th:text="${credentialConfiguration.credentialName}">PID</h2>
             </a>
         </th:block>
     </div>

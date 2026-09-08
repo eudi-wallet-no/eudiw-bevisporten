@@ -3,50 +3,61 @@
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
     <th:block th:replace="~{fragments/layout :: alpine_js_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Presenter bevis | Bevisgenerator</title>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main>
-   <div th:replace="~{fragments/components :: back_link_fragment(href='/')}"></div>
-    <div>
-        <h1 class="ds-heading" data-size="lg">
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
             Presenter bevis
         </h1>
+        <p class="ds-paragraph" data-size="lg">
+            Vel ein bevistype og tilhøyrande opplysningar du ønskjer å hente frå ei lommebok.
+        </p>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
-    <h2 class="ds-paragraph" data-size="lg">Vel ein bevistype og tilhøyrande attributt du ynkjer å henta fra ei lommebok</h2>
 
-    <div>
+    <div class="step-flow"
+         th:attr="x-data=|credentialPicker('${#strings.escapeJavaScript(verificationForm.credentialConfigurationId)}')|">
         <p th:if="${verificationSuccessMessage}" class="ds-paragraph success-message" th:text="${verificationSuccessMessage}"></p>
 
-        <form class="form-container"
+        <form id="verification-form"
+              class="form-container"
               th:action="@{/verification-start}"
               th:object="${verificationForm}"
               method="post">
 
-            <div class="ds-field"
-                 th:attr="x-data=|credentialPicker('${#strings.escapeJavaScript(verificationForm.credentialConfigurationId)}')|">
+            <div class="credential-picker">
                 <div class="credential-grid">
                     <template x-for="credential in credentials" :key="credential.id">
-                        <div class="credential-card ds-card"
+                        <div class="credential-card ds-card interactive-card"
+                             data-color="accent"
+                             data-variant="default"
                              :class="{ 'credential-card--expanded': isSelected(credential.id) }"
                              role="button"
                              tabindex="0"
                              :aria-pressed="isSelected(credential.id)"
                              @click="select(credential.id)"
-                             @keydown.enter.prevent="select(credential.id)"
-                             @keydown.space.prevent="select(credential.id)">
-                            <p class="ds-paragraph credential-card__title" data-weight="medium" x-text="credential.title"></p>
+                             @keydown.enter.self.prevent="select(credential.id)"
+                             @keydown.space.self.prevent="select(credential.id)">
+                            <h2 class="ds-heading credential-card__title"
+                                 data-size="2xs"
+                                x-text="credential.title"></h2>
 
-                            <div class="credential-card__claims" x-show="isSelected(credential.id)" @click.stop>
+                            <div class="credential-card__claims"
+                                 x-show="isSelected(credential.id)"
+                                 @click.stop>
                                 <template x-for="claim in credential.claims" :key="pathOf(claim)">
-                                    <label class="credential-card__claim">
-                                        <input type="checkbox"
-                                               :checked="isClaimSelected(credential.id, claim)"
-                                               @change="toggleClaim(credential.id, claim, $event.target.checked)">
-                                        <span x-text="claim.label"></span>
-                                    </label>
+                                   <label class="credential-card__claim">
+                                       <input class="ds-input"
+                                              type="checkbox"
+                                              :checked="isClaimSelected(credential.id, claim)"
+                                              @keydown.enter.prevent.stop="$el.click()"
+                                              @keydown.space.stop
+                                              @change="toggleClaim(credential.id, claim, $event.target.checked)">
+                                       <span class="ds-label" x-text="claim.label"></span>
+                                   </label>
                                 </template>
                             </div>
                         </div>
@@ -60,21 +71,26 @@
 
                 <span th:if="${#fields.hasErrors('credentialConfigurationId')}"
                       class="ds-validation-message"
+                      data-field="validation"
                       th:errors="*{credentialConfigurationId}"></span>
                 <span th:if="${#fields.hasErrors('selectedClaimPaths')}"
                       class="ds-validation-message"
+                      data-field="validation"
                       th:errors="*{selectedClaimPaths}"></span>
             </div>
 
-            <div class="button-group">
-                <button class="ds-button"
-                        type="submit"
-                        data-variant="primary">
-                    Start verifisering
-                </button>
-            </div>
-
         </form>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/issue',
+            previousLabel='Utferd nytt bevis',
+            nextHref=${null},
+            nextLabel='Start verifisering',
+            nextForm='verification-form',
+            nextDisabledUntilSelection=${true},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
@@ -108,7 +124,7 @@
             claimSelections,
 
             select(id) {
-                this.selectedId = id;
+                this.selectedId = this.selectedId === id ? "" : id;
             },
 
             isSelected(id) {

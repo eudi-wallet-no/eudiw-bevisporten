@@ -20,6 +20,115 @@
     </a>
 </div>
 
+<div th:fragment="wallet_qr_fragment(src, credentialName)"
+     id="cross-device-request"
+     class="wallet-qr">
+    <h2 class="ds-heading wallet-qr__title"
+        data-size="sm"
+        th:text="${credentialName}">
+        MinID PID
+    </h2>
+    <img th:src="${src}"
+         th:alt="${'QR-kode for ' + credentialName}"
+         id="qrcode-cross-device"
+         class="qr-code"/>
+</div>
+
+<div th:fragment="wallet_status_fragment"
+     class="wallet-status">
+    <hr class="ds-divider" aria-hidden="true"/>
+    <div class="wallet-status__content">
+        <svg id="wallet-status-spinner"
+             class="ds-spinner"
+             data-size="xs"
+             aria-hidden="true"
+             viewBox="0 0 50 50">
+            <circle class="ds-spinner__background" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
+            <circle class="ds-spinner__circle" cx="25" cy="25" r="20" fill="none" stroke-width="5"/>
+        </svg>
+        <p id="wallet-status-message"
+           class="ds-paragraph"
+           data-size="sm"
+           role="status"
+           aria-live="polite"></p>
+    </div>
+</div>
+
+<div th:fragment="mode_toggle_fragment"
+     class="mode-toggle"
+     role="tablist"
+     aria-label="Redigeringsmodus">
+    <button id="schema-tab"
+            class="ds-button mode-toggle__btn"
+            type="button"
+            role="tab"
+            data-mode-btn="schema"
+            aria-selected="true"
+            aria-controls="schema-panel"
+            tabindex="0">
+        Skjema
+    </button>
+    <button id="json-tab"
+            class="ds-button mode-toggle__btn"
+            type="button"
+            role="tab"
+            data-mode-btn="json"
+            aria-selected="false"
+            aria-controls="json-panel"
+            tabindex="-1">
+        Avansert
+    </button>
+</div>
+
+<nav th:fragment="step_navigation_fragment(previousHref, previousLabel, nextHref, nextLabel, nextForm, nextDisabledUntilSelection, dynamicNextForm, nextColor)"
+     class="step-navigation"
+     aria-label="Navigasjon mellom steg">
+    <a th:if="${previousHref != null}"
+       th:href="@{${previousHref}}"
+       class="ds-button step-navigation__button"
+       data-variant="secondary">
+        <span class="step-navigation__direction">Tilbake</span>
+        <span th:text="${previousLabel}"></span>
+    </a>
+    <a th:if="${nextHref != null}"
+       th:href="@{${nextHref}}"
+       class="ds-button step-navigation__button step-navigation__button--next"
+       th:attr="data-color=${nextColor}"
+       data-variant="primary">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </a>
+    <button th:if="${nextHref == null && nextForm != null && !nextDisabledUntilSelection && !dynamicNextForm}"
+            th:attr="form=${nextForm}, data-color=${nextColor}"
+            class="ds-button step-navigation__button step-navigation__button--next"
+            type="submit"
+            data-variant="primary">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </button>
+    <button th:if="${nextHref == null && nextForm != null && nextDisabledUntilSelection && !dynamicNextForm}"
+            th:attr="form=${nextForm}, data-color=${nextColor}"
+            class="ds-button step-navigation__button step-navigation__button--next"
+            type="submit"
+            data-variant="primary"
+            disabled
+            x-bind:disabled="!selectedId">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </button>
+    <button th:if="${nextHref == null && dynamicNextForm}"
+            class="ds-button step-navigation__button step-navigation__button--next"
+            type="submit"
+            data-variant="primary"
+            th:attr="data-color=${nextColor}"
+            disabled
+            x-bind:form="selectedForm"
+            x-bind:disabled="!selectedForm">
+        <span class="step-navigation__direction">Neste</span>
+        <span th:text="${nextLabel}"></span>
+    </button>
+</nav>
+
 <span th:fragment="step_indicator_fragment(number, text, current)"
       class="stepper__step"
       th:classappend="${current} ? 'stepper__step--current' : ''">
@@ -41,3 +150,37 @@
         </li>
     </ol>
 </nav>
+
+<dl th:fragment="claim_list_fragment(claims)" class="verification-result__claims">
+    <div class="verification-result__claim"
+         th:each="claim : ${claims}"
+         th:classappend="${claim.group} ? 'verification-result__claim--group' : ''">
+        <dt th:text="${claim.name}"></dt>
+        <dd
+                th:if="${!claim.group}"
+                class="verification-result__claim-value"
+                th:text="${#strings.abbreviate(claim.value, 40)}"
+                th:attr="data-claim-name=${claim.rawName},data-full-value=${claim.value}"
+        ></dd>
+        <dd th:if="${claim.group}">
+            <div th:replace="~{:: claim_list_fragment(claims=${claim.children})}"></div>
+        </dd>
+    </div>
+    <script th:inline="javascript">
+        (async function() {
+            const { copyToClipboard } = await import (/*[[@{/js/util.js}]]*/);
+
+            const claimValueTagArray = document.querySelectorAll("dd.verification-result__claim-value")
+            for (const claimValueTag of claimValueTagArray) {
+                if (imageClaims.isImageClaim(claimValueTag.dataset.claimName)) {
+                    continue;
+                }
+                const claimValue = claimValueTag.getAttribute("data-full-value");
+
+                claimValueTag.addEventListener("click", function(event) {
+                    copyToClipboard(claimValue, "Kopiert!", event);
+                });
+            }
+        })()
+</script>
+</dl>

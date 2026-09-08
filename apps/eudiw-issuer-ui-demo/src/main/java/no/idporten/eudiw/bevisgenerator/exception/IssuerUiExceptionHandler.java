@@ -42,13 +42,24 @@ public class IssuerUiExceptionHandler {
     @ExceptionHandler(IssuerUiException.class)
     public ModelAndView handleIssuerUiException(IssuerUiException e) {
         log.error("IssuerUiException", e);
-        return getModelAndView("error/error").addObject("errorMessage", e.getMessage());
+        ModelAndView modelAndView = getModelAndView("error/error")
+                .addObject("errorMessage", e.getMessage());
+
+        if (e.getMessage() != null && e.getMessage().startsWith("Missing verification transaction data")) {
+            modelAndView
+                    .addObject("pageTitle", "Resultatet er ikkje lenger tilgjengeleg")
+                    .addObject("userMessage", "Verifikasjonen kan ha gått ut, eller resultatet kan allereie vere henta. Start presentasjonen på nytt.")
+                    .addObject("recoveryHref", "/verification-start")
+                    .addObject("recoveryLabel", "Start presentasjon på nytt");
+        }
+
+        return modelAndView;
     }
 
     @ExceptionHandler(MaskinportenClientException.class)
     public ModelAndView handleMaskinportenClientException(MaskinportenClientException e) {
         log.error("Unexpected exception from Maskinporten", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Integration with Maskinporten failed").addObject("statusCode", HttpStatus.INTERNAL_SERVER_ERROR).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Integrasjonen med Maskinporten feila").addObject("statusCode", HttpStatus.INTERNAL_SERVER_ERROR).addObject("details", e.getMessage());
     }
 
 
@@ -56,7 +67,7 @@ public class IssuerUiExceptionHandler {
     public ModelAndView handleVerifierServiceException(VerifierServiceException e) {
         log.error("Unexpected error from verifier-service", e);
         return getModelAndView("error/error")
-                .addObject("errorMessage", "Verifier-service call failed")
+                .addObject("errorMessage", "Kall til verifier-service feila")
                 .addObject("statusCode", e.getHttpStatusCode())
                 .addObject("details", e.getMessage());
     }
@@ -64,18 +75,18 @@ public class IssuerUiExceptionHandler {
     @ExceptionHandler(VerifierServiceIOException.class)
     public ModelAndView handleVerifierServiceIOException(VerifierServiceIOException e) {
         log.error("Failed to connect with verifier-service", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with verifier-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Klarte ikkje å kontakte verifier-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
     }
 
     @ExceptionHandler(ByobServiceException.class)
     public ModelAndView handleByobServiceException(ByobServiceException e) {
         log.error("Unexpected error from byob-service", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with byob-service").addObject("statusCode", e.getHttpStatusCode()).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Klarte ikkje å kontakte byob-service").addObject("statusCode", e.getHttpStatusCode()).addObject("details", e.getMessage());
     }
 
     @ExceptionHandler(ByobServiceIOException.class)
     public ModelAndView handleByobServiceIOException(ByobServiceIOException e) {
         log.error("Failed to connect with byob-service", e);
-        return getModelAndView("error/error").addObject("errorMessage", "Failed to connect with byob-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
+        return getModelAndView("error/error").addObject("errorMessage", "Klarte ikkje å kontakte byob-service").addObject("statusCode", HttpStatus.SERVICE_UNAVAILABLE).addObject("details", e.getMessage());
     }
 }

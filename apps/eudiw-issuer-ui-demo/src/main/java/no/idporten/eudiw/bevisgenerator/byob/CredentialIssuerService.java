@@ -2,6 +2,7 @@ package no.idporten.eudiw.bevisgenerator.byob;
 
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.ByobService;
+import no.idporten.eudiw.bevisgenerator.integration.byobservice.CredentialDefinitionFactory;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.CredentialDefinition;
 import no.idporten.eudiw.bevisgenerator.integration.byobservice.model.Display;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
@@ -57,12 +58,10 @@ public class CredentialIssuerService {
 
         String description = getDescription(cd);
 
-        String scope = cd.getScope();
-
         return new CredentialConfiguration(
                 issuerServerProperties.credentialIssuer(),
                 cd.getCredentialConfigurationId(),
-                scope,
+                CredentialDefinitionFactory.DYNAMIC_CREDENTIAL_SCOPE,
                 personIdentifier,
                 description,
                 json
@@ -76,7 +75,7 @@ public class CredentialIssuerService {
                 .stream()
                 .findFirst()
                 .map(Display::name)
-                .orElse("Navn ikke funnet");
+                .orElse("Namn ikkje funne");
     }
 
     private IssuanceDefinition convertFromCredentialDefinitionToIssuanceDefinition(CredentialDefinition cd, String personId) {

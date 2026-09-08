@@ -111,12 +111,13 @@ public class CredentialIssuanceTransactionDao {
         );
     }
 
-    public void updateRevokedMs(String issuanceTransactionId, String credentialIssuerTenant, long revokedMs, long updatedMs) {
-        jdbc.update("""
+    public int updateRevokedMs(String issuanceTransactionId, String credentialIssuerTenant, long revokedMs, long updatedMs) {
+        return jdbc.update("""
                         UPDATE credential_issuance_transaction
                         SET revoked_ms = ?, updated_ms = ?
                         WHERE issuance_transaction_id = ?
                           AND credential_issuer_tenant = ?
+                          AND revoked_ms IS NULL
                         """,
                 revokedMs,
                 updatedMs,

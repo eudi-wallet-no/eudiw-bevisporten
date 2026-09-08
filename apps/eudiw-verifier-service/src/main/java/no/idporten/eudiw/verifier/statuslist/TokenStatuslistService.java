@@ -13,6 +13,7 @@ import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -121,6 +122,36 @@ public class TokenStatuslistService {
             }
         } else {
             throw new VerificationException("Invalid response", "Response body from statusAPI is null for url  " + url + " JWT is null");
+        }
+    }
+
+    public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx) {
+        ValidationStatus status;
+        try {
+            status = checkStatus(
+                    uri,
+                    idx,
+                    requestStatusList(uri).getParsedString(),
+                    Instant.now());
+        } catch (StatusCommunicationException | IOConnectionException e) {
+            // TODO: create and update metrics for IOConnectionException.
+            status = ValidationStatus.INCONCLUSIVE;
+        }
+        return status;
+    }
+
+    public @NonNull String getValidationDetail(ValidationStatus status) {
+        switch (status) {
+            case INCONCLUSIVE:
+                return "Statusliste: validering feila";
+            case VALID:
+                return "Statusliste: bevis er gyldig";
+            case INVALID:
+                return "Statusliste: bevis er revokert";
+            case NOT_APPLICABLE:
+                return "Statusliste: bevis er ikke revokerbart";
+            default:
+                return "Statusliste: ukjent status";
         }
     }
 }

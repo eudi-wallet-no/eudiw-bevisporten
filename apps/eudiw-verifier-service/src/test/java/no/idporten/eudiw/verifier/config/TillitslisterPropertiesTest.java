@@ -1,6 +1,7 @@
 package no.idporten.eudiw.verifier.config;
 
 
+import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,22 +22,17 @@ class TillitslisterPropertiesTest {
     void tillitslisterEidas2SandkassePropertiesAreNotEmpty() {
         assertAll(
                 () -> assertNotNull(properties),
-                () -> assertNotNull(properties.getPersonalTrustlist()),
-                () -> assertNotNull(properties.getWebuildTrustlist()),
-                () -> assertNotNull(properties.getPersonalTrustlist().attestations()),
-                () -> assertNotNull(properties.getPersonalTrustlist().pid()),
-                () -> assertNotNull(properties.getWebuildTrustlist().pid()),
-                () -> assertNotNull(properties.getWebuildTrustlist().attestations())
+                () -> assertNotNull(properties.getSandboxTrustlist()),
+                () -> assertNotNull(properties.getSandboxTrustlist().attestations()),
+                () -> assertNotNull(properties.getSandboxTrustlist().pid())
         );
     }
 
     @Test
     void tillitslisterEidas2SandkassePropertiesContainExpectedContent() {
         assertAll(
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"), properties.getPersonalTrustlist().attestations()),
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"), properties.getWebuildTrustlist().pid()),
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"), properties.getWebuildTrustlist().attestations()),
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"), properties.getPersonalTrustlist().pid())
+                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"), properties.getSandboxTrustlist().attestations()),
+                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"), properties.getSandboxTrustlist().pid())
         );
     }
 }

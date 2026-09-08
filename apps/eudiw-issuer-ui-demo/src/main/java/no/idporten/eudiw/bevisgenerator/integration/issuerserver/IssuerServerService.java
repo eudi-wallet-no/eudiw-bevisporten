@@ -1,13 +1,16 @@
 package no.idporten.eudiw.bevisgenerator.integration.issuerserver;
 
 import no.idporten.eudiw.bevisgenerator.byob.CredentialIssuerService;
+import no.idporten.eudiw.bevisgenerator.config.FeatureSwitches;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerServerException;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.credentialdefinitionmodel.CredentialIssuerMetadata;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.IssuanceSubject;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevocationResult;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeBySubjectRequest;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.model.RevokeRequest;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
@@ -17,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -25,10 +29,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalInt;
 
 @Service
 public class IssuerServerService {
@@ -39,19 +45,32 @@ public class IssuerServerService {
     private final RestClient restClient;
     private final MaskinportenClient maskinportenClient;
     private final CredentialIssuerService credentialIssuerService;
+    private final FeatureSwitches featureSwitches;
 
     @Autowired
     public IssuerServerService(@Qualifier("issuerServerRestClient") RestClient restClient,
                                IssuerServerProperties issuerServerProperties,
-                               MaskinportenClient maskinportenClient, CredentialIssuerService credentialIssuerService) {
+                               MaskinportenClient maskinportenClient,
+                               CredentialIssuerService credentialIssuerService,
+                               FeatureSwitches featureSwitches) {
         this.issuerServerProperties = issuerServerProperties;
         this.restClient = restClient;
         this.maskinportenClient = maskinportenClient;
         this.credentialIssuerService = credentialIssuerService;
+        this.featureSwitches = featureSwitches;
     }
 
     @Cacheable(value = "credential-issuer-metadata", sync = true)
     public List<CredentialIssuerMetadata> getAllCredentialIssuerMetadata() {
+        return fetchAllCredentialIssuerMetadata();
+    }
+
+    @CachePut("credential-issuer-metadata")
+    public List<CredentialIssuerMetadata> refreshCredentialIssuerMetadata() {
+        return fetchAllCredentialIssuerMetadata();
+    }
+
+    private List<CredentialIssuerMetadata> fetchAllCredentialIssuerMetadata() {
         List<String> wellKnownUrls = issuerServerProperties.wellKnownUrls();
         List<CredentialIssuerMetadata> credentialIssuerMetadata = new ArrayList<>();
         for (String wellKnownUrl : wellKnownUrls) {
@@ -70,12 +89,14 @@ public class IssuerServerService {
                     credentialIssuerMetadata.add(metadata);
                 }
             } catch (HttpClientErrorException e) {
-                log.error("Configuration error fetching .well-known endpoint: {}",
-                        wellKnownUrl, e);
-                throw new IssuerServerException("Failed to fetch credential issuer metadata", e);
+                log.error("Configuration error fetching .well-known endpoint: {}", wellKnownUrl, e);
+                throw new IssuerServerException("Configuration error fetching .well-known endpoint", e);
             } catch (HttpServerErrorException e) {
-                log.error("Server error fetching .well-known endpoint", e);
-                throw new IssuerServerException("Issuer server returned error fetching metadata", e);
+                log.error("Server error fetching .well-known endpoint: {}", wellKnownUrl, e);
+                throw new IssuerServerException("Server error fetching .well-known endpoint", e);
+            } catch (ResourceAccessException e) {
+                log.error("Unable to fetch .well-known endpoint: {}", wellKnownUrl, e);
+                throw new IssuerServerException("Unable to fetch .well-known endpoint", e);
             }
         }
 
@@ -173,7 +194,51 @@ public class IssuerServerService {
         return result;
     }
 
-    public void revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {
+    public IssuanceStatusResponse retrieveIssuanceStatus(CredentialConfiguration credentialConfiguration,
+                                                         String issuanceTransactionId) {
+        String statusEndpoint = credentialConfiguration.credentialIssuer()
+                + issuerServerProperties.issuanceEndpoint()
+                + "/"
+                + issuanceTransactionId;
+        String accessToken = createAccessToken(credentialConfiguration);
+
+        try {
+            IssuanceStatusResponse result = restClient.get()
+                    .uri(statusEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .retrieve()
+                    .body(IssuanceStatusResponse.class);
+
+            if (result == null || result.status() == null) {
+                throw new IssuerUiException(
+                        "Issuer-server returned null issuance status for issuance_transaction_id="
+                                + issuanceTransactionId
+                );
+            }
+            return result;
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + statusEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException(
+                    "Retrieve issuance status failed for issuance_transaction_id=" + issuanceTransactionId,
+                    e
+            );
+        }
+    }
+
+    public OptionalInt revokeCredential(CredentialConfiguration credentialConfiguration, String issuanceTransactionId) {
+        if (featureSwitches.isRevocationV2RichResult()) {
+            return revokeCredentialV2(credentialConfiguration, issuanceTransactionId);
+        }
+
+        return revokeCredentialV1(credentialConfiguration, issuanceTransactionId);
+    }
+
+    private OptionalInt revokeCredentialV1(
+            CredentialConfiguration credentialConfiguration,
+            String issuanceTransactionId
+    ) {
         String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke";
         String accessToken = createAccessToken(credentialConfiguration);
         RevokeRequest request = new RevokeRequest(credentialConfiguration.credentialConfigurationId(), issuanceTransactionId);
@@ -183,10 +248,11 @@ public class IssuerServerService {
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(request)
                     .retrieve()
                     .toBodilessEntity();
+            return OptionalInt.empty();
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
         } catch (HttpServerErrorException e) {
@@ -194,7 +260,50 @@ public class IssuerServerService {
         }
     }
 
-    public void revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+    private OptionalInt revokeCredentialV2(
+            CredentialConfiguration credentialConfiguration,
+            String issuanceTransactionId
+    ) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v2/credential/revoke";
+        String accessToken = createAccessToken(credentialConfiguration);
+        RevokeRequest request = new RevokeRequest(credentialConfiguration.credentialConfigurationId(), issuanceTransactionId);
+
+        try {
+            RevocationResult result = restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .body(RevocationResult.class);
+            if (result == null) {
+                throw new IssuerServerException(
+                        "Revoke credential returned no outcome for issuance_transaction_id=" + issuanceTransactionId,
+                        new IllegalStateException("Missing response body")
+                );
+            }
+
+            return OptionalInt.of(result.revokedCount());
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException("Revoke credential failed for issuance_transaction_id=" + issuanceTransactionId, e);
+        }
+    }
+
+    public OptionalInt revokeCredentialBySubject(CredentialConfiguration credentialConfiguration, String subjectIdentifier) {
+        if (featureSwitches.isRevocationV2RichResult()) {
+            return revokeCredentialBySubjectV2(credentialConfiguration, subjectIdentifier);
+        }
+
+        return revokeCredentialBySubjectV1(credentialConfiguration, subjectIdentifier);
+    }
+
+    private OptionalInt revokeCredentialBySubjectV1(
+            CredentialConfiguration credentialConfiguration,
+            String subjectIdentifier
+    ) {
         String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v1/credential/revoke/by-subject";
         String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
         RevokeBySubjectRequest request = new RevokeBySubjectRequest(
@@ -207,10 +316,51 @@ public class IssuerServerService {
                     .uri(revokeEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(request)
                     .retrieve()
                     .toBodilessEntity();
+            return OptionalInt.empty();
+        } catch (HttpClientErrorException e) {
+            throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
+        } catch (HttpServerErrorException e) {
+            throw new IssuerServerException(
+                    "Revoke credential by subject failed for credential_configuration_id="
+                            + credentialConfiguration.credentialConfigurationId(),
+                    e
+            );
+        }
+    }
+
+    private OptionalInt revokeCredentialBySubjectV2(
+            CredentialConfiguration credentialConfiguration,
+            String subjectIdentifier
+    ) {
+        String revokeEndpoint = credentialConfiguration.credentialIssuer() + "/api/v2/credential/revoke/by-subject";
+        String accessToken = createAccessToken(credentialConfiguration, subjectIdentifier);
+        RevokeBySubjectRequest request = new RevokeBySubjectRequest(
+                credentialConfiguration.credentialConfigurationId(),
+                new IssuanceSubject(subjectIdentifier)
+        );
+
+        try {
+            RevocationResult result = restClient.put()
+                    .uri(revokeEndpoint)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .body(request)
+                    .retrieve()
+                    .body(RevocationResult.class);
+            if (result == null) {
+                throw new IssuerServerException(
+                        "Revoke credential by subject returned no outcome for credential_configuration_id="
+                                + credentialConfiguration.credentialConfigurationId(),
+                        new IllegalStateException("Missing response body")
+                );
+            }
+
+            return OptionalInt.of(result.revokedCount());
         } catch (HttpClientErrorException e) {
             throw new IssuerServerException("Configuration error against issuer-server? path=" + revokeEndpoint, e);
         } catch (HttpServerErrorException e) {

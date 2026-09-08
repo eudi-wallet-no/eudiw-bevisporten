@@ -1,11 +1,7 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import no.idporten.eudiw.verifier.config.TrustlistRestclient;
-import no.idporten.eudiw.verifier.config.TrustlistsProperties;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.etsi612.LoTE;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.util.TrustlistLogic;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
+import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +19,12 @@ class OpenID4VPResponseServiceTest {
 
 
     @Autowired
-    private TrustlistsProperties trustlistConfig;
+    private no.idporten.eudiw.verifier.trustlist.TrustlistsProperties trustlistConfig;
 
     private MockRestServiceServer mockServer;
 
     @MockitoSpyBean
-    private TrustlistLogic trustlistLogic;
+    private TrustlistService trustlistService;
 
     @Mock
     TokenStatuslistService tokenStatuslistService;
@@ -37,10 +33,16 @@ class OpenID4VPResponseServiceTest {
     JsonMapper jsonMapper;
 
     @Mock
+    MDocService mDocService;
+
+    @Mock
     private VerificationTransactionService verificationService;
 
     @Autowired
     private OpenID4VPResponseService openID4VPResponseService;
+
+    @Mock
+    private SdJwtService sdJwtService;
 
 
     @BeforeEach
@@ -48,7 +50,7 @@ class OpenID4VPResponseServiceTest {
         RestClient.Builder builder = RestClient.builder();
         mockServer = MockRestServiceServer.bindTo(builder).build();
         RestClient trustlistRestClient = builder.build();
-        openID4VPResponseService = new OpenID4VPResponseService(verificationService,tokenStatuslistService, jsonMapper, trustlistRestClient, trustlistConfig);
-        trustlistLogic = new TrustlistLogic(trustlistRestClient, trustlistConfig);
+        openID4VPResponseService = new OpenID4VPResponseService(verificationService,tokenStatuslistService, trustlistService, mDocService, sdJwtService);
+        trustlistService = new TrustlistService(trustlistRestClient, trustlistConfig);
     }
 }

@@ -2,34 +2,94 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="nn-no">
 <head>
     <th:block th:replace="~{fragments/layout :: base_head_fragment}"></th:block>
-    <title>Bevisgenerator</title>
+    <title>Resultat av verifikasjon | Bevisgenerator</title>
+    <script th:src="@{/js/image-claims.js}"></script>
 </head>
 <body>
 <header th:replace="~{fragments/layout :: page_header_fragment}"></header>
-<main>
-    <div th:replace="~{fragments/components :: back_link_fragment(href='/verification-start')}"></div>
-    <div class="content-narrow">
-        <h1 class="ds-heading" data-size="lg">
+<main id="main-content" tabindex="-1">
+    <div class="landing-intro landing-copy">
+        <h1 class="ds-heading" data-size="xl">
             Resultat av verifikasjon
         </h1>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=3)}"></div>
-    <div class="ds-card">
-        <div th:if="${result != null}">
-            <p><strong>Transaction ID:</strong> <span th:text="${result.verifierTransactionId}"></span></p>
-            <p><strong>Result (JSON):</strong></p>
-            <pre th:text="${resultJson}"></pre>
+
+    <div class="step-flow">
+        <div class="step-flow__content" th:if="${result != null}">
+            <div class="flex-container">
+                <div class="ds-card verification-result__card"
+                     data-color="neutral"
+                     data-variant="default">
+                    <h2 class="ds-heading" data-size="sm">Attributt</h2>
+
+                    <div class="verification-result__group" th:each="credential : ${verificationResults}">
+                        <p class="ds-label" th:text="${credential.displayName}"></p>
+
+                        <div th:replace="~{fragments/components :: claim_list_fragment(claims=${credential.claims})}"></div>
+                    </div>
+                </div>
+
+                <div class="ds-card verification-result__card"
+                     data-color="neutral"
+                     data-variant="default">
+                    <h2 class="ds-heading" data-size="sm">Valideringsdetaljar</h2>
+
+                    <div class="verification-result__group" th:each="credential : ${verificationResults}">
+                        <p class="ds-label" th:text="${credential.displayName}"></p>
+
+                        <div class="verification-result__validation">
+                            <p class="ds-alert"
+                               th:data-color="${credential.valid} ? 'success' : 'danger'"
+                               th:text="${credential.valid} ? 'Beviset er gyldig' : 'Beviset er ikkje gyldig'"></p>
+
+                            <p class="ds-validation-message"
+                               th:each="detail : ${credential.validationDetails}"
+                               th:data-color="${detail.statusColor}"
+                               th:text="${detail.validationDetails}"></p>
+
+                            <p class="ds-paragraph" data-size="sm" data-color="neutral"
+                               th:if="${#lists.isEmpty(credential.validationDetails)}">
+                                Ingen valideringsdetaljar er tilgjengelege.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div th:if="${result == null}">
-            <p>Ingen resultat funne.</p>
+        <div class="step-flow__content" th:if="${result == null}">
+            <div class="ds-card content-narrow"
+                 data-color="neutral"
+                 data-variant="default">
+                <p>Fann ingen resultat.</p>
+            </div>
         </div>
-        <div class="button-group result-actions">
-            <a th:href="@{ / }" class="ds-button" type="button" data-variant="secondary">
-                Heim
-            </a>
-        </div>
+
+        <div th:replace="~{fragments/components :: step_navigation_fragment(
+            previousHref='/verification-start',
+            previousLabel='Presenter nytt bevis',
+            nextHref='/revoke',
+            nextLabel='Revoker bevis',
+            nextForm=${null},
+            nextDisabledUntilSelection=${false},
+            dynamicNextForm=${false},
+            nextColor=${null}
+        )}"></div>
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
+<script>
+    document.querySelectorAll('.verification-result__claim-value').forEach(claimValue => {
+        if (!imageClaims.isImageClaim(claimValue.dataset.claimName)) {
+            return;
+        }
+
+        const image = document.createElement('img');
+        image.src = imageClaims.dataUrl(claimValue.dataset.fullValue);
+        image.alt = claimValue.previousElementSibling.textContent;
+        image.className = 'verification-result__claim-image';
+        claimValue.replaceChildren(image);
+    });
+</script>
 </body>
 </html>

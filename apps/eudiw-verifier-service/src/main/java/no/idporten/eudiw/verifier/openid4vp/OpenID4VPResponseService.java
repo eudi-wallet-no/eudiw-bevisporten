@@ -1,53 +1,29 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.util.JSONArrayUtils;
-import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
-import id.walt.mdoc.issuersigned.IssuerSigned;
 import id.walt.sdjwt.SDJwt;
-import id.walt.sdjwt.SimpleJWTCryptoProvider;
 import id.walt.sdjwt.VerificationResult;
-import id.walt.mdoc.dataelement.*;
-import no.idporten.eudiw.verifier.IOConnectionException;
-import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
-import no.idporten.eudiw.verifier.config.TrustlistsProperties;
-import no.idporten.eudiw.verifier.crypto.ECUtils;
-import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.etsi612.LoTE;
-import no.idporten.eudiw.verifier.openid4vp.trustlist.util.TrustlistLogic;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-import no.idporten.eudiw.verifier.config.ClientApplication;
-import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
-import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
-import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
-import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
-import org.jspecify.annotations.NonNull;
+import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import no.idporten.eudiw.verifier.trustlist.TrustlistService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-import tools.jackson.databind.json.JsonMapper;
+import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
+import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 
-import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
-import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class OpenID4VPResponseService {
@@ -56,22 +32,18 @@ public class OpenID4VPResponseService {
 
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
-    private final JsonMapper objectMapper;
+    private final TrustlistService trustlistService;
 
+    private final MDocService mDocService;
 
-    private final RestClient trustlistRestclient;
+    private final SdJwtService sdJwtService;
 
-    private final TrustlistsProperties trustlistsProperties;
-
-    private TrustlistLogic trustlistLogic;
-
-    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, JsonMapper objectMapper, @Qualifier("trustlist") RestClient trustlistRestclient, TrustlistsProperties trustlistsProperties) {
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, MDocService mDocService, SdJwtService sdJwtService) {
         this.verificationTransactionService = verificationTransactionService;
         this.tokenStatuslistService = tokenStatuslistService;
-        this.objectMapper = objectMapper;
-        this.trustlistRestclient = trustlistRestclient;
-        this.trustlistsProperties = trustlistsProperties;
-        this.trustlistLogic = new TrustlistLogic(trustlistRestclient, trustlistsProperties);
+        this.trustlistService = trustlistService;
+        this.mDocService = mDocService;
+        this.sdJwtService = sdJwtService;
     }
 
     public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
@@ -100,9 +72,9 @@ public class OpenID4VPResponseService {
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
                 VerifiedCredential verifiedCredential;
                 if ("dc+sd-jwt".equals(format)) {
-                    verifiedCredential = retrieveClaimsFromSDJwtCredential(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
+                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
                 } else if ("mso_mdoc".equals(format)) {
-                    verifiedCredential = retrieveClaimsFromMDocCredential(verifiablePresentation.value(), verificationTransaction.isIncludeValidationDetails());
+                    verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
                 } else {
                     throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
                 }
@@ -119,6 +91,7 @@ public class OpenID4VPResponseService {
         return walletCallback;
     }
 
+
     private VpToken extractVpToken(Map<String, Object> claimsFromJwePayload) {
         Object vpTokenObject = claimsFromJwePayload.get("vp_token");
         if (vpTokenObject instanceof Map<?, ?> vpTokenMap) {
@@ -132,6 +105,22 @@ public class OpenID4VPResponseService {
             return new VpToken(verifiablePresentations);
         }
         return new VpToken(Map.of());
+    }
+
+    private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, String format) {
+        if (!isIncludeValidationStatus) {
+            return null;
+        }
+        List<ValidationDetail> validationDetails = new ArrayList<>();
+        validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, statuslistStatus, tokenStatuslistService.getValidationDetail(statuslistStatus)));
+        validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
+        if(format.equals("MDoc")) {
+            validationDetails.add(new ValidationDetail(ValidationType.MDOC, formatSpecificStatus, mDocService.getValidationDetail(formatSpecificStatus)));
+        } else if(format.equals("SDJwt")) {
+            validationDetails.add(new ValidationDetail(ValidationType.SDJWT, formatSpecificStatus, sdJwtService.getValidationDetail(formatSpecificStatus)));
+        }
+        return validationDetails;
+
     }
 
     private List<VerifiablePresentation> toVerifiablePresentations(Object vpTokenValue, String credentialId) {
@@ -171,167 +160,57 @@ public class OpenID4VPResponseService {
         return jwe.getPayload().toJSONObject();
     }
 
-    protected boolean checkTrustlist(X509Certificate cert) throws Exception {
-        return trustlistLogic.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
+    protected ValidationStatus checkTrustlist(X509Certificate cert) {
+        return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
     }
 
-    protected VerifiedCredential retrieveClaimsFromSDJwtCredential(String vpToken, boolean includeValidationDetails) throws Exception {
 
-        SDJwt unverifiedSDJwt = SDJwt.Companion.parse(vpToken);
-        JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
-        X509Certificate cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
-        JWSVerifier jwsVerifier = new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
-        JWSAlgorithm jwsAlgorithm = ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
-        boolean trustlistCheck = checkTrustlist(cert);
-        if (!trustlistCheck) {
-            //TODO: Remove this and throw exception when trustlist feature is complete
-            log.info("Trustlist check failed for credential id: " + vpToken);
-            //throw new VerificationException("invalid_request", "Certificate not on trustlist");
-        }
-        SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
-        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(cryptoProvider, null);
-        if (!verificationResult.getVerified()) {
-            throw new VerificationException("invalid_request", "Invalid vp_token signature or unverified disclosures");
-        }
-
-        Map<String, Object> claims = getClaimsFromSDJwt(verificationResult);
-
-        StatusSdJwt statusRecord = extractStatuslistUriAndIdx(verificationResult);
-        ValidationStatus status = findStatusFromStatusList(statusRecord);
-        List<ValidationDetail> validationDetails = new ArrayList<>();
-        if (includeValidationDetails) {
-            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, status, getValidationDetail(statusRecord)));
-            // TODO add other checks for validation details, e.g. trustlist
-        }
-
-        return new VerifiedCredential(claims, ValidationStatus.VALID == status, validationDetails);
-    }
-
-    private static @NonNull String getValidationDetail(StatusSdJwt statusRecord) {
-        if (statusRecord == null || statusRecord.statuslist() == null) {
-            return "No status list found";
-        }
-        StatusSdJwt.Statuslist statuslist = statusRecord.statuslist();
-        return "Status list URI: " + statuslist.uri().content() + ", idx: " + statuslist.idx().content();
-    }
-
-    private static @NonNull Map<String, Object> getClaimsFromSDJwt(VerificationResult<SDJwt> verificationResult) throws ParseException {
-        Map<String, Object> claims = new HashMap<>();
-        for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
-            List<Object> parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
-            claims.put((String) parsedDisclosure.get(1), parsedDisclosure.get(2));
-        }
-        return claims;
-    }
-
-    private ValidationStatus findStatusFromStatusList(StatusSdJwt statusRecord) {
+    private ValidationStatus checkStatuslist(StatuslistEntry statuslistEntry) {
         ValidationStatus status;
-        if (statusRecord != null) {
-            final int idx;
+        if (statuslistEntry != null) {
+            int index;
             try {
-                idx = Integer.parseInt(statusRecord.statuslist().idx().content());
+                index = Integer.parseInt(statuslistEntry.idx());
             } catch (NumberFormatException e) {
                 throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
             }
-            try {
-                status = tokenStatuslistService.checkStatus(
-                        URI.create(statusRecord.statuslist().uri().content()),
-                        idx,
-                        tokenStatuslistService.requestStatusList(URI.create(statusRecord.statuslist().uri().content())).getParsedString(),
-                        Instant.now());
-            } catch (StatusCommunicationException | IOConnectionException e) {
-                // TODO: create and update metrics for IOConnectionException.
-                status = ValidationStatus.INCONCLUSIVE;
-            }
+            status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index);
         } else {
-            status = ValidationStatus.VALID;
+            status = ValidationStatus.NOT_APPLICABLE; // Still valid, but no status in the proof.
         }
         return status;
     }
 
-    protected StatusSdJwt extractStatuslistUriAndIdx(VerificationResult<SDJwt> sdjwt) {
-        Object statusObj = sdjwt.getSdJwt().getFullPayload().get("status");
-        if (Objects.isNull(statusObj) || !StringUtils.hasText(statusObj.toString())) {
-            return null;
+    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
+        SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
+        X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
+        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
+        ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
+        Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
+
+        StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
+        ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
+        ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verificationResult.getSdJwt()));
+        if (sdJwtStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE && trustlistStatus == ValidationStatus.VALID) {
+            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
         }
-        return objectMapper.convertValue(statusObj, StatusSdJwt.class);
+        else {
+            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
+        }
     }
 
-    /**
-     * mdoc paths consist of a namespace and an element identifier. The claims are returned as a map of namespace
-     * to a map of element identifier to value.
-     *
-     * @param vpToken                    token for verifiable presentation containing mdoc credential
-     * @param includeValidationDetails whether to include validationDetails in the returned VerifiedCredential
-     * @return extracted data
-     */
-    protected VerifiedCredential retrieveClaimsFromMDocCredential(String vpToken, boolean includeValidationDetails) {
-        DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
-        Map<String, Object> claims = new HashMap<>();
-        for (MDoc mDoc : deviceResponse.getDocuments()) {
-            mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
-            // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
-            // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
-            // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
-            mDoc.verifyDocType();
-            mDoc.verifyIssuerSignedItems();
-            mDoc.verifyValidity();
-            IssuerSigned issuerSigned = mDoc.getIssuerSigned();
-            for (String namespace : issuerSigned.getNameSpaces().keySet()) {
-                List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
-                for (EncodedCBORElement element : elements) {
-                    Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
-                    String elementIdentifier = null;
-                    Object elementValue = null;
-                    for (MapKey mapKey : elementMap.keySet()) {
-                        if (mapKey.getStr().equals("elementIdentifier")) {
-                            elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
-                        }
-                        if (mapKey.getStr().equals("elementValue")) {
-                            elementValue = extractValue(elementMap.get(mapKey));
-                        }
-                    }
-                    Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
-                    nameSpaceMap.put(elementIdentifier, elementValue);
-                }
-            }
+    private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
+        MDoc mdoc = mDocService.mDocFromVpToken(vpToken);
+        Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
+        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
+        ValidationStatus trustlistStatus = checkTrustlist(mDocService.extractCertificateFromMdoc(mdoc));
+        ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
+        if(mdocStatus == ValidationStatus.VALID && trustlistStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID) {
+            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
+        } else {
+            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
         }
-        boolean verificationsChecksValid = true; // Set credential to valid until we can check and validate status-list, trust-list etc. for MDoc.
-        List<ValidationDetail> validationDetails = new ArrayList<>();
-        if (includeValidationDetails) {
-            validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, ValidationStatus.INCONCLUSIVE, "Not status-list validation performed for MDoc"));
-            // TODO: implement validation checks for MDoc for status-list, trust-list etc. and add to validationDetails list with appropriate ValidationType and ValidationStatus.
-        }
-        return new VerifiedCredential(claims, verificationsChecksValid, validationDetails);
-    }
-
-    protected Object extractValue(DataElement dataElement) {
-        if (dataElement == null) {
-            return null;
-        }
-        if (dataElement instanceof BooleanElement) {
-            return ((BooleanElement) dataElement).getValue();
-        }
-        return switch (dataElement.getType()) {
-            case number -> ((NumberElement) dataElement).getValue();
-            case textString -> ((StringElement) dataElement).getValue();
-            case dateTime -> ((DateTimeElement) dataElement).getValue().toString();
-            case fullDate -> ((FullDateElement) dataElement).getValue().toString();
-            case nil -> null;
-            case map -> ((MapElement) dataElement).getValue().entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(
-                            e -> String.valueOf(e.getKey()),
-                            e -> extractValue(e.getValue())));
-            case list -> ((ListElement) dataElement).getValue()
-                    .stream()
-                    .map(this::extractValue)
-                    .toList();
-            case byteString -> new String(Base64.getEncoder().encode(((ByteStringElement) dataElement).getValue()));
-            default -> String.valueOf(dataElement.getInternalValue());
-        };
 
     }
-
 
 }

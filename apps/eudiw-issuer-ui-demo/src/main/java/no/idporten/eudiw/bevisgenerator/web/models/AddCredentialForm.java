@@ -9,10 +9,10 @@ import no.idporten.eudiw.bevisgenerator.web.models.unique.UniqueCredentialType;
 public record AddCredentialForm(
         String id,
 
-        @NotBlank(message = "Credential type er påkrevd")
+        @NotBlank(message = "ID (credentialType) er påkravd")
         @Pattern(
-                regexp = "^[a-z0-9_:]{3,155}",
-                message = "Credential type kan kun bestå av små bokstaver, tall, kolon og understrek.\n Lengde: 3-155 tegn"
+                regexp = "^[a-z0-9_:.]{3,155}$",
+                message = "ID (credentialType) kan berre innehalde små bokstavar, tal, kolon, punktum og understrek. Lengd: 3–155 teikn"
         )
         @UniqueCredentialType()
         String credentialType,
