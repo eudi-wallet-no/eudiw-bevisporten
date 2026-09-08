@@ -18,7 +18,7 @@ In visual work, interaction, state, validation, submission and navigation are fi
 
 ## Delivering work
 
-- **Verify rendered UI before saying done.** Run the app and check the changed surface in a browser, at mobile and desktop widths. State explicitly what you could not verify — never report it as verified.
+- **Verify rendered UI before saying done.** Run the app and check the changed surface in a browser, at mobile and desktop widths. State explicitly what you could not verify — never report it as verified. Include screenshots of visual changes in the PR description.
 - **Answer from the codebase first.** Resolve what the code can answer, then ask the user in one collected round — only what cannot be inferred.
 - **Measured numbers, not estimates.** Claim a word count, diff size or coverage only after running the command that proves it.
 - **Spot the inconsistency yourself.** Compare a visual change against the nearest existing page before delivering: same role, same expression. The reviewer should not be the one who finds the drift.
@@ -33,7 +33,7 @@ Every task has a JIRA-ID. **Ask for it** if you did not get one — never invent
 
 - **Branch:** `<jira-id>`, using the exact casing the user gave, for example `EUW-1234` if that is how it was given. No free text. If the name is taken: `<jira-id>-2`, `<jira-id>-3`.
 - **PR title:** `<JIRA-ID>: <tittel på norsk>`, for example `EUW-1234: Ny funksjon`. Without the prefix the `validate-pr-title` check fails.
-- **PR description:** Norwegian, short and concrete. No AI phrasing ("Denne PR-en introduserer ..."), no emojis, no self-praise, no summary walls. One line is fine for a trivial change.
+- **PR description:** Norwegian, short and concrete. No AI phrasing ("Denne PR-en introduserer ..."), no emojis, no self-praise, no summary walls. One line is fine for a trivial change. For visual UI changes, include a screenshot of the change in the PR description.
 
 ```
 ## Hva og hvorfor
@@ -41,4 +41,7 @@ Every task has a JIRA-ID. **Ask for it** if you did not get one — never invent
 
 ## Endringer
 - Viktigste endringer, ikke alle filer og detaljer.
+
+## Skjermbilde (UI-endringer)
+<!-- Skjermbilde av den visuelle endringen -->
 ```

@@ -20,6 +20,7 @@
            th:text="|Start utferding av ${credentialConfiguration.description} med Digdirs generelle utferdar (issuer)|">
         </p>
     </div>
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
 
     <div class="step-flow">
         <form th:fragment="send_attributes_form_fragment"
