@@ -38,7 +38,6 @@ import java.util.Set;
 @Service
 public class ProofService {
 
-    public static final String PROOF_TYPE_JWT = "jwt";
     private static final String JWT_PROOF_TYPE = "openid4vci-proof+jwt";
     private static final String KEY_ATTESTATION_TYPE = "key-attestation+jwt";
     private static final String KEY_ATTESTATION_HEADER = "key_attestation";
