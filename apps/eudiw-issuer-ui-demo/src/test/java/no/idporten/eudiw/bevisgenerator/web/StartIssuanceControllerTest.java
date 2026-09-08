@@ -279,9 +279,145 @@ class StartIssuanceControllerTest {
                 .andExpect(model().attribute("issuedCredentialConfigurationId", "pid"))
                 .andExpect(model().attribute("issuedCredentialDescription", "PID"))
                 .andExpect(model().attribute("issuedTransactionId", "tx-id"))
-                .andExpect(model().attribute("issuedSubjectIdentifier", "05821098825"));
+                .andExpect(model().attribute("issuedSubjectIdentifier", "05821098825"))
+                .andExpect(model().attribute("issuedCredentialIssuer", "http://issuer/tenant"))
+                .andExpect(model().attribute("claims", List.of()))
+                .andExpect(model().attribute("steps", List.of("Vel bevistype", "Skann QR-kode", "Utferding fullført")));
 
         verify(issuerServerService, never()).getById(anyString());
+    }
+
+    @Test
+    void issueRendersStepperWithFirstStepCurrent() throws Exception {
+        thymeleafMockMvc().perform(get("/issue"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"stepper\"")))
+                .andExpect(content().string(containsString("aria-label=\"Steg\"")))
+                .andExpect(content().string(containsString("aria-current=\"step\"")))
+                .andExpect(content().string(containsString("Vel bevistype")))
+                .andExpect(content().string(containsString("Skann QR-kode")))
+                .andExpect(content().string(containsString("Utferding fullført")));
+    }
+
+    @Test
+    void startRendersStepperWithFirstStepCurrent() throws Exception {
+        thymeleafMockMvc().perform(get("/start-issuance/pid"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"stepper\"")))
+                .andExpect(content().string(containsString("aria-current=\"step\"")))
+                .andExpect(content().string(containsString("Vel bevistype")));
+    }
+
+    @Test
+    void issuerResponseRendersStepperWithSecondStepCurrent() throws Exception {
+        IssuanceResponse response = new IssuanceResponse(
+                new CredentialOffer(
+                        "http://issuer/tenant",
+                        List.of("pid"),
+                        new Grants(null, null)
+                ),
+                "tx-id"
+        );
+        when(issuerServerService.startIssuance(eq(credentialConfiguration), any())).thenReturn(response);
+
+        thymeleafMockMvc().perform(post("/start-issuance/pid").param("json", "{}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"stepper\"")))
+                .andExpect(content().string(containsString("aria-current=\"step\"")))
+                .andExpect(content().string(containsString("Skann QR-kode")));
+    }
+
+    @Test
+    void startIssuanceExtractsCredentialDataClaims() throws Exception {
+        IssuanceResponse response = new IssuanceResponse(
+                new CredentialOffer(
+                        "http://issuer/tenant",
+                        List.of("pid"),
+                        new Grants(null, null)
+                ),
+                "tx-id"
+        );
+        when(issuerServerService.startIssuance(eq(credentialConfiguration), any())).thenReturn(response);
+
+        String jsonWithClaims = """
+                {
+                  "subject": { "identifier": "05821098825" },
+                  "credential_data": {
+                    "given_name": "Ola",
+                    "birth_date": "1990-01-01"
+                  }
+                }
+                """;
+
+        mockMvc.perform(post("/start-issuance/pid")
+                        .param("json", jsonWithClaims)
+                        .param("personIdentifier", "05821098825"))
+                .andExpect(status().isOk())
+                .andExpect(request().sessionAttribute(
+                        TRANSACTION_KEY,
+                        new IssuanceSessionData(
+                                "http://issuer/tenant",
+                                "pid",
+                                "PID",
+                                "05821098825",
+                                false,
+                                List.of(
+                                        new no.idporten.eudiw.bevisgenerator.web.models.ClaimView(
+                                                "given_name", "given name", "Ola", List.of()
+                                        ),
+                                        new no.idporten.eudiw.bevisgenerator.web.models.ClaimView(
+                                                "birth_date", "birth date", "1990-01-01", List.of()
+                                        )
+                                )
+                        )
+                ));
+    }
+
+    @Test
+    void completedIssuanceRendersStepperAndTwoCardsWithClaims() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        IssuanceSessionData sessionData = new IssuanceSessionData(
+                "http://issuer/tenant",
+                "pid",
+                "MinID PID",
+                "05821098825",
+                true,
+                List.of(
+                        new no.idporten.eudiw.bevisgenerator.web.models.ClaimView(
+                                "given_name", "Førenamn", "Kari", List.of()
+                        )
+                )
+        );
+        session.setAttribute(TRANSACTION_KEY, sessionData);
+
+        thymeleafMockMvc().perform(get("/issuance/tx-id/complete").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"stepper\"")))
+                .andExpect(content().string(containsString("aria-current=\"step\"")))
+                .andExpect(content().string(containsString("Utferding fullført")))
+                .andExpect(content().string(containsString("Attributt</h2>")))
+                .andExpect(content().string(containsString("Utferdingsdetaljar</h2>")))
+                .andExpect(content().string(containsString("Beviset er utferda til lommeboka")))
+                .andExpect(content().string(containsString("Førenamn")))
+                .andExpect(content().string(containsString("Kari")))
+                .andExpect(content().string(containsString("Bevistype")))
+                .andExpect(content().string(containsString("pid")))
+                .andExpect(content().string(containsString("Personidentifikator")))
+                .andExpect(content().string(containsString("05821098825")))
+                .andExpect(content().string(containsString("Utferdar")))
+                .andExpect(content().string(containsString("http://issuer/tenant")))
+                .andExpect(content().string(containsString("Transaksjons-ID")))
+                .andExpect(content().string(containsString("tx-id")));
+    }
+
+    @Test
+    void completedIssuanceRendersFallbackWhenClaimsAreEmpty() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute(TRANSACTION_KEY, issuanceSession(true));
+
+        thymeleafMockMvc().perform(get("/issuance/tx-id/complete").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Dette beviset hentar data automatisk frå registeret")));
     }
 
     @Test
