@@ -8,10 +8,8 @@ import no.idporten.eudiw.bevisgenerator.web.models.ValidationDetailView;
 import no.idporten.eudiw.bevisgenerator.web.models.VerificationResultView;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class VerificationResultServiceImpl implements VerificationResultService {
