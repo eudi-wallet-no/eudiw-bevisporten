@@ -50,7 +50,7 @@ import java.util.Objects;
 public class StartIssuanceController {
 
     private static final String ISSUANCE_SESSION_KEY = "issuance_session_%s";
-    private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Utstedelse fullført");
+    private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Utferding fullført");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Logger logger = LoggerFactory.getLogger(StartIssuanceController.class);

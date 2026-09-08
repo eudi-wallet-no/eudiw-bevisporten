@@ -282,7 +282,7 @@ class StartIssuanceControllerTest {
                 .andExpect(model().attribute("issuedSubjectIdentifier", "05821098825"))
                 .andExpect(model().attribute("issuedCredentialIssuer", "http://issuer/tenant"))
                 .andExpect(model().attribute("claims", List.of()))
-                .andExpect(model().attribute("steps", List.of("Vel bevistype", "Skann QR-kode", "Utstedelse fullført")));
+                .andExpect(model().attribute("steps", List.of("Vel bevistype", "Skann QR-kode", "Utferding fullført")));
 
         verify(issuerServerService, never()).getById(anyString());
     }
@@ -296,7 +296,7 @@ class StartIssuanceControllerTest {
                 .andExpect(content().string(containsString("aria-current=\"step\"")))
                 .andExpect(content().string(containsString("Vel bevistype")))
                 .andExpect(content().string(containsString("Skann QR-kode")))
-                .andExpect(content().string(containsString("Utstedelse fullført")));
+                .andExpect(content().string(containsString("Utferding fullført")));
     }
 
     @Test
@@ -394,7 +394,7 @@ class StartIssuanceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("class=\"stepper\"")))
                 .andExpect(content().string(containsString("aria-current=\"step\"")))
-                .andExpect(content().string(containsString("Utstedelse fullført")))
+                .andExpect(content().string(containsString("Utferding fullført")))
                 .andExpect(content().string(containsString("Attributt</h2>")))
                 .andExpect(content().string(containsString("Utferdingsdetaljar</h2>")))
                 .andExpect(content().string(containsString("Beviset er utferda til lommeboka")))
