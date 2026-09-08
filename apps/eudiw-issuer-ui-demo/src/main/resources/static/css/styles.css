@@ -988,6 +988,46 @@ footer ul {
     line-height: 1;
 }
 
+/* Claims with a list- or map-editor (several stacked rows) don't fit the
+   single-line layout the other claim types use. */
+.claim--complex {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.claim-value-editor {
+    flex: 1 1 16rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    min-width: 0;
+}
+
+.claim-list-editor,
+.claim-map-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+}
+
+.claim-list-editor__row,
+.claim-map-editor__row {
+    display: flex;
+    gap: var(--ds-size-2);
+    align-items: center;
+}
+
+.claim-list-editor__row .ds-input,
+.claim-map-editor__row .ds-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.claim-list-editor__add,
+.claim-map-editor__add {
+    align-self: flex-start;
+}
+
 @media (max-width: 639px) {
     .claim {
         flex-wrap: wrap;
