@@ -73,6 +73,8 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['scope']").value("eudiw:junit"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['format']").value("mso_mdoc"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['proof_types_supported']['jwt']['proof_signing_alg_values_supported'][0]").value("ES256"))
+                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['proof_types_supported']['attestation']['proof_signing_alg_values_supported'][0]").value("ES256"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_signing_alg_values_supported'][0]").value(-7))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['name']").value("Junit doc"))
                 .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['description']").value("Kun for junit-tester"))

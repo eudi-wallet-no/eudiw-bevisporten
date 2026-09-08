@@ -100,8 +100,7 @@ public class CredentialIssuerMetadataService {
                     // metadata from extended internal model
                     .credentialMetadata(claimsSourceMetadata.toOpenID4VCICredentialMetadata())
                     // config from issuer server
-                    .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
-                    .proofTypes(ProofTypes.builder().jwtProofType(ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
+                    .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings());
             // config for formats
             if (CredentialFormat.MSO_MDOC.equals(credentialConfiguration.getFormat())) {
                 credentialConfigurationBuilder
@@ -123,6 +122,11 @@ public class CredentialIssuerMetadataService {
                             ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
                                     .keyAttestationsRequired(keyAttestationRequired)
                                     .build())
+                            .attestationProofType(
+                                    ProofType.builder()
+                                            .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                                            .keyAttestationsRequired(keyAttestationRequired)
+                                            .build())
                             .build());
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
