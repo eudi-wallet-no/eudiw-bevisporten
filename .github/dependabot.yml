@@ -11,15 +11,208 @@ updates:
   # ==============
   # MAVEN (Spring Boot-apper)
   # ==============
-  # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
-  # Gruppering etter semver-nivå:
-  #   - patch/minor: samles i felles PR per nivå (lav risiko, trenger ikke individuell review per app).
-  #   - major: matcher ingen gruppe under, så Dependabot faller tilbake til standard
-  #     oppførsel — én individuell PR per avhengighet per app. Gir mest isolasjon og
-  #     grundigst review nettopp der risikoen for brudd er størst.
+  # Eksplisitt konfigurasjon per app sikrer full støtte for Dependabot-kommandoer
+  # som @dependabot rebase og @dependabot recreate, samt isolert review og feilsøking.
   - package-ecosystem: "maven"
-    directories:
-      - "/apps/*"
+    directory: "/apps/eudiw-authoritativ-sources-connector"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-byob-service"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-idporten-login"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-issuer-server"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-issuer-ui"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-issuer-ui-demo"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-oauth-server"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-status-list"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-verifier-demo"
+    registries:
+      - maven-github
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    open-pull-requests-limit: 10
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "maven"
+    directory: "/apps/eudiw-verifier-service"
     registries:
       - maven-github
     schedule:
@@ -43,11 +236,179 @@ updates:
   # ==============
   # DOCKER
   # ==============
-  # Samme prinsipp som Maven: patch/minor grupperes bredt på tvers av apper, mens
-  # major-bumps forblir individuelle PR-er per app for tettere review.
   - package-ecosystem: "docker"
-    directories:
-      - "/apps/*/docker"
+    directory: "/apps/eudiw-authoritativ-sources-connector/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-byob-service/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-idporten-login/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-issuer-server/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-issuer-ui/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-issuer-ui-demo/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-oauth-server/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-status-list/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-verifier-demo/docker"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+    groups:
+      patch-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      minor-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/eudiw-verifier-service/docker"
     schedule:
       interval: "weekly"
       day: "sunday"
