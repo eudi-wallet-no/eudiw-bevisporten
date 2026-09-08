@@ -113,21 +113,22 @@ public class CredentialIssuerMetadataService {
             }
             KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
                     ? KeyAttestationRequired.builder()
-                            .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
-                            .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
-                            .build()
+                    .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
+                    .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
+                    .build()
                     : null;
             credentialConfigurationBuilder.proofTypes(ProofTypes.builder()
                     .jwtProofType(
-                            ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                            ProofType.builder()
+                                    .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
                                     .keyAttestationsRequired(keyAttestationRequired)
                                     .build())
-                            .attestationProofType(
-                                    ProofType.builder()
-                                            .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
-                                            .keyAttestationsRequired(keyAttestationRequired)
-                                            .build())
-                            .build());
+                    .attestationProofType(
+                            ProofType.builder()
+                                    .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                                    .keyAttestationsRequired(keyAttestationRequired)
+                                    .build())
+                    .build());
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;
