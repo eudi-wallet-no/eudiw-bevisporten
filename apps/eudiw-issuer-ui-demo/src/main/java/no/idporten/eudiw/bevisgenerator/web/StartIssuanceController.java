@@ -15,6 +15,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerSe
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.CredentialOffer;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
+import no.idporten.eudiw.bevisgenerator.web.models.ClaimView;
 import no.idporten.eudiw.bevisgenerator.web.models.IssuanceSessionData;
 import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
 import org.slf4j.Logger;
@@ -42,12 +43,14 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 @Controller
 public class StartIssuanceController {
 
     private static final String ISSUANCE_SESSION_KEY = "issuance_session_%s";
+    private static final List<String> STEPS = List.of("Vel bevistype", "Skann QR-kode", "Utstedelse fullført");
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Logger logger = LoggerFactory.getLogger(StartIssuanceController.class);
@@ -77,6 +80,11 @@ public class StartIssuanceController {
         return bevisgeneratorProperties.getFeatureSwitches().isAllowVerification();
     }
 
+    @ModelAttribute("steps")
+    public List<String> steps() {
+        return STEPS;
+    }
+
     @GetMapping("/")
     public String newIndex(Model model) {
         return "index";
@@ -94,7 +102,9 @@ public class StartIssuanceController {
                         Comparator.nullsLast(Collator.getInstance(Locale.forLanguageTag("nb-NO")))
                 ))
                 .toList();
-        return new ModelAndView("issue", "credential_configurations", credentialConfigurations);
+        return new ModelAndView("issue")
+                .addObject("credential_configurations", credentialConfigurations)
+                .addObject("steps", STEPS);
     }
 
     @GetMapping("/start-issuance/{credential_configuration_id}")
@@ -104,6 +114,7 @@ public class StartIssuanceController {
         CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
         model.addAttribute("credentialConfiguration", credentialConfiguration);
         model.addAttribute("startIssuanceForm", new StartIssuanceForm(credentialConfiguration.jsonRequest(), credentialConfiguration.personIdentifier()));
+        model.addAttribute("steps", STEPS);
         return "start";
     }
 
@@ -142,6 +153,7 @@ public class StartIssuanceController {
         model.addAttribute("credentialName", issuanceSessionData.credentialName());
         model.addAttribute("credentialConfigurationId", credentialConfigurationId);
         model.addAttribute("issuedTransactionId", response.issuanceTransactionId());
+        model.addAttribute("steps", STEPS);
         session.setAttribute(
                 getIssuanceSessionKey(response.issuanceTransactionId()),
                 issuanceSessionData
@@ -160,14 +172,33 @@ public class StartIssuanceController {
         String issuedCredentialConfigurationId = credentialOffer.credentialConfigurationIds().getFirst();
         String credentialName = credentialName(credentialConfiguration, issuedCredentialConfigurationId);
         String subjectIdentifier = resolveSubjectIdentifier(startIssuanceForm, issuedCredentialConfigurationId);
+        List<ClaimView> claims = extractClaims(startIssuanceForm.json());
 
         return new IssuanceSessionData(
                 credentialOffer.credentialIssuer(),
                 issuedCredentialConfigurationId,
                 credentialName,
                 subjectIdentifier,
-                false
+                false,
+                claims
         );
+    }
+
+    private List<ClaimView> extractClaims(String json) {
+        if (!StringUtils.hasText(json)) {
+            return List.of();
+        }
+        try {
+            Map<?, ?> map = objectMapper.readValue(json, Map.class);
+            if (map != null && map.get("credential_data") instanceof Map<?, ?> credentialMap) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> stringKeyedMap = (Map<String, Object>) credentialMap;
+                return ClaimView.from(stringKeyedMap);
+            }
+        } catch (Exception e) {
+            logger.warn("Could not extract credential_data claims from json", e);
+        }
+        return List.of();
     }
 
     private String resolveSubjectIdentifier(StartIssuanceForm startIssuanceForm, String issuedCredentialConfigurationId) {
@@ -259,6 +290,9 @@ public class StartIssuanceController {
         model.addAttribute("issuedCredentialDescription", issuance.credentialName());
         model.addAttribute("issuedTransactionId", issuanceTransactionId);
         model.addAttribute("issuedSubjectIdentifier", issuance.subjectIdentifier());
+        model.addAttribute("issuedCredentialIssuer", issuance.credentialIssuer());
+        model.addAttribute("claims", issuance.claims());
+        model.addAttribute("steps", STEPS);
         return "issuance-complete";
     }
 

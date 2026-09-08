@@ -17,6 +17,7 @@
             Vel ein bevistype. Fyll deretter inn opplysningane som skal vere med i beviset.
         </p>
     </div>
+    <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=1)}"></div>
     <aside class="ds-alert content-narrow landing-intro"
            data-color="info"
            aria-labelledby="custom-credential-heading">
