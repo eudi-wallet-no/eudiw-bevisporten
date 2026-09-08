@@ -111,27 +111,33 @@ public class CredentialIssuerMetadataService {
                         .vct(credentialConfiguration.getCredentialType())
                         .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms().getDcSdJwt());
             }
-            KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
-                    ? KeyAttestationRequired.builder()
-                    .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
-                    .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
-                    .build()
-                    : null;
-            credentialConfigurationBuilder.proofTypes(ProofTypes.builder()
-                    .jwtProofType(
-                            ProofType.builder()
-                                    .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
-                                    .keyAttestationsRequired(keyAttestationRequired)
-                                    .build())
-                    .attestationProofType(
-                            ProofType.builder()
-                                    .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
-                                    .keyAttestationsRequired(keyAttestationRequired)
-                                    .build())
-                    .build());
+            credentialConfigurationBuilder.proofTypes(createProofTypes(credentialIssuerProperties));
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;
+    }
+
+    private static ProofTypes createProofTypes(CredentialIssuerServerProperties credentialIssuerProperties) {
+        KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
+                ? KeyAttestationRequired.builder()
+                .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
+                .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
+                .build()
+                : null;
+        ProofTypes.ProofTypesBuilder proofTypesBuilder = ProofTypes.builder()
+                .jwtProofType(
+                        ProofType.builder()
+                                .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                                .keyAttestationsRequired(keyAttestationRequired)
+                                .build());
+        if (credentialIssuerProperties.isKeyAttestationsRequired()) {
+            proofTypesBuilder.attestationProofType(
+                    ProofType.builder()
+                            .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                            .keyAttestationsRequired(keyAttestationRequired)
+                            .build());
+        }
+        return proofTypesBuilder.build();
     }
 
 }
