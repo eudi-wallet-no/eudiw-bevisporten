@@ -23,6 +23,7 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
@@ -66,6 +67,9 @@ public class ProofService {
         return bindingKeys;
     }
 
+    /**
+     * Validates jwt proofs, with or without key attestation, and returns binding keys.
+     */
     private List<JWK> validateJwtProof(CredentialIssuerTenant credentialIssuerTenant, String jwtProof) {
         try {
             SignedJWT jwt = SignedJWT.parse(jwtProof);
@@ -82,6 +86,9 @@ public class ProofService {
         }
     }
 
+    /**
+     * Validates key attestation proofs and returns binding keys.
+     */
     private List<JWK> validateAttestationProof(String attestationProof) {
         try {
             return validateKeyAttestation(attestationProof);
@@ -110,7 +117,6 @@ public class ProofService {
         if (!(keyAttestation instanceof String keyAttestationJwt)) {
             throw new InvalidProof("Invalid jwt proof.  Invalid key attestation header.");
         }
-
         List<JWK> attestedKeys = validateKeyAttestation(keyAttestationJwt);
         validateJwtSignatureAndClaims(credentialIssuerTenant, jwt, attestedKeys);
         return attestedKeys;
@@ -121,7 +127,7 @@ public class ProofService {
             SignedJWT jwt,
             List<JWK> bindingKeys) throws BadJOSEException, JOSEException {
         validateSigningAlgorithm(jwt.getHeader());
-        List<PublicKey> publicKeys = toPublicKeys(bindingKeys);
+        List<PublicKey> publicKeys = extractPublicKeys(bindingKeys);
 
         ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
         jwtProcessor.setJWSKeySelector((_, _) -> publicKeys);
@@ -148,12 +154,14 @@ public class ProofService {
         if (!keyAttestation.verify(verifier)) {
             throw new InvalidProof("Invalid key attestation.  Invalid JWT signature.");
         }
-
         List<?> attestedKeysClaim = keyAttestation.getJWTClaimsSet().getListClaim(ATTESTED_KEYS_CLAIM);
         if (attestedKeysClaim == null || attestedKeysClaim.isEmpty()) {
             throw new InvalidProof("Invalid key attestation.  Missing attested keys.");
         }
-
+        String nonce = keyAttestation.getJWTClaimsSet().getStringClaim("nonce");
+        if (StringUtils.isEmpty(nonce)) {
+            throw new InvalidProof("Invalid key attestation.  Missing nonce.");
+        }
         List<JWK> attestedKeys = new ArrayList<>();
         for (Object attestedKey : attestedKeysClaim) {
             if (!(attestedKey instanceof Map<?, ?> attestedKeyMap)) {
@@ -178,8 +186,8 @@ public class ProofService {
     }
 
     private X509Certificate parseLeafCertificate(List<Base64> certificateChain) {
-        if (certificateChain == null || certificateChain.isEmpty()) {
-            throw new InvalidProof("Invalid key attestation.  Missing x5c header.");
+        if (CollectionUtils.isEmpty(certificateChain)) {
+            throw new InvalidProof("Invalid key attestation.  Missing or empty x5c header.");
         }
 
         X509Certificate certificate = X509CertUtils.parse(certificateChain.getFirst().decode());
@@ -191,17 +199,17 @@ public class ProofService {
 
     private void validateSigningAlgorithm(JWSHeader jwsHeader) {
         if (!credentialIssuerServerProperties.getProofSigningAlgorithms().contains(jwsHeader.getAlgorithm().getName())) {
-            throw new InvalidProof("Invalid jwt proof.  Invalid signing algorithm.");
+            throw new InvalidProof("Invalid jwt proof.  Unsupported signing algorithm.");
         }
     }
 
     private void validateBindingKey(JWK jwk) {
         if (!KeyType.EC.equals(jwk.getKeyType())) {
-            throw new InvalidProof("Invalid jwt proof.  Invalid key type.");
+            throw new InvalidProof("Invalid jwt proof.  Unsupported key type.");
         }
     }
 
-    private List<PublicKey> toPublicKeys(List<JWK> bindingKeys) throws JOSEException {
+    private List<PublicKey> extractPublicKeys(List<JWK> bindingKeys) throws JOSEException {
         List<PublicKey> publicKeys = new ArrayList<>();
         for (JWK bindingKey : bindingKeys) {
             publicKeys.add(((ECKey) bindingKey).toPublicKey());

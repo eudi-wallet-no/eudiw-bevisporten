@@ -84,6 +84,7 @@ public class ProofServiceTest {
                 attestationSigningKey,
                 createCertificate(attestationSigningKey),
                 List.of(firstAttestedKey, secondAttestedKey),
+                "nnn",
                 true);
         String jwtProof = createJwtProof(firstAttestedKey, keyAttestation);
 
@@ -103,6 +104,7 @@ public class ProofServiceTest {
                 attestationSigningKey,
                 createCertificate(attestationSigningKey),
                 List.of(firstAttestedKey, secondAttestedKey),
+                "nnn",
                 true);
 
         List<JWK> bindingKeys = proofService.validateProofs(
@@ -123,6 +125,7 @@ public class ProofServiceTest {
                 signingKey,
                 createCertificate(certificateKey),
                 List.of(attestedKey),
+                "nnn",
                 true);
         String jwtProof = createJwtProof(attestedKey, keyAttestation);
 
@@ -139,6 +142,7 @@ public class ProofServiceTest {
                 attestationSigningKey,
                 null,
                 List.of(attestedKey),
+                "nnn",
                 false);
         String jwtProof = createJwtProof(attestedKey, keyAttestation);
 
@@ -155,6 +159,7 @@ public class ProofServiceTest {
                 attestationSigningKey,
                 createCertificate(attestationSigningKey),
                 null,
+                "nnn",
                 true);
         String jwtProof = createJwtProof(proofSigningKey, keyAttestation);
 
@@ -172,6 +177,7 @@ public class ProofServiceTest {
                 attestationSigningKey,
                 createCertificate(attestationSigningKey),
                 List.of(attestedKey),
+                "nnn",
                 true);
         String jwtProof = createJwtProof(proofSigningKey, keyAttestation);
 
@@ -184,6 +190,7 @@ public class ProofServiceTest {
             ECKey signingKey,
             X509Certificate certificate,
             List<ECKey> attestedKeys,
+            String nonce,
             boolean includeCertificate) throws Exception {
         JWSHeader.Builder header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .type(new JOSEObjectType("key-attestation+jwt"));
@@ -198,6 +205,7 @@ public class ProofServiceTest {
                         attestedKeys == null
                                 ? null
                                 : attestedKeys.stream().map(JWK::toPublicJWK).map(JWK::toJSONObject).toList())
+                .claim("nonce", nonce)
                 .build();
         SignedJWT keyAttestation = new SignedJWT(header.build(), claims);
         keyAttestation.sign(new ECDSASigner(signingKey));
