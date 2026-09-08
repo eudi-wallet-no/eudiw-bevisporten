@@ -15,6 +15,7 @@ credential-issuer-server:
   features:
     revocation-v2-rich-result:
       enabled: true
+  key-attestations-required: true
   credential-issuer: https://junit.eidas2sandkasse.dev
   authorization-servers:
     - id: junit
