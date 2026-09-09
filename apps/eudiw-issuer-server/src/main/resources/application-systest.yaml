@@ -80,6 +80,7 @@ credential-issuer-server:
     minid:
       display-names:
         "no": "MinID bevisutsteder"
+      metadata-signing-keystore: minid-access-keystore
       credential-configuration-sources-properties:
         - local:
             paths:
@@ -106,3 +107,9 @@ idporten-key-manager:
       key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${MINID_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    minid-access-keystore:
+      key-store-type: ${MINID_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${MINID_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${MINID_ACCESS_KEYSTORE_KEY_ALIAS}
+      key-password: ${MINID_ACCESS_KEYSTORE_KEY_PASSWORD}
