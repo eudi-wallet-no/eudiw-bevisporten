@@ -20,7 +20,7 @@
     <form class="form-container"
           th:fragment="edit_attributes_form_fragment"
           id="edit_attributes_form"
-          th:action="@{/edit-credential-new/{id}(id=${editCredentialType ?: form.credentialType()})}"
+          th:action="@{/admin/edit-credential-new/{credential_type}(credential_type=${editCredentialType ?: form.credentialType()})}"
           th:object="${form}"
           method="post">
 
