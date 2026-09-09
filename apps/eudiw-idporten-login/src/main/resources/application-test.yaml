@@ -28,7 +28,7 @@ eudiw-idporten-login:
           - https://login.test.idporten.no/authorize/callback/eudiw
           - https://login.test.idporten.no/authorize/callback/eudiw-eu
           - https://login.test.idporten.no/authorize/callback/eudiw-no
-      - client-id: idporten-local
+      - client-id: ${IDPORTEN_LOCAL_CLIENT_ID}
         client-secret: ${IDPORTEN_LOCAL_CLIENT_SECRET}
         scopes:
           - openid
