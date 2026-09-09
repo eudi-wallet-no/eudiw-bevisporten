@@ -12,6 +12,7 @@ public enum ErrorCode {
     UNAUTHORIZED_INVALID_REQUEST("invalid_request", HttpStatus.UNAUTHORIZED),
     INVALID_TOKEN("invalid_token", HttpStatus.UNAUTHORIZED),
     INSUFFICIENT_SCOPE("insufficient_scope", HttpStatus.FORBIDDEN),
+    NOT_ACCEPTABLE("invalid_request", HttpStatus.NOT_ACCEPTABLE),
     SERVER_ERROR("server_error", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html
