@@ -11,3 +11,6 @@ CVE-2026-45416 # netty.  Fixed in 4.2.15.Final, 4.1.135.Final
 CVE-2026-45674 # netty.  Fixed in 4.2.15.Final, 4.1.135.Final
 CVE-2026-47691 # netty.  Fixed in 4.2.15.Final, 4.1.135.Final
 CVE-2026-50010 # netty.  Fixed in 4.2.15.Final, 4.1.135.Final
+CVE-2026-65182 # tomcat-embed-core.  Fixed in  11.0.25, 10.1.58, 9.0.121
+CVE-2026-65905 # tomcat-embed-core.  Fixed in  11.0.25, 10.1.58, 9.0.121
+CVE-2026-68525 # tomcat-embed-core.  Fixed in  11.0.25, 10.1.58, 9.0.121
