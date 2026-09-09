@@ -100,6 +100,18 @@ public class CredentialIssuerMetadataEndpointControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(APPLICATION_JWT));
         }
+
+        @DisplayName("then a JSON error is returned when signed metadata is unavailable")
+        @Test
+        void testGetSignedMetadataWithoutSigningKeystore() throws Exception {
+            mockMvc.perform(get("/.well-known/openid-credential-issuer/junit")
+                            .accept(APPLICATION_JWT))
+                    .andExpect(status().isNotAcceptable())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.error").value("invalid_request"))
+                    .andExpect(jsonPath("$.error_description")
+                            .value(Matchers.startsWith("Signed credential issuer metadata is not available for this tenant")));
+        }
     }
 
     @Nested
