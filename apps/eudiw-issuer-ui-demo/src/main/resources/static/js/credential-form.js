@@ -79,7 +79,7 @@ function serializeExampleValue(claim) {
   }
   if (claim.type === 'map') {
     const pairs = Array.isArray(claim.exampleValue) ? claim.exampleValue : [];
-    const obj = {};
+    const obj = Object.create(null);
     pairs.forEach(pair => {
       const key = (pair.key || '').trim();
       if (key) obj[key] = (pair.value ?? '').toString();
