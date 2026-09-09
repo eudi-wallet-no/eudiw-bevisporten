@@ -8,24 +8,29 @@ license: Digitaliseringsdirektoratet
 
 Use [Designsystemet](https://designsystemet.no). If a surface deliberately uses another design system, preserve it and apply the accessibility rules below; do not add Designsystemet during an ordinary fix.
 
+Before frontend work here, read the repository-specific setup in [`docs/designsystem.md`](../../../docs/designsystem.md).
+
 ## Rules
 
 - Repair or reuse existing components before creating new ones.
 - Use documented components and semantic tokens for their intended purpose. Do not invent tokens. Custom markup or CSS requires a concrete product reason.
 - Fix markup, variants and structure before adding CSS.
+- Keep each app's existing Designsystemet setup. Do not add a second theme, CSS bundle or build step.
+- Do not edit vendored or generated Designsystemet CSS during an ordinary fix.
 - Do not upgrade packages, regenerate the theme or add the design system's JavaScript layer during an ordinary visual fix.
 
 ## Look it up
 
-Match each loaded package's version; CSS, web, React and theme packages are versioned separately. Read component `overview`, `code` and `accessibility` pages and relevant [patterns](https://designsystemet.no/no/patterns). Example:
+Match the loaded version. Read component `overview`, `code` and `accessibility` pages,
+relevant [patterns](https://designsystemet.no/no/patterns) and [tokens](https://designsystemet.no/no/fundamentals/theme/variables). Example:
 
 ```sh
 curl -H 'Accept: text/markdown' 'https://designsystemet.no/no/components/docs/button/overview'
 ```
 
-Look up [tokens](https://designsystemet.no/no/fundamentals/theme/variables) rather than guessing. If current docs do not match, use [source and changelogs](https://github.com/digdir/designsystemet) at the matching tag or installed packages when offline.
+If current docs do not match, use [source and changelogs](https://github.com/digdir/designsystemet) at the matching tag or installed packages when offline.
 
-CSS provides styling, not keyboard behavior, ARIA wiring or focus management. Check required elements and direct children. React `asChild` needs one child that passes through received props and forwards its ref.
+This repository uses server-rendered Thymeleaf templates. CSS provides styling, not keyboard behavior, ARIA wiring or focus management. Check the native HTML, required direct children and any JavaScript separately. `data-size` and `data-color` can affect descendants, so set them on the smallest intended element.
 
 ## Accessibility and layout
 
