@@ -50,7 +50,7 @@ class CredentialIssuerMetadataServiceTest {
                 () -> assertFalse(claims.getIssueTime().toInstant().isBefore(beforeSigning.minusSeconds(1))),
                 () -> assertFalse(claims.getIssueTime().toInstant().isAfter(Instant.now().plusSeconds(1))),
                 () -> assertEquals(
-                        Duration.ofDays(1),
+                        Duration.ofMinutes(5),
                         Duration.between(claims.getIssueTime().toInstant(), claims.getExpirationTime().toInstant())));
     }
 

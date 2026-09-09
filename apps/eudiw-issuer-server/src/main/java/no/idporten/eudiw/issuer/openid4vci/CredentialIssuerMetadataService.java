@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
@@ -49,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CredentialIssuerMetadataService {
     private static final JOSEObjectType METADATA_JWT_TYPE = new JOSEObjectType("openidvci-issuer-metadata+jwt");
-    private static final Duration METADATA_VALIDITY = Duration.ofDays(1);
+    private static final Duration METADATA_VALIDITY = Duration.ofMinutes(5);
 
     private final Logger log = LoggerFactory.getLogger(CredentialIssuerMetadataService.class);
 
@@ -87,15 +86,14 @@ public class CredentialIssuerMetadataService {
     }
 
     public String getSignedCredentialIssuerMetadata(String tenant) {
-        String normalizedTenant = credentialIssuerTenantService.normalizeTenant(tenant);
-        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(normalizedTenant);
-        CredentialIssuerMetadata credentialIssuerMetadata = getCredentialIssuerMetadata(normalizedTenant);
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
+        CredentialIssuerMetadata credentialIssuerMetadata = getCredentialIssuerMetadata(tenant);
 
         return signCredentialIssuerMetadata(credentialIssuerMetadata, credentialIssuerTenant);
     }
 
     private String signCredentialIssuerMetadata(CredentialIssuerMetadata credentialIssuerMetadata, CredentialIssuerTenant tenant) {
-        if (!StringUtils.hasText(tenant.getMetadataSigningKeystore())) {
+        if (!tenant.canSignCredentialIssuerMetadata()) {
             throw new IssuerServerException(
                     ErrorCode.NOT_ACCEPTABLE,
                     "Signed credential issuer metadata is not available for this tenant");
