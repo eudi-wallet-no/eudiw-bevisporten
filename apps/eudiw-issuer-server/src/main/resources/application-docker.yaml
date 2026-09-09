@@ -88,6 +88,7 @@ credential-issuer-server:
     minid:
       display-names:
         "no": "MinID bevisutsteder"
+      metadata-signing-keystore: minid-access-keystore
       credential-configuration-sources-properties:
         - local:
             paths:
@@ -113,9 +114,9 @@ idporten-key-manager:
       key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: eaa-issuer
       key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
-    metadata-signing-keystore:
+    minid-access-keystore:
       key-store-type: pkcs12
-      key-store-location: ${EAA_PROVIDER_KEYSTORE_LOCATION}
-      key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
-      key-alias: eaa-issuer
-      key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
+      key-store-location: ${MINID_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: minid-access
+      key-password: ${MINID_ACCESS_KEYSTORE_KEY_PASSWORD}
