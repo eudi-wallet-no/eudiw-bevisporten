@@ -665,6 +665,12 @@ function submitCustomClaim() {
   }
 
   const isImage = imageClaims.isImageClaim(path);
+  if (isImage && selectedType !== 'string') {
+    if (typeSelect) typeSelect.value = 'string';
+    renderCustomClaimValueEditor('string');
+    showCustomClaimError(errorDiv, 'Bilete-claims kan berre ha typen "Enkel verdi"');
+    return;
+  }
   const type = isImage ? 'binary' : selectedType;
   let exampleValue;
 
