@@ -113,3 +113,9 @@ idporten-key-manager:
       key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: eaa-issuer
       key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    metadata-signing-keystore:
+      key-store-type: pkcs12
+      key-store-location: ${EAA_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: eaa-issuer
+      key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}

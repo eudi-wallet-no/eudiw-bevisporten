@@ -30,6 +30,8 @@ public class CredentialIssuerTenant {
      */
     private URI credentialIssuer;
 
+    private String metadataSigningKeystore;
+
     /**
      * The display names used in metadata for this credential issuer tenant.
      */
