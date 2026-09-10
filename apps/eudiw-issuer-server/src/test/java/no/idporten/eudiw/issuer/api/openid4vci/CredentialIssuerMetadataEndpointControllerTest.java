@@ -132,30 +132,31 @@ public class CredentialIssuerMetadataEndpointControllerTest {
     @DisplayName("when requesting credential metadata content")
     class CredentialMetadataContent {
 
-    @DisplayName("then credential configurations metadata is created from issuer server, credentials configuration and claims sources config ")
-    @Test
-    void testCredentialConfigurationsSupportedBuiltFromApplicationConfiguration() throws Exception {
-        mockMvc.perform(get("/.well-known/openid-credential-issuer"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
-                .andExpect(jsonPath("$.credential_configurations_supported").exists())
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']").exists())
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['doctype']").value("junitdoc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['vct']").doesNotExist())
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['scope']").value("eudiw:junit"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['format']").value("mso_mdoc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_signing_alg_values_supported'][0]").value(-7))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['name']").value("Junit doc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['description']").value("Kun for junit-tester"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['background_color']").value("#afcee9"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['text_color']").value("#002c54"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['claims'][0]['path'][0]").value("junitdoc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['claims'][0]['path'][1]").value("attr1"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']").exists())
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['doctype']").doesNotExist())
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['vct']").value("junitdoc"))
-                .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['credential_signing_alg_values_supported'][0]").value("ES256"));
+        @DisplayName("then credential configurations metadata is created from issuer server, credentials configuration and claims sources config ")
+        @Test
+        void testCredentialConfigurationsSupportedBuiltFromApplicationConfiguration() throws Exception {
+            mockMvc.perform(get("/.well-known/openid-credential-issuer"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.credential_configurations_supported").exists())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']").exists())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['doctype']").value("junitdoc"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['vct']").doesNotExist())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['scope']").value("eudiw:junit"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['format']").value("mso_mdoc"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['cryptographic_binding_methods_supported'][0]").value("jwk"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_signing_alg_values_supported'][0]").value(-7))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['name']").value("Junit doc"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['description']").value("Kun for junit-tester"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['background_color']").value("#afcee9"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['display'][0]['text_color']").value("#002c54"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['claims'][0]['path'][0]").value("junitdoc"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['credential_metadata']['claims'][0]['path'][1]").value("attr1"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']").exists())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['doctype']").doesNotExist())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['vct']").value("junitdoc"))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['credential_signing_alg_values_supported'][0]").value("ES256"));
+        }
     }
 
 }
