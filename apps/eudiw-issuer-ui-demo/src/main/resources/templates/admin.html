@@ -34,15 +34,9 @@
                         <a class="ds-button"
                            data-size="sm"
                            data-variant="tertiary"
-                           th:href="@{/edit-credential/{id}(id=${c.credentialType()})}">
-                            Rediger
-                        </a>
-                        <a class="ds-button"
-                           data-size="sm"
-                           data-variant="tertiary"
-                           th:href="@{/edit-credential-new/{id}(id=${c.credentialType()})}"
+                           th:href="@{/admin/edit-credential-new/{credential_type}(credential_type=${c.credentialType()})}"
                            th:if="${allowBevisTyperV2}">
-                            Rediger 2.0
+                            Rediger
                         </a>
                     </div>
                 </td>
@@ -55,16 +49,9 @@
            data-color="neutral"
            data-variant="primary"
            data-size="lg"
-           th:href="@{/add-credential}">
-            + Legg til
-        </a>
-        <a class="ds-button"
-           data-color="neutral"
-           data-variant="primary"
-           data-size="lg"
-           th:href="@{/add-credential-new}"
+           th:href="@{/admin/add-credential-new}"
            th:if="${allowBevisTyperV2}">
-            + Legg til 2.0
+            + Legg til
         </a>
     </div>
 

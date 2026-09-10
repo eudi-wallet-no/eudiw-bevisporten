@@ -6,3 +6,6 @@ Read these docs before starting work to understand the system, roles, and archit
 
 See individual app directories in `apps/` for app-specific documentation.
 
+## Frontend
+
+- [Designsystemet](./designsystem.md) - UI setup and layout rules.

@@ -29,7 +29,7 @@ eudiw-idporten-login:
   oidc-sdk:
     issuer: http://eudiw-idporten-login:9283/
     clients:
-      - client-id: testclient
+      - client-id: ${TESTCLIENT_CLIENT_ID}
         client-secret: ${TESTCLIENT_CLIENT_SECRET}
         scopes:
           - openid

@@ -76,7 +76,7 @@ class AdminControllerFormBindingTest {
         // Uses the edit endpoint (EditForm validation group) rather than add-credential-new,
         // since the create-path also validates @UniqueCredentialType, which needs a
         // Spring-managed ConstraintValidatorFactory not available under standaloneSetup.
-        mockMvc.perform(post("/edit-credential-new/studentbevis")
+        mockMvc.perform(post("/admin/edit-credential-new/studentbevis")
                         .param("credentialType", "studentbevis")
                         .param("format", "dc+sd-jwt")
                         .param("scope", "eudiw:eidas2sandkasse:dynamicvc")

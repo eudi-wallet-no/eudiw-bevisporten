@@ -20,7 +20,7 @@ eudiw-idporten-login:
   oidc-sdk:
     issuer: https://idporten-login.test.eidas2sandkasse.net/
     clients:
-      - client-id: idporten
+      - client-id: ${IDPORTEN_CLIENT_ID}
         client-secret: ${IDPORTEN_CLIENT_SECRET}
         scopes:
           - openid
@@ -28,7 +28,7 @@ eudiw-idporten-login:
           - https://login.test.idporten.no/authorize/callback/eudiw
           - https://login.test.idporten.no/authorize/callback/eudiw-eu
           - https://login.test.idporten.no/authorize/callback/eudiw-no
-      - client-id: idporten-local
+      - client-id: ${IDPORTEN_LOCAL_CLIENT_ID}
         client-secret: ${IDPORTEN_LOCAL_CLIENT_SECRET}
         scopes:
           - openid

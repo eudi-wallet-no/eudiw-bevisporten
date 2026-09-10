@@ -7,6 +7,7 @@ import no.idporten.eudiw.issuer.authoritativesources.AuthoritativeSourceIOExcept
 import no.idporten.eudiw.issuer.claimssource.exception.CredentialRequestDeniedException;
 import no.idporten.eudiw.issuer.openid4vci.proofs.InvalidProof;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -56,6 +57,7 @@ public class ExceptionControllerAdvice {
         log.error(issuerServerException.getLogMessage() != null ? issuerServerException.getLogMessage() : "Failed to process request", issuerServerException);
         return ResponseEntity
                 .status(issuerServerException.getHttpStatus())
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse(issuerServerException.getError(), issuerServerException.getErrorDescription()));
     }
 

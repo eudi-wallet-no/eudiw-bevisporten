@@ -5,7 +5,7 @@ spring:
 
 bevisgenerator:
   features:
-    allow-bevistyper-v2: false
+    allow-bevistyper-v2: true
     revocation-v2-rich-result: true
   byob-service:
     base-url: https://byob-service.test.eidas2sandkasse.net

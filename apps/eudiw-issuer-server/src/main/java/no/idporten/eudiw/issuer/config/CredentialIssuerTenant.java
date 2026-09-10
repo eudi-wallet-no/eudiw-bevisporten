@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ public class CredentialIssuerTenant {
      * The credential issuer uri for this credential issuer tenant.
      */
     private URI credentialIssuer;
+
+    private String metadataSigningKeystore;
 
     /**
      * The display names used in metadata for this credential issuer tenant.
@@ -66,6 +69,10 @@ public class CredentialIssuerTenant {
 
     public boolean isRootCredentialIssuer() {
         return CredentialIssuerTenantService.ROOT_TENANT_ID.equals(id);
+    }
+
+    public boolean canSignCredentialIssuerMetadata() {
+        return StringUtils.hasText(metadataSigningKeystore);
     }
 
 }

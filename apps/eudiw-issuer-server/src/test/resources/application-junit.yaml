@@ -36,6 +36,7 @@ credential-issuer-server:
     - jwk
   tenants:
     root:
+      metadata-signing-keystore: eaa-provider
       display-names:
         "no": Root Tenant
       credential-configuration-sources-properties:

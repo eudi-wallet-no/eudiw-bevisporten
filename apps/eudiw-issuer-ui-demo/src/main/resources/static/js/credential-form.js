@@ -28,6 +28,68 @@ const state = {
 };
 
 // ---------------------------------------------------------------------------
+// Claim value shapes
+// ---------------------------------------------------------------------------
+// claim.exampleValue shape depends on claim.type:
+//   'string' / 'binary' -> string
+//   'list'               -> string[]
+//   'map'                -> { key: string, value: string }[] (ordered pairs,
+//                            so duplicate/blank keys can be edited safely
+//                            before being collapsed to an object on save)
+
+function defaultExampleValue(type) {
+  if (type === 'list') return [''];
+  if (type === 'map') return [{ key: '', value: '' }];
+  return '';
+}
+
+// Coerces a raw example_credential_data value (as read from JSON) into the
+// internal shape for the given claim type, so list/map claims keep their
+// real array/object structure instead of being flattened to text.
+function normalizeExampleValue(type, rawValue) {
+  if (type === 'list') {
+    if (Array.isArray(rawValue)) {
+      const items = rawValue.map(v => (v === undefined || v === null ? '' : String(v)));
+      return items.length ? items : defaultExampleValue(type);
+    }
+    return defaultExampleValue(type);
+  }
+  if (type === 'map') {
+    if (rawValue && typeof rawValue === 'object' && !Array.isArray(rawValue)) {
+      const pairs = Object.entries(rawValue).map(([key, value]) => ({
+        key,
+        value: value === undefined || value === null ? '' : String(value)
+      }));
+      return pairs.length ? pairs : defaultExampleValue(type);
+    }
+    return defaultExampleValue(type);
+  }
+  // string / binary
+  if (rawValue === undefined || rawValue === null) return '';
+  return typeof rawValue === 'string' ? rawValue : String(rawValue);
+}
+
+// Coerces a claim's internal exampleValue back into a real JSON value
+// (array/object) for example_credential_data, instead of a stringified
+// approximation. Blank list items and pairs without a key are dropped.
+function serializeExampleValue(claim) {
+  if (claim.type === 'list') {
+    const items = Array.isArray(claim.exampleValue) ? claim.exampleValue : [];
+    return items.map(v => (v ?? '').toString()).filter(v => v.trim() !== '');
+  }
+  if (claim.type === 'map') {
+    const pairs = Array.isArray(claim.exampleValue) ? claim.exampleValue : [];
+    const obj = Object.create(null);
+    pairs.forEach(pair => {
+      const key = (pair.key || '').trim();
+      if (key) obj[key] = (pair.value ?? '').toString();
+    });
+    return obj;
+  }
+  return claim.exampleValue ?? '';
+}
+
+// ---------------------------------------------------------------------------
 // Initialise
 // ---------------------------------------------------------------------------
 let initialState = null;
@@ -106,6 +168,7 @@ function populateStateFromJson(json) {
   state.claims = rawClaims.map(c => {
     const path = c.path || '';
     const isImage = imageClaims.isImageClaim(path);
+    const type = isImage ? 'binary' : c.type || 'string';
     return {
       path,
       displayName: c.display?.[0]?.name || path,
@@ -113,9 +176,12 @@ function populateStateFromJson(json) {
       // Further display entries for this claim (other locales), preserved
       // as-is so switching to schema mode and back doesn't drop them.
       extraDisplays: (c.display || []).slice(1),
-      type: isImage ? 'binary' : c.type || 'string',
+      type,
       mimeType: isImage ? imageClaims.mimeType(c.mime_type) : c.mime_type || null,
-      exampleValue: exampleData[path] !== undefined ? String(exampleData[path]) : '',
+      // list/map claims keep their real array/object shape (see
+      // normalizeExampleValue) instead of being stringified, which
+      // previously corrupted them as soon as the schema editor loaded them.
+      exampleValue: normalizeExampleValue(type, exampleData[path]),
       presetKey: detectPresetKey(c)
     };
   });
@@ -315,9 +381,9 @@ function schemaToJson() {
 
   const exampleData = {};
   validClaims.forEach(c => {
-    if (c.exampleValue !== undefined && c.exampleValue !== null) {
-      exampleData[c.path] = c.exampleValue;
-    }
+    // list/map claims are serialised to real arrays/objects (not strings),
+    // so example_credential_data always reflects the actual claim shape.
+    exampleData[c.path] = serializeExampleValue(c);
   });
 
   const out = {
@@ -510,19 +576,47 @@ function syncPresetButtons() {
 // Custom claim modal
 // ---------------------------------------------------------------------------
 let customClaimModalTrigger = null;
+// Draft claim used while the modal is open for list/map types; the dedicated
+// value editor mutates this in place, mirroring how claim rows work.
+let customClaimDraft = null;
+
+function renderCustomClaimValueEditor(type) {
+  const simpleField = document.getElementById('custom-claim-value-field');
+  const editorField = document.getElementById('custom-claim-value-editor-field');
+  const editorContainer = document.getElementById('custom-claim-value-editor');
+  if (!simpleField || !editorField || !editorContainer) return;
+
+  if (type === 'list' || type === 'map') {
+    simpleField.hidden = true;
+    editorField.hidden = false;
+    customClaimDraft = { type, exampleValue: defaultExampleValue(type) };
+    editorContainer.innerHTML = '';
+    editorContainer.appendChild(createValueEditor(customClaimDraft, {
+      ariaLabelPrefix: 'Eige claim',
+      onChange: () => {}
+    }));
+  } else {
+    simpleField.hidden = false;
+    editorField.hidden = true;
+    customClaimDraft = null;
+  }
+}
 
 function openCustomClaimModal() {
   const modal = document.getElementById('custom-claim-modal');
   const nameInput = document.getElementById('custom-claim-name');
   const valueInput = document.getElementById('custom-claim-value');
+  const typeSelect = document.getElementById('custom-claim-type');
   const errorDiv = document.getElementById('custom-claim-error');
 
   if (modal && nameInput && valueInput && errorDiv) {
     // Store reference to the button that opened the modal
     customClaimModalTrigger = document.activeElement;
-    
+
     nameInput.value = '';
     valueInput.value = '';
+    if (typeSelect) typeSelect.value = 'string';
+    renderCustomClaimValueEditor('string');
     errorDiv.hidden = true;
     modal.showModal();
     nameInput.focus();
@@ -543,12 +637,13 @@ function closeCustomClaimModal() {
 function submitCustomClaim() {
   const nameInput = document.getElementById('custom-claim-name');
   const valueInput = document.getElementById('custom-claim-value');
+  const typeSelect = document.getElementById('custom-claim-type');
   const errorDiv = document.getElementById('custom-claim-error');
 
   if (!nameInput || !valueInput || !errorDiv) return;
 
   const name = nameInput.value.trim();
-  const value = valueInput.value.trim();
+  const selectedType = typeSelect ? typeSelect.value : 'string';
 
   if (!name) {
     showCustomClaimError(errorDiv, 'Namn på claim er påkravd');
@@ -569,14 +664,42 @@ function submitCustomClaim() {
     return;
   }
 
-  // Add the claim
   const isImage = imageClaims.isImageClaim(path);
+  if (isImage && selectedType !== 'string') {
+    if (typeSelect) typeSelect.value = 'string';
+    renderCustomClaimValueEditor('string');
+    showCustomClaimError(errorDiv, 'Bilete-claims kan berre ha typen "Enkel verdi"');
+    return;
+  }
+  const type = isImage ? 'binary' : selectedType;
+  let exampleValue;
+
+  if (type === 'list') {
+    const items = (customClaimDraft?.exampleValue || []).filter(v => v && v.trim() !== '');
+    if (!items.length) {
+      showCustomClaimError(errorDiv, 'Lista må innehalde minst eitt element');
+      return;
+    }
+    exampleValue = items;
+  } else if (type === 'map') {
+    const pairs = (customClaimDraft?.exampleValue || []).filter(p => p.key && p.key.trim() !== '');
+    if (!pairs.length) {
+      showCustomClaimError(errorDiv, 'Map må innehalde minst eitt nøkkel/verdi-par');
+      return;
+    }
+    exampleValue = pairs;
+  } else {
+    const value = valueInput.value.trim();
+    exampleValue = value;
+  }
+
+  // Add the claim
   state.claims.push({
     path,
     displayName: name,
-    type: isImage ? 'binary' : 'string',
+    type,
     mimeType: isImage ? 'image/png' : null,
-    exampleValue: value,
+    exampleValue,
     presetKey: null
   });
 
@@ -603,6 +726,157 @@ function renderClaims() {
   state.claims.forEach((claim, i) => {
     container.appendChild(buildClaimRow(claim, i));
   });
+}
+
+// ---------------------------------------------------------------------------
+// Dedicated editor for list ("+ element") and map ("nøkkel/verdi-par")
+// claim values. Mutates claim.exampleValue in place and reports back via
+// onChange so callers can decide whether a full re-render is needed
+// (structural: add/remove) or a lightweight preview update is enough
+// (a single field's text changed).
+// ---------------------------------------------------------------------------
+function createValueEditor(claim, { ariaLabelPrefix, onChange }) {
+  const container = document.createElement('div');
+  container.className = 'claim-value-editor';
+
+  function renderInner() {
+    container.innerHTML = '';
+    if (claim.type === 'list') renderListEditor();
+    else if (claim.type === 'map') renderMapEditor();
+  }
+
+  function renderListEditor() {
+    if (!Array.isArray(claim.exampleValue) || claim.exampleValue.length === 0) {
+      claim.exampleValue = defaultExampleValue('list');
+    }
+
+    const list = document.createElement('div');
+    list.className = 'claim-list-editor';
+
+    claim.exampleValue.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'claim-list-editor__row';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'ds-input';
+      input.value = item;
+      input.placeholder = 'Verdi';
+      input.setAttribute('aria-label', `${ariaLabelPrefix} – element ${idx + 1}`);
+      input.addEventListener('input', () => {
+        claim.exampleValue[idx] = input.value;
+        onChange({ structural: false });
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'ds-button claim-remove-btn';
+      removeBtn.setAttribute('data-color', 'danger');
+      removeBtn.setAttribute('data-variant', 'tertiary');
+      removeBtn.setAttribute('aria-label', `Fjern element ${idx + 1} frå ${ariaLabelPrefix}`);
+      removeBtn.textContent = '✕';
+      removeBtn.addEventListener('click', () => {
+        claim.exampleValue.splice(idx, 1);
+        if (claim.exampleValue.length === 0) claim.exampleValue.push('');
+        renderInner();
+        onChange({ structural: true });
+      });
+
+      row.appendChild(input);
+      row.appendChild(removeBtn);
+      list.appendChild(row);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'ds-button claim-list-editor__add';
+    addBtn.setAttribute('data-variant', 'secondary');
+    addBtn.setAttribute('data-size', 'sm');
+    addBtn.setAttribute('aria-label', `Legg til element i ${ariaLabelPrefix}`);
+    addBtn.textContent = '+ Legg til element';
+    addBtn.addEventListener('click', () => {
+      claim.exampleValue.push('');
+      renderInner();
+      onChange({ structural: true });
+    });
+
+    container.appendChild(list);
+    container.appendChild(addBtn);
+  }
+
+  function renderMapEditor() {
+    if (!Array.isArray(claim.exampleValue) || claim.exampleValue.length === 0) {
+      claim.exampleValue = defaultExampleValue('map');
+    }
+
+    const list = document.createElement('div');
+    list.className = 'claim-map-editor';
+
+    claim.exampleValue.forEach((pair, idx) => {
+      const row = document.createElement('div');
+      row.className = 'claim-map-editor__row';
+
+      const keyInput = document.createElement('input');
+      keyInput.type = 'text';
+      keyInput.className = 'ds-input';
+      keyInput.value = pair.key;
+      keyInput.placeholder = 'Nøkkel';
+      keyInput.setAttribute('aria-label', `${ariaLabelPrefix} – nøkkel ${idx + 1}`);
+      keyInput.addEventListener('input', () => {
+        pair.key = keyInput.value;
+        onChange({ structural: false });
+      });
+
+      const valueInput = document.createElement('input');
+      valueInput.type = 'text';
+      valueInput.className = 'ds-input';
+      valueInput.value = pair.value;
+      valueInput.placeholder = 'Verdi';
+      valueInput.setAttribute('aria-label', `${ariaLabelPrefix} – verdi ${idx + 1}`);
+      valueInput.addEventListener('input', () => {
+        pair.value = valueInput.value;
+        onChange({ structural: false });
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'ds-button claim-remove-btn';
+      removeBtn.setAttribute('data-color', 'danger');
+      removeBtn.setAttribute('data-variant', 'tertiary');
+      removeBtn.setAttribute('aria-label', `Fjern par ${idx + 1} frå ${ariaLabelPrefix}`);
+      removeBtn.textContent = '✕';
+      removeBtn.addEventListener('click', () => {
+        claim.exampleValue.splice(idx, 1);
+        if (claim.exampleValue.length === 0) claim.exampleValue.push({ key: '', value: '' });
+        renderInner();
+        onChange({ structural: true });
+      });
+
+      row.appendChild(keyInput);
+      row.appendChild(valueInput);
+      row.appendChild(removeBtn);
+      list.appendChild(row);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'ds-button claim-map-editor__add';
+    addBtn.setAttribute('data-variant', 'secondary');
+    addBtn.setAttribute('data-size', 'sm');
+    addBtn.setAttribute('aria-label', `Legg til nøkkel/verdi-par i ${ariaLabelPrefix}`);
+    addBtn.textContent = '+ Legg til nøkkel/verdi-par';
+    addBtn.addEventListener('click', () => {
+      claim.exampleValue.push({ key: '', value: '' });
+      renderInner();
+      onChange({ structural: true });
+    });
+
+    container.appendChild(list);
+    container.appendChild(addBtn);
+  }
+
+  renderInner();
+  return container;
 }
 
 function buildClaimRow(claim, i) {
@@ -635,48 +909,82 @@ function buildClaimRow(claim, i) {
   mimeHidden.name = `claims[${i}].mimeType`;
   mimeHidden.value = claim.mimeType || '';
 
-  const exampleInput = document.createElement('input');
-  exampleInput.className = 'ds-input claim-preset-example';
-  exampleInput.type = 'text';
-  exampleInput.name = `claims[${i}].exampleValue`;
-  exampleInput.value = claim.exampleValue || '';
-  exampleInput.placeholder = 'Dømeverdi';
-  exampleInput.setAttribute('aria-label', `Dømeverdi for ${claim.displayName || claim.path}`);
-  exampleInput.addEventListener('input', () => {
-    state.claims[i].exampleValue = exampleInput.value;
-    schedulePreviewUpdate();
-  });
+  let exampleInputContainer;
 
-  let exampleInputContainer = exampleInput;
+  if (claim.type === 'list' || claim.type === 'map') {
+    div.classList.add('claim--complex');
 
-  // For binary claims (images), add an upload button
-  if (imageClaims.isImageClaim(claim.path)) {
+    // The real claims[i].exampleValue submitted to Spring is only used for
+    // bean validation (rawJson always takes precedence in AdminController),
+    // so a JSON string is enough here to satisfy the "not blank" check
+    // while the dedicated editor below manages the real array/object value.
+    const exampleHidden = document.createElement('input');
+    exampleHidden.type = 'hidden';
+    exampleHidden.name = `claims[${i}].exampleValue`;
+    exampleHidden.value = JSON.stringify(claim.exampleValue ?? defaultExampleValue(claim.type));
+
+    const editor = createValueEditor(claim, {
+      ariaLabelPrefix: claim.displayName || claim.path,
+      onChange: ({ structural }) => {
+        exampleHidden.value = JSON.stringify(claim.exampleValue);
+        if (structural) {
+          renderClaims();
+          renderPreview();
+          syncJsonTextarea();
+        } else {
+          schedulePreviewUpdate();
+        }
+      }
+    });
+
     const wrapper = document.createElement('div');
-    wrapper.className = 'claim-preset-example-wrapper';
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
-    fileInput.addEventListener('change', (e) => {
-      handleImageUpload(e, exampleInput, i);
-    });
-
-    const uploadBtn = document.createElement('button');
-    uploadBtn.type = 'button';
-    uploadBtn.className = 'ds-button';
-    uploadBtn.setAttribute('data-variant', 'secondary');
-    uploadBtn.setAttribute('aria-label', `Last opp bilete for ${claim.displayName || claim.path}`);
-    uploadBtn.textContent = 'Last opp bilete';
-    uploadBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      fileInput.click();
-    });
-
-    wrapper.appendChild(uploadBtn);
-    wrapper.appendChild(fileInput);
-    wrapper.appendChild(exampleInput);  // Hidden input for form submission
+    wrapper.appendChild(exampleHidden);
+    wrapper.appendChild(editor);
     exampleInputContainer = wrapper;
+  } else {
+    const exampleInput = document.createElement('input');
+    exampleInput.className = 'ds-input claim-preset-example';
+    exampleInput.type = 'text';
+    exampleInput.name = `claims[${i}].exampleValue`;
+    exampleInput.value = claim.exampleValue || '';
+    exampleInput.placeholder = 'Dømeverdi';
+    exampleInput.setAttribute('aria-label', `Dømeverdi for ${claim.displayName || claim.path}`);
+    exampleInput.addEventListener('input', () => {
+      state.claims[i].exampleValue = exampleInput.value;
+      schedulePreviewUpdate();
+    });
+
+    exampleInputContainer = exampleInput;
+
+    // For binary claims (images), add an upload button
+    if (imageClaims.isImageClaim(claim.path)) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'claim-preset-example-wrapper';
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+      fileInput.addEventListener('change', (e) => {
+        handleImageUpload(e, exampleInput, i);
+      });
+
+      const uploadBtn = document.createElement('button');
+      uploadBtn.type = 'button';
+      uploadBtn.className = 'ds-button';
+      uploadBtn.setAttribute('data-variant', 'secondary');
+      uploadBtn.setAttribute('aria-label', `Last opp bilete for ${claim.displayName || claim.path}`);
+      uploadBtn.textContent = 'Last opp bilete';
+      uploadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        fileInput.click();
+      });
+
+      wrapper.appendChild(uploadBtn);
+      wrapper.appendChild(fileInput);
+      wrapper.appendChild(exampleInput);  // Hidden input for form submission
+      exampleInputContainer = wrapper;
+    }
   }
 
   const removeBtn = document.createElement('button');
@@ -776,6 +1084,19 @@ function schedulePreviewUpdate() {
   }, PREVIEW_DEBOUNCE_MS);
 }
 
+function formatPreviewValue(claim) {
+  if (claim.type === 'binary') return '[binærdata]';
+  if (claim.type === 'list') {
+    const items = (Array.isArray(claim.exampleValue) ? claim.exampleValue : []).filter(v => v && v.trim() !== '');
+    return items.length ? items.join(', ') : '—';
+  }
+  if (claim.type === 'map') {
+    const pairs = (Array.isArray(claim.exampleValue) ? claim.exampleValue : []).filter(p => p.key && p.key.trim() !== '');
+    return pairs.length ? pairs.map(p => `${p.key}: ${p.value}`).join(', ') : '—';
+  }
+  return claim.exampleValue || '—';
+}
+
 function renderPreview() {
   const panel = document.getElementById('preview-panel');
   if (!panel) return;
@@ -817,7 +1138,7 @@ function renderPreview() {
     const val = document.createElement('span');
     val.className = 'preview-value';
     val.spellcheck = false;
-    val.textContent = claim.type === 'binary' ? '[binærdata]' : (claim.exampleValue || '—');
+    val.textContent = formatPreviewValue(claim);
 
     row.appendChild(label);
     row.appendChild(val);

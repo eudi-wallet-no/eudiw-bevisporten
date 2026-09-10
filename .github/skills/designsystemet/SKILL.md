@@ -1,73 +1,43 @@
 ---
 name: designsystem
-description: "Build and polish UI with Digitaliseringsdirektoratet's Designsystemet. Use its components and tokens over custom code, look details up in the official docs, and meet WCAG 2.2 AA. Use for anything visual."
+description: "Build and change UI with Designsystemet components, tokens and version-matched documentation. Follow WCAG 2.2 AA."
 license: Digitaliseringsdirektoratet
 ---
 
 # Designsystemet
 
-All UI follows [Designsystemet](https://designsystemet.no) — the default contract, not a suggestion. On a surface that deliberately uses another design language, preserve that direction and apply the accessibility rules below; never add the dependency as part of an ordinary fix.
+Use [Designsystemet](https://designsystemet.no). If a surface deliberately uses another design system, preserve it and apply the accessibility rules below; do not add Designsystemet during an ordinary fix.
 
-Look details up against the version this app loads, never from memory: component structure, roles, tokens and patterns all live in the sources below.
+Before frontend work here, read the repository-specific setup in [`docs/designsystem.md`](../../../docs/designsystem.md).
 
-## 1. Use Designsystemet, avoid custom
+## Rules
 
-- Build UI from Designsystemet components and tokens. Custom markup or CSS is the last resort and needs a product-specific reason.
-- Take the highest rung that fits: repair the existing component → reuse a shared local composition → use a documented component for the role → compose primitives with theme tokens → build custom.
-- Fix markup before adding CSS: an override must never compensate for the wrong component, variant, child structure or missing behaviour layer.
-- Use semantic tokens by purpose, never by whichever value looks closest. Do not invent tokens.
-- Never upgrade packages, regenerate the theme or add the JavaScript layer as part of an ordinary visual fix.
+- Repair or reuse existing components before creating new ones.
+- Use documented components and semantic tokens for their intended purpose. Do not invent tokens. Custom markup or CSS requires a concrete product reason.
+- Fix markup, variants and structure before adding CSS.
+- Keep each app's existing Designsystemet setup. Do not add a second theme, CSS bundle or build step.
+- Do not edit vendored or generated Designsystemet CSS during an ordinary fix.
+- Do not upgrade packages, regenerate the theme or add the design system's JavaScript layer during an ordinary visual fix.
 
-## 2. Look it up
+## Look it up
 
-designsystemet.no serves agent-readable Markdown:
+Match the loaded version. Read component `overview`, `code` and `accessibility` pages,
+relevant [patterns](https://designsystemet.no/no/patterns) and [tokens](https://designsystemet.no/no/fundamentals/theme/variables). Example:
 
 ```sh
-curl -H 'Accept: text/markdown' https://designsystemet.no/no/components/docs/button/overview
+curl -H 'Accept: text/markdown' 'https://designsystemet.no/no/components/docs/button/overview'
 ```
 
-| Need | Source |
-| --- | --- |
-| Which component for this role, and when to avoid it | `/no/components/docs/<component>/overview` |
-| Required markup, props, `data-*`, variants, states | `/no/components/docs/<component>/code` |
-| Accessible name, roles, keyboard behaviour | `/no/components/docs/<component>/accessibility` |
-| Token names and values | [Design tokens](https://designsystemet.no/no/fundamentals/theme/variables) |
-| Validation, button placement, system messages | [Patterns](https://designsystemet.no/no/patterns), [Best practices](https://designsystemet.no/no/best-practices) |
-| Rendered variants and states | [Storybook](https://storybook.designsystemet.no) |
-| Undocumented behaviour, which components need the JS layer, migration history | [Source](https://github.com/digdir/designsystemet) at the matching tag: `packages/*/src`, `packages/*/CHANGELOG.md` |
+If current docs do not match, use [source and changelogs](https://github.com/digdir/designsystemet) at the matching tag or installed packages when offline.
 
-Read Overview, Code and Accessibility for every component you touch, plus the relevant Pattern for a flow.
+This repository uses server-rendered Thymeleaf templates. CSS provides styling, not keyboard behavior, ARIA wiring or focus management. Check the native HTML, required direct children and any JavaScript separately. `data-size` and `data-color` can affect descendants, so set them on the smallest intended element.
 
-**Match the pinned version.** The packages (`@digdir/designsystemet-css`, `@digdir/designsystemet-web`, `@digdir/designsystemet-react`, `@digdir/designsystemet-theme`) are versioned independently and do drift; read each `CHANGELOG.md`, and never apply `main` docs to an older pin. Offline, read the installed package under `node_modules` and the loaded stylesheet, and record which checks you could not run.
+## Accessibility and layout
 
-Three traps the docs will not warn you about:
-
-- **A class name is not proof.** Selectors depend on direct children, `:has()` and exact tags, so an extra wrapper silently breaks spacing, delegation or state styles. Verify the rendered DOM.
-- **CSS, web and React are separate contracts.** CSS styles only; interaction, ARIA wiring and focus come from the `@digdir/designsystemet-web` custom elements or React. Never claim CSS classes provide behaviour. In React, `asChild` takes one child that must spread received props and forward its ref, or handlers and refs drop silently.
-- **A token name does not guarantee contrast.** Verify the final foreground/background pair after inheritance and state styles.
-
-## 3. Accessibility
-
-WCAG 2.2 level AA is the floor for every visual change — look criteria up in the [quickref](https://www.w3.org/WAI/WCAG22/quickref/), not from memory. Designsystemet reduces risk but proves nothing; verify with keyboard, screen reader semantics, zoom and contrast. Check every state (default, hover, focus, invalid, disabled) at mobile and desktop widths.
-
-| Never | Instead |
-| --- | --- |
-| Positive `tabindex` to fix order | Fix source order so DOM, visual and focus order align |
-| ARIA to disguise invalid structure | Real labels, headings, lists, tables and landmarks first; native controls before clickable `div` |
-| `<div>` click handlers for actions or navigation | `<button>` acts, `<a href>` navigates — whatever they look like |
-| `aria-disabled` alone | Avoid disabled actions; if unavoidable, also prevent the action in code |
-| Colour alone carrying meaning | Add text, icon or shape |
-| Invisible focus or focus traps | Full keyboard path, visible focus, logical tab order |
-
-## 4. Layout
-
-Layout rarely changes — do not redesign it as part of a fix. But leave every page you touch better than you found it.
-
-- Build pages as blocks of Designsystemet elements, separated by vertical spacing. The parent owns spacing between blocks; a block owns spacing between its children. Never stack margin and padding to patch a gap.
-- **Touch up what is cramped.** When content you read is squeezed — even if the task does not involve it — give it air: more vertical spacing between blocks that blur together, breathing room around tight groups. Spacing and rhythm only, never a new structure, and only on the surface you are already working in. The result should feel noticeably tidier, not different.
-- Favour air and short texts. Title, ingress, heading, label and action each have one job — do not repeat the same message at every level.
-- For Norwegian copy use the `norsk-klarsprak` skill; preserve the page's målform and terminology.
-
-## 5. Before you deliver
-
-Compare the rendered result against the nearest existing page — computed values, not just markup: same spacing in the same position, same rhythm, same expression. Check both states of conditional visibility (with and without data). Known traps in this stack: `[hidden]` loses to `display` on `ds-*` classes, a bare `fieldset` keeps the browser's default border, and fixed-width labels truncate long names.
+- Follow [WCAG 2.2 AA](https://www.w3.org/WAI/WCAG22/quickref/). Check accessible names, roles, keyboard access, visible focus without traps, zoom and final foreground/background contrast.
+- Check default, hover, focus, invalid and disabled states where applicable, on mobile and desktop.
+- Use native elements: `<button>` for actions and `<a href>` for navigation.
+- Use semantic structure and labels; do not use ARIA to hide invalid markup. Keep DOM, visual and focus order consistent; never use positive `tabindex`.
+- Do not use color alone to convey meaning. If using `aria-disabled`, also prevent the action in code.
+- Preserve structure and flow. Let parents control spacing between blocks and components control internal spacing.
+- Compare computed spacing and layout with the nearest existing page. Check conditional visibility with and without data and long labels. CSS `display` can override `[hidden]`; bare `fieldset` elements have browser-default borders.

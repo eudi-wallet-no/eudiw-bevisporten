@@ -1,51 +1,16 @@
 # Code Standard
 
-Code should read as a short, unsurprising sequence of steps. Optimize for the reader, not the writer.
+Keep code clear, predictable and consistent with the existing codebase. The default is simple and unsurprising.
 
-## Flow
-
-- Order work naturally: guard, fetch, validate, transform, execute or persist, return. Omit phases that do not apply.
-- Use guard clauses for invalid or terminal cases. Avoid deep nesting.
-- Separate logical phases with one blank line, also in short methods. Keep statements in the same phase together.
-- Prefer explicit branches and named methods over compact code that makes the reader reconstruct control flow.
-- When a feature toggle selects between contracts, branch on the toggle first. Do not derive API versions, paths or response handling from a boolean.
-- Extend an existing flow or endpoint before adding a parallel one. A new path needs a reason the existing one cannot serve.
-
-## Functions and data
-
-- Give each function one responsibility: perform one step or orchestrate clearly named steps.
-- Extract a helper only when its name makes the workflow easier to read.
-- When parsing or transforming structured data (JSON, XML, domain objects), extract each field or branch into a named helper method. This keeps the primary flow readable and each extraction logic self-documenting.
-- Prefer returned values over mutating inputs.
-- Keep decisions and transformations separate from I/O and state changes.
-
-## Names
-
-- Name code by business intent. Use precise verbs and the project's domain language.
-- Name booleans as predicates: `is`, `has`, `can` or `should`.
-- Name a complex condition when the name removes mental work. Keep simple conditions inline.
-- Name a method that returns a transformed copy as a conversion (`toX`, `asX`), not a mutation.
-
-## Boundaries
-
-- Controllers adapt requests and responses. Services coordinate use cases. Persistence reads and writes data.
-- Keep business rules out of transport and persistence code.
-
-## Errors
-
-- Validate early, where enough context exists to report the actual problem.
-- Fail explicitly. Do not ignore errors, hide invalid state or return success-shaped fallbacks.
-- Catch an error only to recover or add useful context.
-
-## Tests
-
-- Separate arrange, act and assert with one blank line.
-- Test observable behavior and important boundaries, not implementation shape.
-
-## Comments
-
-Code says what it does. Comment only why: a deliberate choice, an external constraint or a known gap. Delete comments that restate the code.
-
-## API documentation
-
-If the application has Swagger, document REST endpoints: `@Operation` on the endpoint, `@Schema` on the response type. Describe meaning, not names.
+- Follow the established architecture and project patterns before introducing a new one. Extend existing flows unless there is a clear reason not to.
+- Keep the main flow easy to read: guard, fetch, validate, transform, execute, return. Avoid deep nesting and hidden control flow.
+- Give each function one responsibility. Keep business rules out of transport and persistence code.
+- Name code by intent and domain language. Boolean names should read like predicates: `is`, `has`, `can`, `should`.
+- Prefer explicit behavior over clever shortcuts. Validate early, fail clearly and do not hide invalid state or return fake success.
+- Keep contracts stable. Preserve APIs, data shapes and existing behavior unless the task explicitly changes them.
+- Prefer returned values over mutation when the function is not clearly a state transition. Keep data mutations and business logic explicit.
+- Extract helpers only when the name makes the logic easier to follow; do not split code just to be abstract.
+- Write tests for observable behavior and important boundaries, not implementation details.
+- Add documentation for public behavior and API contracts. Use comments only for intent, constraints or known trade-offs.
+- Keep changes small and reviewable. Avoid unnecessary abstractions, parallel flows and new dependencies when a simpler fit exists.
+- When in doubt, favor the surrounding codebase and the least surprising design over a locally clever solution.
