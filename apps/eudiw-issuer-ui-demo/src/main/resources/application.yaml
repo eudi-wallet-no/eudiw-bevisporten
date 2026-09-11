@@ -160,6 +160,24 @@ bevisgenerator:
               "expiry_date": "2027-03-12"
             }
           }
+      - credential-configuration-id: no.skatteetaten.nnid_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
+        description: Norsk identitetsnummer
+        scope: eudiw:no:skatteetaten:nnid
+        person-identifier: 50917500484
+        json-request: |
+          {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer}",
+            "credential_configuration_id": "no.skatteetaten.nnid_mso_mdoc",
+            "subject": {
+              "identifier": "50917500484"
+            },
+            "credential_data": {
+          
+              "norwegian_national_id_number": "50917500484",
+              "norwegian_national_id_number_type": "D-nummer"
+            }
+          }
     # Bevis utstedt i Bevisporten
     subject-credential-configurations:
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc

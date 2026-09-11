@@ -73,6 +73,7 @@ credential-issuer-server:
               - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
               - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
               - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
+              - classpath:credential-configurations/skatteetaten/nnid_mso_mdoc.json
         - api:
             uri: http://byob-service:9296/v1/admin/credential-configurations
             api-key-header: X-API-KEY
