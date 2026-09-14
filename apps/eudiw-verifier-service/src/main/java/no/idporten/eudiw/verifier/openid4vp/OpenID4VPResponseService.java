@@ -191,7 +191,7 @@ public class OpenID4VPResponseService {
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
         ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
         ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verificationResult.getSdJwt()));
-        if (sdJwtStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE && trustlistStatus == ValidationStatus.VALID) {
+        if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
         }
         else {
@@ -205,12 +205,18 @@ public class OpenID4VPResponseService {
         ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(mDocService.extractCertificateFromMdoc(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
-        if(mdocStatus == ValidationStatus.VALID && trustlistStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID) {
+        if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
         } else {
             return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
         }
 
+    }
+
+    private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus) {
+        return formatSpecificStatus == ValidationStatus.VALID &&
+                (statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE) &&
+                trustlistStatus == ValidationStatus.VALID;
     }
 
 }
