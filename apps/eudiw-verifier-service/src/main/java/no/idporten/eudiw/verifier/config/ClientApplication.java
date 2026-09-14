@@ -12,4 +12,5 @@ public class ClientApplication implements Serializable {
     private String id;
     @NotBlank
     private String keystoreName;
+    private boolean disabled = false;
 }
