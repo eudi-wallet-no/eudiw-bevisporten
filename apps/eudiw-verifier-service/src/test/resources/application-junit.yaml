@@ -6,6 +6,9 @@ verifier-service:
   client-applications:
     junit:
       keystore-name: junit-access
+    junit-disabled:
+      keystore-name: junit-access
+      disabled: true
 
 idporten-key-manager:
   keystores:
