@@ -205,7 +205,7 @@ public class OpenID4VPResponseService {
         ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(mDocService.extractCertificateFromMdoc(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
-        if(mdocStatus == ValidationStatus.VALID && trustlistStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID) {
+        if(mdocStatus == ValidationStatus.VALID && trustlistStatus == ValidationStatus.VALID && statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
         } else {
             return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
