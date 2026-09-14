@@ -85,6 +85,7 @@ credential-issuer-server:
       - -7
     dc+sd-jwt:
       - ES256
+  key-attestations-required: false
   status-list:
     status-issuer:
       enabled: ${credential-issuer-server.features.status-list-enabled}

@@ -20,6 +20,7 @@ credential-issuer-server:
   features:
     revocation-v2-rich-result:
       enabled: true
+  key-attestations-required: false
   credential-issuer: http://issuer-server:9240
   authorization-servers:
     - id: auth-eidas2sandkasse
