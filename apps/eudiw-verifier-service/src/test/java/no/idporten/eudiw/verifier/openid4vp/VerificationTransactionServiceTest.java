@@ -4,6 +4,7 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class VerificationTransactionServiceTest {
     void initializesTransaction() {
         ClientApplication clientApplication = clientApplication("client-id", "client-keystore");
         DcqlQuery dcqlQuery = new DcqlQuery();
-        dcqlQuery.setCredentials(List.of("claim1"));
+        dcqlQuery.setCredentials(List.of(new DcqlCredentialQuery()));
         URI redirectUri = URI.create("https://client.example/callback");
         ArgumentCaptor<VerificationTransaction> transactionCaptor =
                 ArgumentCaptor.forClass(VerificationTransaction.class);
