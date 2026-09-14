@@ -111,12 +111,12 @@ public class AdminController {
     }*/
 
 
-    @GetMapping("/add-credential-new")
+    @GetMapping("/admin/add-credential-new")
     public ModelAndView showForm() {
         return new ModelAndView("add-new", "form", new SimpleCredentialForm());
     }
 
-    @PostMapping("/add-credential-new")
+    @PostMapping("/admin/add-credential-new")
     public ModelAndView submitForm(@Validated(CreateForm.class) @Valid @ModelAttribute("form") SimpleCredentialForm form,
                                    BindingResult bindingResult) {
         if (form.rawJson() != null && !form.rawJson().isBlank()) {
@@ -139,7 +139,7 @@ public class AdminController {
         return new ModelAndView("redirect:/admin");
     }
 
-    @GetMapping("/edit-credential-new/{credential_type}")
+    @GetMapping("/admin/edit-credential-new/{credential_type}")
     public ModelAndView edit(@PathVariable("credential_type") String credentialType) {
         CredentialDefinition cd = credentialService.findCredentialDefinition(credentialType);
         SimpleCredentialForm form = new SimpleCredentialForm(cd);
@@ -159,7 +159,7 @@ public class AdminController {
         return mav;
     }
 
-    @PostMapping("/edit-credential-new/{credential_type}")
+    @PostMapping("/admin/edit-credential-new/{credential_type}")
     public ModelAndView edit(@PathVariable("credential_type") String credentialType,
                              @Validated(EditForm.class) @Valid SimpleCredentialForm form,
                              BindingResult bindingResult) {

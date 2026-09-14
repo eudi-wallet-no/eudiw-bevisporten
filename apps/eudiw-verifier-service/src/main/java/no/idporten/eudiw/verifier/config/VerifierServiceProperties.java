@@ -31,11 +31,13 @@ public class VerifierServiceProperties implements InitializingBean {
 
 
     public ClientApplication findClientApplication(@NotEmpty String clientApplicationId) {
-        if(clientApplications.containsKey(clientApplicationId)) {
-            return clientApplications.get(clientApplicationId);
-        } else {
+        ClientApplication clientApplication = clientApplications.get(clientApplicationId);
+
+        if(clientApplication == null || clientApplication.isDisabled()) {
             throw new VerificationException("invalid_request", "Unknown client application");
         }
+
+        return clientApplication;
     }
 
     @Override

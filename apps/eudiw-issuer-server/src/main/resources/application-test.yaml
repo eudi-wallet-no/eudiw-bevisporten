@@ -77,6 +77,15 @@ credential-issuer-server:
             paths:
               - classpath:credential-configurations/pid/pid_mso_mdoc.json
               - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
+    webuild:
+      display-names:
+        "no": "Webuild PID-issuer (Norwegian PID)"
+      metadata-signing-keystore: webuild-access-keystore
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/webuild/pid_mso_mdoc.json
+              - classpath:credential-configurations/webuild/pid_sd_jwt_vc.json
     minid:
       display-names:
         "no": "MinID bevisutsteder"
@@ -105,3 +114,15 @@ idporten-key-manager:
       key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${MINID_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    webuild-provider:
+      key-store-type: ${WEBUILD_PROVIDER_KEYSTORE_TYPE}
+      key-store-location: ${WEBUILD_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${WEBUILD_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: ${WEBUILD_PROVIDER_KEYSTORE_KEY_ALIAS}
+      key-password: ${WEBUILD_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    webuild-access-keystore:
+      key-store-type: ${WEBUILD_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${WEBUILD_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${WEBUILD_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${WEBUILD_ACCESS_KEYSTORE_KEY_ALIAS}
+      key-password: ${WEBUILD_ACCESS_KEYSTORE_KEY_PASSWORD}

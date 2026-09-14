@@ -20,7 +20,7 @@
     <form class="form-container"
           th:fragment="add_attributes_form_fragment"
           id="add_attributes_form"
-          th:action="@{/add-credential-new}"
+          th:action="@{/admin/add-credential-new}"
           th:object="${form}"
           method="post">
 
@@ -152,12 +152,28 @@
                 </div>
 
                 <div class="ds-field" style="margin-block-start: var(--ds-size-5);">
+                    <label for="custom-claim-type" class="ds-label">Type</label>
+                    <select id="custom-claim-type"
+                            class="ds-input"
+                            onchange="renderCustomClaimValueEditor(this.value)">
+                        <option value="string" selected>Enkel verdi</option>
+                        <option value="list">Liste</option>
+                        <option value="map">Nøkkel/verdi-par (map)</option>
+                    </select>
+                </div>
+
+                <div class="ds-field" id="custom-claim-value-field" style="margin-block-start: var(--ds-size-5);">
                     <label for="custom-claim-value" class="ds-label">Dømeverdi</label>
                     <input type="text"
                            id="custom-claim-value"
                            class="ds-input"
                            placeholder="t.d. test@example.com"
                            aria-label="Dømeverdi">
+                </div>
+
+                <div class="ds-field" id="custom-claim-value-editor-field" style="margin-block-start: var(--ds-size-5);" hidden>
+                    <span class="ds-label">Dømeverdi</span>
+                    <div id="custom-claim-value-editor"></div>
                 </div>
 
                 <div id="custom-claim-error" class="ds-error-message" hidden

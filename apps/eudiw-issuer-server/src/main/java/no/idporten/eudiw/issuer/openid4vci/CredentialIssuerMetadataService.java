@@ -1,5 +1,16 @@
 package no.idporten.eudiw.issuer.openid4vci;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.impl.ECDSA;
+import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import no.idporten.eudiw.issuer.ErrorCode;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
@@ -11,13 +22,21 @@ import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
+import no.idporten.lib.keystore.KeyProvider;
+import no.idporten.lib.keystore.KeystoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
+import java.security.cert.CertificateEncodingException;
+import java.security.interfaces.ECPrivateKey;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,20 +47,32 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class CredentialIssuerMetadataService {
+    private static final JOSEObjectType METADATA_JWT_TYPE = new JOSEObjectType("openidvci-issuer-metadata+jwt");
+    private static final Duration METADATA_VALIDITY = Duration.ofMinutes(5);
+
     private final Logger log = LoggerFactory.getLogger(CredentialIssuerMetadataService.class);
 
     private final ClaimsSourceService claimsSourceService;
     private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
+    private final KeystoreManager keystoreManager;
+    private final ObjectMapper objectMapper;
 
     private final Map<String, CredentialIssuerMetadata> credentialIssuerMetadataCache = new ConcurrentHashMap<>();
 
 
     @Autowired
-    public CredentialIssuerMetadataService(ClaimsSourceService claimsSourceService, CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuerServerProperties credentialIssuerServerProperties) {
+    public CredentialIssuerMetadataService(
+            ClaimsSourceService claimsSourceService,
+            CredentialIssuerTenantService credentialIssuerTenantService,
+            CredentialIssuerServerProperties credentialIssuerServerProperties,
+            KeystoreManager keystoreManager,
+            ObjectMapper objectMapper) {
         this.claimsSourceService = claimsSourceService;
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuerServerProperties = credentialIssuerServerProperties;
+        this.keystoreManager = keystoreManager;
+        this.objectMapper = objectMapper;
     }
 
     public CredentialIssuerMetadata getCredentialIssuerMetadata(String tenant) {
@@ -52,6 +83,53 @@ public class CredentialIssuerMetadataService {
             credentialIssuerMetadataCache.put(normalizedTenant, credentialIssuerMetadata);
         }
         return credentialIssuerMetadata;
+    }
+
+    public String getSignedCredentialIssuerMetadata(String tenant) {
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
+        CredentialIssuerMetadata credentialIssuerMetadata = getCredentialIssuerMetadata(tenant);
+
+        return signCredentialIssuerMetadata(credentialIssuerMetadata, credentialIssuerTenant);
+    }
+
+    private String signCredentialIssuerMetadata(CredentialIssuerMetadata credentialIssuerMetadata, CredentialIssuerTenant tenant) {
+        if (!tenant.canSignCredentialIssuerMetadata()) {
+            throw new IssuerServerException(
+                    ErrorCode.NOT_ACCEPTABLE,
+                    "Signed credential issuer metadata is not available for this tenant");
+        }
+
+        KeyProvider keyProvider = keystoreManager.getKeyProvider(tenant.getMetadataSigningKeystore());
+        if (!(keyProvider.privateKey() instanceof ECPrivateKey privateKey)) {
+            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to sign credential issuer metadata",
+                    "Metadata signing requires an EC private key");
+        }
+
+        try {
+            Map<String, Object> metadataClaims = objectMapper.convertValue(
+                    credentialIssuerMetadata,
+                    new TypeReference<>() {});
+            Date issuedAt = new Date();
+            JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
+            metadataClaims.forEach(claimsSetBuilder::claim);
+            JWTClaimsSet claimsSet = claimsSetBuilder
+                    .issuer(tenant.getCredentialIssuer().toString())
+                    .subject(tenant.getCredentialIssuer().toString())
+                    .issueTime(issuedAt)
+                    .expirationTime(Date.from(issuedAt.toInstant().plus(METADATA_VALIDITY)))
+                    .build();
+            JWSAlgorithm algorithm = ECDSA.resolveAlgorithm(privateKey);
+            JWSHeader header = new JWSHeader.Builder(algorithm)
+                    .type(METADATA_JWT_TYPE)
+                    .x509CertChain(List.of(Base64.encode(keyProvider.certificate().getEncoded())))
+                    .build();
+            SignedJWT signedJWT = new SignedJWT(header, claimsSet);
+            signedJWT.sign(new ECDSASigner(privateKey));
+
+            return signedJWT.serialize();
+        } catch (JOSEException | CertificateEncodingException | IllegalArgumentException e) {
+            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to sign credential issuer metadata", e);
+        }
     }
 
     @Scheduled(initialDelay = 10 * 1000L, fixedRate = 30 * 1000L)
@@ -100,8 +178,7 @@ public class CredentialIssuerMetadataService {
                     // metadata from extended internal model
                     .credentialMetadata(claimsSourceMetadata.toOpenID4VCICredentialMetadata())
                     // config from issuer server
-                    .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings())
-                    .proofTypes(ProofTypes.builder().jwtProofType(ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms()).build()).build());
+                    .cryptographicBindingMethods(credentialIssuerProperties.getCryptographicBindings());
             // config for formats
             if (CredentialFormat.MSO_MDOC.equals(credentialConfiguration.getFormat())) {
                 credentialConfigurationBuilder
@@ -112,21 +189,33 @@ public class CredentialIssuerMetadataService {
                         .vct(credentialConfiguration.getCredentialType())
                         .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms().getDcSdJwt());
             }
-            KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
-                    ? KeyAttestationRequired.builder()
-                            .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
-                            .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
-                            .build()
-                    : null;
-            credentialConfigurationBuilder.proofTypes(ProofTypes.builder()
-                    .jwtProofType(
-                            ProofType.builder().algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
-                                    .keyAttestationsRequired(keyAttestationRequired)
-                                    .build())
-                            .build());
+            credentialConfigurationBuilder.proofTypes(createProofTypes(credentialIssuerProperties));
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;
+    }
+
+    private static ProofTypes createProofTypes(CredentialIssuerServerProperties credentialIssuerProperties) {
+        KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
+                ? KeyAttestationRequired.builder()
+                .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
+                .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
+                .build()
+                : null;
+        ProofTypes.ProofTypesBuilder proofTypesBuilder = ProofTypes.builder()
+                .jwtProofType(
+                        ProofType.builder()
+                                .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                                .keyAttestationsRequired(keyAttestationRequired)
+                                .build());
+        if (credentialIssuerProperties.isKeyAttestationsRequired()) {
+            proofTypesBuilder.attestationProofType(
+                    ProofType.builder()
+                            .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
+                            .keyAttestationsRequired(keyAttestationRequired)
+                            .build());
+        }
+        return proofTypesBuilder.build();
     }
 
 }
