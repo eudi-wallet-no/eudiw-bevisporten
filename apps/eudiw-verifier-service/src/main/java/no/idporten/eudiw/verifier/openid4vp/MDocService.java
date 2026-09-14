@@ -141,13 +141,13 @@ public class MDocService  {
     public @NonNull String getValidationDetail(ValidationStatus status) {
         switch (status) {
             case INCONCLUSIVE:
-                return "MDoc: validering feila";
+                return "mdoc: validering feila";
             case VALID:
-                return "MDoc: MDoc er gyldig";
+                return "mdoc: mdoc er gyldig";
             case INVALID:
-                return "MDoc: MDoc er ugyldig";
+                return "mdoc: mdoc er ugyldig";
             default:
-                return "MDoc: ukjent status";
+                return "mdoc: ukjent status";
         }
     }
 }
