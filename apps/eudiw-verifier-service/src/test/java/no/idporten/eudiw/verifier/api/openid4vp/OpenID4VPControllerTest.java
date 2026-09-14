@@ -5,6 +5,8 @@ import no.idporten.eudiw.verifier.openid4vp.OpenID4VPRequestService;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPResponseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -65,22 +67,23 @@ class OpenID4VPControllerTest {
                 eq("same_device"));
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(strings = {"same_device", "cross_device"})
     @DisplayName("returns an authorization request using the requested flow")
-    void returnsAuthorizationRequestUsingRequestedFlow() throws Exception {
-        when(openID4VPRequestService.retrieveAuthorizationRequest(any(), eq(REQUEST_ID), eq("cross_device")))
+    void returnsAuthorizationRequestUsingRequestedFlow(String flow) throws Exception {
+        when(openID4VPRequestService.retrieveAuthorizationRequest(any(), eq(REQUEST_ID), eq(flow)))
                 .thenReturn("signed-authorization-request");
 
         mockMvc.perform(get("/openid4vp/authz-request/{clientApplicationId}/{requestId}",
                         CLIENT_APPLICATION_ID, REQUEST_ID)
-                        .queryParam("flow", "cross_device"))
+                        .queryParam("flow", flow))
                 .andExpect(status().isOk())
                 .andExpect(content().string("signed-authorization-request"));
 
         verify(openID4VPRequestService).retrieveAuthorizationRequest(
                 any(ClientApplication.class),
                 eq(REQUEST_ID),
-                eq("cross_device"));
+                eq(flow));
     }
 
     @Test
