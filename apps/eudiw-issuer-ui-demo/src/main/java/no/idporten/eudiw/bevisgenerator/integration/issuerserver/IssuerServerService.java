@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -108,7 +107,11 @@ public class IssuerServerService {
      * Gets all credential configurations that can be issued.  Combines application config with dynamic configurations from BYOB.
      */
     public List<CredentialConfiguration> getAll() {
-        return issuerServerProperties.allCredentialConfigurations();
+        List<CredentialConfiguration> configurations = new ArrayList<>(issuerServerProperties.allCredentialConfigurations());
+
+        configurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
+
+        return configurations;
     }
 
     public CredentialConfiguration getById(String id) {
