@@ -24,7 +24,7 @@ verifier-service:
       keystore-name: bevisgenerator-login-access
     ks-hackathon:
       keystore-name: ks-hackathon-access
-      disabled: true
+      disabled: false
 
 
 idporten-key-manager:
