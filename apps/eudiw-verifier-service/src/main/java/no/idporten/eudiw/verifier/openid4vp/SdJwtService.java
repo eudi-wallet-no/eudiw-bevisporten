@@ -69,13 +69,19 @@ public class SdJwtService {
     private static @NonNull Map<String, Object> getClaimsFromSDJwt(VerificationResult<SDJwt> verificationResult) {
         Map<String, Object> claims = new HashMap<>();
         for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
-            List<Object> parsedDisclosure;
             try{
-                parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
-            } catch (ParseException e) {
+                List<Object> parsedDisclosure =
+                        JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
+                if (parsedDisclosure.size() == 2) {
+                    continue;
+                }
+                if (parsedDisclosure.size() != 3 || !(parsedDisclosure.get(1) instanceof String claimName)) {
+                    throw new VerificationException("invalid_request", "Failed to parse disclosure");
+                }
+                claims.put(claimName, parsedDisclosure.get(2));
+            } catch (ParseException | IllegalArgumentException | IndexOutOfBoundsException e) {
                 throw new VerificationException("invalid_request", "Failed to parse disclosure", e);
             }
-            claims.put((String) parsedDisclosure.get(1), parsedDisclosure.get(2));
         }
         return claims;
     }

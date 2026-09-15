@@ -26,7 +26,15 @@ public class MDocService  {
     }
 
     public MDoc mDocFromVpToken(String vpToken) {
-        DeviceResponse deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
+        DeviceResponse deviceResponse;
+        try {
+            deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            if (e.getMessage() != null && e.getMessage().contains("must not be empty")) {
+                throw new VerificationException("invalid_request", "No mdoc documents in vp_token", e);
+            }
+            throw new VerificationException("invalid_request", "Failed to parse mdoc vp_token", e);
+        }
         if (deviceResponse.getDocuments().isEmpty()) {
             throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
         }
