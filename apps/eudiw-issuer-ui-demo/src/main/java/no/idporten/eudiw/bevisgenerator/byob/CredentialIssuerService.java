@@ -64,7 +64,8 @@ public class CredentialIssuerService {
                 CredentialDefinitionFactory.DYNAMIC_CREDENTIAL_SCOPE,
                 personIdentifier,
                 description,
-                json
+                json,
+                cd.getCredentialConfigurationId()
         );
     }
 

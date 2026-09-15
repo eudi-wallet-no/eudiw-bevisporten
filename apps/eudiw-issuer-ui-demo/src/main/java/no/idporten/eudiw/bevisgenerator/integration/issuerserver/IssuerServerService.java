@@ -34,6 +34,7 @@ import org.springframework.web.client.ResourceAccessException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.OptionalInt;
 
 @Service
@@ -123,6 +124,26 @@ public class IssuerServerService {
         }
 
         return credentialIssuerService.getCredentialConfigurationById(id);
+    }
+
+    public CredentialConfiguration getByIssuerAndCredentialConfigurationId(
+            String credentialIssuer,
+            String credentialConfigurationId
+    ) {
+        CredentialConfiguration staticConfiguration = issuerServerProperties.findCredentialConfiguration(
+                credentialIssuer,
+                credentialConfigurationId
+        );
+        if (staticConfiguration != null) {
+            return staticConfiguration;
+        }
+
+        CredentialConfiguration dynamicConfiguration =
+                credentialIssuerService.getCredentialConfigurationById(credentialConfigurationId);
+        return dynamicConfiguration != null
+                && Objects.equals(credentialIssuer, dynamicConfiguration.credentialIssuer())
+                ? dynamicConfiguration
+                : null;
     }
 
     /**

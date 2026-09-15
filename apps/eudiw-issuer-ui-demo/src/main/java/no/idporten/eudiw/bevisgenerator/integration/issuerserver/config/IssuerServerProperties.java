@@ -23,14 +23,35 @@ public record IssuerServerProperties (
         return credentialIssuer() + issuanceEndpoint();
     }
 
-    public CredentialConfiguration findCredentialConfiguration(String credentialConfigurationId) {
+    public CredentialConfiguration findCredentialConfiguration(String selectionId) {
         if (credentialConfigurations() == null) {
             return null;
         }
 
         return credentialConfigurations()
                 .stream()
-                .filter(credentialConfiguration -> Objects.equals(credentialConfigurationId, credentialConfiguration.credentialConfigurationId()))
+                .filter(credentialConfiguration -> Objects.equals(selectionId, credentialConfiguration.selectionId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public CredentialConfiguration findCredentialConfiguration(
+            String credentialIssuer,
+            String credentialConfigurationId
+    ) {
+        if (credentialConfigurations() == null) {
+            return null;
+        }
+
+        return credentialConfigurations()
+                .stream()
+                .filter(credentialConfiguration ->
+                        Objects.equals(credentialIssuer, credentialConfiguration.credentialIssuer())
+                                && Objects.equals(
+                                        credentialConfigurationId,
+                                        credentialConfiguration.credentialConfigurationId()
+                                )
+                )
                 .findFirst()
                 .orElse(null);
     }

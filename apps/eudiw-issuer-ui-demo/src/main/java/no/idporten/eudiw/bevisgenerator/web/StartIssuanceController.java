@@ -94,6 +94,7 @@ public class StartIssuanceController {
     public ModelAndView issue() {
         List<IssueCredentialConfiguration> credentialConfigurations = issuerServerService.getAll().stream()
                 .map(credentialConfiguration -> new IssueCredentialConfiguration(
+                        credentialConfiguration.selectionId(),
                         credentialConfiguration.credentialConfigurationId(),
                         credentialName(credentialConfiguration, credentialConfiguration.credentialConfigurationId())
                 ))
@@ -107,23 +108,24 @@ public class StartIssuanceController {
                 .addObject("steps", STEPS);
     }
 
-    @GetMapping("/start-issuance/{credential_configuration_id}")
+    @GetMapping("/start-issuance/{credential_configuration_selection_id}")
     public String start(
-            @PathVariable("credential_configuration_id") String credentialConfigurationId,
+            @PathVariable("credential_configuration_selection_id") String credentialConfigurationSelectionId,
             Model model) {
-        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
+        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationSelectionId);
         model.addAttribute("credentialConfiguration", credentialConfiguration);
+        model.addAttribute("credentialConfigurationSelectionId", credentialConfigurationSelectionId);
         model.addAttribute("startIssuanceForm", new StartIssuanceForm(credentialConfiguration.jsonRequest(), credentialConfiguration.personIdentifier()));
         model.addAttribute("steps", STEPS);
         return "start";
     }
 
-    @PostMapping("/start-issuance/{credential_configuration_id}")
-    public String startIssuance(@PathVariable("credential_configuration_id") String credentialConfigurationId,
+    @PostMapping("/start-issuance/{credential_configuration_selection_id}")
+    public String startIssuance(@PathVariable("credential_configuration_selection_id") String credentialConfigurationSelectionId,
                                 @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
                                 Model model,
                                 HttpSession session) {
-        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
+        CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationSelectionId);
         String normalizedJson = startIssuanceForm.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
 
@@ -133,7 +135,8 @@ public class StartIssuanceController {
         IssuanceSessionData issuanceSessionData = createIssuanceSessionData(
                 credentialConfiguration,
                 response,
-                startIssuanceForm
+                startIssuanceForm,
+                credentialConfigurationSelectionId
         );
 
         String uri = convertToCredentialOfferUri(response);
@@ -151,7 +154,7 @@ public class StartIssuanceController {
         Issuance issuance = new Issuance(toPrettyJsonString(response), uri, qrCode);
         model.addAttribute("issuance", issuance);
         model.addAttribute("credentialName", issuanceSessionData.credentialName());
-        model.addAttribute("credentialConfigurationId", credentialConfigurationId);
+        model.addAttribute("credentialConfigurationSelectionId", credentialConfigurationSelectionId);
         model.addAttribute("issuedTransactionId", response.issuanceTransactionId());
         model.addAttribute("steps", STEPS);
         session.setAttribute(
@@ -164,7 +167,8 @@ public class StartIssuanceController {
     private IssuanceSessionData createIssuanceSessionData(
             CredentialConfiguration credentialConfiguration,
             IssuanceResponse response,
-            StartIssuanceForm startIssuanceForm
+            StartIssuanceForm startIssuanceForm,
+            String credentialConfigurationSelectionId
     ) {
         CredentialOffer credentialOffer = response.credentialOffer();
         validateCredentialOffer(credentialOffer, credentialConfiguration);
@@ -180,7 +184,8 @@ public class StartIssuanceController {
                 credentialName,
                 subjectIdentifier,
                 false,
-                claims
+                claims,
+                credentialConfigurationSelectionId
         );
     }
 
@@ -217,6 +222,7 @@ public class StartIssuanceController {
     }
 
     public record IssueCredentialConfiguration(
+            String credentialConfigurationSelectionId,
             String credentialConfigurationId,
             String credentialName
     ) {}
@@ -247,8 +253,14 @@ public class StartIssuanceController {
             HttpSession session
     ) {
         IssuanceSessionData issuance = getIssuanceSessionData(issuanceTransactionId, session);
-        CredentialConfiguration credentialConfiguration =
-                issuerServerService.getById(issuance.credentialConfigurationId());
+        CredentialConfiguration credentialConfiguration = StringUtils.hasText(
+                issuance.credentialConfigurationSelectionId()
+        )
+                ? issuerServerService.getById(issuance.credentialConfigurationSelectionId())
+                : issuerServerService.getByIssuerAndCredentialConfigurationId(
+                        issuance.credentialIssuer(),
+                        issuance.credentialConfigurationId()
+                );
         IssuanceStatusResponse issuanceStatus = issuerServerService.retrieveIssuanceStatus(
                 credentialConfiguration,
                 issuanceTransactionId

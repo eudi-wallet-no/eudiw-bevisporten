@@ -138,6 +138,42 @@ class IssuerServerServiceTest {
     }
 
     @Test
+    void findsDynamicConfigurationByIssuerAndExternalIdForPreDeploymentTransactions() {
+        CredentialConfiguration dynamicConfiguration = new CredentialConfiguration(
+                "http://issuer/bevisgenerator",
+                "dynamic-credential",
+                "eudiw:eidas2sandkasse:dynamicvc",
+                null,
+                "Dynamic credential",
+                "{}"
+        );
+        CredentialIssuerService credentialIssuerService = mock(CredentialIssuerService.class);
+        when(credentialIssuerService.getCredentialConfigurationById("dynamic-credential"))
+                .thenReturn(dynamicConfiguration);
+        IssuerServerService service = new IssuerServerService(
+                mock(RestClient.class),
+                new IssuerServerProperties(
+                        "http://issuer",
+                        "/credential",
+                        List.of(),
+                        List.of(),
+                        List.of()
+                ),
+                mock(MaskinportenClient.class),
+                credentialIssuerService,
+                mock(FeatureSwitches.class)
+        );
+
+        assertEquals(
+                dynamicConfiguration,
+                service.getByIssuerAndCredentialConfigurationId(
+                        "http://issuer/bevisgenerator",
+                        "dynamic-credential"
+                )
+        );
+    }
+
+    @Test
     void revokeCredentialUsesV1WithoutFallbackWhenRichResultIsDisabled() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();

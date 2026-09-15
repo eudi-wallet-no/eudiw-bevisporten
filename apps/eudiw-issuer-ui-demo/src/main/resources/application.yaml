@@ -56,13 +56,14 @@ bevisgenerator:
     issuance-endpoint: /api/v1/credential/issuance-transaction
     credential-configurations:
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
+        local-id: webuild-pid-mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
         description: WeBuild PID (mdoc)
         scope: eudiw:no:pid
         person-identifier: 05821098825
         json-request: |
           {
-            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-pid}",
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-webuild}",
             "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
             "subject": {
               "identifier": "05821098825"
@@ -80,13 +81,14 @@ bevisgenerator:
             }
           }
       - credential-configuration-id: no.digdir.eudiw.pid_sd_jwt_vc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
+        local-id: webuild-pid-sd-jwt-vc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
         description: WeBuild PID (SD-JWT VC)
         scope: eudiw:no:pid
         person-identifier: 05821098825
         json-request: |
           {
-            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-pid}",
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-webuild}",
             "credential_configuration_id": "no.digdir.eudiw.pid_sd_jwt_vc",
             "subject": {
               "identifier": "05821098825"
@@ -151,6 +153,7 @@ bevisgenerator:
             }
           }
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
+        local-id: pid-mdoc-push
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-pid}
         description: Norsk ID-bevis (mdoc push)
         scope: eudiw:no:pid
