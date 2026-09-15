@@ -70,15 +70,6 @@ bevisgenerator:
               "expiry_date": "2027-03-12"
             }
           }
-    subject-credential-configurations:
-      - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
-        description: WeBuild PID (mdoc)
-        scope: eudiw:no:pid
-      - credential-configuration-id: no.digdir.eudiw.pid_sd_jwt_vc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
-        description: WeBuild PID (SD-JWT VC)
-        scope: eudiw:no:pid
   verifier-service:
     base-url: https://verifier-service.test.eidas2sandkasse.net
 
