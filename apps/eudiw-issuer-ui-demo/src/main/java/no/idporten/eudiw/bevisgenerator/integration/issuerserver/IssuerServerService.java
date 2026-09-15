@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -34,6 +33,7 @@ import org.springframework.web.client.ResourceAccessException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.OptionalInt;
 
 @Service
@@ -107,12 +107,11 @@ public class IssuerServerService {
      * Gets all credential configurations that can be issued.  Combines application config with dynamic configurations from BYOB.
      */
     public List<CredentialConfiguration> getAll() {
-        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>();
-        if (issuerServerProperties.credentialConfigurations() != null) {
-            credentialConfigurations.addAll(issuerServerProperties.credentialConfigurations());
-        }
-        credentialConfigurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
-        return credentialConfigurations;
+        List<CredentialConfiguration> configurations = new ArrayList<>(issuerServerProperties.allCredentialConfigurations());
+
+        configurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
+
+        return configurations;
     }
 
     public CredentialConfiguration getById(String id) {
@@ -123,6 +122,26 @@ public class IssuerServerService {
         }
 
         return credentialIssuerService.getCredentialConfigurationById(id);
+    }
+
+    public CredentialConfiguration getByIssuerAndCredentialConfigurationId(
+            String credentialIssuer,
+            String credentialConfigurationId
+    ) {
+        CredentialConfiguration staticConfiguration = issuerServerProperties.findCredentialConfiguration(
+                credentialIssuer,
+                credentialConfigurationId
+        );
+        if (staticConfiguration != null) {
+            return staticConfiguration;
+        }
+
+        CredentialConfiguration dynamicConfiguration =
+                credentialIssuerService.getCredentialConfigurationById(credentialConfigurationId);
+        return dynamicConfiguration != null
+                && Objects.equals(credentialIssuer, dynamicConfiguration.credentialIssuer())
+                ? dynamicConfiguration
+                : null;
     }
 
     /**
@@ -178,7 +197,7 @@ public class IssuerServerService {
                     .uri(issuanceEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(json.json())
                     .retrieve()
                     .body(IssuanceResponse.class);
