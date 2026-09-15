@@ -11,11 +11,9 @@ bevisgenerator:
   issuer-server:
     credential-issuer: https://utsteder.eidas2sandkasse.dev/bevisgenerator
     credential-issuer-pid: https://utsteder.eidas2sandkasse.dev/pid
-    credential-issuer-webuild: https://utsteder.eidas2sandkasse.dev/webuild
     credential-issuer-minid: https://utsteder.eidas2sandkasse.dev/minid
     well-known-urls:
       - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/pid
-      - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/webuild
       - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/minid
       - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/bevisgenerator
   verifier-service:

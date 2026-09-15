@@ -55,56 +55,6 @@ bevisgenerator:
   issuer-server:
     issuance-endpoint: /api/v1/credential/issuance-transaction
     credential-configurations:
-      - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
-        local-id: webuild-pid-mdoc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
-        description: WeBuild PID (mdoc)
-        scope: eudiw:no:pid
-        person-identifier: 05821098825
-        json-request: |
-          {
-            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-webuild}",
-            "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
-            "subject": {
-              "identifier": "05821098825"
-            },
-            "credential_data": {
-              "personal_administrative_number": "05821098825",
-              "birth_date": "2010-02-05",
-              "given_name": "Førenamn",
-              "family_name": "Etternamn",
-              "place_of_birth": {"country": "NO"},
-              "nationality": ["NO"],
-              "issuing_country": "NO",
-              "issuing_authority": "Digdir",
-              "expiry_date": "2027-03-12"
-            }
-          }
-      - credential-configuration-id: no.digdir.eudiw.pid_sd_jwt_vc
-        local-id: webuild-pid-sd-jwt-vc
-        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
-        description: WeBuild PID (SD-JWT VC)
-        scope: eudiw:no:pid
-        person-identifier: 05821098825
-        json-request: |
-          {
-            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-webuild}",
-            "credential_configuration_id": "no.digdir.eudiw.pid_sd_jwt_vc",
-            "subject": {
-              "identifier": "05821098825"
-            },
-            "credential_data": {
-              "personal_administrative_number": "05821098825",
-              "birthdate": "2010-02-05",
-              "given_name": "Førenamn",
-              "family_name": "Etternamn",
-              "place_of_birth": {"country": "NO"},
-              "nationalities": ["NO"],
-              "issuing_country": "NO",
-              "issuing_authority": "Digdir",
-              "expiry_date": "2027-03-12"
-            }
-          }
       - credential-configuration-id: no.advokattilsynet.advokatregisteret_mso_mdoc
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: Advokatbevilling
