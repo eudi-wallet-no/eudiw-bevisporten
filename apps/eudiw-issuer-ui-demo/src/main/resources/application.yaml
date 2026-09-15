@@ -8,6 +8,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  profiles:
+    group:
+      systest-local:
+        - systest
   application:
     name: digital-lommebok-bevisgenerator
     environment: default
