@@ -7,7 +7,6 @@ import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
-import no.idporten.eudiw.verifier.testdata.Certificates;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,15 +19,15 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static no.idporten.eudiw.verifier.openid4vp.ConvertVPTokenToMDocTest.SuccessfulConversions.vpToken2_solvenia;
-import static no.idporten.eudiw.verifier.openid4vp.ConvertVPTokenToMDocTest.SuccessfulConversions.vpToken3_solvenia;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("When handling mdoc credentials")
+@DisplayName("When using MDocService, then mdoc credentials are handled as expected")
 class MDocServiceTest {
 
+    private static final String VALID_VP_TOKEN =
+            "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOBo2dkb2NUeXBld2V1LmV1cm9wYS5lYy5ldWRpLnBpZC4xbGlzc3VlclNpZ25lZKJqbmFtZVNwYWNlc6F3ZXUuZXVyb3BhLmVjLmV1ZGkucGlkLjGF2BhYW6RoZGlnZXN0SUQAZnJhbmRvbVAE0IGVTsv2RMsnnslXAAV3cWVsZW1lbnRJZGVudGlmaWVyamJpcnRoX2RhdGVsZWxlbWVudFZhbHVl2QPsajE5MjItMDYtMjLYGFhUpGhkaWdlc3RJRAJmcmFuZG9tUKEo5oj7OwDeJ4Ut6pXLbY1xZWxlbWVudElkZW50aWZpZXJrZmFtaWx5X25hbWVsZWxlbWVudFZhbHVlZUhJTk5F2BhYV6RoZGlnZXN0SUQDZnJhbmRvbVAHlUi9x0OVb7va76nVvJ5HcWVsZW1lbnRJZGVudGlmaWVyamdpdmVuX25hbWVsZWxlbWVudFZhbHVlaUlOVEVHUkVSVNgYWFKkaGRpZ2VzdElEBmZyYW5kb21Qc9N7RuOKmXzI05UynHI9anFlbGVtZW50SWRlbnRpZmllcmtuYXRpb25hbGl0eWxlbGVtZW50VmFsdWWBYk5P2BhYXaRoZGlnZXN0SUQIZnJhbmRvbVDnLZo7cgovg5c08qgNbzcxcWVsZW1lbnRJZGVudGlmaWVybnBsYWNlX29mX2JpcnRobGVsZW1lbnRWYWx1ZaFnY291bnRyeWJOT2ppc3N1ZXJBdXRohEOhASahGCFZAxcwggMTMIICuaADAgECAgkA4Ug40cCGZqwwCgYIKoZIzj0EAwIwgYQxHjAcBgNVBGETFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzELMAkGA1UEBhMCTk8xJDAiBgNVBAoTG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEvMC0GA1UEAxMmZWlkYXMyc2FuZGthc3NlIFBJRCBQcm92aWRlciBDQSAyIHRlc3QwHhcNMjYwNDI4MTEwNDAwWhcNMjcwNDI4MTEwNDAwWjBqMQswCQYDVQQGEwJOTzEkMCIGA1UECgwbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMRUwEwYDVQQDDAxQSUQtdXRzdGVkZXIxHjAcBgNVBGEMFU5UUk5PLU5PRk9SLjk5MTgyNTgyNzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJJcleGs0Y42dKFA2UMJGfO6yvSCCkQgACCzem5L9OL0lLaZzqTovBv0Sd85DdDc5XkZVI4OtdcYWmpO2pi-R9ijggErMIIBJzAfBgNVHSMEGDAWgBS78B8CWfJsAVeFHJ1h_qMAOb5qRDAdBgNVHQ4EFgQUHURyzPMIgx1cG64kN1iDC7MBgecwDAYDVR0TAQH_BAIwADBdBgNVHR8EVjBUMFKgUKBOhkxodHRwczovL2NhLnRlc3QuZWlkYXMyc2FuZGthc3NlLm5ldC92MS9jZXJ0cy9pbnRlcm1lZGlhdGVzL3BpZF9wcm92aWRlcjIuY3JsMGgGCCsGAQUFBwEBBFwwWjBYBggrBgEFBQcwAoZMaHR0cHM6Ly9jYS50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9waWRfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwIDSAAwRQIgZhzCyIv9eCZi6cxvIBAuJHAfKrFkOIatvlG_QoSxeSUCIQCyPNpmWqpemS2iPvZCL1S42UpCkfRywy6N_hPG-fB5hlkC9NgYWQLvp2d2ZXJzaW9uYzEuMG9kaWdlc3RBbGdvcml0aG1nU0hBLTI1Nmx2YWx1ZURpZ2VzdHOhd2V1LmV1cm9wYS5lYy5ldWRpLnBpZC4xqQBYIFP7v_aUKZ6SlzUgGA-v0SLe_LyGE5aFHg8CmwwBeu-yAVggXmy_BvJTiDQcpD2dpDHKDdTKhqCeTdLEg7WSNcFt9PkCWCDUJZEqUZQzYD0sRDJOtIZKmzZfbvDUk3BMbWnOLgw3UwNYIEWRVeBFkLoBmSGGosUEmwXV73BcsdZdBJCicdstLWOCBFggQxs7u7b8QhHEO-z7Tk-aF3YkMRZ2B6N4zhAJziyanpoFWCCMeII1ryZryBnTbGThLlGlI0kUylGLC8uXEnKsbM3UKwZYIMN1Sinty5HoFd-lEqkupHAkKiTWUhPxjoTeyDBO6ZbkB1gg5uOCFwE18heAVoiCo_h_Dx_s1EW7JJQ9C32qV0e0dTAIWCBzOUBQ_LDsQPc0x67kIrG7TqKRbEQo1yCvNS6FUOaac21kZXZpY2VLZXlJbmZvoWlkZXZpY2VLZXmkAQIgASFYINbwJRw7jgjXBdxA5mBKPFkfz1AGFfnB2kjwjQnMP6QyIlggEFeLCA-2rxmj3jO5f_0VCkqW907wQUae6Yh6_sAYyxJnZG9jVHlwZXdldS5ldXJvcGEuZWMuZXVkaS5waWQuMWx2YWxpZGl0eUluZm-kZnNpZ25lZMB0MjAyNi0wOC0xOVQwODowMTozNVppdmFsaWRGcm9twHQyMDI2LTA4LTE5VDA4OjAxOjM1Wmp2YWxpZFVudGlswHQyMDI3LTA4LTE5VDA4OjAyOjM1Wm5leHBlY3RlZFVwZGF0ZcB0MjAyNy0wOC0xOVQwODowMjozNVpmc3RhdHVzoWtzdGF0dXNfbGlzdKJjaWR4GgAHxBVjdXJpeC9odHRwczovL3N0YXR1cy50ZXN0LmVpZGFzMnNhbmRrYXNzZS5uZXQvbGlzdHMvM1hAeZh5KTosVbJC64FIJG7Uivq2wa6gLzg8ErKedc4RlcJg8nr7j2DplSdQU5SoUWtaCoy8l4I_p0eYLHIDT1X9FWxkZXZpY2VTaWduZWSiam5hbWVTcGFjZXPYGEGgamRldmljZUF1dGihb2RldmljZVNpZ25hdHVyZYRDoQEmoPZYQB1Gsi8PYQNDqTW8zAh5sU91RSHfqNTT8Q_zNxg00Jv_ZjviBZjzJbWWNfWvSDkD-36xaX9A8Qeu1HFNcgtBCilmc3RhdHVzAA";
     private static final String VP_TOKEN_WITHOUT_DOCUMENTS =
             "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOAZnN0YXR1cwA";
 
@@ -39,20 +38,22 @@ class MDocServiceTest {
     @Mock COSESign1 issuerAuth;
 
     @Test
+    @DisplayName("When parsing a valid mdoc VP token, then PID claims are expected")
     void parsesRealVpTokenAndExtractsClaims() {
-        MDoc parsed = service.mDocFromVpToken(vpToken2_solvenia);
+        MDoc parsed = service.mDocFromVpToken(VALID_VP_TOKEN);
 
         Map<String, Object> claims = service.claimsFromMDoc(parsed);
 
         Map<?, ?> pid = (Map<?, ?>) claims.get("eu.europa.ec.eudi.pid.1");
         assertAll(
                 () -> assertNotNull(parsed),
-                () -> assertEquals("BLUNDER", pid.get("family_name")),
-                () -> assertEquals("DIVERSE", pid.get("given_name")),
-                () -> assertEquals("1985-12-06", pid.get("birth_date")));
+                () -> assertEquals("HINNE", pid.get("family_name")),
+                () -> assertEquals("INTEGRERT", pid.get("given_name")),
+                () -> assertEquals("1922-06-22", pid.get("birth_date")));
     }
 
     @Test
+    @DisplayName("When parsing a VP token without documents, then invalid request is expected")
     void rejectsVpTokenWithoutDocuments() {
         VerificationException exception = assertThrows(
                 VerificationException.class,
@@ -62,6 +63,7 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("When parsing a malformed VP token, then invalid request is expected")
     void rejectsMalformedVpToken() {
         VerificationException exception = assertThrows(
                 VerificationException.class,
@@ -71,6 +73,7 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("When verifying valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
         when(mDoc.getMSO()).thenReturn(null);
         when(mDoc.verifyDocType()).thenReturn(true);
@@ -82,16 +85,19 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("When extracting a certificate from a valid mdoc, then the issuer certificate is expected")
     void extractsCertificateFromRealMdoc() throws Exception {
         X509Certificate certificate =
-                service.extractCertificateFromMdoc(service.mDocFromVpToken(vpToken2_solvenia));
+                service.extractCertificateFromMdoc(service.mDocFromVpToken(VALID_VP_TOKEN));
 
         assertEquals(
-                new Certificates().getBevisportenCertificate(),
-                Base64.getEncoder().encodeToString(certificate.getEncoded()));
+                "2.5.4.97=#0c154e54524e4f2d4e4f464f522e393931383235383237,"
+                        + "CN=PID-utsteder,O=DIGITALISERINGSDIREKTORATET,C=NO",
+                certificate.getSubjectX500Principal().getName());
     }
 
     @Test
+    @DisplayName("When issuer authentication or x5chain is missing, then invalid request is expected")
     void rejectsMissingIssuerAuthAndX5chain() {
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(null, issuerAuth);
@@ -108,6 +114,7 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("When extracting a malformed certificate, then invalid request is expected")
     void rejectsMalformedCertificate() {
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
@@ -121,21 +128,23 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("When extracting mdoc status with and without a status list, then matching results are expected")
     void extractsAndOmitsStatusListFromRealMdocs() {
         StatuslistEntry status =
-                service.extractStatuslistUriAndIdx(service.mDocFromVpToken(vpToken3_solvenia));
-        StatuslistEntry absent =
-                service.extractStatuslistUriAndIdx(service.mDocFromVpToken(vpToken2_solvenia));
+                service.extractStatuslistUriAndIdx(service.mDocFromVpToken(VALID_VP_TOKEN));
+        when(mDoc.getMSO()).thenReturn(null);
+        StatuslistEntry absent = service.extractStatuslistUriAndIdx(mDoc);
 
         assertAll(
-                () -> assertEquals("561305", status.idx()),
+                () -> assertEquals("508949", status.idx()),
                 () -> assertEquals(
-                        "https://qa.id.cloud.dvv.fi/status-list-token/4eea9ea5-e479-4200-a5ea-63b8e9cb1a83",
+                        "https://status.test.eidas2sandkasse.net/lists/3",
                         status.uri().toString()),
                 () -> assertNull(absent));
     }
 
     @Test
+    @DisplayName("When converting supported data element values, then matching Java values are expected")
     void convertsSupportedDataElementValues() {
         MapElement map = new MapElement(Map.of(
                 new MapKey("flag"), new BooleanElement(true),
@@ -154,6 +163,7 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("When formatting every validation status, then matching detail text is expected")
     void returnsValidationDetailTextForEveryStatus() {
         assertAll(
                 () -> assertEquals("mdoc: mdoc er gyldig", service.getValidationDetail(ValidationStatus.VALID)),
