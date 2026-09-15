@@ -6,8 +6,10 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerServerException;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatus;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
+import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
 import no.idporten.lib.maskinporten.client.AccessTokenRequestOverrides;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,19 +28,21 @@ import java.util.function.Consumer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 
 class IssuerServerServiceTest {
 
@@ -172,6 +176,76 @@ class IssuerServerServiceTest {
                         "http://issuer/bevisgenerator",
                         "dynamic-credential"
                 )
+        );
+    }
+
+    @Test
+    void startIssuanceUsesBearerTokenAndCredentialIssuerAsResource() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
+        MaskinportenClient maskinportenClient = mock(MaskinportenClient.class, RETURNS_DEEP_STUBS);
+        when(maskinportenClient.getAccessToken(any(AccessTokenRequestOverrides.class)).getValue())
+                .thenReturn("access-token");
+        clearInvocations(maskinportenClient);
+        IssuerServerService service = new IssuerServerService(
+                builder.build(),
+                new IssuerServerProperties(
+                        "http://issuer",
+                        "/api/v1/credential/issuance-transaction",
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                ),
+                maskinportenClient,
+                mock(CredentialIssuerService.class),
+                mock(FeatureSwitches.class)
+        );
+        CredentialConfiguration webuildConfiguration = new CredentialConfiguration(
+                "https://utsteder.test.eidas2sandkasse.net/webuild",
+                "no.digdir.eudiw.pid_mso_mdoc",
+                "eudiw:no:pid",
+                "05821098825",
+                "WeBuild PID (mdoc)",
+                "{}",
+                "webuild-pid-mdoc"
+        );
+        mockServer.expect(requestTo(
+                        "https://utsteder.test.eidas2sandkasse.net/webuild"
+                                + "/api/v1/credential/issuance-transaction"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(request -> {
+                    String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+                    assertNotNull(authorization);
+                    String[] authorizationParts = authorization.split(" ", 2);
+                    assertEquals(2, authorizationParts.length);
+                    assertEquals("Bearer", authorizationParts[0]);
+                    assertEquals("access-token", authorizationParts[1]);
+                })
+                .andRespond(withSuccess("""
+                        {
+                          "credential_offer": {
+                            "credential_issuer": "https://utsteder.test.eidas2sandkasse.net/webuild",
+                            "credential_configuration_ids": ["no.digdir.eudiw.pid_mso_mdoc"]
+                          },
+                          "issuance_transaction_id": "tx-id"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        IssuanceResponse response = service.startIssuance(
+                webuildConfiguration,
+                new StartIssuanceForm("{}", "05821098825")
+        );
+
+        assertEquals("tx-id", response.issuanceTransactionId());
+        mockServer.verify();
+
+        ArgumentCaptor<AccessTokenRequestOverrides> overridesCaptor =
+                ArgumentCaptor.forClass(AccessTokenRequestOverrides.class);
+        verify(maskinportenClient).getAccessToken(overridesCaptor.capture());
+        assertEquals(
+                List.of("https://utsteder.test.eidas2sandkasse.net/webuild"),
+                overridesCaptor.getValue().resources()
         );
     }
 
