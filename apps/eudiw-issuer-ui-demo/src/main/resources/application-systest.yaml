@@ -12,6 +12,9 @@ bevisgenerator:
     credential-issuer: https://utsteder.eidas2sandkasse.dev/bevisgenerator
     credential-issuer-pid: https://utsteder.eidas2sandkasse.dev/pid
     credential-issuer-minid: https://utsteder.eidas2sandkasse.dev/minid
+    # PID bruker kun authorization code flow i systest og kan ikke utstedes via denne pre-authorized UI-en
+    excluded-credential-configurations:
+      - pid-mdoc-push
     well-known-urls:
       - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/pid
       - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/minid
