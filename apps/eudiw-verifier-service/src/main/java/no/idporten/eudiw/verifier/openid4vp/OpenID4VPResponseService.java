@@ -105,7 +105,7 @@ public class OpenID4VPResponseService {
             return new VpToken(verifiablePresentations);
         }
         if (vpTokenObject == null) {
-            return new VpToken(Map.of());
+            throw new VerificationException("invalid_request", "Missing vp_token");
         }
         throw new VerificationException("invalid_request", "Unsupported vp_token structure");
     }
