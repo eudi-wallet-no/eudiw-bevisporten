@@ -20,6 +20,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonTrustlist;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getXmlTrustlist;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonInvalidCertList;
@@ -199,5 +202,38 @@ class TrustlistServiceTest {
                 .andRespond(withSuccess(getJsonInvalidCertList(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
         X509Certificate validCert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist() + END_CERTIFICATE);
         assertThrows(VerificationException.class, () -> trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(validCert));
+    }
+
+    @Test
+    @DisplayName("that issuer name can be extracted from certificate")
+    void testIssuerName() throws InvalidNameException {
+        LdapName ldapName = new LdapName("CN=Bevisporten Test Sertifikat CA 1, O=Digitaliseringsdirektoratet, C=NO");
+        String issuerName = trustlistService.issuerName(ldapName);
+        assertEquals("Digitaliseringsdirektoratet", issuerName);
+    }
+
+    @Test
+    @DisplayName("that distinguishedName can be parsed to Ldap name object")
+    void testLdapNameParsing() {
+        String distinguishedName = "CN=Bevisporten Test Sertifikat CA 1,O=Digitaliseringsdirektoratet,C=NO";
+        LdapName ldapName = trustlistService.ldapName(distinguishedName);
+        assertEquals(distinguishedName, ldapName.toString());
+    }
+
+    @Test
+    @DisplayName("that xml is parsed correctly into xml lote object")
+    void testXmlListMapping() {
+        LoTEXml lote = trustlistService.xmlListMapping(getXmlTrustlist());
+        assertNotNull(lote);
+        assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue());
+        assertEquals("https://docs.digdir.no/docs/lommebok/lommebok_om.html", lote.schemeInformation().informationUris().uris().getFirst().getValue());
+    }
+
+    @Test
+    @DisplayName("that json is parsed correctly into json lote object")
+    void testJsonListMapping() {
+        LoTEJson lote = trustlistService.jsonListMapping(getJsonTrustlist());
+        assertNotNull(lote);
+        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i dev", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
     }
 }
