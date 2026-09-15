@@ -12,11 +12,64 @@ bevisgenerator:
   issuer-server:
     credential-issuer: https://utsteder.test.eidas2sandkasse.net/bevisgenerator
     credential-issuer-pid: https://utsteder.test.eidas2sandkasse.net/pid
+    credential-issuer-webuild: https://utsteder.test.eidas2sandkasse.net/webuild
     credential-issuer-minid: https://utsteder.test.eidas2sandkasse.net/minid
     well-known-urls:
       - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/pid
+      - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/webuild
       - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/minid
       - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/bevisgenerator
+    additional-credential-configurations:
+      - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
+        local-id: webuild-pid-mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
+        description: WeBuild PID (mdoc)
+        scope: eudiw:no:pid
+        person-identifier: 05821098825
+        json-request: |
+          {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-webuild}",
+            "credential_configuration_id": "no.digdir.eudiw.pid_mso_mdoc",
+            "subject": {
+              "identifier": "05821098825"
+            },
+            "credential_data": {
+              "personal_administrative_number": "05821098825",
+              "birth_date": "2010-02-05",
+              "given_name": "Førenamn",
+              "family_name": "Etternamn",
+              "place_of_birth": {"country": "NO"},
+              "nationality": ["NO"],
+              "issuing_country": "NO",
+              "issuing_authority": "Digdir",
+              "expiry_date": "2027-03-12"
+            }
+          }
+      - credential-configuration-id: no.digdir.eudiw.pid_sd_jwt_vc
+        local-id: webuild-pid-sd-jwt-vc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
+        description: WeBuild PID (SD-JWT VC)
+        scope: eudiw:no:pid
+        person-identifier: 05821098825
+        json-request: |
+          {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-webuild}",
+            "credential_configuration_id": "no.digdir.eudiw.pid_sd_jwt_vc",
+            "subject": {
+              "identifier": "05821098825"
+            },
+            "credential_data": {
+              "personal_administrative_number": "05821098825",
+              "birthdate": "2010-02-05",
+              "given_name": "Førenamn",
+              "family_name": "Etternamn",
+              "place_of_birth": {"country": "NO"},
+              "nationalities": ["NO"],
+              "issuing_country": "NO",
+              "issuing_authority": "Digdir",
+              "expiry_date": "2027-03-12"
+            }
+          }
   verifier-service:
     base-url: https://verifier-service.test.eidas2sandkasse.net
 
