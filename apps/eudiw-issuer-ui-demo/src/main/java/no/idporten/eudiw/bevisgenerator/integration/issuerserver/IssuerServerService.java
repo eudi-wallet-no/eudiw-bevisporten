@@ -108,12 +108,7 @@ public class IssuerServerService {
      * Gets all credential configurations that can be issued.  Combines application config with dynamic configurations from BYOB.
      */
     public List<CredentialConfiguration> getAll() {
-        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>();
-        if (issuerServerProperties.credentialConfigurations() != null) {
-            credentialConfigurations.addAll(issuerServerProperties.credentialConfigurations());
-        }
-        credentialConfigurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
-        return credentialConfigurations;
+        return issuerServerProperties.allCredentialConfigurations();
     }
 
     public CredentialConfiguration getById(String id) {

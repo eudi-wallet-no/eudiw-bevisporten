@@ -2,7 +2,9 @@ package no.idporten.eudiw.bevisgenerator.integration.issuerserver.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,7 +15,33 @@ public record IssuerServerProperties (
         String issuanceEndpoint,
         List<CredentialConfiguration> credentialConfigurations,
         List<CredentialConfiguration> subjectCredentialConfigurations,
-        List<String> wellKnownUrls) {
+        List<CredentialConfiguration> additionalCredentialConfigurations,
+        List<String> wellKnownUrls,
+        List<CredentialConfiguration> allCredentialConfigurations) {
+
+    @ConstructorBinding
+    public IssuerServerProperties {}
+
+    public IssuerServerProperties(String credentialIssuer,
+                                  String issuanceEndpoint,
+                                  List<CredentialConfiguration> credentialConfigurations,
+                                  List<CredentialConfiguration> subjectCredentialConfigurations,
+                                  List<CredentialConfiguration> additionalCredentialConfigurations,
+                                  List<String> wellKnownUrls) {
+
+
+        List<CredentialConfiguration> allCredentialConfigurations = concatCredentialDefinitions(List.of(credentialConfigurations, additionalCredentialConfigurations));
+
+        this(
+                credentialIssuer,
+                issuanceEndpoint,
+                credentialConfigurations,
+                subjectCredentialConfigurations,
+                additionalCredentialConfigurations,
+                wellKnownUrls,
+                allCredentialConfigurations
+        );
+    }
 
     public String getIssuanceEndpoint() {
         return issuanceEndpoint();
@@ -24,11 +52,11 @@ public record IssuerServerProperties (
     }
 
     public CredentialConfiguration findCredentialConfiguration(String selectionId) {
-        if (credentialConfigurations() == null) {
+        if (allCredentialConfigurations() == null) {
             return null;
         }
 
-        return credentialConfigurations()
+        return allCredentialConfigurations()
                 .stream()
                 .filter(credentialConfiguration -> Objects.equals(selectionId, credentialConfiguration.selectionId()))
                 .findFirst()
@@ -39,11 +67,11 @@ public record IssuerServerProperties (
             String credentialIssuer,
             String credentialConfigurationId
     ) {
-        if (credentialConfigurations() == null) {
+        if (allCredentialConfigurations() == null) {
             return null;
         }
 
-        return credentialConfigurations()
+        return allCredentialConfigurations()
                 .stream()
                 .filter(credentialConfiguration ->
                         Objects.equals(credentialIssuer, credentialConfiguration.credentialIssuer())
@@ -66,5 +94,17 @@ public record IssuerServerProperties (
                 .filter(credentialConfiguration -> Objects.equals(credentialConfigurationId, credentialConfiguration.credentialConfigurationId()))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static List<CredentialConfiguration> concatCredentialDefinitions(List<List<CredentialConfiguration>> credentialConfigurations) {
+        List<CredentialConfiguration> allCredentialConfigurations = new ArrayList<>();
+
+        for  (List<CredentialConfiguration> credentialConfiguration : credentialConfigurations) {
+            if (credentialConfiguration != null) {
+                allCredentialConfigurations.addAll(credentialConfiguration);
+            }
+        }
+
+        return allCredentialConfigurations;
     }
 }
