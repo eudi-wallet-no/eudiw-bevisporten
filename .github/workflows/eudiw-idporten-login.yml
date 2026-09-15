@@ -66,6 +66,7 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
       application-name: digital-lommebok-idporten-login
+      application-path: apps/eudiw-idporten-login/
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
       image-name: digital-lommebok-idporten-login

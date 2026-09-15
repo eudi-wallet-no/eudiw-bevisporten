@@ -66,6 +66,7 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
       application-name: digital-lommebok-status-list
+      application-path: apps/eudiw-status-list/
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
       image-name: digital-lommebok-status-list
