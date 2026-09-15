@@ -38,8 +38,7 @@ public class MDocService  {
         if (deviceResponse.getDocuments().isEmpty()) {
             throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
         }
-        id.walt.mdoc.doc.MDoc mdc = deviceResponse.getDocuments().getFirst();
-        return mdc;
+        return deviceResponse.getDocuments().getFirst();
     }
 
     public Map<String, Object> claimsFromMDoc(MDoc mDoc) {

@@ -55,7 +55,7 @@ public class SdJwtService {
     }
 
     public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult) {
-        if(!verificationResult.getVerified()) {
+        if (!verificationResult.getVerified()) {
             return ValidationStatus.INVALID;
         } else {
             return ValidationStatus.VALID;
@@ -69,19 +69,22 @@ public class SdJwtService {
     private static @NonNull Map<String, Object> getClaimsFromSDJwt(VerificationResult<SDJwt> verificationResult) {
         Map<String, Object> claims = new HashMap<>();
         for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
-            try{
-                List<Object> parsedDisclosure =
-                        JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
-                if (parsedDisclosure.size() == 2) {
-                    continue;
-                }
-                if (parsedDisclosure.size() != 3 || !(parsedDisclosure.get(1) instanceof String claimName)) {
-                    throw new VerificationException("invalid_request", "Failed to parse disclosure");
-                }
-                claims.put(claimName, parsedDisclosure.get(2));
-            } catch (ParseException | IllegalArgumentException | IndexOutOfBoundsException e) {
+            List<Object> parsedDisclosure;
+            try {
+                parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
+
+            } catch (ParseException | IllegalArgumentException e) {
                 throw new VerificationException("invalid_request", "Failed to parse disclosure", e);
             }
+            if (parsedDisclosure.size() <= 2) {
+                // ignore unnamed disclosures since legal for nested claims, but a bit to relax the check here
+                continue;
+            }
+            if (parsedDisclosure.get(1) instanceof String claimName) {
+                claims.put(claimName, parsedDisclosure.get(2));
+                continue;
+            }
+            throw new VerificationException("invalid_request", "Failed to parse disclosure for claim=%s".formatted(parsedDisclosure.get(1)));
         }
         return claims;
     }
@@ -105,7 +108,7 @@ public class SdJwtService {
         }
     }
 
-    protected JWSVerifier jwsVerifier(X509Certificate cert)  {
+    protected JWSVerifier jwsVerifier(X509Certificate cert) {
         try {
             return new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
         } catch (JOSEException e) {
@@ -117,7 +120,7 @@ public class SdJwtService {
         return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
     }
 
-    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt){
+    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt) {
         VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(jwtCryptoProvider, null);
         if (!verificationResult.getVerified()) {
             throw new VerificationException("invalid_request", "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(verificationResult.getSignatureVerified(), verificationResult.getDisclosuresVerified()));
