@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @EnableConfigurationProperties(IssuerServerProperties.class)
 @ConfigurationProperties(prefix = "bevisgenerator.issuer-server")
@@ -16,32 +15,10 @@ public record IssuerServerProperties(
         List<CredentialConfiguration> credentialConfigurations,
         List<CredentialConfiguration> subjectCredentialConfigurations,
         List<CredentialConfiguration> additionalCredentialConfigurations,
-        List<String> wellKnownUrls,
-        List<String> excludedCredentialConfigurations
+        List<String> wellKnownUrls
 ) {
 
-    public IssuerServerProperties(
-            String credentialIssuer,
-            String issuanceEndpoint,
-            List<CredentialConfiguration> credentialConfigurations,
-            List<CredentialConfiguration> subjectCredentialConfigurations,
-            List<CredentialConfiguration> additionalCredentialConfigurations,
-            List<String> wellKnownUrls
-    ) {
-        this(
-                credentialIssuer,
-                issuanceEndpoint,
-                credentialConfigurations,
-                subjectCredentialConfigurations,
-                additionalCredentialConfigurations,
-                wellKnownUrls,
-                List.of()
-        );
-    }
-
     public List<CredentialConfiguration> allCredentialConfigurations() {
-        Set<String> excludedSelectionIds =
-                excludedCredentialConfigurations == null ? Set.of() : Set.copyOf(excludedCredentialConfigurations);
         List<CredentialConfiguration> configurations = new ArrayList<>();
 
         if (credentialConfigurations != null) {
@@ -51,9 +28,7 @@ public record IssuerServerProperties(
             configurations.addAll(additionalCredentialConfigurations);
         }
 
-        return configurations.stream()
-                .filter(credentialConfiguration -> !excludedSelectionIds.contains(credentialConfiguration.selectionId()))
-                .toList();
+        return List.copyOf(configurations);
     }
 
     public String getIssuanceEndpoint() {
