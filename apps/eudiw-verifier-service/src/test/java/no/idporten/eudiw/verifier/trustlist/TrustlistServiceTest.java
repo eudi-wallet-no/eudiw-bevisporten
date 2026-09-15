@@ -39,7 +39,7 @@ import java.security.cert.X509Certificate;
 class TrustlistServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistServiceTest.class);
-    public static final URI XMLTRUSTLISTURL =URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
+    public static final URI XMLTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
     public static final URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
     public static final String APPLICATION_JOSE_JSON = "application/jose+json";
     public static final String APPLICATION_ETSI_TSL_XML = "application/vnd.etsi.tsl+xml";
@@ -98,7 +98,6 @@ class TrustlistServiceTest {
     }
 
 
-
     @Test
     @DisplayName("that 612 trustlist has expected content")
     void trustlistHasExpectedContent() {
@@ -123,7 +122,7 @@ class TrustlistServiceTest {
     void checkIfUrlsFromTrustlistPropertiesAreIteratedOverAndUsedWhenSerarhingForMatchingEntry() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getBevisportenCertificate()+ END_CERTIFICATE);
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getBevisportenCertificate() + END_CERTIFICATE);
         ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertEquals(ValidationStatus.VALID, result);
     }
@@ -133,7 +132,7 @@ class TrustlistServiceTest {
     void checkIfCertificateDownTheListIsCheckedAgainst612() {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
-        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getSecondBevisporten()+ END_CERTIFICATE);
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getSecondBevisporten() + END_CERTIFICATE);
         ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertEquals(ValidationStatus.VALID, result);
     }
@@ -157,7 +156,7 @@ class TrustlistServiceTest {
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
-        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist()+ END_CERTIFICATE);
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist() + END_CERTIFICATE);
         ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert);
         assertEquals(ValidationStatus.INVALID, result);
     }
@@ -235,5 +234,22 @@ class TrustlistServiceTest {
         LoTEJson lote = trustlistService.jsonListMapping(getJsonTrustlist());
         assertNotNull(lote);
         assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i dev", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
+    }
+
+    @Test
+    @DisplayName("testCheckJSON602")
+    void testCheckJSON602() {
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDFirstOnList() + END_CERTIFICATE);
+        boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert, "Digitaliseringsdirektoratet");
+        assertTrue(check);
+    }
+
+
+    @Test
+    @DisplayName("testCheckXML612")
+    void testCheckXML612() {
     }
 }
