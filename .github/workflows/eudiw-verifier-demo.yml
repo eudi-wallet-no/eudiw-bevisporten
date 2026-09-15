@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-verifier-demo/**'
       - '.github/workflows/eudiw-verifier-demo.yml'
+      - '!apps/eudiw-verifier-demo/src/test/**'
+      - '!apps/eudiw-verifier-demo/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-verifier-demo/*.md'
+      - '!apps/eudiw-verifier-demo/*info.yaml'
   workflow_dispatch:
 
 jobs:

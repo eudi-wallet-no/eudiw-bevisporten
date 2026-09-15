@@ -1,5 +1,2 @@
 # <CVE> # <package/affected code>. Fixed in <version>.
-CVE-2026-65182 # tomcat. Fixed  in  11.0.25, 10.1.58, 9.0.121
-CVE-2026-65905 # tomcat. Fixed  in  11.0.25, 10.1.58, 9.0.121
-CVE-2026-68525 # tomcat. Fixed  in  11.0.25, 10.1.58, 9.0.121
-CVE-2026-75595 # netty-handler. Fixed in 4.2.17.Final, 4.1.137.Final
+
