@@ -66,6 +66,7 @@ class IssuerServerServiceTest {
                 "/api/v1/credential/issuance-transaction",
                 null,
                 null,
+                null,
                 null
         );
         MaskinportenClient maskinportenClient = mock(MaskinportenClient.class, RETURNS_DEEP_STUBS);
@@ -155,6 +156,7 @@ class IssuerServerServiceTest {
                 new IssuerServerProperties(
                         "http://issuer",
                         "/credential",
+                        List.of(),
                         List.of(),
                         List.of(),
                         List.of()
@@ -272,6 +274,7 @@ class IssuerServerServiceTest {
                 "/credential",
                 List.of(),
                 List.of(),
+                List.of(),
                 wellKnownUrls
         );
 
@@ -288,6 +291,7 @@ class IssuerServerServiceTest {
         IssuerServerProperties properties = new IssuerServerProperties(
                 "http://issuer",
                 "/api/v1/credential/issuance-transaction",
+                null,
                 null,
                 null,
                 null

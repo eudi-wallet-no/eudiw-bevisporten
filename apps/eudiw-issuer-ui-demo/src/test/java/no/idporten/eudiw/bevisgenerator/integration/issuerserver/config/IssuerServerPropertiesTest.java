@@ -33,6 +33,7 @@ class IssuerServerPropertiesTest {
                 "/api/v1/credential/issuance-transaction",
                 List.of(webuildConfiguration, pidConfiguration),
                 List.of(),
+                List.of(),
                 List.of()
         );
 
