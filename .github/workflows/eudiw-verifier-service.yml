@@ -12,7 +12,7 @@ on:
       - 'apps/eudiw-verifier-service/**'
       - '.github/workflows/eudiw-verifier-service.yml'
       - '!apps/eudiw-verifier-service/src/test/**'
-      - '!apps/eudiw-verifier-service/src/main/resources/application-dev.yml'
+      - '!apps/eudiw-verifier-service/src/main/resources/application-dev.yaml'
       - '!apps/eudiw-verifier-service/*.md'
       - '!apps/eudiw-verifier-service/*info.yaml'
   workflow_dispatch:
