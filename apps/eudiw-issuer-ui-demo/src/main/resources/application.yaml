@@ -59,6 +59,7 @@ bevisgenerator:
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: WeBuild PID (mdoc)
         scope: eudiw:no:pid
+        person-identifier: 05821098825
         json-request: |
           {
             "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-pid}",
@@ -82,6 +83,7 @@ bevisgenerator:
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: WeBuild PID (SD-JWT VC)
         scope: eudiw:no:pid
+        person-identifier: 05821098825
         json-request: |
           {
             "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-pid}",
