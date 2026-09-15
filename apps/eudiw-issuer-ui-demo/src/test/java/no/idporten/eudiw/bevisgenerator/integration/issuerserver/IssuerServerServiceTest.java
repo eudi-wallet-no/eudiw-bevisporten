@@ -8,6 +8,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.Credenti
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatus;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
+import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
 import no.idporten.lib.maskinporten.client.AccessTokenRequestOverrides;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
@@ -135,6 +137,50 @@ class IssuerServerServiceTest {
                 "Issuer-server returned null issuance status for issuance_transaction_id=tx-id",
                 exception.getMessage()
         );
+    }
+
+    @Test
+    void startIssuanceSendsBearerAccessToken() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
+        IssuerServerProperties properties = new IssuerServerProperties(
+                "http://issuer",
+                "/api/v1/credential/issuance-transaction",
+                null,
+                null,
+                null
+        );
+        MaskinportenClient maskinportenClient = mock(MaskinportenClient.class, RETURNS_DEEP_STUBS);
+        when(maskinportenClient.getAccessToken(any(AccessTokenRequestOverrides.class)).getValue())
+                .thenReturn("access-token");
+        IssuerServerService service = new IssuerServerService(
+                builder.build(),
+                properties,
+                maskinportenClient,
+                mock(CredentialIssuerService.class),
+                featureSwitches
+        );
+
+        mockServer.expect(requestTo("http://issuer/tenant/api/v1/credential/issuance-transaction"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer access-token"))
+                .andRespond(withSuccess("""
+                        {
+                            "credential_offer": {
+                                "credential_issuer": "http://issuer/tenant",
+                                "credential_configuration_ids": ["pid"]
+                            },
+                            "issuance_transaction_id": "tx-id"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        var response = service.startIssuance(
+                credentialConfiguration,
+                new StartIssuanceForm("{}", "subject-id")
+        );
+
+        assertEquals("tx-id", response.issuanceTransactionId());
+        mockServer.verify();
     }
 
     @Test

@@ -178,7 +178,7 @@ public class IssuerServerService {
                     .uri(issuanceEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(json.json())
                     .retrieve()
                     .body(IssuanceResponse.class);
