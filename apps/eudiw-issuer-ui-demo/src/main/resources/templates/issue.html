@@ -36,7 +36,7 @@
     </aside>
     <div class="step-container">
         <th:block th:each="credentialConfiguration: ${credential_configurations}">
-            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationSelectionId})}"
+            <a th:href="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
                class="ds-card interactive-card link-card"
                data-color="accent"
                data-variant="default">

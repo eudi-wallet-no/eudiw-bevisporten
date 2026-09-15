@@ -33,7 +33,6 @@ import org.springframework.web.client.ResourceAccessException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.OptionalInt;
 
 @Service
@@ -107,11 +106,12 @@ public class IssuerServerService {
      * Gets all credential configurations that can be issued.  Combines application config with dynamic configurations from BYOB.
      */
     public List<CredentialConfiguration> getAll() {
-        List<CredentialConfiguration> configurations = new ArrayList<>(issuerServerProperties.allCredentialConfigurations());
-
-        configurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
-
-        return configurations;
+        ArrayList<CredentialConfiguration> credentialConfigurations = new ArrayList<>();
+        if (issuerServerProperties.credentialConfigurations() != null) {
+            credentialConfigurations.addAll(issuerServerProperties.credentialConfigurations());
+        }
+        credentialConfigurations.addAll(credentialIssuerService.getCredentialConfigurationsForIssuance());
+        return credentialConfigurations;
     }
 
     public CredentialConfiguration getById(String id) {
@@ -122,26 +122,6 @@ public class IssuerServerService {
         }
 
         return credentialIssuerService.getCredentialConfigurationById(id);
-    }
-
-    public CredentialConfiguration getByIssuerAndCredentialConfigurationId(
-            String credentialIssuer,
-            String credentialConfigurationId
-    ) {
-        CredentialConfiguration staticConfiguration = issuerServerProperties.findCredentialConfiguration(
-                credentialIssuer,
-                credentialConfigurationId
-        );
-        if (staticConfiguration != null) {
-            return staticConfiguration;
-        }
-
-        CredentialConfiguration dynamicConfiguration =
-                credentialIssuerService.getCredentialConfigurationById(credentialConfigurationId);
-        return dynamicConfiguration != null
-                && Objects.equals(credentialIssuer, dynamicConfiguration.credentialIssuer())
-                ? dynamicConfiguration
-                : null;
     }
 
     /**
