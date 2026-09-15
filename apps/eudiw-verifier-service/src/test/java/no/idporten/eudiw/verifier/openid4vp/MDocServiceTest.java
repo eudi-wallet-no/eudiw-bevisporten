@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("When using MDocService, then mdoc credentials are handled as expected")
+@DisplayName("When handling mdoc credentials")
 class MDocServiceTest {
 
     private static final String VALID_VP_TOKEN =
@@ -38,7 +38,7 @@ class MDocServiceTest {
     @Mock COSESign1 issuerAuth;
 
     @Test
-    @DisplayName("When parsing a valid mdoc VP token, then PID claims are expected")
+    @DisplayName("with a valid VP token, then PID claims are expected")
     void parsesRealVpTokenAndExtractsClaims() {
         MDoc parsed = service.mDocFromVpToken(VALID_VP_TOKEN);
 
@@ -53,7 +53,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When parsing a VP token without documents, then invalid request is expected")
+    @DisplayName("with a VP token without documents, then invalid request is expected")
     void rejectsVpTokenWithoutDocuments() {
         VerificationException exception = assertThrows(
                 VerificationException.class,
@@ -63,7 +63,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When parsing a malformed VP token, then invalid request is expected")
+    @DisplayName("with a malformed VP token, then invalid request is expected")
     void rejectsMalformedVpToken() {
         VerificationException exception = assertThrows(
                 VerificationException.class,
@@ -73,7 +73,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When verifying valid and invalid mdocs, then matching validation statuses are expected")
+    @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
         when(mDoc.getMSO()).thenReturn(null);
         when(mDoc.verifyDocType()).thenReturn(true);
@@ -85,7 +85,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When extracting a certificate from a valid mdoc, then the issuer certificate is expected")
+    @DisplayName("with a valid mdoc, then the issuer certificate is expected")
     void extractsCertificateFromRealMdoc() throws Exception {
         X509Certificate certificate =
                 service.extractCertificateFromMdoc(service.mDocFromVpToken(VALID_VP_TOKEN));
@@ -97,7 +97,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When issuer authentication or x5chain is missing, then invalid request is expected")
+    @DisplayName("without issuer authentication or x5chain, then invalid request is expected")
     void rejectsMissingIssuerAuthAndX5chain() {
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(null, issuerAuth);
@@ -114,7 +114,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When extracting a malformed certificate, then invalid request is expected")
+    @DisplayName("with a malformed certificate, then invalid request is expected")
     void rejectsMalformedCertificate() {
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
@@ -128,7 +128,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When extracting mdoc status with and without a status list, then matching results are expected")
+    @DisplayName("with and without a status list, then matching results are expected")
     void extractsAndOmitsStatusListFromRealMdocs() {
         StatuslistEntry status =
                 service.extractStatuslistUriAndIdx(service.mDocFromVpToken(VALID_VP_TOKEN));
@@ -144,7 +144,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When converting supported data element values, then matching Java values are expected")
+    @DisplayName("with supported data element values, then matching Java values are expected")
     void convertsSupportedDataElementValues() {
         MapElement map = new MapElement(Map.of(
                 new MapKey("flag"), new BooleanElement(true),
@@ -163,7 +163,7 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("When formatting every validation status, then matching detail text is expected")
+    @DisplayName("with every validation status, then matching detail text is expected")
     void returnsValidationDetailTextForEveryStatus() {
         assertAll(
                 () -> assertEquals("mdoc: mdoc er gyldig", service.getValidationDetail(ValidationStatus.VALID)),
