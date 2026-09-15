@@ -69,6 +69,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("without a known transaction, then rejection before decryption is expected")
     void rejectsUnknownTransactionBeforeDecrypting() {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(null);
 
@@ -80,6 +81,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with a real JWE and a missing selected credential, then missing credential persistence is expected")
     void decryptsRealJweAndPersistsMissingSelectedCredential() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -102,6 +104,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with an invalid state, then invalid request is expected")
     void rejectsInvalidState() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -115,6 +118,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("without credential queries or with an empty query, then invalid request is expected")
     void rejectsMissingAndEmptyCredentialQueries() throws Exception {
         for (DcqlQuery query : java.util.Arrays.asList(null, new DcqlQuery(), dcql(List.of()))) {
             VerificationTransaction transaction = transaction(query);
@@ -126,6 +130,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with a blank credential ID, then invalid request is expected")
     void rejectsBlankCredentialId() throws Exception {
         VerificationTransaction transaction = transaction(query(" ", "mso_mdoc"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -137,6 +142,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with a selected credential in an unsupported format, then invalid request is expected")
     void rejectsUnsupportedFormatWhenCredentialWasSelected() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "jwt_vc_json"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -149,6 +155,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with a non-map vp_token, then invalid request is expected")
     void rejectsNonMapVpToken() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -162,6 +169,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with invalid vp_token values or structures, then invalid request is expected")
     void rejectsInvalidVpTokenValueAndStructure() throws Exception {
         assertVpTokenFailure(Map.of("pid", List.of("token", 1)),
                 "Unsupported vp_token value type for credential id: pid");
@@ -170,6 +178,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with an mdoc credential, then routing and combined validation details are expected")
     void routesMdocAndCombinesValidationStatusesAndDetails() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         transaction.setIncludeValidationDetails(true);
@@ -201,6 +210,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with an SD-JWT credential and invalid status, then an invalid combined outcome is expected")
     void routesSdJwtAndMarksCombinedInvalidOutcome() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -232,6 +242,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with a valid status list entry, then a valid credential is expected")
     void statusListValidProducesValidCredential() throws Exception {
         prepareMdocWithStatus("0", ValidationStatus.VALID);
         service.receiveResponse(client, TRANSACTION_ID,
@@ -240,6 +251,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with malformed or overflowing status list indexes, then invalid request is expected")
     void rejectsMalformedAndOverflowingStatusListIndexes() throws Exception {
         for (String idx : List.of("not-a-number", "2147483648", "-1", "-2147483649")) {
             reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
@@ -253,6 +265,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with integer status list boundaries, then successful lookups are expected")
     void acceptsIntegerStatusListBoundaries() throws Exception {
         for (int idx : List.of(0, Integer.MAX_VALUE)) {
             reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
@@ -265,6 +278,7 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("with a same-device flow, then a redirect is expected")
     void returnsRedirectOnlyForSameDeviceFlow() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         transaction.setFlow("same_device");

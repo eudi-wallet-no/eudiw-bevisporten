@@ -41,6 +41,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with a compact VP token, then disclosure claims are expected")
     void parsesCompactVpTokenAndExtractsDisclosureClaims() {
         String disclosure = base64Url("[\"salt\",\"given_name\",\"Ada\"]");
         SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of()) + "~" + disclosure + "~");
@@ -52,6 +53,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with a malformed disclosure, then invalid request is expected")
     void rejectsMalformedDisclosure() {
         when(mockedSdJwt.getDisclosures()).thenReturn(java.util.Set.of("%%%"));
         when(verificationResult.getSdJwt()).thenReturn(mockedSdJwt);
@@ -63,6 +65,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with an unnamed array element disclosure, then it is expected to be ignored")
     void ignoresArrayElementDisclosureWithoutNamedClaim() {
         String disclosure = base64Url("[\"salt\",\"array-value\"]");
         SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of()) + "~" + disclosure + "~");
@@ -72,6 +75,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with verified and unverified results, then matching statuses are expected")
     void mapsVerifiedAndUnverifiedResultsToStatus() {
         when(verificationResult.getVerified()).thenReturn(true, false);
 
@@ -80,6 +84,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with failed verification, then observable error details are expected")
     void rejectsFailedVerificationWithObservableDetails() {
         X509Certificate certificate = certificate();
         when(mockedSdJwt.verify(any(), isNull())).thenReturn(verificationResult);
@@ -96,6 +101,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with a certificate in the compact VP token, then the issuer certificate is expected")
     void extractsCertificateFromCompactVpToken() {
         String certificate = new Certificates().getBevisportenCertificate();
         String header = """
@@ -110,6 +116,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("without a certificate, then invalid request is expected")
     void rejectsMissingCertificate() {
         SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of()));
 
@@ -120,6 +127,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with and without a status list, then matching results are expected")
     void extractsAndOmitsStatusList() {
         SDJwt withStatus = service.sdJwtFromVpToken(jwt(Map.of(
                 "status", Map.of("status_list", Map.of(
@@ -138,6 +146,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with an EC certificate, then matching verifier and algorithm are expected")
     void createsEcVerifierAndSelectsMatchingAlgorithm() throws Exception {
         X509Certificate certificate = certificate();
 
@@ -149,6 +158,7 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with every validation status, then matching detail text is expected")
     void returnsValidationDetailTextForEveryStatus() {
         assertAll(
                 () -> assertEquals("SD-JWT VC: SDJwt er gyldig",
