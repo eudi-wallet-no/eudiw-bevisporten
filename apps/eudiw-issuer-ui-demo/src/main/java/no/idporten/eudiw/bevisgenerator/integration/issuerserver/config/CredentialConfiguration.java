@@ -1,5 +1,7 @@
 package no.idporten.eudiw.bevisgenerator.integration.issuerserver.config;
 
+import org.springframework.boot.context.properties.bind.ConstructorBinding;
+
 public record CredentialConfiguration(
         String credentialIssuer,
         String credentialConfigurationId,
@@ -8,6 +10,10 @@ public record CredentialConfiguration(
         String description,
         String jsonRequest,
         String localId) {
+
+    @ConstructorBinding
+    public CredentialConfiguration {
+    }
 
     public CredentialConfiguration(
             String credentialIssuer,
