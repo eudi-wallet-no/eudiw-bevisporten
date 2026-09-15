@@ -76,9 +76,12 @@ public class SdJwtService {
             } catch (ParseException | IllegalArgumentException e) {
                 throw new VerificationException("invalid_request", "Failed to parse disclosure", e);
             }
-            if (parsedDisclosure.size() <= 2) {
-                // ignore unnamed disclosures since legal for nested claims, but a bit to relax the check here
+            if (parsedDisclosure.size() == 2) {
+                // Unnamed disclosures are valid for SD-JWT array elements.
                 continue;
+            }
+            if (parsedDisclosure.size() != 3) {
+                throw new VerificationException("invalid_request", "Failed to parse disclosure");
             }
             if (parsedDisclosure.get(1) instanceof String claimName) {
                 claims.put(claimName, parsedDisclosure.get(2));
