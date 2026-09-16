@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-byob-service/**'
       - '.github/workflows/eudiw-byob-service.yml'
+      - '!apps/eudiw-byob-service/src/test/**'
+      - '!apps/eudiw-byob-service/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-byob-service/*.md'
+      - '!apps/eudiw-byob-service/*info.yaml'
   workflow_dispatch:
 
 jobs:
