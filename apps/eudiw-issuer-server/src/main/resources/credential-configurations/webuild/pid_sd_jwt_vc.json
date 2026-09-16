@@ -1,5 +1,5 @@
 {
-  "credential_configuration_id": "no.digdir.eudiw.pid_sd_jwt_vc",
+  "credential_configuration_id": "no.digdir.eudiw.webuild.pid_sd_jwt_vc",
   "credential_issuer_context": {
     "credential_datasource_uri": "authoritative-source://freg",
     "credential_signing_keystore": "webuild-provider",
@@ -15,7 +15,7 @@
     "display": [
       {
         "locale": "no",
-        "name": "Norsk ID-bevis (SD-JWT VC)",
+        "name": "Norsk ID-bevis WeBuild (SD-JWT VC)",
         "background_color": "#afcee9",
         "text_color": "#002c54"
       }
