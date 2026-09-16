@@ -203,6 +203,10 @@ main {
     }
 }
 
+.landing-info {
+    margin-block-start: var(--ds-size-8);
+}
+
 .button-group {
     display: flex;
     gap: var(--ds-size-4);
