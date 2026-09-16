@@ -263,9 +263,13 @@
 
     function renderFields() {
       const container = document.getElementById('issuance-fields');
+      const groupContainer = document.getElementById('issuance-groups');
       const empty = document.getElementById('issuance-empty');
       if (!container) return;
       while (container.firstChild) container.removeChild(container.firstChild);
+      if (groupContainer) {
+        while (groupContainer.firstChild) groupContainer.removeChild(groupContainer.firstChild);
+      }
 
       const data = currentObject && currentObject.credential_data;
       const fields = listFields(data);
@@ -277,7 +281,6 @@
       if (resetButton) resetButton.hidden = fields.length === 0;
       if (!fields.length) return;
 
-      const groupContainer = document.getElementById('issuance-groups');
       let lastGroup = null;
       let fieldsContainer = container;
       fields.forEach(function (field) {

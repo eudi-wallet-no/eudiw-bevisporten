@@ -903,11 +903,16 @@ footer ul {
 }
 
 /* Toppnivået og kvar nested gruppe er eige box med eigen overskrift */
-#schema-panel .claims-fieldset {
+.claims-card {
+    margin-block-start: var(--ds-size-10);
     background: var(--ds-color-neutral-background-default);
     border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
     border-radius: var(--ds-border-radius-md);
     padding: var(--ds-size-4);
+}
+
+.claims-card__heading {
+    margin-block-end: var(--ds-size-4);
 }
 
 #issuance-groups .claim-group {

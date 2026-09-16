@@ -45,11 +45,11 @@
             <div th:replace="~{fragments/components :: mode_toggle_fragment}"></div>
 
             <div id="schema-panel" role="tabpanel" aria-labelledby="schema-tab">
-                <fieldset class="claims-fieldset">
-                    <legend class="ds-heading" data-size="sm">Attributtar</legend>
+                <div class="claims-card">
+                    <h2 class="ds-heading claims-card__heading" data-size="sm">Attributtar</h2>
                     <p id="issuance-empty" class="ds-paragraph" hidden></p>
                     <div id="issuance-fields" class="claims-list"></div>
-                </fieldset>
+                </div>
                 <div id="issuance-groups"></div>
                 <button id="issuance-reset"
                         class="ds-button preview-reset-btn"
