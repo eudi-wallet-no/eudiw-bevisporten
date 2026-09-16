@@ -935,8 +935,19 @@ footer ul {
     color: var(--ds-color-neutral-text-default);
 }
 
-#issuance-reset {
-    margin-block-start: var(--ds-size-6);
+/* Tabbe- og "Tilbakestill"-knappen ligg i same rekkje */
+.mode-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-start: var(--ds-size-2);
+    border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+}
+
+.mode-toggle-row .mode-toggle {
+    width: 100%;
+    margin-block-start: 0;
+    border-block-end: none;
 }
 
 /* .ds-button set display og overkjører [hidden] frå nettlesaren */
