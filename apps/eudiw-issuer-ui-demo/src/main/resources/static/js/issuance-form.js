@@ -82,13 +82,17 @@
       return [];
     }
 
-    const fields = [];
+    // Direkte felt kjem først i alfabetisk rekkjefølgje, nestede grupper
+    // alltid sist (alfabetisk; full sti held gruppene saman), uavhengig av
+    // rekkefølgja i credential_data.
+    const directFields = [];
+    const nestedFields = [];
     Object.keys(credentialData).forEach(function (key) {
       const value = credentialData[key];
       const direct = descriptor(key, value, null);
 
       if (direct) {
-        fields.push(direct);
+        directFields.push(direct);
         return;
       }
 
@@ -100,13 +104,16 @@
         })) {
           keys.forEach(function (nestedKey) {
             const nested = descriptor(key + '.' + nestedKey, value[nestedKey], key);
-            if (nested) fields.push(nested);
+            if (nested) nestedFields.push(nested);
           });
         }
         // Anything deeper or mixed is edited only in Avansert.
       }
     });
-    return fields;
+    const byPath = (a, b) => (a.path < b.path ? -1 : 1);
+    directFields.sort(byPath);
+    nestedFields.sort(byPath);
+    return directFields.concat(nestedFields);
   }
 
   function hasOwn(object, key) {

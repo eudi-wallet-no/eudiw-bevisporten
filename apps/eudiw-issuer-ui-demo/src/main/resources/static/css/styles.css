@@ -905,15 +905,28 @@ footer ul {
 /* Grupperte attributtar (t.d. driving_privileges). Same visuelle clue som
    resultatvisninga: kallenavn med medium vekt og barna innrukket med
    venstregrense, på både mobil og desktop. */
+/* Full ramme rundt gruppa, slik at ho les som eitt. Same ramme-tokens som
+   .claim-korta på mobil. */
+#issuance-fields .claim-group {
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-md);
+    padding: var(--ds-size-4);
+}
+
+/* Rymd mellom nestede felt: same 16px-rutm som toppnivået (`.claims-list`
+   gap på mobil, row-gap i gridet på desktop). Felta er innrukket for å
+   vise at dei hører til gruppa. */
 #issuance-fields .claim-group__fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
     padding-inline-start: var(--ds-size-4);
-    border-inline-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
 }
 
 /* Gruppeoverskrift: same utseende som feltetikettane, ikkje understilt */
 .claim-group-heading {
     margin: 0;
-    margin-block-start: var(--ds-size-6);
+    margin-block-end: var(--ds-size-3);
     color: var(--ds-color-neutral-text-default);
 }
 
