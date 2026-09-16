@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @EnableConfigurationProperties(IssuerServerProperties.class)
@@ -12,7 +13,7 @@ public record IssuerServerProperties (
         String credentialIssuer,
         String issuanceEndpoint,
         List<CredentialConfiguration> credentialConfigurations,
-        List<CredentialConfiguration> subjectCredentialConfigurations,
+        Map<String, CredentialConfiguration> subjectCredentialConfigurations,
         List<String> wellKnownUrls) {
 
     public String getIssuanceEndpoint() {
@@ -41,6 +42,7 @@ public record IssuerServerProperties (
         }
 
         return subjectCredentialConfigurations()
+                .values()
                 .stream()
                 .filter(credentialConfiguration -> Objects.equals(credentialConfigurationId, credentialConfiguration.credentialConfigurationId()))
                 .findFirst()

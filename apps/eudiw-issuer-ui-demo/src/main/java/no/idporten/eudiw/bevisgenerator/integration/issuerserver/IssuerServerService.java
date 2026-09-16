@@ -132,7 +132,7 @@ public class IssuerServerService {
         if (issuerServerProperties.subjectCredentialConfigurations() == null) {
             return List.of();
         }
-        return issuerServerProperties.subjectCredentialConfigurations();
+        return issuerServerProperties.subjectCredentialConfigurations().values().stream().toList();
     }
 
     public CredentialConfiguration getSubjectCredentialConfigurationById(String id) {
