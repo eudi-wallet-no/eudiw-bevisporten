@@ -7,3 +7,8 @@ issuer-ui:
         issuer: ${issuer-ui.issuer-server.base-url}/junit
         title: Tetsbevis
         description: Tetsbevis (mdoc)
+    additional-credential-configurations:
+      - id: additional-test-id
+        issuer: ${issuer-ui.issuer-server.base-url}/additional-junit
+        title: Annet Tetsbevis
+        description: Annet tetsbevis (mdoc)

@@ -6,4 +6,12 @@ spring:
 issuer-ui:
   issuer-server:
     base-url: https://utsteder.test.eidas2sandkasse.net
-
+    additional-credential-configurations:
+      - id: "no.digdir.eudiw.webuild.pid_mso_mdoc"
+        issuer: ${issuer-ui.issuer-server.base-url}/webuild
+        title: Norsk ID-bevis WeBuild
+        description: Norsk ID-bevis WeBuild (mdoc)
+      - id: "no.digdir.eudiw.webuild.pid_sd_jwt_vc"
+        issuer: ${issuer-ui.issuer-server.base-url}/webuild
+        title: Norsk ID-bevis WeBuild
+        description: Norsk ID-bevis WeBuild (SD-JWT VC)

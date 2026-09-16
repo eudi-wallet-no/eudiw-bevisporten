@@ -142,7 +142,7 @@ services:
       timeout: 5s
       retries: 20
 
-  issuer-ui-demo:
+  bevisgenerator:
     build:
       context: ../..
       dockerfile: apps/eudiw-issuer-ui-demo/docker/dev.Dockerfile
