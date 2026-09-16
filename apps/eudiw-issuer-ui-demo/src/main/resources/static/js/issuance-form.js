@@ -271,16 +271,31 @@
       if (resetButton) resetButton.hidden = fields.length === 0;
       if (!fields.length) return;
 
+      // Grupperte felt (t.d. driving_privileges) ligg i ein .claim-group
+      // med innrykk og venstregrense (sjå .claim-group__fields i CSS), same
+      // visuelle clue som resultatvisninga.
       let lastGroup = null;
+      let fieldsContainer = container;
       fields.forEach(function (field) {
         if (field.parentPath !== lastGroup) {
+          if (lastGroup) {
+            fieldsContainer = container;
+          }
           lastGroup = field.parentPath;
           if (lastGroup) {
+            const group = document.createElement('div');
+            group.className = 'claim-group';
             const heading = document.createElement('h3');
             heading.className = 'ds-heading claim-group-heading';
-            heading.setAttribute('data-size', 'xs');
+            // 2xs = same tekststorrelse som feltetikettane
+            heading.setAttribute('data-size', '2xs');
             heading.textContent = lastGroup;
-            container.appendChild(heading);
+            group.appendChild(heading);
+            const groupFields = document.createElement('div');
+            groupFields.className = 'claim-group__fields';
+            group.appendChild(groupFields);
+            container.appendChild(group);
+            fieldsContainer = groupFields;
           }
         }
         const claim = document.createElement('div');
@@ -359,7 +374,7 @@
         }
 
         inputParent.appendChild(input);
-        container.appendChild(claim);
+        fieldsContainer.appendChild(claim);
       });
     }
 
