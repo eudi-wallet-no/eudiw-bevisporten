@@ -37,12 +37,12 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withNoContent;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 
 class IssuerServerServiceTest {
 
@@ -68,7 +68,6 @@ class IssuerServerServiceTest {
         IssuerServerProperties properties = new IssuerServerProperties(
                 "http://issuer",
                 "/api/v1/credential/issuance-transaction",
-                null,
                 null,
                 null,
                 null
@@ -143,43 +142,6 @@ class IssuerServerServiceTest {
     }
 
     @Test
-    void findsDynamicConfigurationByIssuerAndExternalIdForPreDeploymentTransactions() {
-        CredentialConfiguration dynamicConfiguration = new CredentialConfiguration(
-                "http://issuer/bevisgenerator",
-                "dynamic-credential",
-                "eudiw:eidas2sandkasse:dynamicvc",
-                null,
-                "Dynamic credential",
-                "{}"
-        );
-        CredentialIssuerService credentialIssuerService = mock(CredentialIssuerService.class);
-        when(credentialIssuerService.getCredentialConfigurationById("dynamic-credential"))
-                .thenReturn(dynamicConfiguration);
-        IssuerServerService service = new IssuerServerService(
-                mock(RestClient.class),
-                new IssuerServerProperties(
-                        "http://issuer",
-                        "/credential",
-                        List.of(),
-                        List.of(),
-                        List.of(),
-                        List.of()
-                ),
-                mock(MaskinportenClient.class),
-                credentialIssuerService,
-                mock(FeatureSwitches.class)
-        );
-
-        assertEquals(
-                dynamicConfiguration,
-                service.getByIssuerAndCredentialConfigurationId(
-                        "http://issuer/bevisgenerator",
-                        "dynamic-credential"
-                )
-        );
-    }
-
-    @Test
     void startIssuanceUsesBearerTokenAndCredentialIssuerAsResource() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
@@ -194,25 +156,14 @@ class IssuerServerServiceTest {
                         "/api/v1/credential/issuance-transaction",
                         List.of(),
                         List.of(),
-                        List.of(),
                         List.of()
                 ),
                 maskinportenClient,
                 mock(CredentialIssuerService.class),
                 mock(FeatureSwitches.class)
         );
-        CredentialConfiguration webuildConfiguration = new CredentialConfiguration(
-                "https://utsteder.test.eidas2sandkasse.net/webuild",
-                "no.digdir.eudiw.pid_mso_mdoc",
-                "eudiw:no:pid",
-                "05821098825",
-                "WeBuild PID (mdoc)",
-                "{}",
-                "webuild-pid-mdoc"
-        );
         mockServer.expect(requestTo(
-                        "https://utsteder.test.eidas2sandkasse.net/webuild"
-                                + "/api/v1/credential/issuance-transaction"))
+                        "http://issuer/tenant/api/v1/credential/issuance-transaction"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(request -> {
                     String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -225,16 +176,16 @@ class IssuerServerServiceTest {
                 .andRespond(withSuccess("""
                         {
                           "credential_offer": {
-                            "credential_issuer": "https://utsteder.test.eidas2sandkasse.net/webuild",
-                            "credential_configuration_ids": ["no.digdir.eudiw.pid_mso_mdoc"]
+                            "credential_issuer": "http://issuer/tenant",
+                            "credential_configuration_ids": ["pid"]
                           },
                           "issuance_transaction_id": "tx-id"
                         }
                         """, MediaType.APPLICATION_JSON));
 
         IssuanceResponse response = service.startIssuance(
-                webuildConfiguration,
-                new StartIssuanceForm("{}", "05821098825")
+                credentialConfiguration,
+                new StartIssuanceForm("{}", null)
         );
 
         assertEquals("tx-id", response.issuanceTransactionId());
@@ -244,7 +195,7 @@ class IssuerServerServiceTest {
                 ArgumentCaptor.forClass(AccessTokenRequestOverrides.class);
         verify(maskinportenClient).getAccessToken(overridesCaptor.capture());
         assertEquals(
-                List.of("https://utsteder.test.eidas2sandkasse.net/webuild"),
+                List.of("http://issuer/tenant"),
                 overridesCaptor.getValue().resources()
         );
     }
@@ -348,7 +299,6 @@ class IssuerServerServiceTest {
                 "/credential",
                 List.of(),
                 List.of(),
-                List.of(),
                 wellKnownUrls
         );
 
@@ -365,7 +315,6 @@ class IssuerServerServiceTest {
         IssuerServerProperties properties = new IssuerServerProperties(
                 "http://issuer",
                 "/api/v1/credential/issuance-transaction",
-                null,
                 null,
                 null,
                 null

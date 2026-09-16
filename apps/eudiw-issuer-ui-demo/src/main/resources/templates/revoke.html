@@ -145,7 +145,7 @@
                                 th:attr="aria-invalid=${#fields.hasErrors('credentialConfigurationId')}">
                             <option value="">Vel bevistype</option>
                             <option th:each="credentialConfiguration : ${credentialConfigurations}"
-                                    th:value="${credentialConfiguration.selectionId()}"
+                                    th:value="${credentialConfiguration.credentialConfigurationId()}"
                                     th:text="${credentialConfiguration.description() + ' (' + credentialConfiguration.credentialConfigurationId() + ')'}">
                             </option>
                         </select>

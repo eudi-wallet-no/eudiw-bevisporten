@@ -9,8 +9,7 @@ public record IssuanceSessionData(
         String credentialName,
         String subjectIdentifier,
         boolean completed,
-        List<ClaimView> claims,
-        String credentialConfigurationSelectionId
+        List<ClaimView> claims
 ) implements Serializable {
 
     public IssuanceSessionData(
@@ -20,34 +19,7 @@ public record IssuanceSessionData(
             String subjectIdentifier,
             boolean completed
     ) {
-        this(
-                credentialIssuer,
-                credentialConfigurationId,
-                credentialName,
-                subjectIdentifier,
-                completed,
-                List.of(),
-                credentialConfigurationId
-        );
-    }
-
-    public IssuanceSessionData(
-            String credentialIssuer,
-            String credentialConfigurationId,
-            String credentialName,
-            String subjectIdentifier,
-            boolean completed,
-            List<ClaimView> claims
-    ) {
-        this(
-                credentialIssuer,
-                credentialConfigurationId,
-                credentialName,
-                subjectIdentifier,
-                completed,
-                claims,
-                credentialConfigurationId
-        );
+        this(credentialIssuer, credentialConfigurationId, credentialName, subjectIdentifier, completed, List.of());
     }
 
     public IssuanceSessionData toCompleted() {
@@ -57,8 +29,7 @@ public record IssuanceSessionData(
                 credentialName,
                 subjectIdentifier,
                 true,
-                claims,
-                credentialConfigurationSelectionId
+                claims
         );
     }
 }
