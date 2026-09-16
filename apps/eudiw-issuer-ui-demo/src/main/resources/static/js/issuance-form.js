@@ -277,6 +277,7 @@
       if (resetButton) resetButton.hidden = fields.length === 0;
       if (!fields.length) return;
 
+      const groupContainer = document.getElementById('issuance-groups');
       let lastGroup = null;
       let fieldsContainer = container;
       fields.forEach(function (field) {
@@ -290,14 +291,13 @@
             group.className = 'claim-group';
             const heading = document.createElement('h3');
             heading.className = 'ds-heading claim-group-heading';
-            // 2xs = same tekststorrelse som feltetikettane
-            heading.setAttribute('data-size', '2xs');
+            heading.setAttribute('data-size', 'sm');
             heading.textContent = lastGroup;
             group.appendChild(heading);
             const groupFields = document.createElement('div');
             groupFields.className = 'claim-group__fields';
             group.appendChild(groupFields);
-            container.appendChild(group);
+            groupContainer.appendChild(group);
             fieldsContainer = groupFields;
           }
         }

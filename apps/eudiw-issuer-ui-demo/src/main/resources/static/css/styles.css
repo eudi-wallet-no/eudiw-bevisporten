@@ -902,22 +902,31 @@ footer ul {
     margin-block-end: var(--ds-size-4);
 }
 
-#issuance-fields .claim-group {
+/* Toppnivået og kvar nested gruppe er eige box med eigen overskrift */
+#schema-panel .claims-fieldset {
+    background: var(--ds-color-neutral-background-default);
     border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
     border-radius: var(--ds-border-radius-md);
     padding: var(--ds-size-4);
 }
 
-#issuance-fields .claim-group__fields {
+#issuance-groups .claim-group {
+    margin-block-start: var(--ds-size-10);
+    background: var(--ds-color-neutral-background-default);
+    border: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    border-radius: var(--ds-border-radius-md);
+    padding: var(--ds-size-4);
+}
+
+#issuance-groups .claim-group__fields {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-4);
-    padding-inline-start: var(--ds-size-4);
 }
 
 .claim-group-heading {
     margin: 0;
-    margin-block-end: var(--ds-size-3);
+    margin-block-end: var(--ds-size-4);
     color: var(--ds-color-neutral-text-default);
 }
 
@@ -932,7 +941,7 @@ footer ul {
 
 /* Utstedelse: lange attributt namn (t.d. personal_administrative_number)
    skal brytast, ikkje kutast med ellipse som i admin */
-#issuance-fields .claim-preset-label {
+#schema-panel .claim-preset-label {
     white-space: normal;
     overflow: visible;
     overflow-wrap: break-word;
@@ -949,22 +958,18 @@ footer ul {
     }
 
     #issuance-fields > .claim,
-    #issuance-fields .claim-group__fields > .claim {
+    #issuance-groups .claim-group__fields > .claim {
         display: contents;
     }
 
-    #issuance-fields .claim-group {
-        grid-column: 1 / -1;
-    }
-
-    #issuance-fields .claim-group__fields {
+    #issuance-groups .claim-group__fields {
         display: grid;
         grid-template-columns: max-content minmax(0, 1fr);
         align-items: center;
         column-gap: var(--ds-size-3);
     }
 
-    #issuance-fields .claim-preset-label {
+    #schema-panel .claim-preset-label {
         flex: none;
     }
 }
