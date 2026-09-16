@@ -93,10 +93,15 @@ class OpenID4VPRequestServiceTest {
         URI authorizationRequest = service.createAuthorizationRequest(
                 REQUEST_ID, clientApplication, CROSS_DEVICE_FLOW);
 
+        String expectedClientId = assertDoesNotThrow(() -> "x509_hash:%s".formatted(
+                java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(
+                        java.security.MessageDigest.getInstance("SHA-256")
+                                .digest(new byte[]{1, 2, 3}))));
         assertAll(
                 () -> assertEquals("eudi-openid4vp", authorizationRequest.getScheme()),
                 () -> assertEquals(SIOP2_CLIENT_ID, authorizationRequest.getHost()),
-                () -> assertTrue(authorizationRequest.getQuery().contains("client_id=x509_hash:")),
+                () -> assertTrue(authorizationRequest.getQuery().contains(
+                        "client_id=%s".formatted(expectedClientId))),
                 () -> assertTrue(authorizationRequest.getQuery().contains(
                         expectedRequestUri())));
     }
