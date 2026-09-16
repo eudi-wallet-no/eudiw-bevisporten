@@ -33,6 +33,7 @@
 - Branch: `<jira-id>`, preserving the supplied casing; if taken, use `<jira-id>-2`, then `<jira-id>-3`.
 - PR title: `<JIRA-ID>: <Norwegian title>`.
 - PR description: very short and written in Norwegian. Describe the changes in a few plain words; no technical details or file references.
+- In `Endringer`, think like the `explain` skill: see the whole before the parts. Group related changes into categories (e.g. admin, framsida) and describe each category in one summarized bullet; only standalone changes get their own bullet.
 
 ```md
 ## Bakgrunn
