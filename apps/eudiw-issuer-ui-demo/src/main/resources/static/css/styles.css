@@ -207,6 +207,11 @@ main {
     margin-block-start: var(--ds-size-8);
 }
 
+.landing-info .ds-link {
+    display: inline-block;
+    margin-block-start: var(--ds-size-4);
+}
+
 .button-group {
     display: flex;
     gap: var(--ds-size-4);
