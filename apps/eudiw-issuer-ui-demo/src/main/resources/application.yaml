@@ -8,6 +8,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  profiles:
+    group:
+      systest-local:
+        - systest
   application:
     name: digital-lommebok-bevisgenerator
     environment: default
@@ -103,7 +107,6 @@ bevisgenerator:
             }
           }
       - credential-configuration-id: no.digdir.eudiw.pid_mso_mdoc
-        local-id: pid-mdoc-push
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-pid}
         description: Norsk ID-bevis (mdoc push)
         scope: eudiw:no:pid

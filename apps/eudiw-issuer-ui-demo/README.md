@@ -23,24 +23,31 @@ Profiles in the [resources](/src/main/resources) folder:
 | dev     | Local development                          |
 | docker  | Docker locally, run by docker-compose file |
 | systest | Systest environment                        |
+| systest-local | Local application against systest        |
 | test    | Test environment                           |
 
 ## Secrets
 Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
+For the `systest-local` profile, fill in the placeholders in `secrets/eudiw-issuer-ui-demo-systest.env`.
 
 ## Running the application locally
 
-The `dev` and `docker` profiles runs the application with similar configuration.
+The `dev` and `docker` profiles run the application with similar configuration.
 
 The local hosts file should include:
 ```
 127.0.0.1 bevisgenerator
 ```
 
-This application depends on `byob-service` and `issuer-server`. Start those first from `eudiw-issuer-server`:
+For the `dev` and `docker` profiles, this application depends on `byob-service` and `issuer-server`. Start those first from `eudiw-issuer-server`:
 ```
 cd ../eudiw-issuer-server
 docker-compose up --scale issuer-ui-demo=0 --scale issuer-ui=0 -d
+```
+
+To run the application locally against the systest dependencies, do not start the local Docker services. Start the `systest-local` profile with Maven:
+```
+mvn spring-boot:run -Dspring-boot.run.profiles=systest-local
 ```
 
 The application can be started with Maven:

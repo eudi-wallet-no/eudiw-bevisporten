@@ -26,7 +26,7 @@
         <form th:fragment="send_attributes_form_fragment"
               id="send_attributes_form"
               class="form-container content-narrow"
-              th:action="@{/start-issuance/{id}(id = ${credentialConfigurationSelectionId})}"
+              th:action="@{/start-issuance/{id}(id = ${credentialConfiguration.credentialConfigurationId})}"
               th:object="${startIssuanceForm}"
               method="POST">
 
