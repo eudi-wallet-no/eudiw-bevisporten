@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-oauth-server/**'
       - '.github/workflows/eudiw-oauth-server.yml'
+      - '!apps/eudiw-oauth-server/src/test/**'
+      - '!apps/eudiw-oauth-server/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-oauth-server/*.md'
+      - '!apps/eudiw-oauth-server/*info.yaml'
   workflow_dispatch:
 
 jobs:

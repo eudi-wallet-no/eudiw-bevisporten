@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.ui.issuer.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
@@ -13,6 +14,7 @@ public class IssuerServerProperties {
     private String baseUrl;
     private String issuanceEndpoint;
     private List<CredentialConfiguration> credentialConfigurations;
+    private List<CredentialConfiguration> additionalCredentialConfigurations;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -42,11 +44,30 @@ public class IssuerServerProperties {
         return credentialConfigurations;
     }
 
+    public List<CredentialConfiguration> getAllCredentialConfigurations() {
+        List <CredentialConfiguration> allCredentialConfigurations = new ArrayList<>();
+        if (credentialConfigurations != null) {
+            allCredentialConfigurations.addAll(credentialConfigurations);
+        }
+        if (additionalCredentialConfigurations != null) {
+            allCredentialConfigurations.addAll(additionalCredentialConfigurations);
+        }
+        return allCredentialConfigurations;
+    }
+
     public CredentialConfiguration findCredentialConfiguration(String credentialConfigurationId) {
-        return credentialConfigurations
+        return getAllCredentialConfigurations()
                 .stream()
                 .filter(credentialConfiguration -> credentialConfiguration.id().equals(credentialConfigurationId))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public List<CredentialConfiguration> getAdditionalCredentialConfigurations() {
+        return additionalCredentialConfigurations;
+    }
+
+    public void setAdditionalCredentialConfigurations(List<CredentialConfiguration> additionalCredentialConfigurations) {
+        this.additionalCredentialConfigurations = additionalCredentialConfigurations;
     }
 }
