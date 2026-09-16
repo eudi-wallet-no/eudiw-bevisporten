@@ -23,6 +23,7 @@ import org.springframework.web.client.RestClient;
 
 import java.net.ConnectException;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 
@@ -155,7 +156,7 @@ class IssuerServerServiceTest {
                         "http://issuer",
                         "/api/v1/credential/issuance-transaction",
                         List.of(),
-                        List.of(),
+                        Map.of(),
                         List.of()
                 ),
                 maskinportenClient,
@@ -298,7 +299,7 @@ class IssuerServerServiceTest {
                 "http://issuer-server",
                 "/credential",
                 List.of(),
-                List.of(),
+                Map.of(),
                 wellKnownUrls
         );
 
