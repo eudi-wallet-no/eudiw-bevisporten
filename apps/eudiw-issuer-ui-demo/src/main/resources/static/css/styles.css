@@ -1005,6 +1005,10 @@ footer ul {
     margin-block-start: 0;
 }
 
+.claims-card .claims-section {
+    margin-block-start: var(--ds-size-6);
+}
+
 .claim-preset-label {
     flex: 0 0 12rem;
     font-weight: var(--ds-font-weight-medium);
