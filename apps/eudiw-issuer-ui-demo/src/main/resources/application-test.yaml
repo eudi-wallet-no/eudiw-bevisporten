@@ -30,7 +30,7 @@ bevisgenerator:
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
         description: Norsk ID-bevis WeBuild (SD-JWT VC)
         scope: eudiw:no:pid
-    verifier-service:
+  verifier-service:
     base-url: https://verifier-service.test.eidas2sandkasse.net
 
 maskinporten:
