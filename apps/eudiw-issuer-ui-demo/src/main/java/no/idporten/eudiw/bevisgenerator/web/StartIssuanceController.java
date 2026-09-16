@@ -291,7 +291,10 @@ public class StartIssuanceController {
         model.addAttribute("issuedTransactionId", issuanceTransactionId);
         model.addAttribute("issuedSubjectIdentifier", issuance.subjectIdentifier());
         model.addAttribute("issuedCredentialIssuer", issuance.credentialIssuer());
-        model.addAttribute("claims", issuance.claims());
+        List<ClaimView> claims = issuance.claims();
+        model.addAttribute("claims", claims);
+        model.addAttribute("topLevelClaims", claims.stream().filter(claim -> !claim.isGroup()).toList());
+        model.addAttribute("claimGroups", claims.stream().filter(ClaimView::isGroup).toList());
         model.addAttribute("steps", STEPS);
         return "issuance-complete";
     }

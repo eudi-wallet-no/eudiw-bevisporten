@@ -42,7 +42,7 @@
                         <h2 class="ds-heading" data-size="sm">Attributtar</h2>
 
                         <div class="verification-result__group">
-                            <div th:replace="~{fragments/components :: claim_list_fragment(claims=${claims.!?{!group}})}"></div>
+                            <div th:replace="~{fragments/components :: claim_list_fragment(claims=${topLevelClaims})}"></div>
 
                             <p class="ds-paragraph" data-size="sm" data-color="neutral"
                                th:if="${#lists.isEmpty(claims)}">
@@ -51,8 +51,8 @@
                         </div>
                     </div>
 
-                    <div th:if="${!#lists.isEmpty(claims.!{group})}">
-                        <div class="claim-group" th:each="group : ${claims.!{group}}">
+                    <div th:if="${!#lists.isEmpty(claimGroups)}">
+                        <div class="claim-group" th:each="group : ${claimGroups}">
                             <h3 class="ds-heading claim-group-heading" data-size="sm"
                                 th:text="${group.name}"></h3>
                             <div th:replace="~{fragments/components :: claim_list_fragment(claims=${group.children})}"></div>
