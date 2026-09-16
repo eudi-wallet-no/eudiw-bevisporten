@@ -17,6 +17,10 @@
 - Surface and handle errors explicitly. Do not hide errors or return false success.
 - Update documentation that becomes incorrect.
 - Write short, direct sentences. Remove filler, repetition and self-praise. No emojis. Preserve the project's terminology.
+- Apply Clean Code principles: use descriptive names, keep methods focused and short, and extract helpers when they clarify intent.
+- Prefer several small, intention-revealing methods over long methods that mix setup, execution, and assertions.
+- Use `private static final` uppercase constants for shared immutable test data. Keep one-use strings local to the method where they are used.
+- Prefer `String.formatted(...)` and other clear formatting methods over string concatenation with `+`.
 - Keep instructions and skills in English. Add only reusable project rules, not session notes.
 
 ## Before delivery
