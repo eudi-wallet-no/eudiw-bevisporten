@@ -29,12 +29,14 @@
 ## Branch and PR
 
 - Ask for the JIRA ID if it is missing. Never invent one.
+- Never create a pull request on the remote. The user creates PRs manually.
 - Branch: `<jira-id>`, preserving the supplied casing; if taken, use `<jira-id>-2`, then `<jira-id>-3`.
 - PR title: `<JIRA-ID>: <Norwegian title>`.
-- PR description: short and written in Norwegian:
+- PR description: very short and written in Norwegian. Describe the changes in a few plain words; no technical details or file references.
+- In `Endringer`, show the whole before the parts: group related changes into categories (e.g. admin, framsida) with one summarized bullet each; only standalone changes get their own bullet.
 
 ```md
-## Hva og hvorfor
+## Bakgrunn
 Hva endres, og hvorfor?
 
 ## Endringer
