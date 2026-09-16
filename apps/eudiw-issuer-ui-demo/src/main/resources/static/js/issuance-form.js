@@ -82,9 +82,8 @@
       return [];
     }
 
-    // Direkte felt kjem først i alfabetisk rekkjefølgje, nestede grupper
-    // alltid sist (alfabetisk; full sti held gruppene saman), uavhengig av
-    // rekkefølgja i credential_data.
+    // Deterministisk rekkjefølgje uavhengig av credential_data: direkte
+    // felt alfabetisk først, nestede grupper sist.
     const directFields = [];
     const nestedFields = [];
     Object.keys(credentialData).forEach(function (key) {
@@ -278,9 +277,6 @@
       if (resetButton) resetButton.hidden = fields.length === 0;
       if (!fields.length) return;
 
-      // Grupperte felt (t.d. driving_privileges) ligg i ein .claim-group
-      // med innrykk og venstregrense (sjå .claim-group__fields i CSS), same
-      // visuelle clue som resultatvisninga.
       let lastGroup = null;
       let fieldsContainer = container;
       fields.forEach(function (field) {
