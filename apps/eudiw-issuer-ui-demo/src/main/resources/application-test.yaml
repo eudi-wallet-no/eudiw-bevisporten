@@ -26,7 +26,7 @@ bevisgenerator:
         description: Norsk ID-bevis WeBuild (mdoc)
         scope: eudiw:no:pid
       webuild_pid_sd_jwt_vc:
-        credential-configuration-id: no.digdir.eudwi.webuild.pid_sd_jwt_vc
+        credential-configuration-id: no.digdir.eudiw.webuild.pid_sd_jwt_vc
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
         description: Norsk ID-bevis WeBuild (SD-JWT VC)
         scope: eudiw:no:pid
