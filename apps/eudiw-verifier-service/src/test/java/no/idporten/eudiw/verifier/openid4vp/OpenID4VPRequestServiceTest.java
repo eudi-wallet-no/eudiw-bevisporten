@@ -167,6 +167,8 @@ class OpenID4VPRequestServiceTest {
                 clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
+        assertTrue(request.verify(new com.nimbusds.jose.crypto.ECDSAVerifier(
+                (java.security.interfaces.ECPublicKey) keyProvider.publicKey())))
         VerificationTransaction storedTransaction = captureStoredTransaction();
 
         assertAll(
