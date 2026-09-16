@@ -1224,6 +1224,13 @@ footer ul {
     color: inherit;
 }
 
+.preview-card__label {
+    margin: 0;
+    color: var(--ds-color-neutral-text-subtle);
+    font-size: var(--ds-body-sm-font-size, 0.875rem);
+    text-align: center;
+}
+
 .preview-card__name {
     font-weight: var(--ds-font-weight-semibold);
     font-size: var(--ds-body-lg-font-size, 1.125rem);
