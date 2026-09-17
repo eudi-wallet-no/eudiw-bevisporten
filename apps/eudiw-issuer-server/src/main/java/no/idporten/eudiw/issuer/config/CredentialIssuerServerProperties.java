@@ -74,4 +74,3 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     }
 
 }
-
