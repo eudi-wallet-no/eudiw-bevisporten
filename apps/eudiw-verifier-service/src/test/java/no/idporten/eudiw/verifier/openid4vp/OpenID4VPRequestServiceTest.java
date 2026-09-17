@@ -1,5 +1,7 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -10,6 +12,7 @@ import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -93,17 +96,19 @@ class OpenID4VPRequestServiceTest {
         URI authorizationRequest = service.createAuthorizationRequest(
                 REQUEST_ID, clientApplication, CROSS_DEVICE_FLOW);
 
-        String expectedClientId = assertDoesNotThrow(() -> "x509_hash:%s".formatted(
-                java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(
-                        java.security.MessageDigest.getInstance("SHA-256")
-                                .digest(new byte[]{1, 2, 3}))));
         assertAll(
                 () -> assertEquals("eudi-openid4vp", authorizationRequest.getScheme()),
                 () -> assertEquals(SIOP2_CLIENT_ID, authorizationRequest.getHost()),
-                () -> assertTrue(authorizationRequest.getQuery().contains(
-                        "client_id=%s".formatted(expectedClientId))),
-                () -> assertTrue(authorizationRequest.getQuery().contains(
-                        expectedRequestUri())));
+                () -> assertTrue(authorizationRequest.getQuery().contains("client_id=x509_hash:")),
+                () -> assertTrue(authorizationRequest.getQuery().contains(expectedRequestUri())));
+    }
+
+    @Test
+    @DisplayName("When creating a client id, then the SHA-256 hash of the certificate is returned")
+    void createsClientIdFromCertificateHash() {
+        String clientId = service.makeClientId(clientApplication);
+
+        assertEquals("x509_hash:A5BYxvLAy0ksUzsKTRTvd8wPeKvMztUofYShogEc-4E", clientId);
     }
 
     @Test
@@ -163,12 +168,10 @@ class OpenID4VPRequestServiceTest {
     void createsAndStoresSignedAuthorizationRequest() throws Exception {
         configureExistingTransaction();
 
-        String serializedRequest = service.retrieveAuthorizationRequest(
-                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
+        String serializedRequest = service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
-        assertTrue(request.verify(new com.nimbusds.jose.crypto.ECDSAVerifier(
-                (java.security.interfaces.ECPublicKey) keyProvider.publicKey())))
+        assertTrue(request.verify(getEcdsaVerifier(keyProvider)));
         VerificationTransaction storedTransaction = captureStoredTransaction();
 
         assertAll(
@@ -179,6 +182,10 @@ class OpenID4VPRequestServiceTest {
                 () -> assertNotNull(storedTransaction.getState()),
                 () -> assertNotNull(storedTransaction.getEncryptionKey()),
                 () -> assertNull(request.getJWTClaimsSet().getClaim("dcql_query")));
+    }
+
+    private @NonNull ECDSAVerifier getEcdsaVerifier(KeyProvider keyProvider1) throws JOSEException {
+        return new ECDSAVerifier((java.security.interfaces.ECPublicKey) keyProvider1.publicKey());
     }
 
     private String expectedRequestUri() {
