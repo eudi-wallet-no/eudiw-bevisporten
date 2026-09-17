@@ -1,7 +1,7 @@
 {
   "credential_configuration_id": "no.digdir.eudiw.webuild.pid_mso_mdoc",
   "credential_issuer_context": {
-    "credential_datasource_uri": "authoritative-source://freg",
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.WebuildPidDemoClaimsSource",
     "credential_signing_keystore": "webuild-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "pre_authorization_server": "maskinporten",
