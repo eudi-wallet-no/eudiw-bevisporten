@@ -13,10 +13,23 @@ bevisgenerator:
     credential-issuer: https://utsteder.test.eidas2sandkasse.net/bevisgenerator
     credential-issuer-pid: https://utsteder.test.eidas2sandkasse.net/pid
     credential-issuer-minid: https://utsteder.test.eidas2sandkasse.net/minid
+    credential-issuer-webuild: https://utsteder.test.eidas2sandkasse.net/webuild
     well-known-urls:
       - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/pid
       - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/minid
       - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/bevisgenerator
+      - https://utsteder.test.eidas2sandkasse.net/.well-known/openid-credential-issuer/webuild
+    subject-credential-configurations:
+      webuild_pid_mso_mdoc:
+        credential-configuration-id: no.digdir.eudiw.webuild.pid_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
+        description: Norsk ID-bevis WeBuild (mdoc)
+        scope: eudiw:no:pid
+      webuild_pid_sd_jwt_vc:
+        credential-configuration-id: no.digdir.eudiw.webuild.pid_sd_jwt_vc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
+        description: Norsk ID-bevis WeBuild (SD-JWT VC)
+        scope: eudiw:no:pid
   verifier-service:
     base-url: https://verifier-service.test.eidas2sandkasse.net
 
