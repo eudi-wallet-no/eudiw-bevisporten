@@ -3,8 +3,8 @@ package no.idporten.eudiw.issuer.ui.issuer.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @ConfigurationProperties(prefix = "issuer-ui.issuer-server")
@@ -13,8 +13,7 @@ public class IssuerServerProperties {
 
     private String baseUrl;
     private String issuanceEndpoint;
-    private List<CredentialConfiguration> credentialConfigurations;
-    private List<CredentialConfiguration> additionalCredentialConfigurations;
+    private Map<String, CredentialConfiguration> credentialConfigurations;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -36,38 +35,20 @@ public class IssuerServerProperties {
         return baseUrl + issuanceEndpoint;
     }
 
-    public void setCredentialConfigurations(List<CredentialConfiguration> credentialConfigurations) {
+    public void setCredentialConfigurations(Map<String, CredentialConfiguration> credentialConfigurations) {
         this.credentialConfigurations = credentialConfigurations;
     }
 
     public List<CredentialConfiguration> getCredentialConfigurations() {
-        return credentialConfigurations;
-    }
-
-    public List<CredentialConfiguration> getAllCredentialConfigurations() {
-        List <CredentialConfiguration> allCredentialConfigurations = new ArrayList<>();
-        if (credentialConfigurations != null) {
-            allCredentialConfigurations.addAll(credentialConfigurations);
-        }
-        if (additionalCredentialConfigurations != null) {
-            allCredentialConfigurations.addAll(additionalCredentialConfigurations);
-        }
-        return allCredentialConfigurations;
+        return credentialConfigurations.values().stream().toList();
     }
 
     public CredentialConfiguration findCredentialConfiguration(String credentialConfigurationId) {
-        return getAllCredentialConfigurations()
+        return credentialConfigurations
+                .values()
                 .stream()
                 .filter(credentialConfiguration -> credentialConfiguration.id().equals(credentialConfigurationId))
                 .findFirst()
                 .orElse(null);
-    }
-
-    public List<CredentialConfiguration> getAdditionalCredentialConfigurations() {
-        return additionalCredentialConfigurations;
-    }
-
-    public void setAdditionalCredentialConfigurations(List<CredentialConfiguration> additionalCredentialConfigurations) {
-        this.additionalCredentialConfigurations = additionalCredentialConfigurations;
     }
 }

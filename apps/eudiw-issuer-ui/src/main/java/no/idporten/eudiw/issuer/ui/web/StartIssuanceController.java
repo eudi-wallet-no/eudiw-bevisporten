@@ -35,7 +35,7 @@ public class StartIssuanceController {
 
     private final IssuerServerProperties properties;
     
-    protected final static String VIEW_ISSUANCE_RESPONSE = "issuer_response";;
+    protected final static String VIEW_ISSUANCE_RESPONSE = "issuer_response";
 
     @Autowired
     public StartIssuanceController(IssuerServerService issuerServerService, IssuerServerProperties properties) {
@@ -51,7 +51,7 @@ public class StartIssuanceController {
     @GetMapping("/")
     public String start(Model model) {
         model.addAttribute("credential_configuration_id", "");
-        model.addAttribute("credentialConfigurations", properties.getAllCredentialConfigurations());
+        model.addAttribute("credentialConfigurations", properties.getCredentialConfigurations());
         return "start";
     }
 
