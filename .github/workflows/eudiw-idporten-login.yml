@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-idporten-login/**'
       - '.github/workflows/eudiw-idporten-login.yml'
+      - '!apps/eudiw-idporten-login/src/test/**'
+      - '!apps/eudiw-idporten-login/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-idporten-login/*.md'
+      - '!apps/eudiw-idporten-login/*info.yaml'
   workflow_dispatch:
 
 jobs:

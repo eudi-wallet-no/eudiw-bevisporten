@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-status-list/**'
       - '.github/workflows/eudiw-status-list.yml'
+      - '!apps/eudiw-status-list/src/test/**'
+      - '!apps/eudiw-status-list/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-status-list/*.md'
+      - '!apps/eudiw-status-list/*info.yaml'
   workflow_dispatch:
 
 jobs:

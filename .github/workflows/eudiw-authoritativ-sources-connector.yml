@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-authoritativ-sources-connector/**'
       - '.github/workflows/eudiw-authoritativ-sources-connector.yml'
+      - '!apps/eudiw-authoritativ-sources-connector/src/test/**'
+      - '!apps/eudiw-authoritativ-sources-connector/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-authoritativ-sources-connector/*.md'
+      - '!apps/eudiw-authoritativ-sources-connector/*info.yaml'
   workflow_dispatch:
 
 jobs:

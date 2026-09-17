@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -133,7 +132,7 @@ public class IssuerServerService {
         if (issuerServerProperties.subjectCredentialConfigurations() == null) {
             return List.of();
         }
-        return issuerServerProperties.subjectCredentialConfigurations();
+        return issuerServerProperties.subjectCredentialConfigurations().values().stream().toList();
     }
 
     public CredentialConfiguration getSubjectCredentialConfigurationById(String id) {
@@ -178,7 +177,7 @@ public class IssuerServerService {
                     .uri(issuanceEndpoint)
                     .accept(MediaType.APPLICATION_JSON)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer %s".formatted(accessToken))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
                     .body(json.json())
                     .retrieve()
                     .body(IssuanceResponse.class);

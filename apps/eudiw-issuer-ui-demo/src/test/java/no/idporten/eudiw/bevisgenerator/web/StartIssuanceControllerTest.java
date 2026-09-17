@@ -395,7 +395,7 @@ class StartIssuanceControllerTest {
                 .andExpect(content().string(containsString("class=\"stepper\"")))
                 .andExpect(content().string(containsString("aria-current=\"step\"")))
                 .andExpect(content().string(containsString("Utferding fullført")))
-                .andExpect(content().string(containsString("Attributt</h2>")))
+                .andExpect(content().string(containsString("Attributtar</h2>")))
                 .andExpect(content().string(containsString("Utferdingsdetaljar</h2>")))
                 .andExpect(content().string(containsString("Beviset er utferda til lommeboka")))
                 .andExpect(content().string(containsString("Førenamn")))
@@ -408,6 +408,37 @@ class StartIssuanceControllerTest {
                 .andExpect(content().string(containsString("http://issuer/tenant")))
                 .andExpect(content().string(containsString("Transaksjons-ID")))
                 .andExpect(content().string(containsString("tx-id")));
+    }
+
+    @Test
+    void completedIssuanceRendersGroupClaimsInSeparateBox() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        IssuanceSessionData sessionData = new IssuanceSessionData(
+                "http://issuer/tenant",
+                "pid",
+                "MinID PID",
+                "05821098825",
+                true,
+                List.of(
+                        new no.idporten.eudiw.bevisgenerator.web.models.ClaimView(
+                                "driving_privileges", "Driving privileges", null,
+                                List.of(
+                                        new no.idporten.eudiw.bevisgenerator.web.models.ClaimView(
+                                                "issue_date", "Issue date", "2026-03-12", List.of()
+                                        )
+                                )
+                        )
+                )
+        );
+        session.setAttribute(TRANSACTION_KEY, sessionData);
+
+        thymeleafMockMvc().perform(get("/issuance/tx-id/complete").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"claim-group\"")))
+                .andExpect(content().string(containsString("claim-group-heading\"")))
+                .andExpect(content().string(containsString("Driving privileges</h3>")))
+                .andExpect(content().string(containsString("Issue date")))
+                .andExpect(content().string(containsString("2026-03-12")));
     }
 
     @Test

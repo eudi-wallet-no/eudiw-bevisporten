@@ -1,0 +1,15 @@
+---
+server:
+  port: 9290
+
+management:
+  server:
+    port: 9290
+
+spring:
+  config:
+    import: optional:file:${EUDIW_ISSUER_UI_DEMO_SYSTEST_ENV}[.properties]
+  application:
+    environment: systest
+  thymeleaf:
+    cache: false

@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-issuer-server/**'
       - '.github/workflows/eudiw-issuer-server.yml'
+      - '!apps/eudiw-issuer-server/src/test/**'
+      - '!apps/eudiw-issuer-server/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-issuer-server/*.md'
+      - '!apps/eudiw-issuer-server/*info.yaml'
   workflow_dispatch:
 
 jobs:
