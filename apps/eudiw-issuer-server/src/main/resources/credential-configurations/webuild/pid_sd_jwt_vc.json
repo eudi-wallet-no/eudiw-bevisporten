@@ -140,6 +140,30 @@
           }
         ],
         "mandatory": true
+      },
+      {
+        "path": [
+          "resident_house_number"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Husnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "location_status"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Statusadresse"
+          }
+        ]
       }
     ]
   }

@@ -149,6 +149,32 @@
           }
         ],
         "mandatory": true
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "resident_house_number"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Husnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "location_status"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Statusadresse"
+          }
+        ]
       }
     ]
   }
