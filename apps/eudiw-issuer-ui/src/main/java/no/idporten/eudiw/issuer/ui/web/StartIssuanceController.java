@@ -51,7 +51,7 @@ public class StartIssuanceController {
     @GetMapping("/")
     public String start(Model model) {
         model.addAttribute("credential_configuration_id", "");
-        model.addAttribute("credentialConfigurations", properties.getCredentialConfigurations());
+        model.addAttribute("credentialConfigurations", properties.getCredentialConfigurationsValues());
         return "start";
     }
 

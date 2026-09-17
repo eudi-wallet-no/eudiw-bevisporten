@@ -39,7 +39,11 @@ public class IssuerServerProperties {
         this.credentialConfigurations = credentialConfigurations;
     }
 
-    public List<CredentialConfiguration> getCredentialConfigurations() {
+    public Map<String, CredentialConfiguration> getCredentialConfigurations() {
+        return credentialConfigurations;
+    }
+
+    public List<CredentialConfiguration> getCredentialConfigurationsValues() {
         return credentialConfigurations.values().stream().toList();
     }
 
