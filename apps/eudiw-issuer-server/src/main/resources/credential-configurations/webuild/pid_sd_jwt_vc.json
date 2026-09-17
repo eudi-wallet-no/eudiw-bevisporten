@@ -143,6 +143,78 @@
       },
       {
         "path": [
+          "resident_address"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bostedsadresse"
+          }
+        ]
+      },
+      {
+        "path": [
+          "resident_country"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bostedsland"
+          }
+        ]
+      },
+      {
+        "path": [
+          "resident_state"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bostedsfylke"
+          }
+        ]
+      },
+      {
+        "path": [
+          "resident_city"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bosted by"
+          }
+        ]
+      },
+      {
+        "path": [
+          "resident_postal_code"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Postnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "resident_street"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Gate"
+          }
+        ]
+      },
+      {
+        "path": [
           "resident_house_number"
         ],
         "type": "string",
@@ -155,6 +227,102 @@
       },
       {
         "path": [
+          "family_name_birth"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fødtetternavn"
+          }
+        ]
+      },
+      {
+        "path": [
+          "given_name_birth"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fødenamn"
+          }
+        ]
+      },
+      {
+        "path": [
+          "sex"
+        ],
+        "type": "number",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Kjønn"
+          }
+        ]
+      },
+      {
+        "path": [
+          "email_address"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "E-postadresse"
+          }
+        ]
+      },
+      {
+        "path": [
+          "mobile_phone_number"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Mobilnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "document_number"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Dokumentnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "issuing_jurisdiction"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Utstedelsesjurisdiksjon"
+          }
+        ]
+      },
+      {
+        "path": [
+          "issuance_date"
+        ],
+        "type": "iso_date",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Utstedt dato"
+          }
+        ]
+      },
+      {
+        "path": [
           "location_status"
         ],
         "type": "string",
@@ -162,6 +330,42 @@
           {
             "locale": "no",
             "name": "Statusadresse"
+          }
+        ]
+      },
+      {
+        "path": [
+          "trust_anchor"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Trust anchor"
+          }
+        ]
+      },
+      {
+        "path": [
+          "attestation_legal_category"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Attestasjonstype"
+          }
+        ]
+      },
+      {
+        "path": [
+          "portrait"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Portrett"
           }
         ]
       }

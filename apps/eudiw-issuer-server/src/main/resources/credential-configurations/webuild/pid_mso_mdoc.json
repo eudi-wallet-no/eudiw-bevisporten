@@ -153,6 +153,84 @@
       {
         "path": [
           "eu.europa.ec.eudi.pid.1",
+          "resident_address"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bostedsadresse"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "resident_country"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bostedsland"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "resident_state"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bostedsfylke"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "resident_city"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Bosted by"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "resident_postal_code"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Postnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "resident_street"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Gate"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
           "resident_house_number"
         ],
         "type": "string",
@@ -166,6 +244,110 @@
       {
         "path": [
           "eu.europa.ec.eudi.pid.1",
+          "family_name_birth"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fødtetternavn"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "given_name_birth"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fødenamn"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "sex"
+        ],
+        "type": "number",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Kjønn"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "email_address"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "E-postadresse"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "mobile_phone_number"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Mobilnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "document_number"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Dokumentnummer"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "issuing_jurisdiction"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Utstedelsesjurisdiksjon"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "issuance_date"
+        ],
+        "type": "iso_date",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Utstedt dato"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
           "location_status"
         ],
         "type": "string",
@@ -173,6 +355,45 @@
           {
             "locale": "no",
             "name": "Statusadresse"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "trust_anchor"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Trust anchor"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "attestation_legal_category"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Attestasjonstype"
+          }
+        ]
+      },
+      {
+        "path": [
+          "eu.europa.ec.eudi.pid.1",
+          "portrait"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Portrett"
           }
         ]
       }
