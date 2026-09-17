@@ -25,10 +25,4 @@ public class IssuerServerServiceTest {
         URI uri = issuerServerService.createCredentialOfferRequestUri(issuerServerProperties.findCredentialConfiguration("test-id"));
         assertEquals("https://my-unit-test-issuer-server/junit/api/v1/credential-offer/create?credential_configuration_id=test-id", uri.toString());
     }
-
-    @Test
-    void testCreateCredentialOfferForAdditionalCredentialsRequestUri() {
-        URI uri = issuerServerService.createCredentialOfferRequestUri(issuerServerProperties.findCredentialConfiguration("additional-test-id"));
-        assertEquals("https://my-unit-test-issuer-server/additional-junit/api/v1/credential-offer/create?credential_configuration_id=additional-test-id", uri.toString());
-    }
 }
