@@ -152,6 +152,11 @@ public class CredentialIssuerMetadataService {
         if (tenant.getBatchSize() >= 2) {
             builder.batchCredentialIssuance(BatchCredentialIssuance.builder().batchSize(tenant.getBatchSize()).build());
         }
+        if (tenant.includeIssuerInfo()) {
+            IssuerInfoElement registrationCert = new IssuerInfoElement("registration_cert", tenant.getRegistrationCertificate().registrationCertificateJwt());
+            IssuerInfoElement registrarDataset = new IssuerInfoElement("registrar_dataset", tenant.getRegistrationCertificate().registrarDatasetJson());
+            builder.issuerInfo(List.of(registrationCert, registrarDataset));
+        }
         CredentialConfigurations credentialConfigurations = buildCredentialConfigurations(credentialIssuerServerProperties, tenant);
         builder.credentialConfigurations(credentialConfigurations);
         return builder.build();

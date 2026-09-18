@@ -86,6 +86,10 @@ credential-issuer-server:
             paths:
               - classpath:credential-configurations/webuild/pid_mso_mdoc.json
               - classpath:credential-configurations/webuild/pid_sd_jwt_vc.json
+      registration-certificate:
+        enabled: ${WEBUILD_REGISTRATION_CERTIFICATE_ENABLED:false}
+        registration-certificate-jwt: ${WEBUILD_REGISTRATION_CERTIFICATE_JWT:}
+        registrar-dataset: ${WEBUILD_REGISTRAR_DATASET_JSON:}
     minid:
       display-names:
         "no": "MinID bevisutsteder"

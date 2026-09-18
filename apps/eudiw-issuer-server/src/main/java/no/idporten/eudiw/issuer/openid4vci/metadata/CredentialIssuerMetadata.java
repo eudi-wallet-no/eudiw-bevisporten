@@ -40,6 +40,9 @@ public class CredentialIssuerMetadata {
     @JsonProperty("batch_credential_issuance")
     private BatchCredentialIssuance batchCredentialIssuance;
 
+    @JsonProperty("issuer_info")
+    private List<IssuerInfoElement> issuerInfo;
+
     @Singular("display")
     @JsonProperty("display")
     private List<Display> displays;

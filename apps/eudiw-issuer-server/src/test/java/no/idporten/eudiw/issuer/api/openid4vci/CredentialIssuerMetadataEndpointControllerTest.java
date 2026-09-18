@@ -159,4 +159,40 @@ public class CredentialIssuerMetadataEndpointControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("when requesting issuer info metadata")
+    class IssuerInfoMetadata {
+
+        @DisplayName("then issuer_info is not included for a tenant without a registration certificate")
+        @Test
+        void testGetMetadataWithoutIssuerInfo() throws Exception {
+            mockMvc.perform(get("/.well-known/openid-credential-issuer"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.issuer_info").doesNotExist());
+        }
+
+        @DisplayName("then issuer_info contains the registration certificate and registrar dataset as a JSON array")
+        @Test
+        void testGetMetadataWithIssuerInfo() throws Exception {
+            mockMvc.perform(get("/.well-known/openid-credential-issuer/webuild"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
+                    .andExpect(jsonPath("$.issuer_info").isArray())
+                    .andExpect(jsonPath("$.issuer_info.length()").value(2))
+                    .andExpect(jsonPath("$.issuer_info[0].format").value("registration_cert"))
+                    .andExpect(jsonPath("$.issuer_info[0].data").value("eyJhbGciOiJFUzI1NiJ9.junit-registration-certificate-jwt.signature"))
+                    .andExpect(jsonPath("$.issuer_info[1].format").value("registrar_dataset"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.identifier[0].identifier").value("NO-ORG-123456789"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.identifier[0].type").value("http://data.europa.eu/eudi/id/EUID"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.srvDescription[0].lang").value("no"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.srvDescription[1].lang").value("en"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.registryURI").value("https://registrar.example.no/"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.providesAttestations[0].format").value("dc+sd-jwt"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.providesAttestations[0].type").value("urn:eudi:pid:1"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.providesAttestations[1].format").value("mso_mdoc"))
+                    .andExpect(jsonPath("$.issuer_info[1].data.providesAttestations[1].type").value("eu.europa.ec.eudi.pid.1"));
+        }
+    }
+
 }
