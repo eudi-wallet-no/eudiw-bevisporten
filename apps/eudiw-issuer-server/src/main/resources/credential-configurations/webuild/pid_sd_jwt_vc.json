@@ -18,6 +18,12 @@
         "name": "Norsk ID-bevis WeBuild (SD-JWT VC)",
         "background_color": "#afcee9",
         "text_color": "#002c54"
+      },
+      {
+        "locale": "en",
+        "name": "Norwegian ID document WeBuild (SD-JWT VC)",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
       }
     ],
     "claims": [
