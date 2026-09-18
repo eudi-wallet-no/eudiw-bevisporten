@@ -10,6 +10,7 @@ import org.springframework.boot.env.OriginTrackedMapPropertySource;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -69,5 +70,60 @@ class RegistrationCertificatePropertiesTest {
                 "not valid json");
 
         assertNull(properties.registrarDatasetJson());
+    }
+
+    @DisplayName("then validation passes when enabled with a JWT and a valid JSON registrar dataset")
+    @Test
+    void validationPassesWhenEnabledWithValidValues() {
+        RegistrationCertificateProperties properties = new RegistrationCertificateProperties(
+                true,
+                "registration-certificate-jwt",
+                "{\"organization\":\"Digdir\"}");
+
+        assertDoesNotThrow(properties::validate);
+    }
+
+    @DisplayName("then validation fails when enabled without a registration certificate JWT")
+    @Test
+    void validationFailsWhenEnabledWithoutJwt() {
+        RegistrationCertificateProperties properties = new RegistrationCertificateProperties(
+                true,
+                null,
+                "{\"organization\":\"Digdir\"}");
+
+        assertThrows(IllegalArgumentException.class, properties::validate);
+    }
+
+    @DisplayName("then validation fails when enabled without a registrar dataset")
+    @Test
+    void validationFailsWhenEnabledWithoutRegistrarDataset() {
+        RegistrationCertificateProperties properties = new RegistrationCertificateProperties(
+                true,
+                "registration-certificate-jwt",
+                null);
+
+        assertThrows(IllegalArgumentException.class, properties::validate);
+    }
+
+    @DisplayName("then validation fails when enabled with an invalid registrar dataset")
+    @Test
+    void validationFailsWhenEnabledWithInvalidRegistrarDataset() {
+        RegistrationCertificateProperties properties = new RegistrationCertificateProperties(
+                true,
+                "registration-certificate-jwt",
+                "not valid json");
+
+        assertThrows(IllegalArgumentException.class, properties::validate);
+    }
+
+    @DisplayName("then validation passes when disabled regardless of missing or invalid values")
+    @Test
+    void validationPassesWhenDisabled() {
+        RegistrationCertificateProperties properties = new RegistrationCertificateProperties(
+                false,
+                null,
+                null);
+
+        assertDoesNotThrow(properties::validate);
     }
 }

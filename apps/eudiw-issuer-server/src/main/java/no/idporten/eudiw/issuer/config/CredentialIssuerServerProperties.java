@@ -51,6 +51,9 @@ public class CredentialIssuerServerProperties implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         for (CredentialIssuerTenant tenant : tenants.values()) {
+            if (tenant.getRegistrationCertificate() != null) {
+                tenant.getRegistrationCertificate().validate();
+            }
             for (CredentialConfigurationSourceProperties properties : tenant.getCredentialConfigurationSourcesProperties()) {
                 CredentialConfigurationSource credentialConfigurationSource = createCredentialConfigurationSource(properties);
                 try {
