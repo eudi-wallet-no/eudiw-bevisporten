@@ -34,6 +34,10 @@
         "type": "string",
         "display": [
           {
+            "locale": "en",
+            "name": "Personal identification number"
+          },
+          {
             "locale": "no",
             "name": "Fødselsnummer"
           }
@@ -48,6 +52,10 @@
         "type": "string",
         "display": [
           {
+            "locale": "en",
+            "name": "Given name"
+          },
+          {
             "locale": "no",
             "name": "Førenamn"
           }
@@ -61,6 +69,10 @@
         "type": "string",
         "display": [
           {
+            "locale": "en",
+            "name": "Family name"
+          },
+          {
             "locale": "no",
             "name": "Etternamn"
           }
@@ -73,6 +85,10 @@
         ],
         "type": "iso_date",
         "display": [
+          {
+            "locale": "en",
+            "name": "Date of birth"
+          },
           {
             "locale": "no",
             "name": "Fødselsdato"
@@ -88,6 +104,10 @@
         "type": "map",
         "display": [
           {
+            "locale": "en",
+            "name": "Place of birth"
+          },
+          {
             "locale": "no",
             "name": "Fødeland"
           }
@@ -101,6 +121,10 @@
         "type": "list",
         "display": [
           {
+            "locale": "en",
+            "name": "Nationality"
+          },
+          {
             "locale": "no",
             "name": "Nasjonalitet"
           }
@@ -113,6 +137,10 @@
         ],
         "type": "iso_date",
         "display": [
+          {
+            "locale": "en",
+            "name": "Expiry date"
+          },
           {
             "locale": "no",
             "name": "Gyldig til dato"
@@ -128,6 +156,10 @@
         "type": "string",
         "display": [
           {
+            "locale": "en",
+            "name": "Issuing authority"
+          },
+          {
             "locale": "no",
             "name": "Utsteda av"
           }
@@ -140,6 +172,10 @@
         ],
         "type": "string",
         "display": [
+          {
+            "locale": "en",
+            "name": "Issuing country"
+          },
           {
             "locale": "no",
             "name": "Utsteda i land"
