@@ -16,15 +16,15 @@
 
     <properties>
         <java.version>25</java.version>
-        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <lombok.version>1.18.44</lombok.version>
         <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <idporten-log-audit.version>4.0.4</idporten-log-audit.version>
-        <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
-        <bcpkix-jdk18on.version>1.85</bcpkix-jdk18on.version>
-        <bcprov-jdk18on.version>1.85.2</bcprov-jdk18on.version>
+        <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
+        <bcpkix-jdk18on.version>1.86</bcpkix-jdk18on.version>
+        <bcprov-jdk18on.version>1.86</bcprov-jdk18on.version>
         <nimbus-jose-jwt.version>10.9.1</nimbus-jose-jwt.version>
         <springdoc.version>3.1.0</springdoc.version>
     </properties>
