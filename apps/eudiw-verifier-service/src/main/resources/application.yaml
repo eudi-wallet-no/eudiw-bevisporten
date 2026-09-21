@@ -41,3 +41,11 @@ status-list:
   readTimeout: 3s
   connectTimeout: 3s
   clock-skew: 60s
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

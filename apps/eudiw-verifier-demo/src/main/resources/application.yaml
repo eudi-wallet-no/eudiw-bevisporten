@@ -170,3 +170,11 @@ idporten-key-manager:
       key-store-password: ${VERIFIER_KEYSTORE_PASSWORD}
       key-alias: ${VERIFIER_KEY_ALIAS}
       key-password: ${VERIFIER_KEY_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
