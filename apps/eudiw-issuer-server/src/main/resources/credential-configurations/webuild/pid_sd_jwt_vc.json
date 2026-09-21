@@ -35,7 +35,7 @@
         "display": [
           {
             "locale": "en",
-            "name": "Personal identification number"
+            "name": "Personal administrative number"
           },
           {
             "locale": "no",
@@ -87,7 +87,7 @@
         "display": [
           {
             "locale": "en",
-            "name": "Date of birth"
+            "name": "Birth date"
           },
           {
             "locale": "no",
