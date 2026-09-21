@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.net.URI;
+import java.util.List;
 
 @SpringBootTest
 @ActiveProfiles("junit")
@@ -22,17 +23,38 @@ class TillitslisterPropertiesTest {
     void tillitslisterEidas2SandkassePropertiesAreNotEmpty() {
         assertAll(
                 () -> assertNotNull(properties),
-                () -> assertNotNull(properties.getSandboxTrustlist()),
-                () -> assertNotNull(properties.getSandboxTrustlist().attestations()),
-                () -> assertNotNull(properties.getSandboxTrustlist().pid())
+                () -> assertFalse(properties.getAttestationTrustlists().isEmpty()),
+                () -> assertFalse(properties.getPidTrustlists().isEmpty())
         );
     }
 
     @Test
     void tillitslisterEidas2SandkassePropertiesContainExpectedContent() {
         assertAll(
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"), properties.getSandboxTrustlist().attestations()),
-                () -> assertEquals(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"), properties.getSandboxTrustlist().pid())
+                () -> assertEquals(
+                        List.of(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl")),
+                        properties.getAttestationTrustlists()),
+                () -> assertEquals(
+                        List.of(
+                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
+                                URI.create("https://trustlist.webuild.jwt")),
+                        properties.getPidTrustlists())
+        );
+    }
+
+    @Test
+    @DisplayName("with configured issuer URLs, then matching and default trustlists are returned")
+    void issuerTrustlistsAreResolvedWithDefault() {
+        assertAll(
+                () -> assertEquals(
+                        URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
+                        properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/pid")),
+                () -> assertEquals(
+                        URI.create("https://trustlist.webuild.jwt"),
+                        properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/webuild")),
+                () -> assertEquals(
+                        URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"),
+                        properties.getTrustlistForIssuer("https://unknown.example/issuer"))
         );
     }
 }

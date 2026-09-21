@@ -46,7 +46,16 @@ idporten-key-manager:
 trustlists:
   connect-timeout: 3s
   read-timeout: 3s
-  environments:
-    eidas2sandkasse:
-      pid: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
-      attestations: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
+  issuer-trustlists:
+    "[https://utsteder.eidas2sandkasse.dev/pid]": https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
+    "[https://utsteder.eidas2sandkasse.dev/webuild]": https://trustlist.webuild.jwt
+    default: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
+  named-trustlists:
+    "[eidas2sandkasse-pid]": https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
+    "[webuild-pid]": https://trustlist.webuild.jwt
+    "[eidas2sandkasse.xtsl]": https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
+  pid:
+    - eidas2sandkasse-pid
+    - webuild-pid
+  attestations:
+    - eidas2sandkasse.xtsl

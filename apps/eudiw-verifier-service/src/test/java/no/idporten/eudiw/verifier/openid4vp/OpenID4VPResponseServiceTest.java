@@ -9,9 +9,12 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import id.walt.mdoc.dataelement.StringElement;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
+import kotlinx.serialization.json.Json;
+import kotlinx.serialization.json.JsonObject;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
@@ -21,6 +24,7 @@ import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
+import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,10 +48,19 @@ class OpenID4VPResponseServiceTest {
 
     private static final String TRANSACTION_ID = "transaction-id";
     private static final String STATE = "state";
+    private static final String PID_ISSUER = "https://utsteder.test.eidas2sandkasse.net/pid";
+    private static final String WEBUILD_ISSUER = "https://utsteder.test.eidas2sandkasse.net/webuild";
+    private static final URI PID_TRUSTLIST = URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws");
+    private static final URI WEBUILD_TRUSTLIST = URI.create("https://trustlist.webuild.jwt");
+    private static final URI DEFAULT_TRUSTLIST = URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl");
+    private static final List<URI> PID_TRUSTLISTS = List.of(PID_TRUSTLIST, WEBUILD_TRUSTLIST);
+    private static final List<URI> ATTESTATION_TRUSTLISTS = List.of(DEFAULT_TRUSTLIST);
+    private static final String PID_DOC_TYPE = "eu.europa.ec.eudi.pid.1";
 
     @Mock VerificationTransactionService verificationService;
     @Mock TokenStatuslistService tokenStatuslistService;
     @Mock TrustlistService trustlistService;
+    @Mock TrustlistsProperties trustlistsProperties;
     @Mock MDocService mDocService;
     @Mock SdJwtService sdJwtService;
     @Mock MDoc mDoc;
@@ -62,7 +75,12 @@ class OpenID4VPResponseServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         service = new OpenID4VPResponseService(
-                verificationService, tokenStatuslistService, trustlistService, mDocService, sdJwtService);
+                verificationService, tokenStatuslistService, trustlistService, trustlistsProperties, mDocService, sdJwtService);
+        lenient().when(trustlistsProperties.getTrustlistForIssuer(nullable(String.class))).thenReturn(DEFAULT_TRUSTLIST);
+        lenient().when(trustlistsProperties.getTrustlistForIssuer(PID_ISSUER)).thenReturn(PID_TRUSTLIST);
+        lenient().when(trustlistsProperties.getTrustlistForIssuer(WEBUILD_ISSUER)).thenReturn(WEBUILD_TRUSTLIST);
+        lenient().when(trustlistsProperties.getPidTrustlists()).thenReturn(PID_TRUSTLISTS);
+        lenient().when(trustlistsProperties.getAttestationTrustlists()).thenReturn(ATTESTATION_TRUSTLISTS);
         client = new ClientApplication();
         client.setId("client");
         encryptionKey = new ECKeyGenerator(Curve.P_256).generate();
@@ -184,11 +202,12 @@ class OpenID4VPResponseServiceTest {
         transaction.setIncludeValidationDetails(true);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
+        when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of("family_name", "Nordmann"));
         when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
-        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate))
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
         when(tokenStatuslistService.getValidationDetail(ValidationStatus.NOT_APPLICABLE)).thenReturn("no status");
         when(trustlistService.getValidationDetail(ValidationStatus.VALID)).thenReturn("trusted");
@@ -215,6 +234,7 @@ class OpenID4VPResponseServiceTest {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
+        when(sdJwt.getFullPayload()).thenReturn(payloadWithIssuer(PID_ISSUER));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
         when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
@@ -224,7 +244,7 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtResult.getSdJwt()).thenReturn(sdJwt);
         when(tokenStatuslistService.lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7))
                 .thenReturn(ValidationStatus.INVALID);
-        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate))
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLIST))
                 .thenReturn(ValidationStatus.VALID);
 
         service.receiveResponse(client, TRANSACTION_ID,
@@ -248,6 +268,50 @@ class OpenID4VPResponseServiceTest {
         service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("pid", "mdoc-token"))));
         assertTrue(persistedCredential("pid").valid());
+    }
+
+    @Test
+    @DisplayName("with a non-PID mdoc credential, then the default trustlist is used")
+    void routesNonPidMdocToDefaultTrustlist() throws Exception {
+        VerificationTransaction transaction = transaction(query("attestation", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
+        when(mDoc.getDocType()).thenReturn(new StringElement("eu.example.attestation.1"));
+        when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
+        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
+        when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
+                .thenReturn(ValidationStatus.VALID);
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("attestation", "mdoc-token"))));
+
+        assertTrue(persistedCredential("attestation").valid());
+        verify(trustlistService).checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS);
+    }
+
+    @Test
+    @DisplayName("with a Webuild SD-JWT issuer, then the Webuild trustlist is used")
+    void routesWebuildSdJwtToWebuildTrustlist() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
+        when(sdJwt.getFullPayload()).thenReturn(payloadWithIssuer(WEBUILD_ISSUER));
+        when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
+        when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
+        when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of());
+        when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult)).thenReturn(null);
+        when(sdJwtResult.getSdJwt()).thenReturn(sdJwt);
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, WEBUILD_TRUSTLIST))
+                .thenReturn(ValidationStatus.VALID);
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("pid", "sd-token"))));
+
+        assertTrue(persistedCredential("pid").valid());
+        verify(trustlistService).checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, WEBUILD_TRUSTLIST);
     }
 
     @Test
@@ -294,12 +358,13 @@ class OpenID4VPResponseServiceTest {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
+        when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
         when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc))
                 .thenReturn(new StatuslistEntry(idx, URI.create("https://status.example/list")));
-        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate))
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
         if (idx.matches("-?\\d{1,10}")) {
             try {
@@ -349,6 +414,10 @@ class OpenID4VPResponseServiceTest {
 
     private static Map<String, Object> validPayload(Object vpToken) {
         return Map.of("state", STATE, "nonce", "nonce", "vp_token", vpToken);
+    }
+
+    private static JsonObject payloadWithIssuer(String issuer) {
+        return (JsonObject) Json.Default.parseToJsonElement("{\"iss\":\"%s\"}".formatted(issuer));
     }
 
     private EncryptedAuthorizationResponse encrypted(Map<String, Object> payload) throws Exception {

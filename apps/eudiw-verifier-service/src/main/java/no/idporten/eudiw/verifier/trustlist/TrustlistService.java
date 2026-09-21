@@ -21,11 +21,9 @@ import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import javax.security.auth.x500.X500Principal;
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,46 +52,33 @@ public class TrustlistService {
         }
         if (uri.toString().endsWith("xtsl")) {
             return xmlListMapping(trustlist);
-        } else if (uri.toString().endsWith("jws")) {
+        } else if (uri.toString().endsWith("jws") || uri.toString().endsWith("jwt")) {
             return jsonListMapping(trustlist);
         } else {
             throw new VerificationException("invalid_request", "unsupported trustlist format");
         }
     }
 
-    public String issuerName(LdapName ldapName) {
-        for (Rdn rdn : ldapName.getRdns()) {
-            if ("O".equalsIgnoreCase(rdn.getType())) {
-                return rdn.getValue().toString();
-            }
-        }
-        return null;
-    }
-
     public List<URI> listOfTrustlists () {
-        return List.of(
-                trustlistsProperties.getSandboxTrustlist().attestations(),
-                trustlistsProperties.getSandboxTrustlist().pid()
-        );
+        List<URI> trustlists = new ArrayList<>(trustlistsProperties.getAttestationTrustlists());
+        trustlists.addAll(trustlistsProperties.getPidTrustlists());
+        return trustlists;
     }
 
-    protected boolean checkJson602(URI uri, X509Certificate cert, String jwsHeaderCertificateIssuer)  {
+    protected boolean checkJson602(URI uri, X509Certificate cert)  {
         LoTEJson lote = (LoTEJson) connectToTrustlist(uri);
         boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
         for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
             for(TrustedEntityService service : trustedEntity.trustedEntityServices()) {
                 for(X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
-                    String trustListIssuer = issuerName(ldapName(individual.getIssuerX500Principal().getName(X500Principal.RFC2253)));
-                    if(jwsHeaderCertificateIssuer.equals(trustListIssuer)) {
-                        if(compareCertificates(cert, individual)) {
-                            if(allActive || service.serviceInformation().serviceStatus() != null) {
-                                return true;
-                            } else {
-                                throw new VerificationException("invalid_request", "Service "+
-                                        service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
-                                        "  is set to inactive on trustlist," +
-                                        "or is missing status field ");
-                            }
+                    if(compareCertificates(cert, individual)) {
+                        if(allActive || service.serviceInformation().serviceStatus() != null) {
+                            return true;
+                        } else {
+                            throw new VerificationException("invalid_request", "Service "+
+                                    service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
+                                    "  is set to inactive on trustlist," +
+                                    "or is missing status field ");
                         }
                     }
                 }
@@ -102,17 +87,13 @@ public class TrustlistService {
         return false;
     }
 
-    protected boolean checkXml612(URI uri, X509Certificate cert, String jwsHeaderCertificateIssuer)  {
+    protected boolean checkXml612(URI uri, X509Certificate cert)  {
         LoTEXml lote = (LoTEXml) connectToTrustlist(uri);
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
             for(TSPService service : sp.services().services()) {
                 for(DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
-                    String trustlistIssuer = issuerName(ldapName(digitalId.getCertificateAsX509Object().getIssuerX500Principal().
-                                    getName(X500Principal.RFC2253)));
-                    if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
-                        if (compareCertificates(cert,digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
-                            return true;
-                        }
+                    if (compareCertificates(cert,digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
+                        return true;
                     }
                 }
             }
@@ -121,14 +102,21 @@ public class TrustlistService {
     }
 
     public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert)  {
-        String jwsHeaderCertificateIssuer = issuerName(ldapName(cert.getIssuerX500Principal().getName(X500Principal.RFC2253)));
-        for(URI uri : listOfTrustlists()){
+        return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, listOfTrustlists());
+    }
+
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, URI uri) {
+        return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(uri));
+    }
+
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, List<URI> trustlists) {
+        for (URI uri : trustlists) {
             if (uri.toString().endsWith("xtsl")) {
-                if (checkXml612(uri, cert, jwsHeaderCertificateIssuer)) {
+                if (checkXml612(uri, cert)) {
                     return ValidationStatus.VALID;
                 }
-            } else if (uri.toString().endsWith("jws")) {
-                if (checkJson602(uri, cert, jwsHeaderCertificateIssuer)) {
+            } else if (uri.toString().endsWith("jws") || uri.toString().endsWith("jwt")) {
+                if (checkJson602(uri, cert)) {
                     return ValidationStatus.VALID;
                 }
             }
@@ -167,14 +155,6 @@ public class TrustlistService {
             return Arrays.toString(certificatesToCompareWith.getTBSCertificate()).equals(Arrays.toString(certificateFromWalletResponse.getTBSCertificate()));
         } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot compare certificates", e);
-        }
-    }
-
-    protected LdapName ldapName(String distinguishedName) {
-        try {
-            return new LdapName(distinguishedName);
-        } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot parse distinguished name", e);
         }
     }
 

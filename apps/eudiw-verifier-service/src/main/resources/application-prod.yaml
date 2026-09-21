@@ -10,7 +10,13 @@ verifier-service:
 trustlists:
   connect-timeout: 3s
   read-timeout: 3s
-  environments:
-    eidas2sandkasse:
-      pid: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_pid.jws
-      attestations: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_tsl.xtsl
+  issuer-trustlists:
+    "[https://utsteder.eidas2sandkasse.net/pid]": https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_pid.jws
+    default: https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_tsl.xtsl
+  named-trustlists:
+    "[eidas2sandkasse-pid]": https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_pid.jws
+    "[eidas2sandkasse.xtsl]": https://tillitsliste.eidas2sandkasse.net/no_eidas2sandkasse_prod_tsl.xtsl
+  pid:
+    - eidas2sandkasse-pid
+  attestations:
+    - eidas2sandkasse.xtsl
