@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>eudiw-oauth2-server</artifactId>
@@ -15,16 +15,16 @@
     <properties>
         <java.version>25</java.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-        <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
+        <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
-        <idporten-audit-version>4.0.4</idporten-audit-version>
-        <idporten-validators.version>1.6.1</idporten-validators.version>
+        <idporten-audit-version>4.0.5</idporten-audit-version>
+        <idporten-validators.version>1.6.3</idporten-validators.version>
         <opentelemetry-api.version>1.64.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <bcpkix-jdk18on.version>1.85</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.85.2</bcprov-jdk18on.version>
-        <lombok.version>1.18.46</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
     </properties>
     <dependencies>
         <dependency>
