@@ -128,3 +128,11 @@ oidc-proxy:
       password: ${OIDC_CLIENT_KEYSTORE_PASSWORD}
       key-alias: ${OIDC_CLIENT_KEYSTORE_KEY_ALIAS}
       key-password: ${OIDC_CLIENT_KEYSTORE_KEY_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'

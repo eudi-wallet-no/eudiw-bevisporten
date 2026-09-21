@@ -120,3 +120,11 @@ idporten-key-manager:
       key-store-password: ${MASKINPORTEN_KEYSTORE_PASSWORD}
       key-alias: ${MASKINPORTEN_KEYSTORE_ALIAS}
       key-password: ${MASKINPORTEN_KEY_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-cloud-platform: 'kubernetes'
+    import:
+      - 'optional:file:/etc/config/'
