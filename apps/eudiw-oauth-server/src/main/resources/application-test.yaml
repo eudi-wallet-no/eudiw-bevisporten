@@ -21,7 +21,7 @@ oidc-proxy:
 
   # webuild
   headless-login:
-    enabled: true
+    enabled: false
     synthetic_pid: 16903349844
     acr: idporten-loa-high
     amr: TestID
