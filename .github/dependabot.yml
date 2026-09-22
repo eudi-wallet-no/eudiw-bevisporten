@@ -25,7 +25,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-authoritativ-sources-connector
@@ -51,7 +51,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-byob-service
@@ -77,7 +77,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-idporten-login
@@ -103,7 +103,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-issuer-server
@@ -129,7 +129,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-issuer-ui
@@ -155,7 +155,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-issuer-ui-demo
@@ -181,7 +181,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-oauth-server
@@ -207,7 +207,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-status-list
@@ -233,7 +233,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-verifier-demo
@@ -259,7 +259,7 @@ updates:
     schedule:
       interval: weekly
       day: sunday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 25
     labels:
       - dependencies
       - eudiw-verifier-service
