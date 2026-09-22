@@ -90,12 +90,12 @@ class VerificationControllerTest {
     @DisplayName("returns the verification status")
     void returnsVerificationStatus() throws Exception {
         when(verificationService.verifierStatus(any(), any()))
-                .thenReturn(new VerificationStatusResponse("WAIT", VERIFIER_TRANSACTION_ID));
+                .thenReturn(new VerificationStatusResponse("ERROR", VERIFIER_TRANSACTION_ID));
 
         mockMvc.perform(get("/api/v1/{clientApplicationId}/verify/status/{transactionId}",
                         CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("WAIT"))
+                .andExpect(jsonPath("$.status").value("ERROR"))
                 .andExpect(jsonPath("$.verifier_transaction_id").value(VERIFIER_TRANSACTION_ID));
 
         verify(verificationService).verifierStatus(eq(VERIFIER_TRANSACTION_ID), any());

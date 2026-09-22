@@ -1,9 +1,6 @@
 package no.idporten.eudiw.verifier.api.openid4vp;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import jakarta.servlet.http.HttpServletRequest;
-import no.idporten.eudiw.verifier.VerificationException;
-import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPRequestService;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPResponseService;
@@ -45,11 +42,7 @@ public class OpenID4VPController {
     public ResponseEntity<WalletCallback> receiveResponse(
             @PathVariable("client_application_id") String clientApplicationId,
             @PathVariable("verifier_transaction_id") String verifierTransactionId,
-            EncryptedAuthorizationResponse encryptedAuthorizationResponse,
-            HttpServletRequest request) throws Exception {
-        if (encryptedAuthorizationResponse.getResponse() == null) {
-            throw new VerificationException("invalid_request", "Missing authorization response");
-        }
+            EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
         return ResponseEntity.ok(openID4VPResponseService.receiveResponse(verifierServiceProperties.findClientApplication(clientApplicationId), verifierTransactionId, encryptedAuthorizationResponse));
     }
 

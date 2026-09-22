@@ -237,6 +237,26 @@ class VerificationTransactionServiceTest {
         verify(cacheService).removeVerificationTransaction(clientApplication, VERIFIER_TRANSACTION_ID);
     }
 
+    @Test
+    @DisplayName("marks a waiting transaction as an error")
+    void marksWaitingTransactionAsError() {
+        ClientApplication clientApplication = clientApplication("client-id", "client-keystore");
+        VerificationTransaction transaction = transaction(
+                clientApplication,
+                VerificationTransactionService.STATUS_WAIT,
+                null);
+        when(cacheService.getVerificationTransaction(clientApplication, VERIFIER_TRANSACTION_ID))
+                .thenReturn(transaction);
+
+        verificationTransactionService.markAsError(clientApplication, VERIFIER_TRANSACTION_ID);
+
+        assertEquals(VerificationTransactionService.STATUS_ERROR, transaction.getStatus());
+        verify(cacheService).updateVerificationTransaction(
+                clientApplication,
+                VERIFIER_TRANSACTION_ID,
+                transaction);
+    }
+
     private static void assertVerificationException(VerificationException exception, String description) {
         assertEquals("invalid_request", exception.getError());
         assertEquals(description, exception.getErrorDescription());
