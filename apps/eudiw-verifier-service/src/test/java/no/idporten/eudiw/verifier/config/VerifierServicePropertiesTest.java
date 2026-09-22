@@ -107,7 +107,7 @@ class VerifierServicePropertiesTest {
         }
 
         @Test
-        @DisplayName("rejects valid api-key for unknown client applications with UNAUTHORIZED")
+        @DisplayName("When the client application is unknown, then a VerificationException is returned")
         void rejectsUnknownClientApplicationsWithValidApiKey() {
 
             VerificationException exception = assertThrows(
