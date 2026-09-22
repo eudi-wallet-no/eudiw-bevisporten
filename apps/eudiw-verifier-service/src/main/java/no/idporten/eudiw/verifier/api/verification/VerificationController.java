@@ -45,6 +45,10 @@ public class VerificationController {
                                                                                example = "false",
                                                                                schema = @Schema(type = "boolean", defaultValue = "false"))
                                                                        @RequestParam(name = "include_validation_details", defaultValue = "false") boolean includeValidationDetails,
+                                                                       @Parameter(
+                                                                               name = X_API_KEY,
+                                                                               description = "API key for client application authentication",
+                                                                               required = true)
                                                                        @RequestHeader(value = X_API_KEY, required = false) String apiKey) throws Exception {
 
         ClientApplication clientApplication = verifierServiceProperties.validateClientApplication(clientApplicationId, apiKey);
@@ -65,6 +69,10 @@ public class VerificationController {
 
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
             @PathVariable("verifier_transaction_id") String verifierTransactionId,
+            @Parameter(
+                    name = X_API_KEY,
+                    description = "API key for client application authentication",
+                    required = true)
             @RequestHeader(value = X_API_KEY, required = false) String apiKey) {
 
         ClientApplication clientApplication = verifierServiceProperties.validateClientApplication(clientApplicationId, apiKey);
@@ -84,6 +92,10 @@ public class VerificationController {
 
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
             @PathVariable("verifier_transaction_id") String verifierTransactionId,
+            @Parameter(
+                    name = X_API_KEY,
+                    description = "API key for client application authentication",
+                    required = true)
             @RequestHeader(value = X_API_KEY, required = false) String apiKey) {
 
         ClientApplication clientApplication = verifierServiceProperties.validateClientApplication(clientApplicationId, apiKey);

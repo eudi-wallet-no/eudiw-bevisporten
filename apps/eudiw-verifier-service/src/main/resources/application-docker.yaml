@@ -21,7 +21,7 @@ management:
 
 verifier-service:
   siop2ClientId: abr.vc.local
-  externalBaseUri: http://localhost:9285
+  externalBaseUri: http://verifier-service:9285
   client-applications:
     idporten-login:
       keystore-name: idporten-login-access
