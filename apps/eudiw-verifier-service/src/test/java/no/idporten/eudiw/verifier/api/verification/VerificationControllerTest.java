@@ -156,7 +156,7 @@ class VerificationControllerTest {
 
         @Test
         @DisplayName("without api key should returns 401")
-        void getVerificationStatusWithoutApiKey() throws Exception {
+        void getVerificationResultWithoutApiKey() throws Exception {
 
             mockMvc.perform(get("/api/v1/{clientApplicationId}/verify/result/{transactionId}",
                             CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID))
