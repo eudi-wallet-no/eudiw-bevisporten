@@ -81,6 +81,34 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("without an authorization response, then error status is expected")
+    void rejectsMissingAuthorizationResponse() {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID, response(" ")));
+
+        assertEquals("Missing authorization response", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+    }
+
+    @Test
+    @DisplayName("with an unencrypted authorization response, then error status is expected")
+    void rejectsUnencryptedAuthorizationResponse() {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
+
+        assertEquals("Authorization response is not encrypted", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+    }
+
+    @Test
     @DisplayName("with a real JWE and a missing selected credential, then missing credential persistence is expected")
     void decryptsRealJweAndPersistsMissingSelectedCredential() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
@@ -114,6 +142,7 @@ class OpenID4VPResponseServiceTest {
                         encrypted(Map.of("state", "wrong", "vp_token", Map.of()))));
 
         assertEquals("Invalid state in authorization response", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
     }
 

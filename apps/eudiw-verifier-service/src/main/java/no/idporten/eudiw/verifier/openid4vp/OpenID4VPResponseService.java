@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
+import org.springframework.util.StringUtils;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -51,10 +52,25 @@ public class OpenID4VPResponseService {
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
         }
-        Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse(), verificationTransaction.getEncryptionKey());
-        String nonce = (String) claimsFromJwePayload.get("nonce");
+        if (! StringUtils.hasText(encryptedAuthorizationResponse.getResponse())) {
+            verificationTransactionService.markAsError(clientApplication, verifierTransactionId);
+            throw new VerificationException("invalid_request", "Missing authorization response");
+        }
+        Map<String, Object> claimsFromJwePayload;
+        try {
+            claimsFromJwePayload = decryptAndDeserializeJweResponse(
+                    encryptedAuthorizationResponse.getResponse(),
+                    verificationTransaction.getEncryptionKey());
+        } catch (Exception e) {
+            verificationTransactionService.markAsError(clientApplication, verifierTransactionId);
+            throw new VerificationException(
+                    "invalid_request",
+                    "Authorization response is not encrypted",
+                    e);
+        }
         String state = (String) claimsFromJwePayload.get("state");
         if (!Objects.equals(state, verificationTransaction.getState())) {
+            verificationTransactionService.markAsError(clientApplication, verifierTransactionId);
             throw new VerificationException("invalid_request", "Invalid state in authorization response");
         }
         List<DcqlCredentialQuery> requestedCredentials = getRequestedCredentialQueries(verificationTransaction);

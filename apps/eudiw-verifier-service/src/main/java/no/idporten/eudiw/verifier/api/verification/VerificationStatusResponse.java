@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public record VerificationStatusResponse(
 
-        @Schema(description = "Verification status.", examples = {"WAIT", "AVAILABLE", "UNKNOWN"})
+        @Schema(description = "Verification status.", examples = {"WAIT", "AVAILABLE", "ERROR", "UNKNOWN"})
         @JsonProperty("status") String status,
         @Schema(description = "Verification transaction id.", example = "xyz...")
         @JsonProperty("verifier_transaction_id") String verifierTransactionId
