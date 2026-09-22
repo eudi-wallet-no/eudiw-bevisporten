@@ -15,3 +15,4 @@ eudiw-idporten-login:
           - http://127.0.0.1:8888/authorize/response
   openid4vp-verifier-service:
     uri: http://junitverifier.eidas2sandkasse.dev
+    api-key: known-api-key-for-junit-tests
