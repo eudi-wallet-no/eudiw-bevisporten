@@ -4,6 +4,8 @@ import no.idporten.eudiw.verifier.openid4vp.VerificationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -117,16 +119,17 @@ class VerificationControllerTest {
     @DisplayName("get verification status")
     class GetVerificationStatus {
 
-        @Test
+        @ParameterizedTest
+        @ValueSource(strings = {"WAIT", "ERROR", "SUCCESS"})
         @DisplayName("with valid input should returns the verification status")
-        void returnsVerificationStatus() throws Exception {
+        void returnsVerificationStatus(String status) throws Exception {
             when(verificationService.verifierStatus(any(), any()))
-                    .thenReturn(new VerificationStatusResponse("WAIT", VERIFIER_TRANSACTION_ID));
+                    .thenReturn(new VerificationStatusResponse(status, VERIFIER_TRANSACTION_ID));
 
             mockMvc.perform(get("/api/v1/{clientApplicationId}/verify/status/{transactionId}",
                             CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID).header(X_API_KEY, JUNIT_API_KEY))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("WAIT"))
+                    .andExpect(jsonPath("$.status").value(status))
                     .andExpect(jsonPath("$.verifier_transaction_id").value(VERIFIER_TRANSACTION_ID));
 
             verify(verificationService).verifierStatus(eq(VERIFIER_TRANSACTION_ID), any());
@@ -144,23 +147,8 @@ class VerificationControllerTest {
             verify(verificationService, never()).verifierStatus(any(), any());
         }
 
-
-      @Test
-      @DisplayName("returns the verification status")
-      void returnsVerificationStatus() throws Exception {
-          when(verificationService.verifierStatus(any(), any()))
-                  .thenReturn(new VerificationStatusResponse("ERROR", VERIFIER_TRANSACTION_ID));
-
-          mockMvc.perform(get("/api/v1/{clientApplicationId}/verify/status/{transactionId}",
-                          CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID))
-                  .andExpect(status().isOk())
-                  .andExpect(jsonPath("$.status").value("ERROR"))
-                  .andExpect(jsonPath("$.verifier_transaction_id").value(VERIFIER_TRANSACTION_ID));
-
-
-      }
     }
-                                     
+
     @Nested
     @DisplayName("get verification result")
     class GetVerificationResult {
