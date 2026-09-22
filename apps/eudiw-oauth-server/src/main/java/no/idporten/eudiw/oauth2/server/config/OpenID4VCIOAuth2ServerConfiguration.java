@@ -68,6 +68,7 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
     private URI accessTokenDefaultAudience;
 
     private boolean requirePkce = true;
+    private boolean authorizationResponseIssParameterSupported = true;
     private KeyStoreProperties keyStore;
 
     @Override
@@ -103,6 +104,7 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
                         .authorizationRequestLifetimeSeconds(parLifetimeSeconds)
                         .authorizationLifetimeSeconds(authorizationLifetimeSeconds)
                         .accessTokenDefaultAudience(accessTokenDefaultAudience)
+                        .authorizationResponseIssParameterSupported(authorizationResponseIssParameterSupported)
                         .requirePkce(requirePkce)
                         .responseMode("query")
 //                        .uiLocales(uiLocales)
