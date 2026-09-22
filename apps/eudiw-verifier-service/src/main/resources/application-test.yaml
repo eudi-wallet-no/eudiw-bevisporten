@@ -20,10 +20,13 @@ verifier-service:
   client-applications:
     idporten-login:
       keystore-name: idporten-login-access
+      api-key: ${IDPORTEN_LOGIN_API_KEY:}
     bevisgenerator-login:
       keystore-name: bevisgenerator-login-access
+      api-key: ${BEVISGENERATOR_LOGIN_API_KEY:}
     ks-hackathon:
       keystore-name: ks-hackathon-access
+      api-key: ${KS_HACKATHON_API_KEY:}
       disabled: false
 
 
