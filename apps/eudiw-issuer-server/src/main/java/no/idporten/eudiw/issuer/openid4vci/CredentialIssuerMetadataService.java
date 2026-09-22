@@ -1,10 +1,11 @@
 package no.idporten.eudiw.issuer.openid4vci;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JOSEObjectType;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
@@ -18,8 +19,8 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
-import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMetadata;
+import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.openid4vci.metadata.*;
 import no.idporten.lib.keystore.KeyProvider;
@@ -32,7 +33,8 @@ import org.springframework.stereotype.Service;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
-import java.security.cert.CertificateEncodingException;
+import java.security.PrivateKey;
+import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -100,11 +102,6 @@ public class CredentialIssuerMetadataService {
         }
 
         KeyProvider keyProvider = keystoreManager.getKeyProvider(tenant.getMetadataSigningKeystore());
-        if (!(keyProvider.privateKey() instanceof ECPrivateKey privateKey)) {
-            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to sign credential issuer metadata",
-                    "Metadata signing requires an EC private key");
-        }
-
         try {
             Map<String, Object> metadataClaims = objectMapper.convertValue(
                     credentialIssuerMetadata,
@@ -118,16 +115,24 @@ public class CredentialIssuerMetadataService {
                     .issueTime(issuedAt)
                     .expirationTime(Date.from(issuedAt.toInstant().plus(METADATA_VALIDITY)))
                     .build();
-            JWSAlgorithm algorithm = ECDSA.resolveAlgorithm(privateKey);
-            JWSHeader header = new JWSHeader.Builder(algorithm)
+            PrivateKey privateKey = keyProvider.privateKey();
+            final JWSAlgorithm jwsAlgorithm;
+            final JWSSigner jwsSigner;
+            if (privateKey instanceof ECPrivateKey) {
+                jwsAlgorithm = ECDSA.resolveAlgorithm((ECKey) privateKey);
+                jwsSigner = new ECDSASigner((ECPrivateKey) privateKey);
+            } else {
+                jwsAlgorithm = JWSAlgorithm.RS256;
+                jwsSigner = new RSASSASigner(privateKey);
+            }
+            JWSHeader header = new JWSHeader.Builder(jwsAlgorithm)
                     .type(METADATA_JWT_TYPE)
                     .x509CertChain(List.of(Base64.encode(keyProvider.certificate().getEncoded())))
                     .build();
             SignedJWT signedJWT = new SignedJWT(header, claimsSet);
-            signedJWT.sign(new ECDSASigner(privateKey));
-
+            signedJWT.sign(jwsSigner);
             return signedJWT.serialize();
-        } catch (JOSEException | CertificateEncodingException | IllegalArgumentException e) {
+        } catch (Exception e) {
             throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to sign credential issuer metadata", e);
         }
     }
