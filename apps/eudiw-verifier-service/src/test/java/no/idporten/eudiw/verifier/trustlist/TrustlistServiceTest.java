@@ -243,7 +243,7 @@ class TrustlistServiceTest {
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
 
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDFirstOnList() + END_CERTIFICATE);
-        boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert, "Digitaliseringsdirektoratet");
+        boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert, "Digdir");
         assertTrue(check);
     }
 
@@ -251,5 +251,11 @@ class TrustlistServiceTest {
     @Test
     @DisplayName("testCheckXML612")
     void testCheckXML612() {
+        mockServer.expect(requestTo(XMLTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getSecondBevisporten() + END_CERTIFICATE);
+        boolean check = trustlistService.checkXml612(XMLTRUSTLISTURL, cert, "DIGITALISERINGSDIREKTORATET");
+        assertTrue(check);
     }
 }
