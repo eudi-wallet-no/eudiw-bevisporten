@@ -55,7 +55,7 @@ public class SdJwtService {
     }
 
     public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult) {
-        if(!verificationResult.getVerified()) {
+        if (!verificationResult.getVerified()) {
             return ValidationStatus.INVALID;
         } else {
             return ValidationStatus.VALID;
@@ -70,12 +70,24 @@ public class SdJwtService {
         Map<String, Object> claims = new HashMap<>();
         for (String disclosure : verificationResult.getSdJwt().getDisclosures()) {
             List<Object> parsedDisclosure;
-            try{
+            try {
                 parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
-            } catch (ParseException e) {
+
+            } catch (ParseException | IllegalArgumentException e) {
                 throw new VerificationException("invalid_request", "Failed to parse disclosure", e);
             }
-            claims.put((String) parsedDisclosure.get(1), parsedDisclosure.get(2));
+            if (parsedDisclosure.size() == 2) {
+                // Unnamed disclosures are valid for SD-JWT array elements.
+                continue;
+            }
+            if (parsedDisclosure.size() != 3) {
+                throw new VerificationException("invalid_request", "Failed to parse disclosure");
+            }
+            if (parsedDisclosure.get(1) instanceof String claimName) {
+                claims.put(claimName, parsedDisclosure.get(2));
+                continue;
+            }
+            throw new VerificationException("invalid_request", "Failed to parse disclosure for claim=%s".formatted(parsedDisclosure.get(1)));
         }
         return claims;
     }
@@ -99,7 +111,7 @@ public class SdJwtService {
         }
     }
 
-    protected JWSVerifier jwsVerifier(X509Certificate cert)  {
+    protected JWSVerifier jwsVerifier(X509Certificate cert) {
         try {
             return new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
         } catch (JOSEException e) {
@@ -111,7 +123,7 @@ public class SdJwtService {
         return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
     }
 
-    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt){
+    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt) {
         VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(jwtCryptoProvider, null);
         if (!verificationResult.getVerified()) {
             throw new VerificationException("invalid_request", "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(verificationResult.getSignatureVerified(), verificationResult.getDisclosuresVerified()));

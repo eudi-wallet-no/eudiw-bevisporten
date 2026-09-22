@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-byob-service/**'
       - '.github/workflows/eudiw-byob-service.yml'
+      - '!apps/eudiw-byob-service/src/test/**'
+      - '!apps/eudiw-byob-service/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-byob-service/*.md'
+      - '!apps/eudiw-byob-service/*info.yaml'
   workflow_dispatch:
 
 jobs:
@@ -66,6 +70,7 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
       application-name: digital-lommebok-byob-service
+      application-path: apps/eudiw-byob-service/
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
       image-name: digital-lommebok-byob-service

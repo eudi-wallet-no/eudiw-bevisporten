@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-status-list/**'
       - '.github/workflows/eudiw-status-list.yml'
+      - '!apps/eudiw-status-list/src/test/**'
+      - '!apps/eudiw-status-list/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-status-list/*.md'
+      - '!apps/eudiw-status-list/*info.yaml'
   workflow_dispatch:
 
 jobs:
@@ -66,6 +70,7 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
       application-name: digital-lommebok-status-list
+      application-path: apps/eudiw-status-list/
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
       image-name: digital-lommebok-status-list

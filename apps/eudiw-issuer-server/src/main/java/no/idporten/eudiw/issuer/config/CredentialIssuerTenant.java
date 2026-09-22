@@ -33,6 +33,9 @@ public class CredentialIssuerTenant {
 
     private String metadataSigningKeystore;
 
+    @Builder.Default
+    private RegistrationCertificateProperties registrationCertificate = new RegistrationCertificateProperties(false, null, null);
+
     /**
      * The display names used in metadata for this credential issuer tenant.
      */
@@ -73,6 +76,10 @@ public class CredentialIssuerTenant {
 
     public boolean canSignCredentialIssuerMetadata() {
         return StringUtils.hasText(metadataSigningKeystore);
+    }
+
+    public boolean includeIssuerInfo() {
+        return registrationCertificate != null && registrationCertificate.enabled();
     }
 
 }

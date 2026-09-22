@@ -16,6 +16,7 @@ public class VerificationTransactionService {
     public static String STATUS_UNKNOWN = "UNKNOWN";
     public static String STATUS_WAIT = "WAIT";
     public static String STATUS_AVAILABLE = "AVAILABLE";
+    public static String STATUS_ERROR = "ERROR";
     private final CacheService cacheService;
 
     public VerificationTransactionService(CacheService cacheService) {

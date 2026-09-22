@@ -82,13 +82,16 @@
       return [];
     }
 
-    const fields = [];
+    // Deterministisk rekkjefølgje uavhengig av credential_data: direkte
+    // felt alfabetisk først, nestede grupper sist.
+    const directFields = [];
+    const nestedFields = [];
     Object.keys(credentialData).forEach(function (key) {
       const value = credentialData[key];
       const direct = descriptor(key, value, null);
 
       if (direct) {
-        fields.push(direct);
+        directFields.push(direct);
         return;
       }
 
@@ -100,13 +103,16 @@
         })) {
           keys.forEach(function (nestedKey) {
             const nested = descriptor(key + '.' + nestedKey, value[nestedKey], key);
-            if (nested) fields.push(nested);
+            if (nested) nestedFields.push(nested);
           });
         }
         // Anything deeper or mixed is edited only in Avansert.
       }
     });
-    return fields;
+    const byPath = (a, b) => (a.path < b.path ? -1 : 1);
+    directFields.sort(byPath);
+    nestedFields.sort(byPath);
+    return directFields.concat(nestedFields);
   }
 
   function hasOwn(object, key) {
@@ -257,9 +263,13 @@
 
     function renderFields() {
       const container = document.getElementById('issuance-fields');
+      const groupContainer = document.getElementById('issuance-groups');
       const empty = document.getElementById('issuance-empty');
       if (!container) return;
       while (container.firstChild) container.removeChild(container.firstChild);
+      if (groupContainer) {
+        while (groupContainer.firstChild) groupContainer.removeChild(groupContainer.firstChild);
+      }
 
       const data = currentObject && currentObject.credential_data;
       const fields = listFields(data);
@@ -272,15 +282,26 @@
       if (!fields.length) return;
 
       let lastGroup = null;
+      let fieldsContainer = container;
       fields.forEach(function (field) {
         if (field.parentPath !== lastGroup) {
+          if (lastGroup) {
+            fieldsContainer = container;
+          }
           lastGroup = field.parentPath;
           if (lastGroup) {
+            const group = document.createElement('div');
+            group.className = 'claim-group';
             const heading = document.createElement('h3');
             heading.className = 'ds-heading claim-group-heading';
-            heading.setAttribute('data-size', 'xs');
+            heading.setAttribute('data-size', 'sm');
             heading.textContent = lastGroup;
-            container.appendChild(heading);
+            group.appendChild(heading);
+            const groupFields = document.createElement('div');
+            groupFields.className = 'claim-group__fields';
+            group.appendChild(groupFields);
+            groupContainer.appendChild(group);
+            fieldsContainer = groupFields;
           }
         }
         const claim = document.createElement('div');
@@ -359,7 +380,7 @@
         }
 
         inputParent.appendChild(input);
-        container.appendChild(claim);
+        fieldsContainer.appendChild(claim);
       });
     }
 

@@ -11,6 +11,10 @@ on:
     paths:
       - 'apps/eudiw-issuer-ui-demo/**'
       - '.github/workflows/eudiw-issuer-ui-demo.yml'
+      - '!apps/eudiw-issuer-ui-demo/src/test/**'
+      - '!apps/eudiw-issuer-ui-demo/src/main/resources/application-dev.yaml'
+      - '!apps/eudiw-issuer-ui-demo/*.md'
+      - '!apps/eudiw-issuer-ui-demo/*info.yaml'
   workflow_dispatch:
 
 jobs:
@@ -66,6 +70,7 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-call-update-image.yml@main
     with:
       application-name: digital-lommebok-issuer-ui-demo
+      application-path: apps/eudiw-issuer-ui-demo/
       deployment-environment: systest
       image-digest: ${{ needs.build-image.outputs.image-digest }}
       image-name: digital-lommebok-issuer-ui-demo

@@ -54,6 +54,13 @@ credential-issuer-server:
         - local:
             paths:
               - classpath:credential-configurations/junit_pre_sd_jwt_vc.json
+    webuild:
+      display-names:
+        "no": Webuild Tenant
+      registration-certificate:
+        enabled: true
+        registration-certificate-jwt: eyJhbGciOiJFUzI1NiJ9.junit-registration-certificate-jwt.signature
+        registrar-dataset: '{"identifier":[{"identifier":"NO-ORG-123456789","type":"http://data.europa.eu/eudi/id/EUID"}],"srvDescription":[{"lang":"no","content":"Tilbydar av europeiske digitale identitets- og attributtbevis."},{"lang":"en","content":"Provider of European digital identity and attribute attestations."}],"registryURI":"https://registrar.example.no/","providesAttestations":[{"format":"dc+sd-jwt","type":"urn:eudi:pid:1"},{"format":"mso_mdoc","type":"eu.europa.ec.eudi.pid.1"}]}'
 
 idporten-key-manager:
   keystores:
