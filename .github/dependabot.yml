@@ -287,7 +287,7 @@ updates:
       - dependencies
       - github-actions
     groups:
-      alle-actions-oppdateringer:
+      github-actions:
         patterns:
           - "*"
       security:
