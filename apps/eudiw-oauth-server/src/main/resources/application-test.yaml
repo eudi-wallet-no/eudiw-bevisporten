@@ -16,9 +16,9 @@ spring:
 oauth-authorization-server:
   issuer: https://auth.test.eidas2sandkasse.net
   access-token-default-audience: https://utsteder.test.eidas2sandkasse.net
+  authorization-response-iss-parameter-supported: false
 
 oidc-proxy:
-
   # webuild
   headless-login:
     enabled: false
