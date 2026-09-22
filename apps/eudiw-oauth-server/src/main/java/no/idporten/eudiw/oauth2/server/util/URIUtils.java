@@ -15,7 +15,8 @@ public class URIUtils {
 
     @SneakyThrows
     public static URI appendQuery(URI uri, Map<String, String> queryParams) {
-        return new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), serializeParameters(queryParams), null);
+        URI uriWithoutQuery = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null);
+        return new URI("%s?%s".formatted(uriWithoutQuery, serializeParameters(queryParams)));
     }
 
     @SneakyThrows
