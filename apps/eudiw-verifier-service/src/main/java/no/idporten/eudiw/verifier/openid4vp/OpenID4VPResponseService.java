@@ -104,7 +104,10 @@ public class OpenID4VPResponseService {
             }
             return new VpToken(verifiablePresentations);
         }
-        return new VpToken(Map.of());
+        if (vpTokenObject == null) {
+            throw new VerificationException("invalid_request", "Missing vp_token");
+        }
+        throw new VerificationException("invalid_request", "Unsupported vp_token structure");
     }
 
     private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, String format) {
@@ -172,6 +175,9 @@ public class OpenID4VPResponseService {
             try {
                 index = Integer.parseInt(statuslistEntry.idx());
             } catch (NumberFormatException e) {
+                throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
+            }
+            if (index < 0) {
                 throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
             }
             status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index);

@@ -33,6 +33,8 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateEncodingException;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Clock;
 import java.util.*;
@@ -81,10 +83,18 @@ public class OpenID4VPRequestService {
                 .toUri();
     }
 
-    @SneakyThrows
-    private String makeClientId(ClientApplication clientApplication) {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(keystoreManager.getKeyProvider(clientApplication.getKeystoreName()).certificate().getEncoded());
+    protected String makeClientId(ClientApplication clientApplication)  {
+        MessageDigest md;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new VerificationException("server_error", "Failed to generate client-id", e);
+        }
+        try {
+            md.update(keystoreManager.getKeyProvider(clientApplication.getKeystoreName()).certificate().getEncoded());
+        } catch (CertificateEncodingException e) {
+            throw new VerificationException("server_error", "Failed to get keystore to generate client-id", e);
+        }
         String clientId = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest());
         return "x509_hash:" + clientId;
     }

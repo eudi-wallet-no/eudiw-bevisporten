@@ -3,7 +3,13 @@ issuer-ui:
   issuer-server:
     base-url: https://my-unit-test-issuer-server
     credential-configurations:
-      - id: test-id
+      test-id:
+        id: test-id
         issuer: ${issuer-ui.issuer-server.base-url}/junit
         title: Tetsbevis
         description: Tetsbevis (mdoc)
+      another-test-id:
+        id: another-test-id
+        issuer: ${issuer-ui.issuer-server.base-url}/junit
+        title: Tetsbevis 2
+        description: Tetsbevis 2 (mdoc)

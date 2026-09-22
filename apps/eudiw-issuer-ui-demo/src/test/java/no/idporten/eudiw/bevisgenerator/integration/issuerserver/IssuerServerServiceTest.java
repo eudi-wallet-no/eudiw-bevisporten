@@ -6,8 +6,10 @@ import no.idporten.eudiw.bevisgenerator.exception.IssuerServerException;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerUiException;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.CredentialConfiguration;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
+import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceResponse;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatus;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.domain.IssuanceStatusResponse;
+import no.idporten.eudiw.bevisgenerator.web.models.StartIssuanceForm;
 import no.idporten.lib.maskinporten.client.AccessTokenRequestOverrides;
 import no.idporten.lib.maskinporten.client.MaskinportenClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,15 +23,18 @@ import org.springframework.web.client.RestClient;
 
 import java.net.ConnectException;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -138,6 +143,65 @@ class IssuerServerServiceTest {
     }
 
     @Test
+    void startIssuanceUsesBearerTokenAndCredentialIssuerAsResource() {
+        RestClient.Builder builder = RestClient.builder();
+        MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
+        MaskinportenClient maskinportenClient = mock(MaskinportenClient.class, RETURNS_DEEP_STUBS);
+        when(maskinportenClient.getAccessToken(any(AccessTokenRequestOverrides.class)).getValue())
+                .thenReturn("access-token");
+        clearInvocations(maskinportenClient);
+        IssuerServerService service = new IssuerServerService(
+                builder.build(),
+                new IssuerServerProperties(
+                        "http://issuer",
+                        "/api/v1/credential/issuance-transaction",
+                        List.of(),
+                        Map.of(),
+                        List.of()
+                ),
+                maskinportenClient,
+                mock(CredentialIssuerService.class),
+                mock(FeatureSwitches.class)
+        );
+        mockServer.expect(requestTo(
+                        "http://issuer/tenant/api/v1/credential/issuance-transaction"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(request -> {
+                    String authorization = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+                    assertNotNull(authorization);
+                    String[] authorizationParts = authorization.split(" ", 2);
+                    assertEquals(2, authorizationParts.length);
+                    assertEquals("Bearer", authorizationParts[0]);
+                    assertEquals("access-token", authorizationParts[1]);
+                })
+                .andRespond(withSuccess("""
+                        {
+                          "credential_offer": {
+                            "credential_issuer": "http://issuer/tenant",
+                            "credential_configuration_ids": ["pid"]
+                          },
+                          "issuance_transaction_id": "tx-id"
+                        }
+                        """, MediaType.APPLICATION_JSON));
+
+        IssuanceResponse response = service.startIssuance(
+                credentialConfiguration,
+                new StartIssuanceForm("{}", null)
+        );
+
+        assertEquals("tx-id", response.issuanceTransactionId());
+        mockServer.verify();
+
+        ArgumentCaptor<AccessTokenRequestOverrides> overridesCaptor =
+                ArgumentCaptor.forClass(AccessTokenRequestOverrides.class);
+        verify(maskinportenClient).getAccessToken(overridesCaptor.capture());
+        assertEquals(
+                List.of("http://issuer/tenant"),
+                overridesCaptor.getValue().resources()
+        );
+    }
+
+    @Test
     void revokeCredentialUsesV1WithoutFallbackWhenRichResultIsDisabled() {
         RestClient.Builder builder = RestClient.builder();
         MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
@@ -235,7 +299,7 @@ class IssuerServerServiceTest {
                 "http://issuer-server",
                 "/credential",
                 List.of(),
-                List.of(),
+                Map.of(),
                 wellKnownUrls
         );
 

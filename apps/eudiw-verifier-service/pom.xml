@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.0</version>
+        <version>4.1.1</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>eudiw-verifier-service</artifactId>
@@ -15,10 +15,10 @@
     <properties>
         <java.version>25</java.version>
         <maven.compiler.proc>full</maven.compiler.proc>
-        <kotlin.version>2.4.10</kotlin.version>
+        <kotlin.version>2.4.20</kotlin.version>
         <kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
-        <idporten-actuator-starter.version>3.1.1</idporten-actuator-starter.version>
+        <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>0.23.1</waltid-mdoc-credentials-jvm.version>
@@ -27,7 +27,7 @@
         <dss.version>6.4</dss.version>
         <fasterxml.jackson.dataformat.version>2.20.0</fasterxml.jackson.dataformat.version>
         <zxing.javase.version>3.5.4</zxing.javase.version>
-        <springdoc.version>3.1.0</springdoc.version>
+        <springdoc.version>3.1.1</springdoc.version>
         <dss.validation.version>6.4</dss.validation.version>
         <opentelemetry-api.version>1.65.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>

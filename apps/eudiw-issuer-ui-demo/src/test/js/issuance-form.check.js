@@ -48,6 +48,14 @@ assert(pidFields.some(field =>
 ));
 assert(!pidFields.some(field => field.path === 'place_of_birth'));
 
+// Direkte felt kjem alfabetisk først, nestede grupper alltid sist,
+// uavhengig av rekkefølgja i credential_data.
+const orderData = { b: 1, group: { x: 'a' }, a: 2 };
+assert.deepStrictEqual(
+  listFields(orderData).map(field => field.path),
+  ['a', 'b', 'group.x']
+);
+
 const countryPayload = parseIssuanceJson(pidJson);
 applyField(countryPayload, 'place_of_birth.country', 'SE');
 assert.deepStrictEqual(countryPayload.credential_data.place_of_birth, { country: 'SE' });
