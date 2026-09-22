@@ -24,6 +24,7 @@ public class OpenID4VPVerifierServiceApiClient {
     public OpenID4VPVerifierServiceApiClient(OpenID4VPVerifierServiceProperties verifierServiceProperties) {
         this.restClient = RestClient.builder()
                 .baseUrl(verifierServiceProperties.uri().toString())
+                .defaultHeader("X-API-KEY", verifierServiceProperties.apiKey())
                 .requestFactory(createRequestFactory(verifierServiceProperties))
                 .build();
     }

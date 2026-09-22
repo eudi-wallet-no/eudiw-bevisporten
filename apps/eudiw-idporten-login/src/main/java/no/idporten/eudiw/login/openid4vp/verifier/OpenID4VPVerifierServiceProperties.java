@@ -11,5 +11,6 @@ import java.time.Duration;
 public record OpenID4VPVerifierServiceProperties(
         @NotNull URI uri,
         @NotNull @DefaultValue("3s") Duration connectTimeout,
-        @NotNull @DefaultValue("3s") Duration readTimeout
+        @NotNull @DefaultValue("3s") Duration readTimeout,
+        @NotNull String apiKey
 ) {}
