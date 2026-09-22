@@ -7,73 +7,290 @@ registries:
     username: ${{secrets.GH_PACKAGES_READ_USER}}
     password: ${{secrets.GH_PACKAGES_READ_PAT}}
 
+# Én PR per app med alle dens oppgraderinger. Eksplisitt per-app `directory` (ikke
+# `directories`-wildcard) gir app-vis review og støtter @dependabot rebase/recreate.
+# Ikke gjeninnfør group-by: dependency-name (kan ikke rebases, dependabot-core#14780).
+# YAML-anchors støttes ikke av Dependabot, så oppsettet gjentas per app.
+#
+# Hver app er en egen seksjon. Docker-oppføringer er utelatt: base-images
+# hentes dynamisk og håndteres utenfor dependabot.
 updates:
-  # ==============
-  # MAVEN (Spring Boot-apper)
-  # ==============
-  # "directories: /apps/*" plukker opp alle apper med en pom.xml direkte under apps/.
-  # Gruppering etter semver-nivå:
-  #   - patch/minor: samles i felles PR per nivå (lav risiko, trenger ikke individuell review per app).
-  #   - major: matcher ingen gruppe under, så Dependabot faller tilbake til standard
-  #     oppførsel — én individuell PR per avhengighet per app. Gir mest isolasjon og
-  #     grundigst review nettopp der risikoen for brudd er størst.
-  - package-ecosystem: "maven"
-    directories:
-      - "/apps/*"
+  # ============================================================
+  # eudiw-authoritativ-sources-connector
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-authoritativ-sources-connector
     registries:
       - maven-github
     schedule:
-      interval: "weekly"
-      day: "sunday"
-    open-pull-requests-limit: 10
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-authoritativ-sources-connector
     groups:
-      patch-oppdateringer:
+      alle-oppdateringer:
         applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "patch"
-      minor-oppdateringer:
-        applies-to: version-updates
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
 
-  # ==============
-  # DOCKER
-  # ==============
-  # Samme prinsipp som Maven: patch/minor grupperes bredt på tvers av apper, mens
-  # major-bumps forblir individuelle PR-er per app for tettere review.
-  - package-ecosystem: "docker"
-    directories:
-      - "/apps/*/docker"
+  # ============================================================
+  # eudiw-byob-service
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-byob-service
+    registries:
+      - maven-github
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-byob-service
     groups:
-      patch-oppdateringer:
+      alle-oppdateringer:
         applies-to: version-updates
         patterns:
           - "*"
-        update-types:
-          - "patch"
-      minor-oppdateringer:
-        applies-to: version-updates
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
         patterns:
           - "*"
-        update-types:
-          - "minor"
 
-  # ==============
-  # GITHUB ACTIONS
-  # ==============
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  # ============================================================
+  # eudiw-idporten-login
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-idporten-login
+    registries:
+      - maven-github
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-idporten-login
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-issuer-server
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-issuer-server
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-issuer-server
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-issuer-ui
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-issuer-ui
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-issuer-ui
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-issuer-ui-demo
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-issuer-ui-demo
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-issuer-ui-demo
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-oauth-server
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-oauth-server
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-oauth-server
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-status-list
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-status-list
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-status-list
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-verifier-demo
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-verifier-demo
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-verifier-demo
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # eudiw-verifier-service
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /apps/eudiw-verifier-service
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - eudiw-verifier-service
+    groups:
+      alle-oppdateringer:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
+  # GitHub Actions
+  # ============================================================
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+    labels:
+      - dependencies
+      - github-actions
     groups:
       alle-actions-oppdateringer:
+        patterns:
+          - "*"
+      security:
+        applies-to: security-updates
         patterns:
           - "*"

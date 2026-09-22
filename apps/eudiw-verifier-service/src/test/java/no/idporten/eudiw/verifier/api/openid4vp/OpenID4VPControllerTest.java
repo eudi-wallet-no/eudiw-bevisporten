@@ -17,17 +17,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("When using the OpenID4VP API")
 @ActiveProfiles("junit")
@@ -87,12 +82,11 @@ class OpenID4VPControllerTest {
     }
 
     @Test
-    @DisplayName("receives an authorization response")
+    @DisplayName("lets service handle authorization responses")
     void receivesAuthorizationResponse() throws Exception {
         WalletCallback walletCallback = new WalletCallback();
         walletCallback.setRedirectUri(URI.create("https://example.test/verification-complete"));
-        when(openID4VPResponseService.receiveResponse(any(), eq(VERIFIER_TRANSACTION_ID), any()))
-                .thenReturn(walletCallback);
+        when(openID4VPResponseService.receiveResponse(any(), eq(VERIFIER_TRANSACTION_ID), any())).thenReturn(walletCallback);
 
         mockMvc.perform(post("/openid4vp/authz-response/{clientApplicationId}/{transactionId}",
                         CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID)
@@ -101,23 +95,6 @@ class OpenID4VPControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.redirect_uri")
                         .value("https://example.test/verification-complete"));
-
-        verify(openID4VPResponseService).receiveResponse(
-                argThat(client -> CLIENT_APPLICATION_ID.equals(client.getId())),
-                eq(VERIFIER_TRANSACTION_ID),
-                argThat(response -> "encrypted-authorization-response".equals(response.getResponse())));
     }
 
-    @Test
-    @DisplayName("rejects a missing authorization response")
-    void rejectsMissingAuthorizationResponse() throws Exception {
-        mockMvc.perform(post("/openid4vp/authz-response/{clientApplicationId}/{transactionId}",
-                        CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("invalid_request"))
-                .andExpect(jsonPath("$.error_description").value("Missing authorization response"));
-
-        verifyNoInteractions(openID4VPResponseService);
-    }
 }

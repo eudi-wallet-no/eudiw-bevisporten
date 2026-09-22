@@ -140,12 +140,27 @@ class VerificationControllerTest {
                             CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID))
                     .andExpect(status().isUnauthorized());
 
+
             verify(verificationService, never()).verifierStatus(any(), any());
         }
 
 
-    }
+      @Test
+      @DisplayName("returns the verification status")
+      void returnsVerificationStatus() throws Exception {
+          when(verificationService.verifierStatus(any(), any()))
+                  .thenReturn(new VerificationStatusResponse("ERROR", VERIFIER_TRANSACTION_ID));
 
+          mockMvc.perform(get("/api/v1/{clientApplicationId}/verify/status/{transactionId}",
+                          CLIENT_APPLICATION_ID, VERIFIER_TRANSACTION_ID))
+                  .andExpect(status().isOk())
+                  .andExpect(jsonPath("$.status").value("ERROR"))
+                  .andExpect(jsonPath("$.verifier_transaction_id").value(VERIFIER_TRANSACTION_ID));
+
+
+      }
+    }
+                                     
     @Nested
     @DisplayName("get verification result")
     class GetVerificationResult {
