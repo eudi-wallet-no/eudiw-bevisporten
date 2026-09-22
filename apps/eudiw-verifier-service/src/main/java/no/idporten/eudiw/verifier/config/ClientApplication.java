@@ -1,7 +1,6 @@
 package no.idporten.eudiw.verifier.config;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;
 
@@ -14,6 +13,6 @@ public class ClientApplication implements Serializable {
     @NotBlank
     private String keystoreName;
     private boolean disabled = false;
-    @NotEmpty
+    @NotBlank
     private transient String apiKey;
 }
