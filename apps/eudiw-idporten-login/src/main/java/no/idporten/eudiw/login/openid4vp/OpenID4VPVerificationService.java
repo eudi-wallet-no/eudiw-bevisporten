@@ -71,17 +71,14 @@ public class OpenID4VPVerificationService {
     }
 
     /**
-     * Checks if data is available from the verifier.
+     * Retrieves the current status from the verifier.
      */
-    public boolean isVerificationComplete(WalletInteraction walletInteraction) {
+    public VerificationStatus retrieveVerificationStatus(WalletInteraction walletInteraction) {
         if (walletInteraction.getVerifierTransactionId() == null) {
-            return false;
+            return VerificationStatus.UNKNOWN;
         }
         VerificationStatusResponse verificationStatusResponse = openID4VPVerifierServiceApiClient.retrieveStatus(walletInteraction.getVerifierTransactionId());
-        if ("AVAILABLE".equals(verificationStatusResponse.status())) {
-            return true;
-        }
-        return false;
+        return VerificationStatus.fromValue(verificationStatusResponse.status());
     }
 
 }
