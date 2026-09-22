@@ -30,7 +30,7 @@ updates:
       - dependencies
       - eudiw-authoritativ-sources-connector
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -56,7 +56,7 @@ updates:
       - dependencies
       - eudiw-byob-service
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -82,7 +82,7 @@ updates:
       - dependencies
       - eudiw-idporten-login
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -108,7 +108,7 @@ updates:
       - dependencies
       - eudiw-issuer-server
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -134,7 +134,7 @@ updates:
       - dependencies
       - eudiw-issuer-ui
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -160,7 +160,7 @@ updates:
       - dependencies
       - eudiw-issuer-ui-demo
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -186,7 +186,7 @@ updates:
       - dependencies
       - eudiw-oauth-server
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -212,7 +212,7 @@ updates:
       - dependencies
       - eudiw-status-list
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -238,7 +238,7 @@ updates:
       - dependencies
       - eudiw-verifier-demo
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -264,7 +264,7 @@ updates:
       - dependencies
       - eudiw-verifier-service
     groups:
-      alle-oppdateringer:
+      maven:
         applies-to: version-updates
         patterns:
           - "*"
@@ -287,7 +287,7 @@ updates:
       - dependencies
       - github-actions
     groups:
-      alle-actions-oppdateringer:
+      github-actions:
         patterns:
           - "*"
       security:
