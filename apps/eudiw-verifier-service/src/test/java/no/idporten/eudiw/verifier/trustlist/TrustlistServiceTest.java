@@ -233,7 +233,7 @@ class TrustlistServiceTest {
     void testJsonListMapping() {
         LoTEJson lote = trustlistService.jsonListMapping(getJsonTrustlist());
         assertNotNull(lote);
-        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i dev", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
+        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
     }
 
     @Test
