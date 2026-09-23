@@ -599,7 +599,22 @@ function renderCustomClaimValueEditor(type) {
     simpleField.hidden = false;
     editorField.hidden = true;
     customClaimDraft = null;
+    configureSimpleValueInput(document.getElementById('custom-claim-value'), type);
   }
+}
+
+function configureSimpleValueInput(valueInput, type) {
+  if (!valueInput) return;
+  if (type === 'boolean') {
+    valueInput.type = 'checkbox';
+    valueInput.checked = false;
+    return;
+  }
+  valueInput.value = '';
+  if (type === 'number') valueInput.type = 'number';
+  else if (type === 'iso_date') valueInput.type = 'date';
+  else if (type === 'iso_date_time') valueInput.type = 'datetime-local';
+  else valueInput.type = 'text';
 }
 
 function openCustomClaimModal() {
@@ -688,6 +703,8 @@ function submitCustomClaim() {
       return;
     }
     exampleValue = pairs;
+  } else if (type === 'boolean') {
+    exampleValue = valueInput.checked ? 'true' : 'false';
   } else {
     const value = valueInput.value.trim();
     exampleValue = value;
@@ -879,6 +896,52 @@ function createValueEditor(claim, { ariaLabelPrefix, onChange }) {
   return container;
 }
 
+function createExampleValueControl(claim, i) {
+  if (claim.type === 'boolean') {
+    const label = document.createElement('label');
+    label.className = 'claim-preset-example-wrapper claim-preset-boolean';
+
+    // A raw checkbox would post 'on'/nothing; keep the submitted value as the
+    // string 'true'/'false' the backend regex ^(true|false)$ expects.
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = `claims[${i}].exampleValue`;
+    hidden.value = claim.exampleValue === true || claim.exampleValue === 'true' ? 'true' : 'false';
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = claim.exampleValue === true || claim.exampleValue === 'true';
+    checkbox.setAttribute('aria-label', `Dømeverdi for ${claim.displayName || claim.path}`);
+    checkbox.addEventListener('change', () => {
+      state.claims[i].exampleValue = checkbox.checked ? 'true' : 'false';
+      hidden.value = state.claims[i].exampleValue;
+      schedulePreviewUpdate();
+    });
+
+    label.appendChild(checkbox);
+    label.appendChild(hidden);
+    return label;
+  }
+
+  const input = document.createElement('input');
+  input.className = 'ds-input claim-preset-example';
+  const controlTypeByClaimType = {
+    number: 'number',
+    iso_date: 'date',
+    iso_date_time: 'datetime-local'
+  };
+  input.type = controlTypeByClaimType[claim.type] || 'text';
+  input.name = `claims[${i}].exampleValue`;
+  input.value = claim.exampleValue || '';
+  input.placeholder = claim.type === 'iso_date_time' ? 'YYYY-MM-DDThh:mm:ssZ' : 'Dømeverdi';
+  input.setAttribute('aria-label', `Dømeverdi for ${claim.displayName || claim.path}`);
+  input.addEventListener('input', () => {
+    state.claims[i].exampleValue = input.value;
+    schedulePreviewUpdate();
+  });
+  return input;
+}
+
 function buildClaimRow(claim, i) {
   const div = document.createElement('div');
   div.className = 'claim';
@@ -942,22 +1005,11 @@ function buildClaimRow(claim, i) {
     wrapper.appendChild(editor);
     exampleInputContainer = wrapper;
   } else {
-    const exampleInput = document.createElement('input');
-    exampleInput.className = 'ds-input claim-preset-example';
-    exampleInput.type = 'text';
-    exampleInput.name = `claims[${i}].exampleValue`;
-    exampleInput.value = claim.exampleValue || '';
-    exampleInput.placeholder = 'Dømeverdi';
-    exampleInput.setAttribute('aria-label', `Dømeverdi for ${claim.displayName || claim.path}`);
-    exampleInput.addEventListener('input', () => {
-      state.claims[i].exampleValue = exampleInput.value;
-      schedulePreviewUpdate();
-    });
-
-    exampleInputContainer = exampleInput;
+    exampleInputContainer = createExampleValueControl(claim, i);
 
     // For binary claims (images), add an upload button
     if (imageClaims.isImageClaim(claim.path)) {
+      const exampleInput = exampleInputContainer; // binary -> plain text input
       const wrapper = document.createElement('div');
       wrapper.className = 'claim-preset-example-wrapper';
 
