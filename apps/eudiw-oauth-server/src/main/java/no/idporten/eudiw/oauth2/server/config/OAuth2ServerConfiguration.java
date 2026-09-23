@@ -205,6 +205,12 @@ public final class OAuth2ServerConfiguration {
     private boolean requirePkce = true;
 
     /**
+     * Require challenge claim in client attestation PoP JWTs.
+     */
+    @Builder.Default
+    private boolean requireChallenge = true;
+
+    /**
      * Support iss parameter on authorization responses.  Default is on.
      */
     @Builder.Default

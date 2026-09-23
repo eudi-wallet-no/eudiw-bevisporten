@@ -21,6 +21,7 @@ class OpenID4VCIOAuth2ServerConfigurationTest {
         assertNotNull(openID4VCIOAuth2ServerConfiguration.getGrantTypesSupported());
         assertTrue(openID4VCIOAuth2ServerConfiguration.getGrantTypesSupported().contains("authorization_code"));
         assertTrue(openID4VCIOAuth2ServerConfiguration.getGrantTypesSupported().contains("urn:ietf:params:oauth:grant-type:pre-authorized_code"));
+        assertTrue(openID4VCIOAuth2ServerConfiguration.isRequireChallenge());
     }
 
 }

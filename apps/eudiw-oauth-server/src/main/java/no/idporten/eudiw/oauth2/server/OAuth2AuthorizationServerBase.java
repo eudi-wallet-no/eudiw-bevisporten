@@ -412,6 +412,9 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         String challenge = null;
         try {
             challenge = clientAttestationPoP.getJWTClaimsSet().getStringClaim("challenge");
+            if (!serverConfiguration.isRequireChallenge() && !StringUtils.hasText(challenge)) {
+                return;
+            }
             if (! StringUtils.hasText(challenge)) {
                 throw new UseAttestationChallengeOAuth2Exception("Invalid client authentication. Missing challenge in attestation pop.", issueAttestationChallenge());
             }
