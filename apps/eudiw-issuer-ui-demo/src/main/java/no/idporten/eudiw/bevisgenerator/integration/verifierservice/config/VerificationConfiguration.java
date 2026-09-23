@@ -11,8 +11,13 @@ public class VerificationConfiguration {
 
     @Bean("verificationServiceRestClient")
     public RestClient restClient(VerificationProperties verificationProperties) {
-       return RestClient.builder()
+       return restClient(RestClient.builder(), verificationProperties);
+    }
+
+    RestClient restClient(RestClient.Builder builder, VerificationProperties verificationProperties) {
+       return builder
                .baseUrl(verificationProperties.baseUrl())
+               .defaultHeader("X-API-KEY", verificationProperties.apiKey())
                .build();
     }
 }

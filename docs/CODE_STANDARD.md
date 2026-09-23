@@ -9,6 +9,7 @@ Keep code clear, predictable and consistent with the existing codebase. The defa
 - Prefer explicit behavior over clever shortcuts. Validate early, fail clearly and do not hide invalid state or return fake success.
 - Preserve APIs, data shapes and existing behavior unless the task explicitly changes them.
 - Write tests for observable behavior and important boundaries, not implementation details.
+- When testing Spring `RestClient` integrations, use `MockRestServiceServer` bound to the same `RestClient.Builder` before building the client.
 - Add `@DisplayName` to every test class and test method. Use Gherkin-style descriptions in the form
   `When ..., then ... is expected` or `When ... with ..., then ... is expected`.
 - Use `private static final` uppercase constants for shared immutable test data. Keep one-use strings local to the method where they are used.
