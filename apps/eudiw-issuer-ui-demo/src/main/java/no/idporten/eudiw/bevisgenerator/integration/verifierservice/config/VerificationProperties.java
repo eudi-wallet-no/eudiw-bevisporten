@@ -10,5 +10,6 @@ public record VerificationProperties(
         String verificationStartEndpoint,
         String verificationStatusEndpoint,
         String verificationResultEndpoint,
-        String clientApplicationId) {
+        String clientApplicationId,
+        String apiKey) {
 }
