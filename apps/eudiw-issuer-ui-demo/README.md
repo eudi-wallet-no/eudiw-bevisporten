@@ -49,6 +49,7 @@ To run the application locally against the systest dependencies, do not start th
 ```
 mvn spring-boot:run -Dspring-boot.run.profiles=systest-local
 ```
+This profile runs on http://localhost:8080.
 
 The application can be started with Maven:
 ```
@@ -66,3 +67,5 @@ docker-compose watch
 ```
 
 The application will run on http://bevisgenerator:9290.
+
+The `systest-local` profile runs on http://localhost:8080.
