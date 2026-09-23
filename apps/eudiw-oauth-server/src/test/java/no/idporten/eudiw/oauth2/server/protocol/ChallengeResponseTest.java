@@ -16,7 +16,7 @@ public class ChallengeResponseTest {
     private static final String CHALLENGE_VALUE = "challenge-value";
 
     @Test
-    @DisplayName("When building a response, then attestation_challenge is expected")
+    @DisplayName("When building a response, then attestation_challenge is included")
     public void testBuildChallengeResponse() {
         ChallengeResponse challengeResponse = ChallengeResponse.builder()
                 .attestationChallenge(CHALLENGE_VALUE)
@@ -25,7 +25,7 @@ public class ChallengeResponseTest {
     }
 
     @Test
-    @DisplayName("When converting to json object, then attestation_challenge is expected")
+    @DisplayName("When converting to json object, then attestation_challenge is included")
     public void testChallengeResponseJsonObject() {
         Map<String, Object> jsonObject = ChallengeResponse.builder()
                 .attestationChallenge(CHALLENGE_VALUE)
@@ -36,7 +36,7 @@ public class ChallengeResponseTest {
     }
 
     @Test
-    @DisplayName("When creating audit data, then attestation_challenge is expected")
+    @DisplayName("When creating audit data, then attestation_challenge is included")
     public void testAuditData() {
         ChallengeResponse challengeResponse = ChallengeResponse.builder()
                 .attestationChallenge(CHALLENGE_VALUE)
