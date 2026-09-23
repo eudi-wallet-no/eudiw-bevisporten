@@ -28,6 +28,9 @@ verifier-service:
       keystore-name: ks-hackathon-access
       api-key: ${KS_HACKATHON_API_KEY:}
       disabled: false
+    minid:
+      keystore-name: minid-access
+      api-key: ${MINID_API_KEY}
 
 
 idporten-key-manager:
