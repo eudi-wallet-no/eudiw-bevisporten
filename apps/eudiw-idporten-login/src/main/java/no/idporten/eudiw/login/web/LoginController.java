@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.login.AcrValue;
 import no.idporten.eudiw.login.openid4vp.*;
+import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationStatus;
 import no.idporten.eudiw.login.openid4vp.wallet.WalletInteraction;
 import no.idporten.eudiw.login.openid4vp.wallet.WalletInteractionService;
 import no.idporten.sdk.oidcserver.OAuth2Exception;
@@ -85,6 +86,16 @@ public class LoginController {
             walletInteractionService.updateWalletInteraction(walletInteraction);
             return "login";
         } else {
+            VerificationStatus verificationStatus = openId4VpVerificationService.retrieveVerificationStatus(walletInteraction);
+            if (verificationStatus == VerificationStatus.ERROR) {
+                logger.warn("Verification failed for verifier transaction {}", walletInteraction.getVerifierTransactionId());
+                String redirect = authorizationErrorResponse(
+                        pushedAuthorizationRequest,
+                        "Verification with EU Digital Identity Wallet failed");
+                walletInteractionService.removeWalletInteraction(walletInteraction.getId());
+                session.invalidate();
+                return redirect;
+            }
             Authorization authorization = openId4VpVerificationService.completeVerification(OpenID4VPVerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
             AuthorizationResponse authorizationResponse = openIDConnectServer.authorize(pushedAuthorizationRequest, authorization);
             RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(authorizationResponse);
@@ -104,8 +115,18 @@ public class LoginController {
         if (pushedAuthorizationRequest == null) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid application session", HttpStatus.BAD_REQUEST.value());
         }
-        AuthorizationResponse errorResponse = openIDConnectServer.errorResponse(pushedAuthorizationRequest, "access_denied", "User cancelled authentication with EU Digital Identity Wallet");
-        RedirectedResponse response = (RedirectedResponse) openIDConnectServer.createClientResponse(errorResponse);
+        return authorizationErrorResponse(
+                pushedAuthorizationRequest,
+                "User cancelled authentication with EU Digital Identity Wallet");
+    }
+
+    private String authorizationErrorResponse(
+            PushedAuthorizationRequest pushedAuthorizationRequest,
+            String errorDescription) {
+        AuthorizationResponse errorResponse =
+                openIDConnectServer.errorResponse(pushedAuthorizationRequest, "access_denied", errorDescription);
+        RedirectedResponse response =
+                (RedirectedResponse) openIDConnectServer.createClientResponse(errorResponse);
         return "redirect:" + response.toQueryRedirectUri();
     }
 
@@ -122,7 +143,9 @@ public class LoginController {
         if (! walletInteraction.isStarted()) {
             return ResponseEntity.accepted().build();
         }
-        if (openId4VpVerificationService.isVerificationComplete(walletInteraction)) {
+        VerificationStatus verificationStatus =
+                openId4VpVerificationService.retrieveVerificationStatus(walletInteraction);
+        if (verificationStatus.isTerminal()) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.accepted().build();

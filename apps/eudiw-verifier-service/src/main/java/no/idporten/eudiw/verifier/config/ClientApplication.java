@@ -13,4 +13,6 @@ public class ClientApplication implements Serializable {
     @NotBlank
     private String keystoreName;
     private boolean disabled = false;
+    @NotBlank
+    private transient String apiKey;
 }

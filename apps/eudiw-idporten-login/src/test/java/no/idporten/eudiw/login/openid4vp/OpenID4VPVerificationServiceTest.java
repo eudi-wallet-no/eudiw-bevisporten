@@ -5,6 +5,7 @@ import no.idporten.eudiw.login.openid4vp.verifier.model.DcqlQuery;
 import no.idporten.eudiw.login.openid4vp.verifier.model.StartVerificationRequest;
 import no.idporten.eudiw.login.openid4vp.verifier.model.StartVerificationResponse;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationResultResponse;
+import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationStatus;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationStatusResponse;
 import no.idporten.eudiw.login.openid4vp.verifier.model.VerifiedCredential;
 import no.idporten.eudiw.login.openid4vp.wallet.WalletInteraction;
@@ -190,35 +191,75 @@ class OpenID4VPVerificationServiceTest {
         }
     }
 
-    @DisplayName("When checking if verification is complete")
+    @DisplayName("When retrieving verification status")
     @Nested
-    class IsVerificationCompleteTests {
+    class RetrieveVerificationStatusTests {
 
-        @DisplayName("and the wallet interaction has no verifier transaction id")
+        @DisplayName("When the wallet interaction has no verifier transaction id, then UNKNOWN is expected")
         @Test
-        void testNotStartedReturnsFalse() {
-            assertFalse(service.isVerificationComplete(walletInteraction));
+        void testNotStartedReturnsUnknown() {
+            assertEquals(VerificationStatus.UNKNOWN, service.retrieveVerificationStatus(walletInteraction));
             verify(openID4VPVerifierServiceApiClient, never()).retrieveStatus(any());
         }
 
-        @DisplayName("and the verifier reports status AVAILABLE")
+        @DisplayName("When the verifier reports AVAILABLE, then AVAILABLE is expected")
         @Test
-        void testStatusAvailableReturnsTrue() {
+        void testStatusAvailable() {
             walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
             when(openID4VPVerifierServiceApiClient.retrieveStatus(VERIFIER_TRANSACTION_ID)).thenReturn(
                     new VerificationStatusResponse("AVAILABLE", VERIFIER_TRANSACTION_ID));
 
-            assertTrue(service.isVerificationComplete(walletInteraction));
+            assertEquals(VerificationStatus.AVAILABLE, service.retrieveVerificationStatus(walletInteraction));
         }
 
-        @DisplayName("and the verifier reports a status other than AVAILABLE")
+        @DisplayName("When the verifier reports WAIT, then WAIT is expected")
         @Test
-        void testStatusPendingReturnsFalse() {
+        void testStatusWait() {
             walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
             when(openID4VPVerifierServiceApiClient.retrieveStatus(VERIFIER_TRANSACTION_ID)).thenReturn(
-                    new VerificationStatusResponse("PENDING", VERIFIER_TRANSACTION_ID));
+                    new VerificationStatusResponse("WAIT", VERIFIER_TRANSACTION_ID));
 
-            assertFalse(service.isVerificationComplete(walletInteraction));
+            assertEquals(VerificationStatus.WAIT, service.retrieveVerificationStatus(walletInteraction));
+        }
+
+        @DisplayName("When the verifier reports ERROR, then ERROR is expected")
+        @Test
+        void testStatusError() {
+            walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
+            when(openID4VPVerifierServiceApiClient.retrieveStatus(VERIFIER_TRANSACTION_ID)).thenReturn(
+                    new VerificationStatusResponse("ERROR", VERIFIER_TRANSACTION_ID));
+
+            assertEquals(VerificationStatus.ERROR, service.retrieveVerificationStatus(walletInteraction));
+        }
+
+        @DisplayName("When the verifier reports UNKNOWN, then UNKNOWN is expected")
+        @Test
+        void testStatusUnknown() {
+            walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
+            when(openID4VPVerifierServiceApiClient.retrieveStatus(VERIFIER_TRANSACTION_ID)).thenReturn(
+                    new VerificationStatusResponse("UNKNOWN", VERIFIER_TRANSACTION_ID));
+
+            assertEquals(VerificationStatus.UNKNOWN, service.retrieveVerificationStatus(walletInteraction));
+        }
+
+        @DisplayName("When the verifier omits status, then UNKNOWN is expected")
+        @Test
+        void testMissingStatusReturnsUnknown() {
+            walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
+            when(openID4VPVerifierServiceApiClient.retrieveStatus(VERIFIER_TRANSACTION_ID)).thenReturn(
+                    new VerificationStatusResponse(null, VERIFIER_TRANSACTION_ID));
+
+            assertEquals(VerificationStatus.UNKNOWN, service.retrieveVerificationStatus(walletInteraction));
+        }
+
+        @DisplayName("When the verifier reports an unsupported status, then UNKNOWN is expected")
+        @Test
+        void testUnsupportedStatusReturnsUnknown() {
+            walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
+            when(openID4VPVerifierServiceApiClient.retrieveStatus(VERIFIER_TRANSACTION_ID)).thenReturn(
+                    new VerificationStatusResponse("FUTURE_STATUS", VERIFIER_TRANSACTION_ID));
+
+            assertEquals(VerificationStatus.UNKNOWN, service.retrieveVerificationStatus(walletInteraction));
         }
     }
 }

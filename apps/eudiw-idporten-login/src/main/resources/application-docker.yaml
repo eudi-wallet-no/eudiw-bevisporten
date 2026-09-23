@@ -26,6 +26,8 @@ eudiw-idporten-login:
   features:
     allow-synthetic-person-identifiers: true
     allow-real-person-identifiers: false
+  openid4vp-verifier-service:
+    uri: http://verifier-service:9285
   oidc-sdk:
     issuer: http://eudiw-idporten-login:9283/
     clients:
