@@ -94,7 +94,7 @@ class TrustlistServiceTest {
 
         LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
         assertNotNull(lote);
-        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i dev", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
+        assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
     }
 
 
@@ -241,9 +241,9 @@ class TrustlistServiceTest {
     void testCheckJSON602() {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
-
-        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.trustlistCertificatePIDFirstOnList() + END_CERTIFICATE);
-        boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert, "Digdir");
+        ValueCertificate certificate = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList());
+        X509Certificate cert = certificate.getCertificateAsX509Object();
+        boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert, "DIGITALISERINGSDIREKTORATET");
         assertTrue(check);
     }
 
@@ -254,7 +254,8 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
 
-        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.getSecondBevisporten() + END_CERTIFICATE);
+        ValueCertificate certificate = new ValueCertificate(certificates.getSecondBevisporten());
+        X509Certificate cert = certificate.getCertificateAsX509Object();
         boolean check = trustlistService.checkXml612(XMLTRUSTLISTURL, cert, "DIGITALISERINGSDIREKTORATET");
         assertTrue(check);
     }
