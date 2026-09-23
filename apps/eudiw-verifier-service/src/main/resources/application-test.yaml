@@ -53,6 +53,12 @@ idporten-key-manager:
       key-store-password: ${KS_HACKATHON_ACCESS_KEYSTORE_PASSWORD}
       key-alias: ${KS_HACKATHON_ACCESS_KEY_ALIAS}
       key-password: ${KS_HACKATHON_ACCESS_KEY_PASSWORD}
+    minid-access:
+      key-store-type: ${MINID_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${MINID_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${MINID_ACCESS_KEY_ALIAS}
+      key-password: ${MINID_ACCESS_KEY_PASSWORD}
 
 trustlists:
   connect-timeout: 3s
