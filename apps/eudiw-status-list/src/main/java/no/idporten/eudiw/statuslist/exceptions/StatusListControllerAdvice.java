@@ -65,7 +65,7 @@ public class StatusListControllerAdvice {
     // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.error("Failed to process request", e);
+        log.warn("Invalid request body: {}", getFieldErrorDescription(e));
         return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, getFieldErrorDescription(e));
     }
 
