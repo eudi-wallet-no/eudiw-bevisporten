@@ -26,8 +26,8 @@ verifier-service:
       api-key: ${BEVISGENERATOR_LOGIN_API_KEY:}
     ks-hackathon:
       keystore-name: ks-hackathon-access
+      disabled: true
       api-key: ${KS_HACKATHON_API_KEY:}
-      disabled: false
 
 
 idporten-key-manager:
