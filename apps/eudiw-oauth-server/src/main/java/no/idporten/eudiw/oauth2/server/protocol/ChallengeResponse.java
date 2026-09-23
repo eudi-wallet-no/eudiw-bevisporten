@@ -1,6 +1,7 @@
 package no.idporten.eudiw.oauth2.server.protocol;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -26,6 +27,7 @@ public class ChallengeResponse implements JsonResponse, AuditDataProvider {
         return JsonUtils.jsonObjectBuilder().addAttribute(ATTESTATION_CHALLENGE, attestationChallenge).build();
     }
 
+    @JsonIgnore
     @Override
     public AuditData getAuditData() {
         return AuditData.builder().attribute(ATTESTATION_CHALLENGE, attestationChallenge).build();
