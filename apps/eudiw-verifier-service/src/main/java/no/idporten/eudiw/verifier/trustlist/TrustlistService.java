@@ -63,7 +63,7 @@ public class TrustlistService {
 
     public String issuerName(LdapName ldapName) {
         for (Rdn rdn : ldapName.getRdns()) {
-            if ("O".equalsIgnoreCase(rdn.getType())) {
+            if ("O".equalsIgnoreCase(rdn.getType()) || "OU".equalsIgnoreCase(rdn.getType())) {
                 return rdn.getValue().toString();
             }
         }

@@ -81,6 +81,34 @@ class OpenID4VPResponseServiceTest {
     }
 
     @Test
+    @DisplayName("without an authorization response, then error status is expected")
+    void rejectsMissingAuthorizationResponse() {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID, response(" ")));
+
+        assertEquals("Missing authorization response", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+    }
+
+    @Test
+    @DisplayName("with an unencrypted authorization response, then error status is expected")
+    void rejectsUnencryptedAuthorizationResponse() {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
+
+        assertEquals("Authorization response is not encrypted", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+    }
+
+    @Test
     @DisplayName("with a real JWE and a missing selected credential, then missing credential persistence is expected")
     void decryptsRealJweAndPersistsMissingSelectedCredential() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
@@ -114,6 +142,7 @@ class OpenID4VPResponseServiceTest {
                         encrypted(Map.of("state", "wrong", "vp_token", Map.of()))));
 
         assertEquals("Invalid state in authorization response", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
     }
 
@@ -165,7 +194,52 @@ class OpenID4VPResponseServiceTest {
                 () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload("token"))));
 
         assertEquals("Unsupported vp_token structure", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
+    }
+
+    @Test
+    @DisplayName("when credential processing fails, then error status is expected")
+    void marksCredentialProcessingFailureAsError() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        VerificationException processingException =
+                new VerificationException("invalid_request", "Invalid mdoc");
+        when(mDocService.mDocFromVpToken("mdoc-token")).thenThrow(processingException);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.receiveResponse(
+                        client,
+                        TRANSACTION_ID,
+                        encrypted(validPayload(Map.of("pid", "mdoc-token")))));
+
+        assertSame(processingException, exception);
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+    }
+
+    @Test
+    @DisplayName("when persisting error status fails, then the response failure is preserved")
+    void preservesResponseFailureWhenErrorStatusPersistenceFails() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        IllegalStateException persistenceException = new IllegalStateException("Cache unavailable");
+        doThrow(persistenceException)
+                .when(verificationService)
+                .markAsError(client, TRANSACTION_ID);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.receiveResponse(
+                        client,
+                        TRANSACTION_ID,
+                        encrypted(validPayload("invalid-vp-token"))));
+
+        assertAll(
+                () -> assertEquals("Unsupported vp_token structure", exception.getErrorDescription()),
+                () -> assertArrayEquals(
+                        new Throwable[]{persistenceException},
+                        exception.getSuppressed()));
     }
 
     @Test

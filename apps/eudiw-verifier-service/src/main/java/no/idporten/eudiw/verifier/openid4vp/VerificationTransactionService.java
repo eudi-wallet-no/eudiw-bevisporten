@@ -13,9 +13,10 @@ import java.util.Objects;
 @Service
 public class VerificationTransactionService {
 
-    public static String STATUS_UNKNOWN = "UNKNOWN";
-    public static String STATUS_WAIT = "WAIT";
-    public static String STATUS_AVAILABLE = "AVAILABLE";
+    public static final String STATUS_UNKNOWN = "UNKNOWN";
+    public static final String STATUS_WAIT = "WAIT";
+    public static final String STATUS_AVAILABLE = "AVAILABLE";
+    public static final String STATUS_ERROR = "ERROR";
     private final CacheService cacheService;
 
     public VerificationTransactionService(CacheService cacheService) {
@@ -56,6 +57,15 @@ public class VerificationTransactionService {
         verificationTransaction.setStatus(STATUS_AVAILABLE);
         verificationTransaction.setVerifiedCredentials(verifiedCredentials);
         verificationTransaction.setResponse(vpTokenResponse);
+        cacheService.updateVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
+    }
+
+    public void markAsError(ClientApplication clientApplication, String verifierTransactionId) {
+        VerificationTransaction verificationTransaction = cacheService.getVerificationTransaction(clientApplication, verifierTransactionId);
+        if (verificationTransaction == null) {
+            throw new VerificationException("invalid_request", "Unknown verifier transaction");
+        }
+        verificationTransaction.setStatus(STATUS_ERROR);
         cacheService.updateVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
     }
 

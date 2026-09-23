@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
+import org.springframework.util.StringUtils;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -51,8 +52,37 @@ public class OpenID4VPResponseService {
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
         }
-        Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse(), verificationTransaction.getEncryptionKey());
-        String nonce = (String) claimsFromJwePayload.get("nonce");
+        try {
+            return processResponse(
+                    clientApplication,
+                    verifierTransactionId,
+                    encryptedAuthorizationResponse,
+                    verificationTransaction);
+        } catch (Exception responseException) {
+            markAsError(clientApplication, verifierTransactionId, responseException);
+            throw responseException;
+        }
+    }
+
+    private WalletCallback processResponse(
+            ClientApplication clientApplication,
+            String verifierTransactionId,
+            EncryptedAuthorizationResponse encryptedAuthorizationResponse,
+            VerificationTransaction verificationTransaction) throws Exception {
+        if (!StringUtils.hasText(encryptedAuthorizationResponse.getResponse())) {
+            throw new VerificationException("invalid_request", "Missing authorization response");
+        }
+        Map<String, Object> claimsFromJwePayload;
+        try {
+            claimsFromJwePayload = decryptAndDeserializeJweResponse(
+                    encryptedAuthorizationResponse.getResponse(),
+                    verificationTransaction.getEncryptionKey());
+        } catch (Exception e) {
+            throw new VerificationException(
+                    "invalid_request",
+                    "Authorization response is not encrypted",
+                    e);
+        }
         String state = (String) claimsFromJwePayload.get("state");
         if (!Objects.equals(state, verificationTransaction.getState())) {
             throw new VerificationException("invalid_request", "Invalid state in authorization response");
@@ -91,6 +121,20 @@ public class OpenID4VPResponseService {
         return walletCallback;
     }
 
+    private void markAsError(
+            ClientApplication clientApplication,
+            String verifierTransactionId,
+            Exception responseException) {
+        try {
+            verificationTransactionService.markAsError(clientApplication, verifierTransactionId);
+        } catch (RuntimeException persistenceException) {
+            responseException.addSuppressed(persistenceException);
+            log.error(
+                    "Failed to mark verification transaction {} as error",
+                    verifierTransactionId,
+                    persistenceException);
+        }
+    }
 
     private VpToken extractVpToken(Map<String, Object> claimsFromJwePayload) {
         Object vpTokenObject = claimsFromJwePayload.get("vp_token");

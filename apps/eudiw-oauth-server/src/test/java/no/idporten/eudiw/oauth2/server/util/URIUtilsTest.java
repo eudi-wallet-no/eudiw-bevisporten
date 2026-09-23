@@ -13,16 +13,19 @@ import static org.junit.jupiter.api.Assertions.*;
 @DisplayName("When handling URIs")
 public class URIUtilsTest {
 
-    @DisplayName("then query parameters can be appended to a base uri")
+    @DisplayName("When query parameters are appended, then each parameter is URL-encoded once")
     @Test
     void testAppendQuery() {
         URI base = URI.create("https://junit.digdir.no/callback");
-        Map<String, String> parameters = Map.of("state", "hawaii", "code", "secret");
+        Map<String, String> parameters = Map.of(
+                "state", "hawaii",
+                "iss", "https://auth.test.eidas2sandkasse.net");
         URI constructed = URIUtils.appendQuery(base, parameters);
         assertAll(
                 () -> assertTrue(constructed.toString().startsWith("https://junit.digdir.no/callback?")),
                 () -> assertTrue(constructed.toString().contains("state=hawaii")),
-                () -> assertTrue(constructed.toString().contains("code=secret")),
+                () -> assertTrue(constructed.getRawQuery().contains("iss=https%3A%2F%2Fauth.test.eidas2sandkasse.net")),
+                () -> assertFalse(constructed.getRawQuery().contains("%25")),
                 () -> assertTrue(constructed.toString().contains("&"))
         );
     }
