@@ -90,7 +90,7 @@ public class StatusListControllerAdvice {
     // Spring 406
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException e) {
-        return errorResponseEntity(HttpStatus.NOT_ACCEPTABLE, INVALID_REQUEST, "Unsupported Accept header, expected media type not acceptable");
+        return errorResponseEntity(HttpStatus.NOT_ACCEPTABLE, INVALID_REQUEST, "Unsupported Accept header");
     }
 
     // Spring 404
