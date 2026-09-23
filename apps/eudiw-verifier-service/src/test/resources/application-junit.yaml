@@ -6,9 +6,11 @@ verifier-service:
   client-applications:
     junit:
       keystore-name: junit-access
+      api-key: not-hidden-api-key
     junit-disabled:
       keystore-name: junit-access
       disabled: true
+      api-key: not-used-api-key
 
 idporten-key-manager:
   keystores:
