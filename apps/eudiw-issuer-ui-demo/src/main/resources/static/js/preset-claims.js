@@ -7,7 +7,7 @@
  * Hvert claim: { path, displayName, type, mimeType, exampleValue }
  * - path: claim-sti i beviset
  * - displayName: visningsnavn i skjema og preview
- * - type: 'string' | 'binary' (binary vises med bildeopplasting)
+ * - type: 'string' | 'binary' | 'iso_date' (binary vises med bildeopplasting)
  * - mimeType: MIME-type for binary-claims, ellers null
  * - exampleValue: eksempelverdi som vises i skjema og preview
  */
@@ -19,7 +19,7 @@ const PRESET_CLAIMS = {
       { path: 'family_name', displayName: 'Etternamn', type: 'string', mimeType: null, exampleValue: 'Nordmann' },
       { path: 'middle_name', displayName: 'Mellomnamn', type: 'string', mimeType: null, exampleValue: 'Per' },
       { path: 'personal_administrative_number', displayName: 'Fødselsnummer', type: 'string', mimeType: null, exampleValue: '01018812345' },
-      { path: 'birth_date', displayName: 'Fødselsdato', type: 'string', mimeType: null, exampleValue: '1988-01-01' }
+      { path: 'birth_date', displayName: 'Fødselsdato', type: 'iso_date', mimeType: null, exampleValue: '1988-01-01' }
     ]
   },
   kontaktinfo: {
