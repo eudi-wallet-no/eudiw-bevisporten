@@ -219,6 +219,35 @@ public class ClientAuthenticationTest {
                     () -> assertNotNull(authorizationServer.getConfiguration().getCache().getChallenge(exception.getAttestationChallenge()))
             );
         }
+
+        @Test
+        @DisplayName("then attestation without challenge is accepted when challenge is optional")
+        public void testAttestationWithoutChallengeAcceptedWhenChallengeOptional() throws Exception {
+            final String clientId = "eudiw-abca";
+            final ECKey clientKey = TestUtils.createECPrivateKey();
+            OAuth2ServerConfiguration optionalChallengeServerConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
+                    .client(ClientMetadata.builder().clientId("anotherclient").scope("openid").redirectUri("https://junit.idporten.no/").build())
+                    .cache(new SimpleOpenIDConnectCache())
+                    .auditLogger(auditLogger)
+                    .requireChallenge(false)
+                    .build();
+            OAuth2AuthorizationServerBase optionalChallengeServer = new OAuth2AuthorizationServerBase(optionalChallengeServerConfiguration);
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
+            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoPWithoutChallenge(
+                    clientId,
+                    optionalChallengeServer.getConfiguration().getIssuer().toString(),
+                    clientKey);
+            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
+                    .clientAttestation(clientAttestation.serialize())
+                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
+                    .build();
+
+            ClientMetadata clientMetadata = optionalChallengeServer.authenticateClient(authenticatedRequest);
+
+            assertEquals(clientId, clientMetadata.getClientId());
+            verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
+            assertNull(clientAuthenticationCaptor.getValue().getAttestationChallenge());
+        }
     }
 
     @DisplayName("without using client authentication (none)")
