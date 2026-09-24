@@ -6,6 +6,7 @@ import no.idporten.eudiw.bevisgenerator.config.FeatureSwitches;
 import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerServerProperties;
 import no.idporten.eudiw.bevisgenerator.web.models.CredentialDto;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * before submit, which previously caused every save to fail with "Beviset må ha minimum 1.
  * claim" regardless of whether rawJson was populated.
  */
+@DisplayName("When credentials are submitted via form binding, then Spring MVC data binding works correctly")
 class AdminControllerFormBindingTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -59,6 +61,7 @@ class AdminControllerFormBindingTest {
     }
 
     @Test
+    @DisplayName("When claims and raw JSON are both submitted, then credential is stored")
     void storesCredentialWhenClaimsAndRawJsonAreBothSubmitted() throws Exception {
         String rawJson = """
                 {
@@ -84,6 +87,52 @@ class AdminControllerFormBindingTest {
                         .param("claims[0].path", "student_id")
                         .param("claims[0].name", "Studentnummer")
                         .param("claims[0].exampleValue", "12345")
+                        .param("rawJson", rawJson))
+                .andExpect(view().name("redirect:/admin"));
+
+        ArgumentCaptor<CredentialDto> captor = ArgumentCaptor.forClass(CredentialDto.class);
+        verify(credentialService).editCredential(captor.capture());
+    }
+
+    /**
+     * "credential is stored" means only that the POST succeeds and editCredential is called -
+     * this test proves form binding, not boolean conversion. The value stays the string 'false'
+     * in the stored JSON; this just guards against the binding/validation breaking when a typed
+     * boolean claim is submitted the same way credential-form.js does.
+     */
+    @Test
+    @DisplayName("When a boolean claim example value is bound as the string 'false', then credential is stored")
+    void storesCredentialWhenBooleanClaimExampleValueIsBoundAsString() throws Exception {
+        String rawJson = """
+                {
+                  "credential_type": "studentbevis",
+                  "format": "dc+sd-jwt",
+                  "scope": "eudiw:eidas2sandkasse:dynamicvc",
+                  "credential_metadata": {
+                    "display": [{"name": "Studentbevis", "locale": "no"}],
+                    "claims": [
+                      {"path": "student_id", "type": "string", "mandatory": true, "display": [{"name": "Studentnummer", "locale": "no"}]},
+                      {"path": "is_active", "type": "boolean", "mandatory": true, "display": [{"name": "Aktivt", "locale": "no"}]}
+                    ]
+                  },
+                  "example_credential_data": {"student_id": "12345", "is_active": "false"}
+                }
+                """;
+
+        // The boolean claim's exampleValue is submitted as the string 'false'
+        // (not a checkbox value), matching how credential-form.js posts boolean claims.
+        mockMvc.perform(post("/admin/edit-credential-new/studentbevis")
+                        .param("credentialType", "studentbevis")
+                        .param("format", "dc+sd-jwt")
+                        .param("scope", "eudiw:eidas2sandkasse:dynamicvc")
+                        .param("name", "Studentbevis")
+                        .param("claims[0].path", "student_id")
+                        .param("claims[0].name", "Studentnummer")
+                        .param("claims[0].exampleValue", "12345")
+                        .param("claims[1].path", "is_active")
+                        .param("claims[1].name", "Aktivt")
+                        .param("claims[1].type", "boolean")
+                        .param("claims[1].exampleValue", "false")
                         .param("rawJson", rawJson))
                 .andExpect(view().name("redirect:/admin"));
 

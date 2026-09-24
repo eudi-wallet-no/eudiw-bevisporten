@@ -27,10 +27,10 @@
             <option disabled th:selected="${claimData == null or claimData.type == null}" value="">Vel ein type</option>
             <option value="string" th:selected="${claimData != null and claimData.type == 'string'}">string</option>
             <option value="binary" th:selected="${claimData != null and claimData.type == 'binary'}">binary</option>
-            <option disabled value="number">number</option>
-            <option disabled value="boolean">boolean</option>
-            <option disabled value="iso_date">iso_date</option>
-            <option disabled value="iso_datetime">iso_datetime</option>
+            <option value="number" th:selected="${claimData != null and claimData.type == 'number'}">number</option>
+            <option value="boolean" th:selected="${claimData != null and claimData.type == 'boolean'}">boolean</option>
+            <option value="iso_date" th:selected="${claimData != null and claimData.type == 'iso_date'}">iso_date</option>
+            <option value="iso_date_time" th:selected="${claimData != null and claimData.type == 'iso_date_time'}">iso_date_time</option>
             <option disabled value="map">map</option>
             <option disabled value="list">list</option>
         </select>

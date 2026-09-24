@@ -98,4 +98,14 @@ public class StatusProviderControllerTest {
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(containsString("Requested resource not found")));
     }
+
+    @Test
+    @DisplayName("Should return 406 when using wrong header")
+    void statusMediaTypeNotAccepted() throws Exception {
+        mockMvc.perform(get("/lists/{id}", 1).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotAcceptable())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value(containsString("Unsupported Accept header")));
+    }
 }

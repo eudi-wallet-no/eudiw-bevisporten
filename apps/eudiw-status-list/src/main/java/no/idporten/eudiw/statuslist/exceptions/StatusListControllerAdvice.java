@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -64,7 +65,7 @@ public class StatusListControllerAdvice {
     // Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
-        log.error("Failed to process request", e);
+        log.warn("Invalid request body: {}", getFieldErrorDescription(e));
         return errorResponseEntity(HttpStatus.BAD_REQUEST, INVALID_REQUEST, getFieldErrorDescription(e));
     }
 
@@ -84,6 +85,12 @@ public class StatusListControllerAdvice {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e) {
         return errorResponseEntity(HttpStatus.UNSUPPORTED_MEDIA_TYPE, INVALID_REQUEST, "Unsupported media type");
+    }
+
+    // Spring 406
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException e) {
+        return errorResponseEntity(HttpStatus.NOT_ACCEPTABLE, INVALID_REQUEST, "Unsupported Accept header");
     }
 
     // Spring 404
