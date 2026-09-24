@@ -569,6 +569,16 @@ class VerificationControllerTest {
     }
 
     @Test
+    void getVerificationStatusReturnsGoneWhenStatusIsError() throws Exception {
+        when(verifierService.retrieveVerificationStatus("tx-id"))
+                .thenReturn(new VerificationStatus("ERROR", "tx-id"));
+
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
+                .andExpect(status().isGone());
+    }
+
+    @Test
     void getVerificationStatusReturnsNotFoundWhenStatusIsUnknown() throws Exception {
         when(verifierService.retrieveVerificationStatus("tx-id"))
                 .thenReturn(new VerificationStatus("UNKNOWN", "tx-id"));
