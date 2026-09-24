@@ -37,7 +37,7 @@ Bruk dette som hovedkilde for komponentvalg, tokens, semantikk og tilgjengelighe
 
 ### Formulardeler
 
-- Alle felter skal ha synlig label eller alternativ godt definert arialabel. Placeholder er ikke nok.
+- Alle felter skal ha synlig label eller alternativ godt definert `aria-label`. Placeholder er ikke nok.
 - Feilmeldinger skal brukes med `data-field="validation"` og `role="alert"` der dette er relevant.
 - Når et felt har feil, sett `aria-invalid="true"` og koble feilen via `aria-describedby`.
 
@@ -69,7 +69,7 @@ Bruk de offisielle Designsystemet-dokumentene for komponentspesifikk info:
 - `https://designsystemet.no/en/components/docs/<component>/code`
 - `https://designsystemet.no/en/components/docs/<component>/accessibility`
 
-Når vi trenger en versjonsnøytral eller komponentspesifikk implementasjon, skal vi bruke de oppdaterte dokumentene som autoritet og ikke gjetne fra minne eller ustrukturert eksperttenkning.
+Når vi trenger en versjonsnøytral eller komponentspesifikk implementasjon, skal vi bruke de oppdaterte dokumentene som autoritet og ikke gjette fra minne eller ustrukturert eksperttenkning.
 
 ## Sjekkliste før merge
 

@@ -1,6 +1,6 @@
 ---
 name: proposal
-description: "Anbefal en løsning og lag en godkjenningsklar plan med teknisk avgrensede oppgaver, avhengigheter og beviskrav. Bruk når planlegging er bestilt eller krav, nye mønstre eller arkitekturvalg må avklares. Ikke ved ren undersøkelse, avklart implementasjon eller utførelse av godkjent plan."
+description: "Recommend a solution and produce an approval-ready plan with technically bounded tasks, dependencies and evidence requirements. Use when planning is requested or requirements, new patterns or architecture decisions must be clarified. Not for pure investigation, clarified implementation or executing an approved plan."
 license: Digitaliseringsdirektoratet
 ---
 

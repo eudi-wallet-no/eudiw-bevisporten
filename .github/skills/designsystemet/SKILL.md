@@ -1,12 +1,18 @@
+---
+name: designsystem
+description: "Compatibility marker. The authoritative Designsystemet guidance for this repository lives in docs/designsystem.md."
+license: Digitaliseringsdirektoratet
+---
+
 # Designsystemet
 
-Dette dokumentet er flyttet til `docs/designsystem.md`.
+This document has moved to `docs/designsystem.md`.
 
-`docs/designsystem.md` er nå den autoritative kilden for Designsystemet i dette repoet. Denne skillen er bare en liten kompatibilitetsmarkør for eldre referanser.
+`docs/designsystem.md` is now the authoritative source for Designsystemet in this repository. This skill is only a small compatibility marker for older references.
 
-Bruk `docs/designsystem.md` for:
-- komponentvalg og mønstre
-- tokens og styling
-- semantisk HTML og tilgjengelighet
-- WCAG-krav og states
-- oppdaterte Designsystemet-referanser
+Use `docs/designsystem.md` for:
+- component choices and patterns
+- tokens and styling
+- semantic HTML and accessibility
+- WCAG requirements and states
+- updated Designsystemet references
