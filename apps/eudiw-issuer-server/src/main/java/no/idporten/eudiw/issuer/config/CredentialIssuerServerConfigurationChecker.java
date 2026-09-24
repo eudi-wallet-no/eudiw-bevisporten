@@ -5,7 +5,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 
 /**
- * Soma sanity checks on credential issuer server configuration on startup.
+ * Some sanity checks on credential issuer server configuration on startup.
  */
 @Service
 public class CredentialIssuerServerConfigurationChecker implements InitializingBean {
