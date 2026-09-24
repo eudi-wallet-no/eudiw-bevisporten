@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface VerificationResultService {
-    List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials);
+    List<VerificationResultView> buildVerificationResultViews(Map<String, List<VerifiedCredential>> credentials, String requestedCredentialName);
 }

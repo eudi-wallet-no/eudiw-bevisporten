@@ -7,7 +7,6 @@ import id.walt.mdoc.dataelement.MapElement;
 import id.walt.mdoc.dataelement.MapKey;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
-import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.testdata.Certificates;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +15,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayInputStream;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.LinkedHashMap;
@@ -119,7 +117,7 @@ class ConvertVPTokenToMDocTest {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
             assertNotNull(cert);
             Certificates certificates = new Certificates();
-            assertEquals(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.trustlistCertificatePIDFirstOnList()+ "-----END CERTIFICATE-----"), cert);
+            assertEquals(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.certificateOnlyForOldMdocTestWithOldPIDWithoutOInDN()+ "-----END CERTIFICATE-----"), cert);
         }
     }
 

@@ -16,7 +16,7 @@
     </div>
     <div class="content-narrow">
         <p class="ds-paragraph ds-alert">Det kan ta inntil eitt minutt før bevisdefinisjonen er oppdatert hos utferdaren.</p>
-        <div class="ds-container ds-alert">
+        <div class="ds-alert" data-color="info">
             <p class="ds-paragraph">Gyldige verdiar for <code>type</code> (datatypar) er:</p>
             <ol>
                 <li><code>string</code>: for tekst</li>
@@ -41,17 +41,18 @@
           th:object="${addCredentialForm}"
           method="POST">
 
-        <div class="ds-field"
-             th:classappend="${#fields.hasErrors('credentialType')} ? 'ds-field--error'">
+        <div class="ds-field">
 
             <label class="ds-label" for="credentialType">ID (credentialType)</label>
 
             <input class="ds-input"
                    type="text"
                    id="credentialType"
-                   th:field="*{credentialType}">
+                   th:field="*{credentialType}"
+                   th:attrappend="aria-invalid=${#fields.hasErrors('credentialType')} ? 'true' : null,
+                                  aria-describedby=${#fields.hasErrors('credentialType')} ? 'credentialType-error' : null">
 
-            <div th:if="${#fields.hasErrors('credentialType')}">
+            <div th:if="${#fields.hasErrors('credentialType')}" id="credentialType-error">
                 <div class="ds-validation-message"
                      data-field="validation"
                      th:each="error : ${#fields.errors('credentialType')}" th:text="${error}">

@@ -158,6 +158,10 @@
                             class="ds-input"
                             onchange="renderCustomClaimValueEditor(this.value)">
                         <option value="string" selected>Enkel verdi</option>
+                        <option value="boolean">Kryss av (boolean)</option>
+                        <option value="number">Tal (number)</option>
+                        <option value="iso_date">Dato (iso_date)</option>
+                        <option value="iso_date_time">Dato og tid (iso_date_time)</option>
                         <option value="list">Liste</option>
                         <option value="map">Nøkkel/verdi-par (map)</option>
                     </select>
@@ -177,9 +181,9 @@
                     <div id="custom-claim-value-editor"></div>
                 </div>
 
-                <div id="custom-claim-error" class="ds-error-message" hidden
-                     style="margin-block-start: var(--ds-size-3);">
-                </div>
+                <p id="custom-claim-error" class="ds-validation-message" data-color="danger" role="alert" hidden
+                   style="margin-block-start: var(--ds-size-3);">
+                </p>
             </div>
 
             <div class="ds-dialog__block" style="display: flex; gap: var(--ds-size-3); justify-content: flex-end;">

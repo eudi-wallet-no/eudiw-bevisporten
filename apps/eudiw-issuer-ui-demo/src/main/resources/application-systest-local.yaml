@@ -1,10 +1,10 @@
 ---
 server:
-  port: 9290
+  port: 8080
 
 management:
   server:
-    port: 9290
+    port: 8080
 
 spring:
   config:
