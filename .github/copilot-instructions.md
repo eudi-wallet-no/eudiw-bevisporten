@@ -3,22 +3,18 @@
 ## Before you start
 
 - Read [`docs/`](../docs/) and follow [code standard](../docs/CODE_STANDARD.md) when writing code.
-- Read and follow the relevant `SKILL.md`, even if your client has no skill tool:
-  - Visual changes: [`designsystem`](skills/designsystemet/SKILL.md).
-  - Norwegian text: [`norsk-klarsprak`](skills/norsk-klarsprak/SKILL.md).
-  - Multi-file changes, unclear scope, new patterns or architecture decisions: [`proposal`](skills/proposal/SKILL.md) before implementation.
+- Read and follow the design system guidance in [`docs/designsystem.md`](../docs/designsystem.md) for visual, HTML and CSS changes.
+- When the work affects multiple files, unclear scope, new patterns or architecture decisions, read [`proposal`](../.github/skills/proposal/SKILL.md) before implementation.
 
 ## Make the change
 
-- Surface and handle errors explicitly. Do not hide errors or return false success.
 - Update documentation that becomes incorrect.
-- Keep instructions and skills in English. Add only reusable project rules, not session notes.
+- Keep instructions and skills in English. 
 
 ## Before delivery
 
 - Run relevant existing tests, builds or lint checks.
-- Make diagrams readable in both light and dark mode.
-- Report only measured numbers and state clearly what could not be verified.
+
 
 ## Branch and PR
 

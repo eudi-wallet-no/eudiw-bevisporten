@@ -176,10 +176,11 @@ public class VerificationController {
         response.setHeader("Referrer-Policy", "no-referrer");
 
         VerificationResult result = getVerificationResult(verificationId, session);
+        String credentialName = getVerificationSessionData(verificationId, session).credentialName();
 
         return new ModelAndView("verification-result")
                 .addObject("result", result)
-                .addObject("verificationResults", verificationResultService.buildVerificationResultViews(result.credentials()))
+                .addObject("verificationResults", verificationResultService.buildVerificationResultViews(result.credentials(), credentialName))
                 .addObject("steps", STEPS);
     }
 
