@@ -17,6 +17,7 @@ import no.idporten.eudiw.bevisgenerator.integration.verifierservice.model.Verifi
 import no.idporten.eudiw.bevisgenerator.web.models.IssuanceSessionData;
 import no.idporten.eudiw.bevisgenerator.web.models.StartVerificationForm;
 import no.idporten.eudiw.bevisgenerator.web.models.VerificationSessionData;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -202,6 +203,9 @@ public class VerificationController {
         }
         if (status.equals("AVAILABLE")) {
             return ResponseEntity.ok().build();
+        }
+        if (status.equals("ERROR")) {
+            return ResponseEntity.status(HttpStatus.GONE).build();
         }
 
         return ResponseEntity.internalServerError().build();
