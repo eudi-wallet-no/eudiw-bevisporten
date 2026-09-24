@@ -12,59 +12,46 @@
         <h1 class="ds-heading" data-size="xl">
             Resultat av verifikasjon
         </h1>
-        <p class="ds-paragraph">
-            Verifikasjonen er fullført via EUDI SD-JWT mekanismer.
-        </p>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=3)}"></div>
 
     <div class="step-flow">
         <div class="step-flow__content" th:if="${result != null}">
-        <div th:with="total=${#lists.size(verificationResults)},
+        <div class="ds-card content-narrow"
+             data-color="neutral"
+             data-variant="default"
+             th:if="${#lists.isEmpty(verificationResults)}">
+            <p>Ingen bevis vart overlevert i verifikasjonen.</p>
+        </div>
+        <div th:unless="${#lists.isEmpty(verificationResults)}"
+             th:with="total=${#lists.size(verificationResults)},
                        validCount=${verificationResults.?[valid].size()},
-                       allValid=${validCount == total}">
+                       allValid=${validCount > 0 and validCount == total}">
             <div class="ds-card verification-result__summary"
                  data-variant="default"
                  th:data-color="${allValid} ? 'success' : 'danger'">
-                <span class="verification-result__summary-icon" aria-hidden="true">
-                    <svg th:if="${allValid}"
-                         xmlns="http://www.w3.org/2000/svg"
-                         width="24" height="24" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <path d="m9 11 3 3L22 4"></path>
-                    </svg>
-                    <svg th:if="${!allValid}"
-                         xmlns="http://www.w3.org/2000/svg"
-                         width="24" height="24" viewBox="0 0 24 24"
-                         fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="m15 9-6 6"></path>
-                        <path d="m9 9 6 6"></path>
-                    </svg>
-                </span>
                 <div class="verification-result__summary-text">
                     <div class="verification-result__summary-title">
+                        <span class="verification-result__summary-icon" aria-hidden="true">
+                            <svg th:if="${allValid}"
+                                 viewBox="0 0 24 24" fill="none">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                      d="M12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.75 6.61522 17.3848 2.25 12 2.25ZM16.5725 9.48444C16.8401 9.16824 16.8007 8.695 16.4845 8.42745C16.1683 8.15989 15.695 8.19932 15.4275 8.51553L10.454 14.3933L8.03033 11.9697C7.73744 11.6768 7.26256 11.6768 6.96967 11.9697C6.67678 12.2625 6.67678 12.7374 6.96967 13.0303L9.96967 16.0303C10.118 16.1786 10.3216 16.2581 10.5312 16.2493C10.7407 16.2406 10.9371 16.1446 11.0725 15.9844L16.5725 9.48444Z"
+                                      fill="currentColor"/>
+                            </svg>
+                            <svg th:if="${!allValid}"
+                                 viewBox="0 0 24 24" fill="none">
+                                <path d="M6.53033 5.46967C6.23744 5.17678 5.76256 5.17678 5.46967 5.46967C5.17678 5.76256 5.17678 6.23744 5.46967 6.53033L10.9393 12L5.46967 17.4697C5.17678 17.7626 5.17678 18.2374 5.46967 18.5303C5.76256 18.8232 6.23744 18.8232 6.53033 18.5303L12 13.0607L17.4697 18.5303C17.7626 18.8232 18.2374 18.8232 18.5303 18.5303C18.8232 18.2374 18.8232 17.7626 18.5303 17.4697L13.0607 12L18.5303 6.53033C18.8232 6.23744 18.8232 5.76256 18.5303 5.46967C18.2374 5.17678 17.7626 5.17678 17.4697 5.46967L12 10.9393L6.53033 5.46967Z"
+                                      fill="currentColor"/>
+                            </svg>
+                        </span>
                         <h2 class="ds-heading" data-size="sm"
                             th:text="${allValid} ? ${total} + ' bevis delt og verifisert' : ${validCount} + ' av ' + ${total} + ' bevis verifisert'"></h2>
                         <span class="ds-tag"
                               th:data-color="${allValid} ? 'success' : 'danger'"
                               data-variant="outline"
                               th:text="${allValid} ? 'Vellykka' : 'Ugyldig'"></span>
-                    </div>
-                    <p class="ds-paragraph" data-size="sm" data-color="neutral"
-                       th:text="${allValid}
-                              ? 'Alle ' + ${total} + ' førspurte bevis er kryptografisk gyldige.'
-                              : ${validCount} + ' av ' + ${total} + ' førspurte bevis er kryptografisk gyldige.'"></p>
                 </div>
-                <dl class="verification-result__summary-meta">
-                    <div>
-                        <dt>Standard</dt>
-                        <dd>SD-JWT VC</dd>
-                    </div>
-                </dl>
             </div>
         </div>
 
