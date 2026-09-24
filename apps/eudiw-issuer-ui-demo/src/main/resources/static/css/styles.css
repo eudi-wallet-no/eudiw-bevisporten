@@ -992,7 +992,22 @@ footer ul {
 
     #issuance-fields > .claim,
     #issuance-groups .claim-group__fields > .claim {
-        display: contents;
+        /* Keep injected elements inside their own field instead of shifting later fields. */
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+        grid-template-columns: subgrid;
+        row-gap: 0;
+    }
+
+    #issuance-fields > .claim > .claim-preset-label,
+    #issuance-groups .claim-group__fields > .claim > .claim-preset-label {
+        grid-area: 1 / 1;
+    }
+
+    #issuance-fields > .claim > :is(input, .claim-preset-example-wrapper),
+    #issuance-groups .claim-group__fields > .claim > :is(input, .claim-preset-example-wrapper) {
+        grid-area: 1 / 2;
     }
 
     #issuance-groups .claim-group__fields {

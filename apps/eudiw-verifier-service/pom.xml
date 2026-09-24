@@ -21,15 +21,15 @@
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.4</idporten-access-log.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
-        <waltid-mdoc-credentials-jvm.version>0.23.1</waltid-mdoc-credentials-jvm.version>
-        <waltid-sdjwt-jvm.version>0.23.1</waltid-sdjwt-jvm.version>
+        <waltid-mdoc-credentials-jvm.version>1.0.0</waltid-mdoc-credentials-jvm.version>
+        <waltid-sdjwt-jvm.version>1.0.0</waltid-sdjwt-jvm.version>
         <cose-java.version>1.1.1-WALT-SNAPSHOT</cose-java.version>
         <dss.version>6.4</dss.version>
-        <fasterxml.jackson.dataformat.version>2.20.0</fasterxml.jackson.dataformat.version>
+        <fasterxml.jackson.dataformat.version>2.22.2</fasterxml.jackson.dataformat.version>
         <zxing.javase.version>3.5.4</zxing.javase.version>
         <springdoc.version>3.1.1</springdoc.version>
         <dss.validation.version>6.4</dss.validation.version>
-        <opentelemetry-api.version>1.65.0</opentelemetry-api.version>
+        <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
     </properties>
     <dependencies>
