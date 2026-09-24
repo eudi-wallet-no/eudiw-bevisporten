@@ -12,36 +12,89 @@
         <h1 class="ds-heading" data-size="xl">
             Resultat av verifikasjon
         </h1>
+        <p class="ds-paragraph">
+            Verifikasjonen er fullført via EUDI SD-JWT mekanismer.
+        </p>
     </div>
     <div th:replace="~{fragments/components :: stepper_fragment(steps=${steps}, currentStep=3)}"></div>
 
     <div class="step-flow">
         <div class="step-flow__content" th:if="${result != null}">
-            <div class="flex-container">
-                <div class="ds-card verification-result__card"
+        <div th:with="total=${#lists.size(verificationResults)},
+                       validCount=${verificationResults.?[valid].size()},
+                       allValid=${validCount == total}">
+            <div class="ds-card verification-result__summary"
+                 data-variant="default"
+                 th:data-color="${allValid} ? 'success' : 'danger'">
+                <span class="verification-result__summary-icon" aria-hidden="true">
+                    <svg th:if="${allValid}"
+                         xmlns="http://www.w3.org/2000/svg"
+                         width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <path d="m9 11 3 3L22 4"></path>
+                    </svg>
+                    <svg th:if="${!allValid}"
+                         xmlns="http://www.w3.org/2000/svg"
+                         width="24" height="24" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="m15 9-6 6"></path>
+                        <path d="m9 9 6 6"></path>
+                    </svg>
+                </span>
+                <div class="verification-result__summary-text">
+                    <div class="verification-result__summary-title">
+                        <h2 class="ds-heading" data-size="sm"
+                            th:text="${allValid} ? ${total} + ' bevis delt og verifisert' : ${validCount} + ' av ' + ${total} + ' bevis verifisert'"></h2>
+                        <span class="ds-tag"
+                              th:data-color="${allValid} ? 'success' : 'danger'"
+                              data-variant="outline"
+                              th:text="${allValid} ? 'Vellykka' : 'Ugyldig'"></span>
+                    </div>
+                    <p class="ds-paragraph" data-size="sm" data-color="neutral"
+                       th:text="${allValid}
+                              ? 'Alle ' + ${total} + ' førspurte bevis er kryptografisk gyldige.'
+                              : ${validCount} + ' av ' + ${total} + ' førspurte bevis er kryptografisk gyldige.'"></p>
+                </div>
+                <dl class="verification-result__summary-meta">
+                    <div>
+                        <dt>Standard</dt>
+                        <dd>SD-JWT VC</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="verification-result__list">
+            <article class="ds-card verification-result__item"
                      data-color="neutral"
-                     data-variant="default">
-                    <h2 class="ds-heading" data-size="sm">Attributt</h2>
-
-                    <div class="verification-result__group" th:each="credential : ${verificationResults}">
-                        <p class="ds-label" th:text="${credential.displayName}"></p>
-
+                     data-variant="default"
+                     th:each="credential, status : ${verificationResults}">
+                <header class="ds-card__block verification-result__item-header">
+                    <span class="verification-result__index"
+                          aria-hidden="true"
+                          th:text="${status.count}"></span>
+                    <h2 class="ds-heading" data-size="sm"
+                        th:text="${credential.displayName}"></h2>
+                    <span class="ds-tag verification-result__item-status"
+                          th:data-color="${credential.valid} ? 'success' : 'danger'"
+                          data-variant="outline"
+                          th:text="${credential.valid} ? 'Gyldig' : 'Ugyldig'"></span>
+                </header>
+                <div class="ds-card__block verification-result__item-body">
+                    <div class="verification-result__column">
+                        <h3 class="ds-heading verification-result__column-heading" data-size="2xs">Attributt</h3>
                         <div th:replace="~{fragments/components :: claim_list_fragment(claims=${credential.claims})}"></div>
                     </div>
-                </div>
-
-                <div class="ds-card verification-result__card"
-                     data-color="neutral"
-                     data-variant="default">
-                    <h2 class="ds-heading" data-size="sm">Valideringsdetaljar</h2>
-
-                    <div class="verification-result__group" th:each="credential : ${verificationResults}">
-                        <p class="ds-label" th:text="${credential.displayName}"></p>
-
+                    <div class="verification-result__column">
+                        <h3 class="ds-heading verification-result__column-heading" data-size="2xs">Valideringsdetaljar</h3>
                         <div class="verification-result__validation">
-                            <p class="ds-alert"
-                               th:data-color="${credential.valid} ? 'success' : 'danger'"
-                               th:text="${credential.valid} ? 'Beviset er gyldig' : 'Beviset er ikkje gyldig'"></p>
+                            <div class="ds-alert"
+                                 th:data-color="${credential.valid} ? 'success' : 'danger'"
+                                 th:text="${credential.valid} ? 'Beviset er gyldig' : 'Beviset er ikkje gyldig'"></div>
 
                             <p class="ds-validation-message"
                                th:each="detail : ${credential.validationDetails}"
@@ -55,8 +108,10 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </article>
         </div>
+        </div>
+
         <div class="step-flow__content" th:if="${result == null}">
             <div class="ds-card content-narrow"
                  data-color="neutral"

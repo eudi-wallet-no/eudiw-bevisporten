@@ -385,7 +385,7 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Attributt")))
                 .andExpect(content().string(containsString("Valideringsdetaljar")))
                 .andExpect(content().string(containsString("verification-result__claims")))
-                .andExpect(content().string(containsString(">PID</p>")))
+                .andExpect(content().string(containsString(">PID</h2>")))
                 .andExpect(content().string(not(containsString("proof of age"))))
                 .andExpect(content().string(not(containsString(">Heim<"))));
 

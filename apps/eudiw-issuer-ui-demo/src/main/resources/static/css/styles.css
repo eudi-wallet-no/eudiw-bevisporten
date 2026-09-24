@@ -104,7 +104,25 @@ header {
 }
 
 .header__nav-link {
+    display: inline-flex;
+    align-items: center;
     text-decoration: none;
+    font-weight: var(--ds-font-weight-regular);
+    padding-block: var(--ds-size-2);
+    padding-block-end: calc(var(--ds-size-2) + 3px);
+    border-block-end: 3px solid transparent;
+    transition: border-color 0.1s ease-out;
+}
+
+.header__nav-link:hover,
+.header__nav-link:focus-visible {
+    border-block-end-color: var(--ds-color-neutral-border-subtle);
+}
+
+.header__nav-link[aria-current="page"],
+.header__nav-link--active {
+    border-block-end-color: var(--ds-color-neutral-border-strong);
+    font-weight: var(--ds-font-weight-medium);
 }
 
 @media (max-width: 767px) {
@@ -136,6 +154,9 @@ header {
         gap: var(--ds-size-7);
     }
 
+    .header__nav-link {
+        min-height: 44px;
+    }
 }
 
 /* Main content */
@@ -730,12 +751,142 @@ main {
     }
 }
 
-/* Verification result */
-.verification-result__card {
+/* Verification result – summary */
+.verification-result__summary {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ds-size-4);
+}
+
+.verification-result__summary-icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--ds-size-12);
+    height: var(--ds-size-12);
+    border-radius: var(--ds-border-radius-md);
+    background-color: var(--ds-color-surface-tinted);
+    color: var(--ds-color-text-default);
+}
+
+.verification-result__summary-icon svg {
+    display: block;
+}
+
+.verification-result__summary-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-1);
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.verification-result__summary-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ds-size-2);
+}
+
+.verification-result__summary-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-1);
+    margin: 0;
+    flex: none;
+    font-size: var(--ds-body-xs-font-size);
+}
+
+.verification-result__summary-meta div {
+    display: flex;
+    gap: var(--ds-size-2);
+}
+
+.verification-result__summary-meta dt {
+    color: var(--ds-color-neutral-text-subtle);
+}
+
+.verification-result__summary-meta dd {
+    margin: 0;
+    font-weight: var(--ds-font-weight-medium);
+}
+
+@media (max-width: 767px) {
+    .verification-result__summary {
+        flex-wrap: wrap;
+    }
+
+    .verification-result__summary-meta {
+        flex-basis: 100%;
+    }
+}
+
+/* Verification result – per-credential cards */
+.verification-result__list {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-6);
 }
+
+.verification-result__item-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+}
+
+.verification-result__index {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--ds-size-9);
+    height: var(--ds-size-9);
+    border-radius: var(--ds-border-radius-full);
+    background-color: var(--ds-color-neutral-surface-tinted);
+    font-size: var(--ds-body-sm-font-size);
+    font-weight: var(--ds-font-weight-medium);
+}
+
+.verification-result__item-header .ds-heading {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.verification-result__item-status {
+    flex: none;
+}
+
+.verification-result__item-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ds-size-10);
+}
+
+/* ds-card__block reserves margin-block for child elements it inserts between;
+   here the grid/flex gap handles the spacing, so compensate for the extra margin. */
+.verification-result__item-body {
+    --dsc-card-content-margin-block: 0;
+}
+
+.verification-result__column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    min-width: 0;
+}
+
+.verification-result__column-heading {
+    color: var(--ds-color-neutral-text-subtle);
+    font-weight: var(--ds-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (max-width: 767px) {
+    .verification-result__item-body {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 /* Venstre kolonne på fullførings-sida: attributt-kort og feltgruppe-bokser,
    same struktur som før utferding */
@@ -743,12 +894,6 @@ main {
     display: flex;
     flex-direction: column;
     min-width: 0;
-}
-
-.verification-result__group {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-size-3);
 }
 
 .verification-result__claims {
