@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 
-import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +16,8 @@ import java.util.Map;
 public record TrustlistsProperties(
         @DefaultValue("3s") Duration readTimeout,
         @DefaultValue("3s") Duration connectTimeout,
-        Map<@NotBlank String, @NotNull URI> issuerTrustlists,
-        Map<@NotBlank String, @NotNull URI> namedTrustlists,
+        Map<@NotBlank String, @NotNull TrustlistEntry> issuerTrustlists,
+        Map<@NotBlank String, @NotNull TrustlistEntry> namedTrustlists,
         List<@NotBlank String> pid,
         List<@NotBlank String> attestations
 ) {
@@ -33,34 +32,41 @@ public record TrustlistsProperties(
     }
 
     public TrustlistReference getTrustlistForIssuer(String issuer) {
-        URI trustlist = issuerTrustlists.get(issuer);
-        if (trustlist != null) {
-            return new TrustlistReference(trustlist, TrustlistFormat.ETSI_602);
+        TrustlistEntry entry = issuerTrustlists.get(issuer);
+        if (entry != null) {
+            return new TrustlistReference(entry.url(), format602(entry.encoding()));
         }
-        trustlist = issuerTrustlists.get(DEFAULT_ISSUER);
-        if (trustlist == null) {
+        entry = issuerTrustlists.get(DEFAULT_ISSUER);
+        if (entry == null) {
             throw new VerificationException("invalid_trustlist", "Missing default issuer trustlist");
         }
-        return new TrustlistReference(trustlist, TrustlistFormat.ETSI_612_XML);
+        return new TrustlistReference(entry.url(), TrustlistFormat.ETSI_612_XML);
     }
 
     public List<TrustlistReference> getPidTrustlists() {
-        return resolveTrustlists(pid, TrustlistFormat.ETSI_602);
+        return resolveTrustlists(pid, entry -> format602(entry.encoding()));
     }
 
     public List<TrustlistReference> getAttestationTrustlists() {
-        return resolveTrustlists(attestations, TrustlistFormat.ETSI_612_XML);
+        return resolveTrustlists(attestations, entry -> TrustlistFormat.ETSI_612_XML);
     }
 
-    private List<TrustlistReference> resolveTrustlists(List<String> names, TrustlistFormat format) {
-        return names.stream().map(name -> new TrustlistReference(resolveTrustlist(name), format)).toList();
+    private static TrustlistFormat format602(TrustlistEncoding encoding) {
+        return encoding == TrustlistEncoding.JSON ? TrustlistFormat.ETSI_602_JSON : TrustlistFormat.ETSI_602_XML;
     }
 
-    private URI resolveTrustlist(String name) {
-        URI trustlist = namedTrustlists.get(name);
-        if (trustlist == null) {
+    private List<TrustlistReference> resolveTrustlists(List<String> names, java.util.function.Function<TrustlistEntry, TrustlistFormat> format) {
+        return names.stream()
+                .map(this::resolveTrustlist)
+                .map(entry -> new TrustlistReference(entry.url(), format.apply(entry)))
+                .toList();
+    }
+
+    private TrustlistEntry resolveTrustlist(String name) {
+        TrustlistEntry entry = namedTrustlists.get(name);
+        if (entry == null) {
             throw new VerificationException("invalid_trustlist", "Unknown trustlist: " + name);
         }
-        return trustlist;
+        return entry;
     }
 }

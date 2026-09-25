@@ -57,20 +57,16 @@ public class TrustlistService {
 
     /**
      * Fetches and parses the trustlist at the given reference. The reference's {@link TrustlistFormat}
-     * determines the ETSI TS variant: {@code ETSI_612_XML} is always signed XML, while {@code ETSI_602}
-     * may be delivered either as a signed XML document or as JSON inside a JWS/JWT, distinguished by
-     * the URL's file extension.
+     * is declared in configuration (see {@link TrustlistEntry}) and fully determines how the response
+     * body is parsed; no format guessing based on the URL happens here.
      */
     public Object connectToTrustlist(TrustlistReference reference) {
         String trustlist = fetchTrustlist(reference.uri());
         return switch (reference.format()) {
             case ETSI_612_XML -> xmlListMapping(trustlist);
-            case ETSI_602 -> isJwsOrJwt(reference.uri()) ? jsonListMapping(trustlist) : xml602Mapping(trustlist);
+            case ETSI_602_XML -> xml602Mapping(trustlist);
+            case ETSI_602_JSON -> jsonListMapping(trustlist);
         };
-    }
-
-    private boolean isJwsOrJwt(URI uri) {
-        return uri.toString().endsWith("jws") || uri.toString().endsWith("jwt");
     }
 
     public List<TrustlistReference> listOfTrustlists () {
@@ -143,7 +139,8 @@ public class TrustlistService {
             URI uri = trustlist.uri();
             boolean valid = switch (trustlist.format()) {
                 case ETSI_612_XML -> checkXml612(uri, cert);
-                case ETSI_602 -> isJwsOrJwt(uri) ? checkJson602(uri, cert) : checkXml602(uri, cert);
+                case ETSI_602_XML -> checkXml602(uri, cert);
+                case ETSI_602_JSON -> checkJson602(uri, cert);
             };
             if (valid) {
                 return ValidationStatus.VALID;

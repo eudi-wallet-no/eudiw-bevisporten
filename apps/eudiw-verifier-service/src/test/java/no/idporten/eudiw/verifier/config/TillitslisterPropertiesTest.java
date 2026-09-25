@@ -42,10 +42,10 @@ class TillitslisterPropertiesTest {
                         List.of(
                                 new TrustlistReference(
                                         URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
-                                        TrustlistFormat.ETSI_602),
+                                        TrustlistFormat.ETSI_602_JSON),
                                 new TrustlistReference(
                                         URI.create("https://trustlist.webuild.jwt"),
-                                        TrustlistFormat.ETSI_602)),
+                                        TrustlistFormat.ETSI_602_JSON)),
                         properties.getPidTrustlists())
         );
     }
@@ -57,12 +57,12 @@ class TillitslisterPropertiesTest {
                 () -> assertEquals(
                         new TrustlistReference(
                                 URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
-                                TrustlistFormat.ETSI_602),
+                                TrustlistFormat.ETSI_602_JSON),
                         properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/pid")),
                 () -> assertEquals(
                         new TrustlistReference(
                                 URI.create("https://trustlist.webuild.jwt"),
-                                TrustlistFormat.ETSI_602),
+                                TrustlistFormat.ETSI_602_JSON),
                         properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/webuild")),
                 () -> assertEquals(
                         new TrustlistReference(

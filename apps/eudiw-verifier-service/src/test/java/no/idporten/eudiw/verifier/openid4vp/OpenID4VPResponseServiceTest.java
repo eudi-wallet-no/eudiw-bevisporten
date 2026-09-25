@@ -53,9 +53,9 @@ class OpenID4VPResponseServiceTest {
     private static final String PID_ISSUER = "https://utsteder.test.eidas2sandkasse.net/pid";
     private static final String WEBUILD_ISSUER = "https://utsteder.test.eidas2sandkasse.net/webuild";
     private static final TrustlistReference PID_TRUSTLIST = new TrustlistReference(
-            URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws"), TrustlistFormat.ETSI_602);
+            URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws"), TrustlistFormat.ETSI_602_JSON);
     private static final TrustlistReference WEBUILD_TRUSTLIST = new TrustlistReference(
-            URI.create("https://trustlist.webuild.jwt"), TrustlistFormat.ETSI_602);
+            URI.create("https://trustlist.webuild.jwt"), TrustlistFormat.ETSI_602_JSON);
     private static final TrustlistReference DEFAULT_TRUSTLIST = new TrustlistReference(
             URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl"), TrustlistFormat.ETSI_612_XML);
     private static final List<TrustlistReference> PID_TRUSTLISTS = List.of(PID_TRUSTLIST, WEBUILD_TRUSTLIST);

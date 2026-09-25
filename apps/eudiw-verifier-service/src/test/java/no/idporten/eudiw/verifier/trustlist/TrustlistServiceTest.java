@@ -44,9 +44,9 @@ class TrustlistServiceTest {
     public static final URI JWTTRUSTLISTURL = URI.create("https://trustlist.webuild.jwt");
     public static final URI XMLWEBUILDPIDTRUSTLISTURL = URI.create("https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml");
     public static final TrustlistReference XMLTRUSTLIST = new TrustlistReference(XMLTRUSTLISTURL, TrustlistFormat.ETSI_612_XML);
-    public static final TrustlistReference JSONTRUSTLIST = new TrustlistReference(JSONTRUSTLISTURL, TrustlistFormat.ETSI_602);
-    public static final TrustlistReference JWTTRUSTLIST = new TrustlistReference(JWTTRUSTLISTURL, TrustlistFormat.ETSI_602);
-    public static final TrustlistReference XMLWEBUILDPIDTRUSTLIST = new TrustlistReference(XMLWEBUILDPIDTRUSTLISTURL, TrustlistFormat.ETSI_602);
+    public static final TrustlistReference JSONTRUSTLIST = new TrustlistReference(JSONTRUSTLISTURL, TrustlistFormat.ETSI_602_JSON);
+    public static final TrustlistReference JWTTRUSTLIST = new TrustlistReference(JWTTRUSTLISTURL, TrustlistFormat.ETSI_602_JSON);
+    public static final TrustlistReference XMLWEBUILDPIDTRUSTLIST = new TrustlistReference(XMLWEBUILDPIDTRUSTLISTURL, TrustlistFormat.ETSI_602_XML);
     public static final String APPLICATION_JOSE_JSON = "application/jose+json";
     public static final String APPLICATION_ETSI_TSL_XML = "application/vnd.etsi.tsl+xml";
     public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
