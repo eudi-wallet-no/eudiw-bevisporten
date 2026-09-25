@@ -14,14 +14,15 @@ spring:
           - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
 
 oauth-authorization-server:
+  require-challenge: false
   issuer: https://auth.test.eidas2sandkasse.net
   access-token-default-audience: https://utsteder.test.eidas2sandkasse.net
+  authorization-response-iss-parameter-supported: true
 
 oidc-proxy:
-
   # webuild
   headless-login:
-    enabled: true
+    enabled: false
     synthetic_pid: 16903349844
     acr: idporten-loa-high
     amr: TestID

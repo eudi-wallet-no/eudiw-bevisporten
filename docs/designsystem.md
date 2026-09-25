@@ -1,61 +1,81 @@
-# Designsystemet in this repository
+# Designsystemet
 
-The frontend uses Thymeleaf. Keep each app's existing UI system. Do not add npm, a
-frontend build, a second theme or Designsystemet to an app that does not use it.
+Dette dokumentet er den autoritative retningslinjen for UI-endringer i dette repoet.
 
-## App setup
+Bruk dette som hovedkilde for komponentvalg, tokens, semantikk og tilgjengelighet. Ikke bygg ny markup eller egen CSS uten å først sjekke dette dokumentet og den relevante Designsystemet-dokumentasjonen for valgt komponent.
 
-- `eudiw-issuer-ui`: local base CSS, local `digital-lommebok.css` theme (`v1.0.8`)
-  and Inter. The base CSS version is not recorded in the repository.
-- `eudiw-issuer-ui-demo`: local `digdir.css`, versioned CDN base CSS and local
-  `styles.css`. Both Designsystemet files use `v1.20.0`. Theme configuration:
-  `apps/eudiw-issuer-ui-demo/src/main/resources/static/css/designsystemet.config.json`.
-- `eudiw-verifier-demo` and `eudiw-idporten-login`: keep their existing CSS. Do not
-  add Designsystemet as part of an ordinary change.
+## Hva vi må følge
 
-The first two apps load Designsystemet assets before local `styles.css`. Use local
-classes for layout and product styling. Use semantic `--ds-*` tokens for colors,
-spacing and radii.
+- Bruk Designsystemet-komponenter og tokens i stedet for egne løsninger.
+- Hold HTML semantisk og tilgjengelig: `button` for handlinger, `a` for navigasjon, `label`/`fieldset`/`legend` for skjema, riktig heading-hierarki.
+- Bruk Designsystemet-tokens for spacing, farger, typografi og states: `var(--ds-*)` og `var(--dsc-*)`.
+- Unngå hardkodet CSS, egen variant av komponenter eller nye temaer uten tydelig behov.
+- Følg WCAG 2.1 AA som minimum; vi sikter mot WCAG 2.2 AA og AAA der det er praktisk mulig.
 
-## Layout contract
+## Baseline for repoet
 
-Aim for calm public-service pages inspired by [digdir.no](https://www.digdir.no/) and
-[uutilsynet.no](https://www.uutilsynet.no/). Use the direction, not a pixel copy:
+- For nye/endrede komponenter: bruk eksisterende `ds-*`-klasser før ny CSS.
+- Gjenbruk eksisterende mønstre og struktur i appen før du lager egne varianter.
+- Korriger markupsfeil før du finjusterer styling.
+- Hvis en komponent trenger ekstra styling, gjør det med små, målrettede CSS-overstyringer i appens eget stylesheet, ikke med nye DS-løsninger.
 
-- Keep header and footer backgrounds full width. Use the app's established centered
-  wrapper for their content. Do not add a second page-width wrapper.
-- Reuse the app's existing `<main>` structure. Use one page width, narrower text
-  measures for prose and wider areas for grids.
-- Let containers own section spacing. Let components own internal spacing. Use `gap`,
-  padding and `--ds-size-*` tokens instead of one-off margins.
-- Use the neutral page background and semantic surface tokens for grouped content.
-  Scope `data-color-scheme` to the complete surface that needs it.
-- Start with one column. Expand rows or grids only when content fits. Avoid fixed page
-  dimensions that prevent reflow or cause clipping. Test long labels, mobile and zoom.
-- Keep cards for choices and related content, not for every section.
+## Designsystemet: komponent- og pattern-regler
 
-Add custom motion only for non-essential state changes. Respect
-`prefers-reduced-motion: reduce`. CSS does not provide keyboard or focus logic.
+### Markup
 
-## UI rules
+- Semantikk først: `button`, `a`, `label`, `fieldset`, `legend`, `main`, `header`, `nav`, `footer`.
+- Bruk `data-color`, `data-size`, `data-variant` kun når komponentdokumentasjonen har dem.
+- Bruk `aria-current="page"` for aktiv navigasjon.
+- Legg til `aria-label` dersom ikoner er eneste innhold i interaktive elementer.
+- Sørg for at fokusindikator alltid er synlig for tastaturbruk.
 
-- Use documented `ds-*` components and attributes.
-- Use `--ds-*` tokens for values; use local classes for layout.
-- Do not mix base CSS or themes from different Designsystemet versions.
-- Do not edit vendored or generated Designsystemet CSS by hand during routine UI work.
-- `data-size` and `data-color` can affect descendants. Set them on the smallest intended element.
-- Use `<button>` for actions and `<a href>` for navigation. Preserve DOM order and control types.
+### Tokens og stil
 
-## Documentation and updates
+- Bruk semantiske fargereferanser: `var(--ds-color-...)`, `var(--ds-size-...)`, `var(--ds-border-radius-...)`, `var(--ds-font-weight-...)`.
+- Unngå hex-koder, hardkodede `px`-verdier og “magiske” spacing-verdier.
+- Behold eksisterende spacing- og layoutmønstre i appen; endre bare det som faktisk er nødvendig.
 
-Use documentation that matches the loaded version. Read the component's
-[overview](https://designsystemet.no/no/components/docs/button/overview), `code` and
-`accessibility` pages, plus [tokens](https://designsystemet.no/no/fundamentals/theme/variables)
-and [patterns](https://designsystemet.no/no/patterns).
+### Formulardeler
 
-Check names, labels, heading order, keyboard operation, visible focus, contrast and
-relevant states on mobile and desktop.
+- Alle felter skal ha synlig label eller alternativ godt definert `aria-label`. Placeholder er ikke nok.
+- Feilmeldinger skal brukes med `data-field="validation"` og `role="alert"` der dette er relevant.
+- Når et felt har feil, sett `aria-invalid="true"` og koble feilen via `aria-describedby`.
 
-Updating Designsystemet is deliberate work. Update base CSS, theme CSS and tracked theme
-configuration together, update this app list and verify light and dark surfaces. If the
-source or generation command is not in the repository, do not guess it.
+### Navigasjon og layout
+
+- Skip-link til hovedinnhold skal være i toppen av siden.
+- Navigasjonslenker skal ha tydelig aktiv status og være tilgjengelige med tastatur.
+- Behold logisk heading-hierarki: `h1` → `h2` → `h3` uten hopp.
+
+## Tilgjengelighet
+
+Følg WCAG 2.1 AA som minimum. Vi bør oppnå WCAG 2.2 AA og AAA der det er praktisk mulig.
+
+Krav som er spesielt viktige i dette repoet:
+
+- 4.5:1 kontrast for tekst og fokusmarkering.
+- Synlig fokus på alle interaktive elementer.
+- Ingen informasjon kun gitt via farge.
+- 44×44 px touchmål på interaktive elementer.
+- `lang` på html-dokumentet.
+- Skjermlesbar semantikk og programmatisk navn/rolle/verdi for UI-komponenter.
+- Dynamisk oppdatert innhold skal annonseres med `aria-live`/`role="status"` eller `role="alert"` når det er riktig.
+
+## Kilder og oppdatering
+
+Bruk de offisielle Designsystemet-dokumentene for komponentspesifikk info:
+
+- `https://designsystemet.no/en/fundamentals`
+- `https://designsystemet.no/en/components/docs/<component>/code`
+- `https://designsystemet.no/en/components/docs/<component>/accessibility`
+
+Når vi trenger en versjonsnøytral eller komponentspesifikk implementasjon, skal vi bruke de oppdaterte dokumentene som autoritet og ikke gjette fra minne eller ustrukturert eksperttenkning.
+
+## Sjekkliste før merge
+
+- Har du brukt eksisterende DS-komponenter før ny markup?
+- Har du brukt riktige semantiske elementer og tilgjengelighetsattributter?
+- Har du brukt tokens i stedet for egne farger/spacings?
+- Er kontrast, fokus og labels i orden?
+- Er implementasjonen konsistent med andre sider i appen?
+- Er det dokumentert dersom vi avviker fra standardmønsteret?

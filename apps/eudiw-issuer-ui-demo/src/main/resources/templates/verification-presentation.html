@@ -208,6 +208,11 @@
                     return;
                 }
 
+                if (response.status === 410) {
+                    showError("Verifiseringa feila. Det er ikkje mogleg å hente informasjon om beviset.");
+                    return;
+                }
+
                 showError("Vi klarte ikkje å sjekke om presentasjonen er fullført.");
 
             } catch (error) {

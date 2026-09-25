@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.VerificationService;
 import org.springframework.http.MediaType;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/{client_application_id}")
 public class VerificationController {
+
+    public static final String X_API_KEY = "X-API-KEY";
 
     private final VerificationService verificationService;
     private final VerifierServiceProperties verifierServiceProperties;
@@ -41,9 +44,17 @@ public class VerificationController {
                                                                                description = "Set to true to include verification details in the response. Defaults to false.",
                                                                                example = "false",
                                                                                schema = @Schema(type = "boolean", defaultValue = "false"))
-                                                                       @RequestParam(name = "include_validation_details", defaultValue = "false") boolean includeValidationDetails) throws Exception {
-        return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest, verifierServiceProperties.findClientApplication(clientApplicationId), includeValidationDetails));
+                                                                       @RequestParam(name = "include_validation_details", defaultValue = "false") boolean includeValidationDetails,
+                                                                       @Parameter(
+                                                                               name = X_API_KEY,
+                                                                               description = "API key for client application authentication",
+                                                                               required = true)
+                                                                       @RequestHeader(value = X_API_KEY, required = false) String apiKey) throws Exception {
+
+        ClientApplication clientApplication = verifierServiceProperties.validateClientApplication(clientApplicationId, apiKey);
+        return ResponseEntity.ok(verificationService.startVerification(startVerificationRequest, clientApplication, includeValidationDetails));
     }
+
 
     /**
      * Retrieve verification status.  Use for polling.
@@ -57,8 +68,15 @@ public class VerificationController {
             @PathVariable("client_application_id") String clientApplicationId,
 
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
-            @PathVariable("verifier_transaction_id") String verifierTransactionId) {
-        return ResponseEntity.ok(verificationService.verifierStatus(verifierTransactionId, verifierServiceProperties.findClientApplication(clientApplicationId)));
+            @PathVariable("verifier_transaction_id") String verifierTransactionId,
+            @Parameter(
+                    name = X_API_KEY,
+                    description = "API key for client application authentication",
+                    required = true)
+            @RequestHeader(value = X_API_KEY, required = false) String apiKey) {
+
+        ClientApplication clientApplication = verifierServiceProperties.validateClientApplication(clientApplicationId, apiKey);
+        return ResponseEntity.ok(verificationService.verifierStatus(verifierTransactionId, clientApplication));
     }
 
     /**
@@ -73,8 +91,15 @@ public class VerificationController {
             @PathVariable("client_application_id") String clientApplicationId,
 
             @Parameter(description = "Verification transaction id", example = "xyz...", required = true)
-            @PathVariable("verifier_transaction_id") String verifierTransactionId) {
-        return ResponseEntity.ok(verificationService.retrieveVerificationData(verifierTransactionId, verifierServiceProperties.findClientApplication(clientApplicationId)));
+            @PathVariable("verifier_transaction_id") String verifierTransactionId,
+            @Parameter(
+                    name = X_API_KEY,
+                    description = "API key for client application authentication",
+                    required = true)
+            @RequestHeader(value = X_API_KEY, required = false) String apiKey) {
+
+        ClientApplication clientApplication = verifierServiceProperties.validateClientApplication(clientApplicationId, apiKey);
+        return ResponseEntity.ok(verificationService.retrieveVerificationData(verifierTransactionId, clientApplication));
     }
 
 }

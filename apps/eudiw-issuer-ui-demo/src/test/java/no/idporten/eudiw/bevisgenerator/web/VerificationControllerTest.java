@@ -385,6 +385,8 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Attributt")))
                 .andExpect(content().string(containsString("Valideringsdetaljar")))
                 .andExpect(content().string(containsString("verification-result__claims")))
+                .andExpect(content().string(containsString(">PID</p>")))
+                .andExpect(content().string(not(containsString("proof of age"))))
                 .andExpect(content().string(not(containsString(">Heim<"))));
 
         VerificationTransactionData nestedTransactionData = new VerificationTransactionData(
@@ -463,6 +465,7 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("12345678912")))
                 .andExpect(content().string(containsString("given name")))
                 .andExpect(content().string(containsString("Kari")))
+                .andExpect(content().string(not(containsString("no.digdir.eudiw.pid"))))
                 .andExpect(content().string(not(containsString("eu.europa.ec.eudi.pid.1"))));
     }
 
@@ -563,6 +566,16 @@ class VerificationControllerTest {
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
                         .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isAccepted());
+    }
+
+    @Test
+    void getVerificationStatusReturnsGoneWhenStatusIsError() throws Exception {
+        when(verifierService.retrieveVerificationStatus("tx-id"))
+                .thenReturn(new VerificationStatus("ERROR", "tx-id"));
+
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
+                .andExpect(status().isGone());
     }
 
     @Test

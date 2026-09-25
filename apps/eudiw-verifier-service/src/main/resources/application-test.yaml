@@ -20,11 +20,17 @@ verifier-service:
   client-applications:
     idporten-login:
       keystore-name: idporten-login-access
+      api-key: ${IDPORTEN_LOGIN_API_KEY:}
     bevisgenerator-login:
       keystore-name: bevisgenerator-login-access
+      api-key: ${BEVISGENERATOR_LOGIN_API_KEY:}
     ks-hackathon:
       keystore-name: ks-hackathon-access
-      disabled: false
+      disabled: true
+      api-key: ${KS_HACKATHON_API_KEY:}
+    minid:
+      keystore-name: minid-login-access
+      api-key: ${MINID_LOGIN_API_KEY}
 
 
 idporten-key-manager:
@@ -47,6 +53,12 @@ idporten-key-manager:
       key-store-password: ${KS_HACKATHON_ACCESS_KEYSTORE_PASSWORD}
       key-alias: ${KS_HACKATHON_ACCESS_KEY_ALIAS}
       key-password: ${KS_HACKATHON_ACCESS_KEY_PASSWORD}
+    minid-login-access:
+      key-store-type: ${MINID_LOGIN_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${MINID_LOGIN_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${MINID_LOGIN_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${MINID_LOGIN_ACCESS_KEY_ALIAS}
+      key-password: ${MINID_LOGIN_ACCESS_KEY_PASSWORD}
 
 trustlists:
   connect-timeout: 3s
