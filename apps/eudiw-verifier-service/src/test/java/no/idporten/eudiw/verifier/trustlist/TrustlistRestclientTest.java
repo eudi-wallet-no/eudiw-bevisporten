@@ -79,7 +79,7 @@ public class TrustlistRestclientTest {
     @DisplayName("and requesting a trustlist XML then request should include trustlist+xml accept header and response should be parsed successfully")
     void restClientShouldIncludeTrustlistXmlAcceptHeader() {
 
-        URI xmlTrustlist = trustlistProperties.getAttestationTrustlists().getFirst();
+        URI xmlTrustlist = trustlistProperties.getAttestationTrustlists().getFirst().uri();
         mockServerXml.expect(requestTo(xmlTrustlist))
                 .andExpect(header(HttpHeaders.ACCEPT, TRUSTLIST_MEDIA_TYPE_XML))
                 .andRespond(withSuccess(getXmlTrustlist(),
@@ -99,7 +99,7 @@ public class TrustlistRestclientTest {
     @Test
     @DisplayName("and requesting a trustlist JSON then request should include trustlist+jws accept header and response should be parsed successfully")
     void restClientShouldIncludeTrustlistJsonAcceptHeader() {
-        URI jsonTrustlist = trustlistProperties.getPidTrustlists().getFirst();
+        URI jsonTrustlist = trustlistProperties.getPidTrustlists().getFirst().uri();
         mockServerJson.expect(requestTo(jsonTrustlist))
                 .andExpect(header(HttpHeaders.ACCEPT, TRUSTLIST_MEDIA_TYPE_JSON))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.valueOf(TRUSTLIST_MEDIA_TYPE_JSON)));

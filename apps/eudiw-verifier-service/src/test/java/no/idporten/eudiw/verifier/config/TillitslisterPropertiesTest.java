@@ -1,6 +1,8 @@
 package no.idporten.eudiw.verifier.config;
 
 
+import no.idporten.eudiw.verifier.trustlist.TrustlistFormat;
+import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,12 +34,18 @@ class TillitslisterPropertiesTest {
     void tillitslisterEidas2SandkassePropertiesContainExpectedContent() {
         assertAll(
                 () -> assertEquals(
-                        List.of(URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl")),
+                        List.of(new TrustlistReference(
+                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"),
+                                TrustlistFormat.ETSI_612_XML)),
                         properties.getAttestationTrustlists()),
                 () -> assertEquals(
                         List.of(
-                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
-                                URI.create("https://trustlist.webuild.jwt")),
+                                new TrustlistReference(
+                                        URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
+                                        TrustlistFormat.ETSI_602),
+                                new TrustlistReference(
+                                        URI.create("https://trustlist.webuild.jwt"),
+                                        TrustlistFormat.ETSI_602)),
                         properties.getPidTrustlists())
         );
     }
@@ -47,13 +55,19 @@ class TillitslisterPropertiesTest {
     void issuerTrustlistsAreResolvedWithDefault() {
         assertAll(
                 () -> assertEquals(
-                        URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
+                        new TrustlistReference(
+                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
+                                TrustlistFormat.ETSI_602),
                         properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/pid")),
                 () -> assertEquals(
-                        URI.create("https://trustlist.webuild.jwt"),
+                        new TrustlistReference(
+                                URI.create("https://trustlist.webuild.jwt"),
+                                TrustlistFormat.ETSI_602),
                         properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/webuild")),
                 () -> assertEquals(
-                        URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"),
+                        new TrustlistReference(
+                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"),
+                                TrustlistFormat.ETSI_612_XML),
                         properties.getTrustlistForIssuer("https://unknown.example/issuer"))
         );
     }

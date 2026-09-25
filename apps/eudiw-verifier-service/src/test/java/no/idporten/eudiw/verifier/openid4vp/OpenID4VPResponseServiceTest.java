@@ -23,6 +23,8 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
+import no.idporten.eudiw.verifier.trustlist.TrustlistFormat;
+import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,11 +52,14 @@ class OpenID4VPResponseServiceTest {
     private static final String STATE = "state";
     private static final String PID_ISSUER = "https://utsteder.test.eidas2sandkasse.net/pid";
     private static final String WEBUILD_ISSUER = "https://utsteder.test.eidas2sandkasse.net/webuild";
-    private static final URI PID_TRUSTLIST = URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws");
-    private static final URI WEBUILD_TRUSTLIST = URI.create("https://trustlist.webuild.jwt");
-    private static final URI DEFAULT_TRUSTLIST = URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl");
-    private static final List<URI> PID_TRUSTLISTS = List.of(PID_TRUSTLIST, WEBUILD_TRUSTLIST);
-    private static final List<URI> ATTESTATION_TRUSTLISTS = List.of(DEFAULT_TRUSTLIST);
+    private static final TrustlistReference PID_TRUSTLIST = new TrustlistReference(
+            URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws"), TrustlistFormat.ETSI_602);
+    private static final TrustlistReference WEBUILD_TRUSTLIST = new TrustlistReference(
+            URI.create("https://trustlist.webuild.jwt"), TrustlistFormat.ETSI_602);
+    private static final TrustlistReference DEFAULT_TRUSTLIST = new TrustlistReference(
+            URI.create("https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl"), TrustlistFormat.ETSI_612_XML);
+    private static final List<TrustlistReference> PID_TRUSTLISTS = List.of(PID_TRUSTLIST, WEBUILD_TRUSTLIST);
+    private static final List<TrustlistReference> ATTESTATION_TRUSTLISTS = List.of(DEFAULT_TRUSTLIST);
     private static final String PID_DOC_TYPE = "eu.europa.ec.eudi.pid.1";
 
     @Mock VerificationTransactionService verificationService;

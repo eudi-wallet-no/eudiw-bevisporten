@@ -44,35 +44,43 @@ public class TrustlistService {
         this.trustlistsProperties = trustlistsProperties;
     }
 
-    public Object connectToTrustlist(URI uri)  {
-        String trustlist;
-        try{
-            trustlist = trustlistRestclient.get()
+    private String fetchTrustlist(URI uri) {
+        try {
+            return trustlistRestclient.get()
                     .uri(uri.toString())
                     .retrieve()
                     .body(String.class);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot fetch trustlist", e);
-        }
-        if (uri.toString().endsWith("xtsl")) {
-            return xmlListMapping(trustlist);
-        } else if (uri.toString().endsWith("xml")) {
-            return xml602Mapping(trustlist);
-        } else if (uri.toString().endsWith("jws") || uri.toString().endsWith("jwt")) {
-            return jsonListMapping(trustlist);
-        } else {
-            throw new VerificationException("invalid_request", "unsupported trustlist format");
         }
     }
 
-    public List<URI> listOfTrustlists () {
-        List<URI> trustlists = new ArrayList<>(trustlistsProperties.getAttestationTrustlists());
+    /**
+     * Fetches and parses the trustlist at the given reference. The reference's {@link TrustlistFormat}
+     * determines the ETSI TS variant: {@code ETSI_612_XML} is always signed XML, while {@code ETSI_602}
+     * may be delivered either as a signed XML document or as JSON inside a JWS/JWT, distinguished by
+     * the URL's file extension.
+     */
+    public Object connectToTrustlist(TrustlistReference reference) {
+        String trustlist = fetchTrustlist(reference.uri());
+        return switch (reference.format()) {
+            case ETSI_612_XML -> xmlListMapping(trustlist);
+            case ETSI_602 -> isJwsOrJwt(reference.uri()) ? jsonListMapping(trustlist) : xml602Mapping(trustlist);
+        };
+    }
+
+    private boolean isJwsOrJwt(URI uri) {
+        return uri.toString().endsWith("jws") || uri.toString().endsWith("jwt");
+    }
+
+    public List<TrustlistReference> listOfTrustlists () {
+        List<TrustlistReference> trustlists = new ArrayList<>(trustlistsProperties.getAttestationTrustlists());
         trustlists.addAll(trustlistsProperties.getPidTrustlists());
         return trustlists;
     }
 
     protected boolean checkJson602(URI uri, X509Certificate cert)  {
-        LoTEJson lote = (LoTEJson) connectToTrustlist(uri);
+        LoTEJson lote = jsonListMapping(fetchTrustlist(uri));
         boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
         for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
             for(TrustedEntityService service : trustedEntity.trustedEntityServices()) {
@@ -94,7 +102,7 @@ public class TrustlistService {
     }
 
     protected boolean checkXml612(URI uri, X509Certificate cert)  {
-        LoTEXml lote = (LoTEXml) connectToTrustlist(uri);
+        LoTEXml lote = xmlListMapping(fetchTrustlist(uri));
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
             for(TSPService service : sp.services().services()) {
                 for(DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
@@ -108,7 +116,7 @@ public class TrustlistService {
     }
 
     protected boolean checkXml602(URI uri, X509Certificate cert)  {
-        LoTEXml602 lote = (LoTEXml602) connectToTrustlist(uri);
+        LoTEXml602 lote = xml602Mapping(fetchTrustlist(uri));
         for (TrustedEntity602Xml trustedEntity : lote.trustedEntitiesList().trustedEntities()) {
             for (TrustedEntityService602Xml service : trustedEntity.trustedEntityServices().services()) {
                 for (DigitalId602Xml digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
@@ -126,27 +134,19 @@ public class TrustlistService {
         return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, listOfTrustlists());
     }
 
-    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, URI uri) {
-        return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(uri));
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, TrustlistReference trustlist) {
+        return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(trustlist));
     }
 
-    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, List<URI> trustlists) {
-        for (URI uri : trustlists) {
-            if (uri.toString().endsWith("xtsl")) {
-                if (checkXml612(uri, cert)) {
-                    return ValidationStatus.VALID;
-                }
-            } else if (uri.toString().endsWith("xml")) {
-                if (checkXml602(uri, cert)) {
-                    return ValidationStatus.VALID;
-                }
-            } else if (uri.toString().endsWith("jws") || uri.toString().endsWith("jwt")) {
-                if (checkJson602(uri, cert)) {
-                    return ValidationStatus.VALID;
-                }
-            }
-            else {
-                throw new VerificationException("invalid_request", "Unknown trustlist format for trustlist " + uri);
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, List<TrustlistReference> trustlists) {
+        for (TrustlistReference trustlist : trustlists) {
+            URI uri = trustlist.uri();
+            boolean valid = switch (trustlist.format()) {
+                case ETSI_612_XML -> checkXml612(uri, cert);
+                case ETSI_602 -> isJwsOrJwt(uri) ? checkJson602(uri, cert) : checkXml602(uri, cert);
+            };
+            if (valid) {
+                return ValidationStatus.VALID;
             }
         }
         return ValidationStatus.INVALID;

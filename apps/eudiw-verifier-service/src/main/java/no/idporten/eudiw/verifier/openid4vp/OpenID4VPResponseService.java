@@ -17,6 +17,7 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
 import org.slf4j.Logger;
@@ -27,7 +28,6 @@ import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 import org.springframework.util.StringUtils;
 
-import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.*;
@@ -217,11 +217,11 @@ public class OpenID4VPResponseService {
     }
 
     protected ValidationStatus checkTrustlist(X509Certificate cert, String issuer) {
-        URI trustlist = trustlistsProperties.getTrustlistForIssuer(issuer);
+        TrustlistReference trustlist = trustlistsProperties.getTrustlistForIssuer(issuer);
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, trustlist);
     }
 
-    protected ValidationStatus checkTrustlist(X509Certificate cert, List<URI> trustlists) {
+    protected ValidationStatus checkTrustlist(X509Certificate cert, List<TrustlistReference> trustlists) {
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, trustlists);
     }
 
@@ -268,7 +268,7 @@ public class OpenID4VPResponseService {
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
         ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
-        List<URI> trustlists = isPid(mdoc)
+        List<TrustlistReference> trustlists = isPid(mdoc)
                 ? trustlistsProperties.getPidTrustlists()
                 : trustlistsProperties.getAttestationTrustlists();
         ValidationStatus trustlistStatus = checkTrustlist(certificate, trustlists);

@@ -32,28 +32,28 @@ public record TrustlistsProperties(
         attestations = attestations == null ? List.of() : List.copyOf(attestations);
     }
 
-    public URI getTrustlistForIssuer(String issuer) {
+    public TrustlistReference getTrustlistForIssuer(String issuer) {
         URI trustlist = issuerTrustlists.get(issuer);
         if (trustlist != null) {
-            return trustlist;
+            return new TrustlistReference(trustlist, TrustlistFormat.ETSI_602);
         }
         trustlist = issuerTrustlists.get(DEFAULT_ISSUER);
         if (trustlist == null) {
             throw new VerificationException("invalid_trustlist", "Missing default issuer trustlist");
         }
-        return trustlist;
+        return new TrustlistReference(trustlist, TrustlistFormat.ETSI_612_XML);
     }
 
-    public List<URI> getPidTrustlists() {
-        return resolveTrustlists(pid);
+    public List<TrustlistReference> getPidTrustlists() {
+        return resolveTrustlists(pid, TrustlistFormat.ETSI_602);
     }
 
-    public List<URI> getAttestationTrustlists() {
-        return resolveTrustlists(attestations);
+    public List<TrustlistReference> getAttestationTrustlists() {
+        return resolveTrustlists(attestations, TrustlistFormat.ETSI_612_XML);
     }
 
-    private List<URI> resolveTrustlists(List<String> names) {
-        return names.stream().map(this::resolveTrustlist).toList();
+    private List<TrustlistReference> resolveTrustlists(List<String> names, TrustlistFormat format) {
+        return names.stream().map(name -> new TrustlistReference(resolveTrustlist(name), format)).toList();
     }
 
     private URI resolveTrustlist(String name) {

@@ -43,6 +43,10 @@ class TrustlistServiceTest {
     public static final URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
     public static final URI JWTTRUSTLISTURL = URI.create("https://trustlist.webuild.jwt");
     public static final URI XMLWEBUILDPIDTRUSTLISTURL = URI.create("https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml");
+    public static final TrustlistReference XMLTRUSTLIST = new TrustlistReference(XMLTRUSTLISTURL, TrustlistFormat.ETSI_612_XML);
+    public static final TrustlistReference JSONTRUSTLIST = new TrustlistReference(JSONTRUSTLISTURL, TrustlistFormat.ETSI_602);
+    public static final TrustlistReference JWTTRUSTLIST = new TrustlistReference(JWTTRUSTLISTURL, TrustlistFormat.ETSI_602);
+    public static final TrustlistReference XMLWEBUILDPIDTRUSTLIST = new TrustlistReference(XMLWEBUILDPIDTRUSTLISTURL, TrustlistFormat.ETSI_602);
     public static final String APPLICATION_JOSE_JSON = "application/jose+json";
     public static final String APPLICATION_ETSI_TSL_XML = "application/vnd.etsi.tsl+xml";
     public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
@@ -82,7 +86,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
 
-        LoTEXml lote = (LoTEXml) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
+        LoTEXml lote = (LoTEXml) trustlistService.connectToTrustlist(XMLTRUSTLIST);
         assertNotNull(lote);
         assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue());
     }
@@ -94,7 +98,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(JSONTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
 
-        LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JSONTRUSTLISTURL);
+        LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JSONTRUSTLIST);
         assertNotNull(lote);
         assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test", lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
     }
@@ -105,7 +109,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(JWTTRUSTLISTURL))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
 
-        LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JWTTRUSTLISTURL);
+        LoTEJson lote = (LoTEJson) trustlistService.connectToTrustlist(JWTTRUSTLIST);
 
         assertEquals("Tillitsliste for Personal Identification Data tilbydere i eidas2sandkasse i test",
                 lote.lote().schemeInformation().schemeName().getFirst().getLocalisedValue());
@@ -119,7 +123,7 @@ class TrustlistServiceTest {
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE
                 + certificates.trustlistCertificatePIDSecondOnList() + END_CERTIFICATE);
 
-        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, JWTTRUSTLISTURL);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, JWTTRUSTLIST);
 
         assertEquals(ValidationStatus.VALID, result);
     }
@@ -131,7 +135,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
 
-        LoTEXml lote = (LoTEXml) trustlistService.connectToTrustlist(XMLTRUSTLISTURL);
+        LoTEXml lote = (LoTEXml) trustlistService.connectToTrustlist(XMLTRUSTLIST);
         assertAll(
                 () -> assertNotNull(lote),
                 () -> assertEquals("DIGITALISERINGSDIREKTORATET", lote.schemeInformation().schemeName().names().getFirst().getValue()),
@@ -279,7 +283,7 @@ class TrustlistServiceTest {
         mockServer.expect(requestTo(XMLWEBUILDPIDTRUSTLISTURL))
                 .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
 
-        LoTEXml602 lote = (LoTEXml602) trustlistService.connectToTrustlist(XMLWEBUILDPIDTRUSTLISTURL);
+        LoTEXml602 lote = (LoTEXml602) trustlistService.connectToTrustlist(XMLWEBUILDPIDTRUSTLIST);
 
         assertEquals("EU:EN_WEBUILD - PID Providers", lote.schemeInformation().schemeName().names().getFirst().value());
     }
@@ -325,7 +329,7 @@ class TrustlistServiceTest {
                 .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
 
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.webuildPidDigdirCertificate() + END_CERTIFICATE);
-        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, XMLWEBUILDPIDTRUSTLISTURL);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, XMLWEBUILDPIDTRUSTLIST);
 
         assertEquals(ValidationStatus.VALID, result);
     }
