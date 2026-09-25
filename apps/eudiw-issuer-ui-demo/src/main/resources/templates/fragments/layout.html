@@ -1,6 +1,9 @@
 <th:block th:fragment="default_stylesheets_fragment">
+    <link rel="stylesheet" href="https://altinncdn.no/fonts/inter/v4.1/inter.css"
+          integrity="sha384-OcHzc/By/OPw9uJREawUCjP2inbOGKtKb4A/I2iXxmknUfog2H8Adx71tWVZRscD"
+          crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/digdir.css}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@digdir/designsystemet-css@1.20.0/dist/src/index.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@digdir/designsystemet-css@1.22.0/dist/src/index.min.css">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </th:block>
 
@@ -78,6 +81,7 @@
             const toggle = document.getElementById("header-nav-toggle");
             const toggleLabel = document.getElementById("header-nav-toggle-label");
             const navigation = document.getElementById("header-navigation");
+            const links = document.querySelectorAll(".header__nav-link");
 
             function setNavigationOpen(open) {
                 toggle.setAttribute("aria-expanded", String(open));
@@ -85,6 +89,25 @@
                 toggle.setAttribute("aria-label", label);
                 toggleLabel.textContent = label;
                 navigation.classList.toggle("header__nav--open", open);
+            }
+
+            function setActiveNavigationLink() {
+                const pathname = window.location.pathname.replace(/\/$/, "") || "/";
+
+                links.forEach((link) => {
+                    const href = link.getAttribute("href");
+                    const isActive = href === "/" ? pathname === "/" :
+                        pathname === href ||
+                        (href === "/verification-start" && pathname.startsWith("/verification")) ||
+                        pathname.startsWith(href + "/");
+
+                    link.classList.toggle("header__nav-link--active", isActive);
+                    if (isActive) {
+                        link.setAttribute("aria-current", "page");
+                    } else {
+                        link.removeAttribute("aria-current");
+                    }
+                });
             }
 
             toggle.addEventListener("click", () => {
@@ -98,6 +121,8 @@
                     toggle.focus();
                 }
             });
+
+            setActiveNavigationLink();
         })();
     </script>
 </header>
@@ -126,6 +151,9 @@
             </a>
             <a class="ds-link footer__link" href="https://docs.digdir.no/docs/lommebok/lommebok_om.html">
                 Om EUDI-wallet-sandkassa
+            </a>
+            <a class="ds-link footer__link" href="https://samarbeid.digdir.no/digital-lommebok/digital-lommebok/2897">
+                Om Digital lommebok
             </a>
         </div>
 
