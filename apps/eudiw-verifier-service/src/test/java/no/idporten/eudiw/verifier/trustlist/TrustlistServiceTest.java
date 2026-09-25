@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
 import no.idporten.eudiw.verifier.trustlist.etsi602.ValueCertificate;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.LoTEXml602;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.testdata.Certificates;
 import no.idporten.eudiw.verifier.testdata.TrustlistTestdata;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestClient;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonTrustlist;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getXmlTrustlist;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonInvalidCertList;
+import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getXmlWebuildPidTrustlist;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -40,6 +42,7 @@ class TrustlistServiceTest {
     public static final URI XMLTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl");
     public static final URI JSONTRUSTLISTURL = URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws");
     public static final URI JWTTRUSTLISTURL = URI.create("https://trustlist.webuild.jwt");
+    public static final URI XMLWEBUILDPIDTRUSTLISTURL = URI.create("https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml");
     public static final String APPLICATION_JOSE_JSON = "application/jose+json";
     public static final String APPLICATION_ETSI_TSL_XML = "application/vnd.etsi.tsl+xml";
     public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
@@ -268,5 +271,62 @@ class TrustlistServiceTest {
         X509Certificate cert = certificate.getCertificateAsX509Object();
         boolean check = trustlistService.checkXml612(XMLTRUSTLISTURL, cert);
         assertTrue(check);
+    }
+
+    @Test
+    @DisplayName("that a real ETSI TS 119 602 XML trustlist URL is parsed as an ETSI TS 119 602 XML trustlist")
+    void connectToTrustlistReturnsLoteWhenXmlUriIsCorrect602Xml() {
+        mockServer.expect(requestTo(XMLWEBUILDPIDTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+
+        LoTEXml602 lote = (LoTEXml602) trustlistService.connectToTrustlist(XMLWEBUILDPIDTRUSTLISTURL);
+
+        assertEquals("EU:EN_WEBUILD - PID Providers", lote.schemeInformation().schemeName().names().getFirst().value());
+    }
+
+    @Test
+    @DisplayName("that the ETSI TS 119 602 XML trustlist is parsed correctly into its lote object, with all trusted entities")
+    void testXml602Mapping() {
+        LoTEXml602 lote = trustlistService.xml602Mapping(getXmlWebuildPidTrustlist());
+        assertAll(
+                () -> assertNotNull(lote),
+                () -> assertEquals("EU:EN_WEBUILD - PID Providers", lote.schemeInformation().schemeName().names().getFirst().value()),
+                () -> assertEquals("en", lote.schemeInformation().schemeName().names().getFirst().lang()),
+                () -> assertEquals(4, lote.trustedEntitiesList().trustedEntities().size())
+        );
+    }
+
+    @Test
+    @DisplayName("testCheckXML602 - certificate for a trusted entity on the XML 602 trustlist is valid")
+    void testCheckXML602() {
+        mockServer.expect(requestTo(XMLWEBUILDPIDTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.webuildPidDigdirCertificate() + END_CERTIFICATE);
+        boolean check = trustlistService.checkXml602(XMLWEBUILDPIDTRUSTLISTURL, cert);
+        assertTrue(check);
+    }
+
+    @Test
+    @DisplayName("that a certificate not present in the XML 602 trustlist is invalid")
+    void testCheckXML602ReturnsFalseWhenCertNotOnTrustlist() {
+        mockServer.expect(requestTo(XMLWEBUILDPIDTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.certificateThatIsNotOnTrustlist() + END_CERTIFICATE);
+        boolean check = trustlistService.checkXml602(XMLWEBUILDPIDTRUSTLISTURL, cert);
+        assertFalse(check);
+    }
+
+    @Test
+    @DisplayName("that checkIfCertificateFromJwsHeaderIsOnTrustlist dispatches .xml URLs to the ETSI TS 119 602 XML check")
+    void checkCertificateAgainstXml602Trustlist() {
+        mockServer.expect(requestTo(XMLWEBUILDPIDTRUSTLISTURL))
+                .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
+
+        X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.webuildPidDigdirCertificate() + END_CERTIFICATE);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, XMLWEBUILDPIDTRUSTLISTURL);
+
+        assertEquals(ValidationStatus.VALID, result);
     }
 }

@@ -13,11 +13,13 @@ public class TrustlistTestdata {
     private static String xmlTrustlist;
     private static String jsonTrustlist;
     private static String jsonInvalidCertList;
+    private static String xmlWebuildPidTrustlist;
 
     public TrustlistTestdata() throws IOException {
         setXmlTrustlist();
         setJsonTrustlist();
         setJsonTrustlistWithInvalidCertificate();
+        setXmlWebuildPidTrustlist();
     }
 
     public void setXmlTrustlist() throws IOException {
@@ -26,6 +28,14 @@ public class TrustlistTestdata {
 
     public static String getXmlTrustlist() {
         return xmlTrustlist;
+    }
+
+    public void setXmlWebuildPidTrustlist() throws IOException {
+        xmlWebuildPidTrustlist = Files.readString(Path.of("src/test/java/no/idporten/eudiw/verifier/testdata/trustlistWebuildPid.xml"));
+    }
+
+    public static String getXmlWebuildPidTrustlist() {
+        return xmlWebuildPidTrustlist;
     }
 
     public void setJsonTrustlist() throws IOException {

@@ -65,11 +65,11 @@ trustlists:
   read-timeout: 3s
   issuer-trustlists:
     "[https://utsteder.test.eidas2sandkasse.net/pid]": https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws
-    "[https://utsteder.test.eidas2sandkasse.net/webuild]": https://trustlist.webuild.jwt
+    "[https://utsteder.test.eidas2sandkasse.net/webuild]": https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml
     default: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl
   named-trustlists:
     "[eidas2sandkasse-pid]": https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws
-    "[webuild-pid]": https://trustlist.webuild.jwt
+    "[webuild-pid]": https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml
     "[eidas2sandkasse.xtsl]": https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl
   pid:
     - eidas2sandkasse-pid

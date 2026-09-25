@@ -8,6 +8,10 @@ import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.DigitalId602Xml;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.LoTEXml602;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.TrustedEntity602Xml;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.TrustedEntityService602Xml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.DigitalId;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
@@ -52,6 +56,8 @@ public class TrustlistService {
         }
         if (uri.toString().endsWith("xtsl")) {
             return xmlListMapping(trustlist);
+        } else if (uri.toString().endsWith("xml")) {
+            return xml602Mapping(trustlist);
         } else if (uri.toString().endsWith("jws") || uri.toString().endsWith("jwt")) {
             return jsonListMapping(trustlist);
         } else {
@@ -101,6 +107,21 @@ public class TrustlistService {
         return false;
     }
 
+    protected boolean checkXml602(URI uri, X509Certificate cert)  {
+        LoTEXml602 lote = (LoTEXml602) connectToTrustlist(uri);
+        for (TrustedEntity602Xml trustedEntity : lote.trustedEntitiesList().trustedEntities()) {
+            for (TrustedEntityService602Xml service : trustedEntity.trustedEntityServices().services()) {
+                for (DigitalId602Xml digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
+                    // No status concept exists in this XML format; every entry is treated as active.
+                    if (compareCertificates(cert, digitalId.getCertificateAsX509Object())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert)  {
         return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, listOfTrustlists());
     }
@@ -113,6 +134,10 @@ public class TrustlistService {
         for (URI uri : trustlists) {
             if (uri.toString().endsWith("xtsl")) {
                 if (checkXml612(uri, cert)) {
+                    return ValidationStatus.VALID;
+                }
+            } else if (uri.toString().endsWith("xml")) {
+                if (checkXml602(uri, cert)) {
                     return ValidationStatus.VALID;
                 }
             } else if (uri.toString().endsWith("jws") || uri.toString().endsWith("jwt")) {
@@ -136,6 +161,18 @@ public class TrustlistService {
             return xmlMapper.readValue(trustlist, LoTEXml.class);
         } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 612 trustlist", e);
+        }
+    }
+
+    public LoTEXml602 xml602Mapping(String trustlist) {
+        try {
+            XmlMapper xmlMapper = XmlMapper.builder()
+                    .defaultUseWrapper(false)
+                    .enable(FromXmlParser.Feature.EMPTY_ELEMENT_AS_NULL)
+                    .build();
+            return xmlMapper.readValue(trustlist, LoTEXml602.class);
+        } catch (Exception e) {
+            throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 602 XML trustlist", e);
         }
     }
 
