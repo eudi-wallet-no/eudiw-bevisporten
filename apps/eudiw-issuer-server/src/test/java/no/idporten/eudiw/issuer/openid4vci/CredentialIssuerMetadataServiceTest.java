@@ -54,9 +54,10 @@ class CredentialIssuerMetadataServiceTest {
     @Test
     void testSignedMetadata() throws Exception {
         Instant beforeSigning = Instant.now();
+        CredentialIssuerTenant rootTenant = credentialIssuerTenantService.findTenantById(null);
 
         SignedJWT signedMetadata = SignedJWT.parse(
-                credentialIssuerMetadataService.getSignedCredentialIssuerMetadata(null));
+                credentialIssuerMetadataService.getSignedCredentialIssuerMetadata(rootTenant));
         JWTClaimsSet claims = signedMetadata.getJWTClaimsSet();
 
         assertAll(
@@ -67,16 +68,17 @@ class CredentialIssuerMetadataServiceTest {
                 () -> assertFalse(claims.getIssueTime().toInstant().isBefore(beforeSigning.minusSeconds(1))),
                 () -> assertFalse(claims.getIssueTime().toInstant().isAfter(Instant.now().plusSeconds(1))),
                 () -> assertEquals(
-                        Duration.ofMinutes(5),
+                        rootTenant.getMetadataLifetime(),
                         Duration.between(claims.getIssueTime().toInstant(), claims.getExpirationTime().toInstant())));
     }
 
     @DisplayName("then requesting signed metadata for a tenant without a signing keystore is rejected")
     @Test
     void testSignedMetadataWithoutSigningKeystore() {
+        CredentialIssuerTenant tenant = credentialIssuerTenantService.findTenantById("junit");
         IssuerServerException exception = assertThrows(
                 IssuerServerException.class,
-                () -> credentialIssuerMetadataService.getSignedCredentialIssuerMetadata("junit"));
+                () -> credentialIssuerMetadataService.getSignedCredentialIssuerMetadata(tenant));
 
         assertAll(
                 () -> assertEquals(HttpStatus.NOT_ACCEPTABLE, exception.getHttpStatus()),
@@ -118,5 +120,3 @@ class CredentialIssuerMetadataServiceTest {
                 () -> assertEquals("https://registrar.example.no/", registrarDatasetData.get("registryURI")));
     }
 }
-
-

@@ -62,6 +62,7 @@ credential-issuer-server:
         api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     bevisgenerator:
+      metadata-lifetime: 30s
       display-names:
         "no": "Digdir bevisgenerator"
       credential-configuration-sources-properties:
@@ -79,6 +80,7 @@ credential-issuer-server:
             connect-timeout: 2s
             read-timeout: 2s
     pid:
+      metadata-lifetime: 5m
       display-names:
         "no": "PID-utsteder (Norsk ID-bevis)"
       credential-configuration-sources-properties:
@@ -92,6 +94,7 @@ credential-issuer-server:
         registrar-dataset: '{"identifier":[{"identifier":"NOFOR.991825827","type":"http://data.europa.eu/eudi/id/EUID"}],"srvDescription":[{"lang":"no","content":"PID-utsteder fra Digdir"},{"lang":"en","content":"PID-issuer from Digdir"}],"registryURI":"https://registrar.example.no/","providesAttestations":[{"format":"dc+sd-jwt","type":"urn:eudi:pid:1"},{"format":"mso_mdoc","type":"eu.europa.ec.eudi.pid.1"}]}'
 
     minid:
+      metadata-lifetime: 5m
       display-names:
         "no": "MinID bevisutsteder"
       metadata-signing-keystore: minid-access-keystore
