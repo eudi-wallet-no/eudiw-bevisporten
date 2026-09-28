@@ -53,6 +53,7 @@ credential-issuer-server:
         api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     bevisgenerator:
+      metadata-lifetime: 1m
       metadata-signing-keystore: eaa-access
       display-names:
         "no": "Digdir bevisgenerator"
@@ -71,6 +72,7 @@ credential-issuer-server:
             connect-timeout: 2s
             read-timeout: 2s
     pid:
+      metadata-lifetime: 5m
       metadata-signing-keystore: pid-access
       display-names:
         "no": "PID-utsteder (Norsk ID-bevis)"
@@ -80,6 +82,7 @@ credential-issuer-server:
               - classpath:credential-configurations/pid/pid_mso_mdoc.json
               - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
     webuild:
+      metadata-lifetime: 5m
       metadata-signing-keystore: webuild-access
       display-names:
         "no": "Webuild PID-issuer (Norwegian PID)"
@@ -93,6 +96,7 @@ credential-issuer-server:
         registration-certificate-jwt: ${WEBUILD_REGISTRATION_CERTIFICATE_JWT:}
         registrar-dataset: ${WEBUILD_REGISTRAR_DATASET_JSON:}
     minid:
+      metadata-lifetime: 5m
       metadata-signing-keystore: minid-access
       display-names:
         "no": "MinID bevisutsteder"

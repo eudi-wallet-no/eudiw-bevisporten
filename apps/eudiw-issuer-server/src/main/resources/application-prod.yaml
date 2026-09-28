@@ -32,6 +32,7 @@ credential-issuer-server:
       jwks-uri: https://maskinporten.no/jwk
   tenants:
     minid:
+      metadata-lifetime: 5m
       metadata-signing-keystore: minid-access
       display-names:
         "no": "MinID bevisutsteder"
