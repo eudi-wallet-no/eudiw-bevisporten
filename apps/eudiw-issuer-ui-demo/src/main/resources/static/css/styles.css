@@ -521,7 +521,6 @@ main {
 }
 
 .card-narrow {
-    max-width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -816,6 +815,10 @@ main {
 }
 
 /* Verification result – summary */
+.verification-result__summary {
+    margin-block-end: var(--ds-size-6);
+}
+
 .verification-result__summary-text {
     display: flex;
     flex-direction: column;
