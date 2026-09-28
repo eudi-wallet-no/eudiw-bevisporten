@@ -27,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CredentialIssuerMetadataEndpointControllerTest {
 
     private static final MediaType APPLICATION_JWT = MediaType.parseMediaType("application/jwt");
+    private static final String ROOT_METADATA_CACHE_CONTROL_HEADER = "max-age=300";
+    private static final String JUNIT_METADATA_CACHE_CONTROL_HEADER = "max-age=60";
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,6 +53,7 @@ public class CredentialIssuerMetadataEndpointControllerTest {
         void testGetMetadata() throws Exception {
             mockMvc.perform(get("/.well-known/openid-credential-issuer"))
                     .andExpect(status().isOk())
+                    .andExpect(header().string("Cache-Control", ROOT_METADATA_CACHE_CONTROL_HEADER))
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                     .andExpect(jsonPath("$.credential_issuer").value("https://junit.eidas2sandkasse.dev"))
                     .andExpect(jsonPath("$.authorization_servers.[0]").value("https://junit.idporten.no"))
@@ -88,6 +91,7 @@ public class CredentialIssuerMetadataEndpointControllerTest {
             mockMvc.perform(get("/.well-known/openid-credential-issuer")
                             .accept(APPLICATION_JWT))
                     .andExpect(status().isOk())
+                    .andExpect(header().string("Cache-Control", ROOT_METADATA_CACHE_CONTROL_HEADER))
                     .andExpect(content().contentType(APPLICATION_JWT))
                     .andExpect(content().string(Matchers.matchesPattern("[^.]+\\.[^.]+\\.[^.]+")));
         }
@@ -123,6 +127,7 @@ public class CredentialIssuerMetadataEndpointControllerTest {
         void testGetMetadataWithBatchIssuance() throws Exception {
             mockMvc.perform(get("/.well-known/openid-credential-issuer/junit"))
                     .andExpect(status().isOk())
+                    .andExpect(header().string("Cache-Control", JUNIT_METADATA_CACHE_CONTROL_HEADER))
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                     .andExpect(jsonPath("$.batch_credential_issuance.batch_size").value(5));
         }
