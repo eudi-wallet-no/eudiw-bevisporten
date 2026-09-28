@@ -63,7 +63,7 @@ credential-issuer-server:
         api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     bevisgenerator:
-      metadata-lifetime: 1m
+      metadata-lifetime: 30s
       display-names:
         "no": "Digdir bevisgenerator"
       credential-configuration-sources-properties:
