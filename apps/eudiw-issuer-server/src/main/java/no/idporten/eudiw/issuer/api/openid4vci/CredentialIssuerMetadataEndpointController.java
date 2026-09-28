@@ -45,6 +45,7 @@ public class CredentialIssuerMetadataEndpointController {
         if (prefersSignedMetadata(acceptHeader)) {
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.maxAge(credentialIssuerTenant.getMetadataLifetime()))
+                    .varyBy(HttpHeaders.ACCEPT)
                     .contentType(APPLICATION_JWT)
                     .body(credentialIssuerMetadataService.getSignedCredentialIssuerMetadata(credentialIssuerTenant));
         }
@@ -52,6 +53,7 @@ public class CredentialIssuerMetadataEndpointController {
         CredentialIssuerMetadata metadata = credentialIssuerMetadataService.getCredentialIssuerMetadata(credentialIssuerTenant);
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(credentialIssuerTenant.getMetadataLifetime()))
+                .varyBy(HttpHeaders.ACCEPT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(metadata);
     }
