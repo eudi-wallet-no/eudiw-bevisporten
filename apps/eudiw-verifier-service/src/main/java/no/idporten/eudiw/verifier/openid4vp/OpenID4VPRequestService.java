@@ -151,7 +151,7 @@ public class OpenID4VPRequestService {
 
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-.audience("https://self-issued.me/v2")
+                .audience("https://self-issued.me/v2")
                 .issuer(verifierServiceProperties.getExternalBaseUri())
                 .claim("response_uri", createResponseUri(clientApplication, verificationTransactionId).toString())
                 .claim("response_type", "vp_token")
