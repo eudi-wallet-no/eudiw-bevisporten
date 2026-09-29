@@ -10,14 +10,11 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.*;
-import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -31,7 +28,6 @@ import java.util.*;
 
 @Service
 public class SdJwtService {
-    private static final Logger log = LogManager.getLogger(SdJwtService.class);
     private final ObjectMapper objectMapper;
 
     public SdJwtService(ObjectMapper objectMapper) {

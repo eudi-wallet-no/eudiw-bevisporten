@@ -1,7 +1,6 @@
 package no.idporten.eudiw.verifier.api.openid4vp;
 
 import io.swagger.v3.oas.annotations.Hidden;
-import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPRequestService;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPResponseService;
@@ -31,7 +30,7 @@ public class OpenID4VPController {
     @GetMapping(value = "/openid4vp/authz-request/{client_application_id}/{request_id}", produces = "application/oauth-authz-req+jwt")
     public ResponseEntity<String> retrieveRequest(@PathVariable("client_application_id") String clientApplicationId,
             @PathVariable("request_id") String requestId,
-            @RequestParam(name = "flow", defaultValue = "same_device", required = false) String flow) throws Exception {
+            @RequestParam(name = "flow", defaultValue = "same_device", required = false) String flow) {
         return ResponseEntity.ok(openID4VPRequestService.retrieveAuthorizationRequest(verifierServiceProperties.findClientApplication(clientApplicationId), requestId, flow));
     }
 
