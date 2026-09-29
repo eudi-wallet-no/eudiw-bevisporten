@@ -99,7 +99,7 @@ class OpenID4VPResponseServiceTest {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(null);
 
         VerificationException exception = assertThrows(VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, response("not-a-jwe")));
+                () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
 
         assertEquals("Unknown verification transaction id", exception.getErrorDescription());
         verifyNoInteractions(tokenStatuslistService, trustlistService, mDocService, sdJwtService);
@@ -113,7 +113,7 @@ class OpenID4VPResponseServiceTest {
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, response(" ")));
+                () -> service.receiveResponse(client, TRANSACTION_ID, response(" ")));
 
         assertEquals("Missing authorization response", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
@@ -127,7 +127,7 @@ class OpenID4VPResponseServiceTest {
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, response("not-a-jwe")));
+                () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
 
         assertEquals("Authorization response is not encrypted", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
@@ -140,7 +140,7 @@ class OpenID4VPResponseServiceTest {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         Map<String, Object> payload = Map.of("state", STATE, "nonce", "nonce", "vp_token", Map.of());
 
-        var callback = service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, encrypted(payload));
+        var callback = service.receiveResponse(client, TRANSACTION_ID, encrypted(payload));
 
         ArgumentCaptor<VerifiedCredentials> credentials = ArgumentCaptor.forClass(VerifiedCredentials.class);
         ArgumentCaptor<Map<String, Object>> persistedPayload = ArgumentCaptor.forClass(Map.class);
@@ -163,7 +163,7 @@ class OpenID4VPResponseServiceTest {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+                () -> service.receiveResponse(client, TRANSACTION_ID,
                         encrypted(Map.of("state", "wrong", "vp_token", Map.of()))));
 
         assertEquals("Invalid state in authorization response", exception.getErrorDescription());
@@ -178,7 +178,7 @@ class OpenID4VPResponseServiceTest {
             VerificationTransaction transaction = transaction(query);
             when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
             VerificationException exception = assertThrows(VerificationException.class,
-                    () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, encrypted(validPayload(Map.of()))));
+                    () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(Map.of()))));
             assertEquals("Missing credentials in dcql_query", exception.getErrorDescription());
         }
     }
@@ -190,7 +190,7 @@ class OpenID4VPResponseServiceTest {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, encrypted(validPayload(Map.of()))));
+                () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(Map.of()))));
 
         assertEquals("Missing id in dcql_query credential", exception.getErrorDescription());
     }
@@ -202,7 +202,7 @@ class OpenID4VPResponseServiceTest {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+                () -> service.receiveResponse(client, TRANSACTION_ID,
                         encrypted(validPayload(Map.of("pid", "token")))));
 
         assertEquals("Unsupported credential format: jwt_vc_json", exception.getErrorDescription());
@@ -216,7 +216,7 @@ class OpenID4VPResponseServiceTest {
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, encrypted(validPayload("token"))));
+                () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload("token"))));
 
         assertEquals("Unsupported vp_token structure", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
@@ -235,7 +235,6 @@ class OpenID4VPResponseServiceTest {
         VerificationException exception = assertThrows(
                 VerificationException.class,
                 () -> service.receiveResponse(
-                        mockHttpSession,
                         client,
                         TRANSACTION_ID,
                         encrypted(validPayload(Map.of("pid", "mdoc-token")))));
@@ -257,7 +256,6 @@ class OpenID4VPResponseServiceTest {
         VerificationException exception = assertThrows(
                 VerificationException.class,
                 () -> service.receiveResponse(
-                        mockHttpSession,
                         client,
                         TRANSACTION_ID,
                         encrypted(validPayload("invalid-vp-token"))));
@@ -296,7 +294,7 @@ class OpenID4VPResponseServiceTest {
         when(trustlistService.getValidationDetail(ValidationStatus.VALID)).thenReturn("trusted");
         when(mDocService.getValidationDetail(ValidationStatus.VALID)).thenReturn("valid mdoc");
 
-        service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+        service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("pid", "mdoc-token"))));
 
         VerifiedCredential credential = persistedCredential("pid");
@@ -319,7 +317,7 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(mockHttpSession, sdJwt, certificate)).thenReturn(sdJwtResult);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate, transaction)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of("given_name", "Ola"));
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult))
@@ -330,7 +328,7 @@ class OpenID4VPResponseServiceTest {
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
 
-        service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+        service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("pid", List.of("sd-token")))));
 
         VerifiedCredential credential = persistedCredential("pid");
@@ -338,7 +336,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertFalse(credential.valid()),
                 () -> assertEquals("Ola", credential.claims().get("given_name")),
                 () -> assertNull(credential.validationDetails()));
-        verify(sdJwtService).verifySdJwt(mockHttpSession, sdJwt, certificate);
+        verify(sdJwtService).verifySdJwt(sdJwt, certificate, transaction);
         verify(tokenStatuslistService)
                 .lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7);
         verifyNoInteractions(mDocService);
@@ -348,7 +346,7 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("with a valid status list entry, then a valid credential is expected")
     void statusListValidProducesValidCredential() throws Exception {
         prepareMdocWithStatus("0", ValidationStatus.VALID);
-        service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+        service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("pid", "mdoc-token"))));
         assertTrue(persistedCredential("pid").valid());
     }
@@ -367,7 +365,7 @@ class OpenID4VPResponseServiceTest {
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
 
-        service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+        service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("attestation", "mdoc-token"))));
 
         assertTrue(persistedCredential("attestation").valid());
@@ -382,7 +380,7 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct("urn:example:attestation:1"));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(mockHttpSession, sdJwt, certificate)).thenReturn(sdJwtResult);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate, transaction)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of());
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult)).thenReturn(null);
@@ -390,7 +388,7 @@ class OpenID4VPResponseServiceTest {
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
 
-        service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+        service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("pid", "sd-token"))));
 
         assertTrue(persistedCredential("pid").valid());
@@ -404,7 +402,7 @@ class OpenID4VPResponseServiceTest {
             reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
             prepareMdocWithStatus(idx, ValidationStatus.VALID);
             VerificationException exception = assertThrows(VerificationException.class,
-                    () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+                    () -> service.receiveResponse(client, TRANSACTION_ID,
                             encrypted(validPayload(Map.of("pid", "mdoc-token")))));
             assertEquals("Invalid status list idx in vp_token", exception.getErrorDescription());
             verify(tokenStatuslistService, never()).lookupStatusFromStatuslist(any(), anyInt());
@@ -417,7 +415,7 @@ class OpenID4VPResponseServiceTest {
         for (int idx : List.of(0, Integer.MAX_VALUE)) {
             reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
             prepareMdocWithStatus(Integer.toString(idx), ValidationStatus.VALID);
-            service.receiveResponse(mockHttpSession, client, TRANSACTION_ID,
+            service.receiveResponse(client, TRANSACTION_ID,
                     encrypted(validPayload(Map.of("pid", "mdoc-token"))));
             verify(tokenStatuslistService)
                     .lookupStatusFromStatuslist(URI.create("https://status.example/list"), idx);
@@ -432,7 +430,7 @@ class OpenID4VPResponseServiceTest {
         transaction.setRedirectUri(URI.create("https://client.example/callback"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
-        var callback = service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, encrypted(validPayload(Map.of())));
+        var callback = service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(Map.of())));
 
         assertEquals(URI.create("https://client.example/callback"), callback.getRedirectUri());
     }
@@ -465,7 +463,7 @@ class OpenID4VPResponseServiceTest {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException exception = assertThrows(VerificationException.class,
-                () -> service.receiveResponse(mockHttpSession, client, TRANSACTION_ID, encrypted(validPayload(vpToken))));
+                () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(vpToken))));
         assertEquals(message, exception.getErrorDescription());
     }
 

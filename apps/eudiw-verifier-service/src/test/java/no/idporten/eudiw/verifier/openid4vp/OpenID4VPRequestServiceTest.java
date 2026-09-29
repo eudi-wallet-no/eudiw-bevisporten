@@ -144,7 +144,7 @@ class OpenID4VPRequestServiceTest {
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
-                () -> service.retrieveAuthorizationRequest(mockHttpSession, clientApplication, unknownRequestId, SAME_DEVICE_FLOW));
+                () -> service.retrieveAuthorizationRequest(clientApplication, unknownRequestId, SAME_DEVICE_FLOW));
 
         assertAll(
                 () -> assertEquals("invalid_request", exception.getError()),
@@ -163,7 +163,7 @@ class OpenID4VPRequestServiceTest {
         VerificationException exception = assertThrows(
                 VerificationException.class,
                 () -> service.retrieveAuthorizationRequest(
-                        mockHttpSession, clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+                        clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
 
         assertEquals("Unknown verification transaction", exception.getErrorDescription());
     }
@@ -172,9 +172,7 @@ class OpenID4VPRequestServiceTest {
     @DisplayName("When a verification transaction exists, then a signed authorization request is stored and returned")
     void createsAndStoresSignedAuthorizationRequest() throws Exception {
         configureExistingTransaction();
-        mockHttpSession = new MockHttpSession();
-
-        String serializedRequest = service.retrieveAuthorizationRequest(mockHttpSession, clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
+        String serializedRequest = service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
         assertTrue(request.verify(getEcdsaVerifier(keyProvider)));

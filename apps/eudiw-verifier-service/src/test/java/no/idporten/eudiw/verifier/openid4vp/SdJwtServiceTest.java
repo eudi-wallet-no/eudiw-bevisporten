@@ -36,15 +36,13 @@ class SdJwtServiceTest {
     private static final Logger log = LogManager.getLogger(SdJwtServiceTest.class);
     @Mock VerificationResult<SDJwt> verificationResult;
     @Mock SDJwt mockedSdJwt;
+    @Mock VerificationTransaction verificationTransaction;
 
     private SdJwtService service;
-
-    private MockHttpSession mockHttpSession;
 
     @BeforeEach
     void setUp() {
         service = new SdJwtService(JsonMapper.builder().build());
-        mockHttpSession = new MockHttpSession();
     }
 
     @Test
@@ -100,7 +98,7 @@ class SdJwtServiceTest {
         when(verificationResult.getDisclosuresVerified()).thenReturn(true);
 
         VerificationException exception =
-                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockHttpSession, mockedSdJwt, certificate));
+                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate, verificationTransaction));
 
         assertEquals(
                 "Invalid vp_token. Signature verified: false, disclosures verified: true",
