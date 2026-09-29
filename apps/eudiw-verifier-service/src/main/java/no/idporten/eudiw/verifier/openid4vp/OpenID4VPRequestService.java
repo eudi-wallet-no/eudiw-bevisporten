@@ -149,6 +149,7 @@ public class OpenID4VPRequestService {
         Audience audience = new Audience("https://self-issued.me/v2");
         Nonce nonce = new Nonce();
         verificationTransaction.setNonce(nonce.getValue());
+        verificationTransaction.setAudience(audience.getValue());
 
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()

@@ -154,7 +154,7 @@ public class SdJwtService {
             JWSVerifier verifier = new ECDSAVerifier(holderKey);
             SimpleJWTCryptoProvider cryptoProviderHolderBinding =
                     new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, null, verifier);
-            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, "aud", verificationTransaction.getNonce(), sdJwt, null);
+            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, verificationTransaction.getAudience(), verificationTransaction.getNonce(), sdJwt, null);
         } catch (JOSEException e) {
             throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
         }
