@@ -162,10 +162,10 @@ public class SdJwtService {
 
     private static ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {
         try {
-            if (!(jwk instanceof Map<?, ?> jwkMap)) {
+if (jwk == null) {
                 throw new IllegalArgumentException("cnf.jwk missing");
             }
-            JWK parsedJwk = JWK.parse(jwkMap.toString());
+            JWK parsedJwk = JWK.parse(jwk);
 
             if (!(parsedJwk instanceof ECKey ecKey)) {
                 throw new IllegalArgumentException("cnf.jwk is not EC");
