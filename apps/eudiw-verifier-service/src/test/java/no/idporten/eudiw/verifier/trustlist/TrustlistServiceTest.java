@@ -8,7 +8,6 @@ import no.idporten.eudiw.verifier.trustlist.etsi602.ValueCertificate;
 import no.idporten.eudiw.verifier.trustlist.etsi602xml.LoTEXml602;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.testdata.Certificates;
-import no.idporten.eudiw.verifier.testdata.TrustlistTestdata;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -60,16 +58,7 @@ class TrustlistServiceTest {
     @Autowired
     private TrustlistsProperties trustlistProperties;
 
-    private final TrustlistTestdata trustlistTestdata;
     private final Certificates certificates = new Certificates();
-
-    public TrustlistServiceTest() {
-        try {
-            trustlistTestdata = new TrustlistTestdata();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @BeforeEach
     void setup() {

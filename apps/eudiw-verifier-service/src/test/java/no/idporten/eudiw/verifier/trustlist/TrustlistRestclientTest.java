@@ -40,17 +40,6 @@ public class TrustlistRestclientTest {
     public static final String TRUSTLIST_MEDIA_TYPE_XML = "application/vnd.etsi.tsl+xml";
     public static final String TRUSTLIST_MEDIA_TYPE_JSON = "application/jose+json";
 
-    private final TrustlistTestdata trustlistTestdata;
-
-    TrustlistRestclientTest() {
-        try {
-            trustlistTestdata = new TrustlistTestdata();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize TrustlistTestdata", e);
-        }
-    }
-
-
     @BeforeEach
     void setUp() {
         // Both XML and JSON
