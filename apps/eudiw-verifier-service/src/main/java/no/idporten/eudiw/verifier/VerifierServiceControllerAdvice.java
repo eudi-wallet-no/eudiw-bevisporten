@@ -18,4 +18,16 @@ public class VerifierServiceControllerAdvice {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getError(), e.getErrorDescription()));
     }
 
+    @ExceptionHandler(IOConnectionException.class)
+    public ResponseEntity<ErrorResponse> handleException(IOConnectionException e) {
+        log.warn("Connect to external service failed", e);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new ErrorResponse("internal_error", e.getErrorDescription()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        log.warn("Unknown error", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("internal_error", e.getMessage()));
+    }
+
 }

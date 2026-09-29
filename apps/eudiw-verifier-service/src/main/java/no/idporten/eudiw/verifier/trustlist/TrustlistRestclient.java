@@ -24,7 +24,7 @@ public class TrustlistRestclient {
         clientHttpRequestFactory.setReadTimeout(trustlistConfig.readTimeout());
         return RestClient.builder()
                 .requestFactory(clientHttpRequestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.etsi.tsl+xml", "application/jose+json")
+                .defaultHeader(HttpHeaders.ACCEPT, "application/vnd.etsi.tsl+xml", "application/jose+json", "application/vnd.lote+json")
                 .build();
     }
 }
