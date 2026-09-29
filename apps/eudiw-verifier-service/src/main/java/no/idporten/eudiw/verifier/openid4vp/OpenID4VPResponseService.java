@@ -37,6 +37,7 @@ public class OpenID4VPResponseService {
 
     private static final Logger log = LoggerFactory.getLogger(OpenID4VPResponseService.class);
     private static final String PID_DOC_TYPE = "eu.europa.ec.eudi.pid.1";
+    private static final String PID_VCT = "urn:eudi:pid:1";
 
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
@@ -216,12 +217,16 @@ public class OpenID4VPResponseService {
         return jwe.getPayload().toJSONObject();
     }
 
-    protected ValidationStatus checkTrustlist(X509Certificate cert, String issuer) {
-        TrustlistReference trustlist = trustlistsProperties.getTrustlistForIssuer(issuer);
-        return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, trustlist);
-    }
-
-    protected ValidationStatus checkTrustlist(X509Certificate cert, List<TrustlistReference> trustlists) {
+    /**
+     * Resolves the trustlists to check a credential against. PID credentials are issued by a
+     * separate set of PID providers, so they are checked against the PID trustlists; all other
+     * attestations are checked against the attestation trustlists. The lists are checked in
+     * configured priority order and the first match wins.
+     */
+    protected ValidationStatus checkTrustlist(X509Certificate cert, boolean isPid) {
+        List<TrustlistReference> trustlists = isPid
+                ? trustlistsProperties.getPidTrustlists()
+                : trustlistsProperties.getAttestationTrustlists();
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, trustlists);
     }
 
@@ -246,7 +251,6 @@ public class OpenID4VPResponseService {
 
     private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
-        String issuer = issuerFrom(unverifiedSDJwt);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
         VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
@@ -254,7 +258,8 @@ public class OpenID4VPResponseService {
 
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
         ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
-        ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verificationResult.getSdJwt()), issuer);
+        SDJwt verifiedSdJwt = verificationResult.getSdJwt();
+        ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verifiedSdJwt), isPid(verifiedSdJwt));
         if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
         }
@@ -268,10 +273,7 @@ public class OpenID4VPResponseService {
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
         ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
-        List<TrustlistReference> trustlists = isPid(mdoc)
-                ? trustlistsProperties.getPidTrustlists()
-                : trustlistsProperties.getAttestationTrustlists();
-        ValidationStatus trustlistStatus = checkTrustlist(certificate, trustlists);
+        ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
         if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
@@ -281,15 +283,15 @@ public class OpenID4VPResponseService {
 
     }
 
-    private String issuerFrom(SDJwt sdJwt) {
+    private boolean isPid(SDJwt sdJwt) {
         JsonObject payload = sdJwt.getFullPayload();
         if (payload == null) {
-            return null;
+            return false;
         }
-        JsonElement issuer = payload.get("iss");
-        return issuer instanceof JsonPrimitive primitive && primitive.isString()
-                ? primitive.getContent()
-                : null;
+        JsonElement vct = payload.get("vct");
+        return vct instanceof JsonPrimitive primitive
+                && primitive.isString()
+                && PID_VCT.equals(primitive.getContent());
     }
 
     private boolean isPid(MDoc mdoc) {

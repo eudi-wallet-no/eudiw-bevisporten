@@ -49,26 +49,4 @@ class TillitslisterPropertiesTest {
                         properties.getPidTrustlists())
         );
     }
-
-    @Test
-    @DisplayName("with configured issuer URLs, then matching and default trustlists are returned")
-    void issuerTrustlistsAreResolvedWithDefault() {
-        assertAll(
-                () -> assertEquals(
-                        new TrustlistReference(
-                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws"),
-                                TrustlistFormat.ETSI_602_JSON),
-                        properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/pid")),
-                () -> assertEquals(
-                        new TrustlistReference(
-                                URI.create("https://trustlist.webuild.jwt"),
-                                TrustlistFormat.ETSI_602_JSON),
-                        properties.getTrustlistForIssuer("https://utsteder.eidas2sandkasse.dev/webuild")),
-                () -> assertEquals(
-                        new TrustlistReference(
-                                URI.create("https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl"),
-                                TrustlistFormat.ETSI_612_XML),
-                        properties.getTrustlistForIssuer("https://unknown.example/issuer"))
-        );
-    }
 }

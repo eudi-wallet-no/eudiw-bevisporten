@@ -16,37 +16,29 @@ import java.util.Map;
 public record TrustlistsProperties(
         @DefaultValue("3s") Duration readTimeout,
         @DefaultValue("3s") Duration connectTimeout,
-        Map<@NotBlank String, @NotNull TrustlistEntry> issuerTrustlists,
         Map<@NotBlank String, @NotNull TrustlistEntry> namedTrustlists,
         List<@NotBlank String> pid,
         List<@NotBlank String> attestations
 ) {
 
-    private static final String DEFAULT_ISSUER = "default";
-
     public TrustlistsProperties {
-        issuerTrustlists = issuerTrustlists == null ? Map.of() : Map.copyOf(issuerTrustlists);
         namedTrustlists = namedTrustlists == null ? Map.of() : Map.copyOf(namedTrustlists);
         pid = pid == null ? List.of() : List.copyOf(pid);
         attestations = attestations == null ? List.of() : List.copyOf(attestations);
     }
 
-    public TrustlistReference getTrustlistForIssuer(String issuer) {
-        TrustlistEntry entry = issuerTrustlists.get(issuer);
-        if (entry != null) {
-            return new TrustlistReference(entry.url(), format602(entry.encoding()));
-        }
-        entry = issuerTrustlists.get(DEFAULT_ISSUER);
-        if (entry == null) {
-            throw new VerificationException("invalid_trustlist", "Missing default issuer trustlist");
-        }
-        return new TrustlistReference(entry.url(), TrustlistFormat.ETSI_612_XML);
-    }
-
+    /**
+     * Trustlists for PID credentials, in configured priority order. These are always ETSI TS 119 602
+     * lists, delivered either as XML or as JSON in a JWS/JWT.
+     */
     public List<TrustlistReference> getPidTrustlists() {
         return resolveTrustlists(pid, entry -> format602(entry.encoding()));
     }
 
+    /**
+     * Trustlists for non-PID attestations, in configured priority order. These are always
+     * ETSI TS 119 612 lists, which are always XML.
+     */
     public List<TrustlistReference> getAttestationTrustlists() {
         return resolveTrustlists(attestations, entry -> TrustlistFormat.ETSI_612_XML);
     }

@@ -63,15 +63,6 @@ idporten-key-manager:
 trustlists:
   connect-timeout: 3s
   read-timeout: 3s
-  issuer-trustlists:
-    "[https://utsteder.test.eidas2sandkasse.net/pid]":
-      url: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws
-      encoding: json
-    "[https://utsteder.test.eidas2sandkasse.net/webuild]":
-      url: https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml
-      encoding: xml
-    default:
-      url: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl
   named-trustlists:
     "[eidas2sandkasse-pid]":
       url: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_pid.jws

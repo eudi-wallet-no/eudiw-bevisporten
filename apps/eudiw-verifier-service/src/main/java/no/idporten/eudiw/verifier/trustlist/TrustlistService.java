@@ -130,10 +130,6 @@ public class TrustlistService {
         return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, listOfTrustlists());
     }
 
-    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, TrustlistReference trustlist) {
-        return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(trustlist));
-    }
-
     public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, List<TrustlistReference> trustlists) {
         for (TrustlistReference trustlist : trustlists) {
             URI uri = trustlist.uri();

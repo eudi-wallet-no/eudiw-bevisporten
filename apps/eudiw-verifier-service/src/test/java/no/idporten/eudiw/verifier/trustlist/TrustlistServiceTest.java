@@ -33,6 +33,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 import java.io.IOException;
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 @SpringBootTest
 @ActiveProfiles("junit")
@@ -123,7 +124,7 @@ class TrustlistServiceTest {
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE
                 + certificates.trustlistCertificatePIDSecondOnList() + END_CERTIFICATE);
 
-        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, JWTTRUSTLIST);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(JWTTRUSTLIST));
 
         assertEquals(ValidationStatus.VALID, result);
     }
@@ -329,7 +330,7 @@ class TrustlistServiceTest {
                 .andRespond(withSuccess(getXmlWebuildPidTrustlist(), MediaType.parseMediaType(APPLICATION_ETSI_TSL_XML)));
 
         X509Certificate cert = X509CertUtils.parse(BEGIN_CERTIFICATE + certificates.webuildPidDigdirCertificate() + END_CERTIFICATE);
-        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, XMLWEBUILDPIDTRUSTLIST);
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(XMLWEBUILDPIDTRUSTLIST));
 
         assertEquals(ValidationStatus.VALID, result);
     }
