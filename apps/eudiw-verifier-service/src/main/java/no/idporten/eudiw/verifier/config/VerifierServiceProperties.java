@@ -53,7 +53,7 @@ public class VerifierServiceProperties implements InitializingBean {
         if (apiKey == null || !apiKey.equals(clientApplication.getApiKey())) {
             // TODO: replace logging with exception when clients are ready
             LoggerFactory.getLogger(VerifierServiceProperties.class).warn("Invalid API Key for client application: " + clientApplicationId);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API Key");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API Key"); // TODO skrive om til custom exception som håndteres i ControllerAdvice
         }
 
         return clientApplication;
