@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class VerifierServiceControllerAdvice {
@@ -19,10 +20,18 @@ public class VerifierServiceControllerAdvice {
     }
 
     @ExceptionHandler(IOConnectionException.class)
-    public ResponseEntity<ErrorResponse> handleException(IOConnectionException e) {
+    public ResponseEntity<ErrorResponse> handleIOConnectionException(IOConnectionException e) {
         log.warn("Connect to external service failed", e);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(new ErrorResponse("internal_error", e.getErrorDescription()));
     }
+
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
+        log.warn("Unknown error", e);
+        return ResponseEntity.status(e.getStatusCode()).body(new ErrorResponse(e.getStatusCode().toString(), e.getReason()));
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
