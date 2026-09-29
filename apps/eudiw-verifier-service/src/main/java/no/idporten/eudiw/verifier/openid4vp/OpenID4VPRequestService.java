@@ -159,7 +159,7 @@ public class OpenID4VPRequestService {
                 .claim("response_uri", createResponseUri(clientApplication, verificationTransactionId).toString())
                 .claim("response_type", "vp_token")
                 .claim("response_mode", "direct_post.jwt")
-                .claim("nonce", sessionRecordElements.nonce())
+                .claim("nonce", sessionRecordElements.nonce().getValue())
                 .claim("state", verificationTransaction.getState())
                 .claim("client_id", makeClientId(verificationTransaction.getClientApplication()))
                 .claim("dcql_query", convertDcqlQuery(verificationTransaction.getDcqlQuery()))

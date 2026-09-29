@@ -6,6 +6,8 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.oauth2.sdk.id.Audience;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpSession;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -68,6 +71,7 @@ class OpenID4VPRequestServiceTest {
 
     private OpenID4VPRequestService service;
     private ClientApplication clientApplication;
+    private MockHttpSession mockHttpSession;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -88,6 +92,7 @@ class OpenID4VPRequestServiceTest {
         lenient().when(keystoreManager.getKeyProvider(KEYSTORE_NAME)).thenReturn(keyProvider);
         lenient().when(keyProvider.certificate()).thenReturn(certificate);
         lenient().when(certificate.getEncoded()).thenReturn(new byte[]{1, 2, 3});
+        //mockHttpSession.setAttribute("SessionRecordElements", new SessionRecordElements( new Nonce("nonce"), new Audience("http://example.com/")));
     }
 
     @Test
@@ -139,7 +144,7 @@ class OpenID4VPRequestServiceTest {
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
-                () -> service.retrieveAuthorizationRequest(clientApplication, unknownRequestId, SAME_DEVICE_FLOW));
+                () -> service.retrieveAuthorizationRequest(mockHttpSession, clientApplication, unknownRequestId, SAME_DEVICE_FLOW));
 
         assertAll(
                 () -> assertEquals("invalid_request", exception.getError()),
@@ -158,7 +163,7 @@ class OpenID4VPRequestServiceTest {
         VerificationException exception = assertThrows(
                 VerificationException.class,
                 () -> service.retrieveAuthorizationRequest(
-                        clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+                        mockHttpSession, clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
 
         assertEquals("Unknown verification transaction", exception.getErrorDescription());
     }
@@ -167,8 +172,9 @@ class OpenID4VPRequestServiceTest {
     @DisplayName("When a verification transaction exists, then a signed authorization request is stored and returned")
     void createsAndStoresSignedAuthorizationRequest() throws Exception {
         configureExistingTransaction();
+        mockHttpSession = new MockHttpSession();
 
-        String serializedRequest = service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
+        String serializedRequest = service.retrieveAuthorizationRequest(mockHttpSession, clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
         assertTrue(request.verify(getEcdsaVerifier(keyProvider)));

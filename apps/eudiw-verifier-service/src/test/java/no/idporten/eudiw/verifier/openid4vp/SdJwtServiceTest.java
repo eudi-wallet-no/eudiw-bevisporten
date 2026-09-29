@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpSession;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
@@ -37,6 +38,8 @@ class SdJwtServiceTest {
     @Mock SDJwt mockedSdJwt;
 
     private SdJwtService service;
+
+    private MockHttpSession mockHttpSession;
 
     @BeforeEach
     void setUp() {
@@ -96,7 +99,7 @@ class SdJwtServiceTest {
         when(verificationResult.getDisclosuresVerified()).thenReturn(true);
 
         VerificationException exception =
-                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate));
+                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockHttpSession, mockedSdJwt, certificate));
 
         assertEquals(
                 "Invalid vp_token. Signature verified: false, disclosures verified: true",
