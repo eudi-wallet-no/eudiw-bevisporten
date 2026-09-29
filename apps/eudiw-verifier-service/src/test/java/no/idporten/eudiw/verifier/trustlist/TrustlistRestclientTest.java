@@ -13,6 +13,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.net.URI;
+
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getJsonTrustlist;
 import static no.idporten.eudiw.verifier.testdata.TrustlistTestdata.getXmlTrustlist;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,17 +39,6 @@ public class TrustlistRestclientTest {
 
     public static final String TRUSTLIST_MEDIA_TYPE_XML = "application/vnd.etsi.tsl+xml";
     public static final String TRUSTLIST_MEDIA_TYPE_JSON = "application/jose+json";
-
-    private final TrustlistTestdata trustlistTestdata;
-
-    TrustlistRestclientTest() {
-        try {
-            trustlistTestdata = new TrustlistTestdata();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize TrustlistTestdata", e);
-        }
-    }
-
 
     @BeforeEach
     void setUp() {
@@ -77,13 +68,14 @@ public class TrustlistRestclientTest {
     @DisplayName("and requesting a trustlist XML then request should include trustlist+xml accept header and response should be parsed successfully")
     void restClientShouldIncludeTrustlistXmlAcceptHeader() {
 
-        mockServerXml.expect(requestTo(trustlistProperties.getSandboxTrustlist().attestations()))
+        URI xmlTrustlist = trustlistProperties.getAttestationTrustlists().getFirst().uri();
+        mockServerXml.expect(requestTo(xmlTrustlist))
                 .andExpect(header(HttpHeaders.ACCEPT, TRUSTLIST_MEDIA_TYPE_XML))
                 .andRespond(withSuccess(getXmlTrustlist(),
                         new MediaType("application", "vnd.etsi.tsl+xml", java.nio.charset.StandardCharsets.UTF_8)));
 
         String response = restClientXml.get()
-                .uri(trustlistProperties.getSandboxTrustlist().attestations())
+                .uri(xmlTrustlist)
                 .retrieve()
                 .body(String.class);
 
@@ -96,12 +88,13 @@ public class TrustlistRestclientTest {
     @Test
     @DisplayName("and requesting a trustlist JSON then request should include trustlist+jws accept header and response should be parsed successfully")
     void restClientShouldIncludeTrustlistJsonAcceptHeader() {
-        mockServerJson.expect(requestTo(trustlistProperties.getSandboxTrustlist().pid()))
+        URI jsonTrustlist = trustlistProperties.getPidTrustlists().getFirst().uri();
+        mockServerJson.expect(requestTo(jsonTrustlist))
                 .andExpect(header(HttpHeaders.ACCEPT, TRUSTLIST_MEDIA_TYPE_JSON))
                 .andRespond(withSuccess(getJsonTrustlist(), MediaType.valueOf(TRUSTLIST_MEDIA_TYPE_JSON)));
 
         String response = restClientJson.get()
-                .uri(trustlistProperties.getSandboxTrustlist().pid())
+                .uri(jsonTrustlist)
                 .retrieve()
                 .body(String.class);
 

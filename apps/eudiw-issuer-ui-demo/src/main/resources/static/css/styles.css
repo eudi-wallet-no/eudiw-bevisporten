@@ -25,15 +25,27 @@ body {
 /* Shared page container used inside header, main and footer */
 .page-container {
     width: 100%;
-    max-width: 1380px;
+    max-width: 1280px;
     margin-inline: auto;
-    padding-inline: var(--ds-size-5);
+    padding-inline: var(--ds-size-6);
 }
 
-/* Header */
-header {
+@media (max-width: 899px) {
+    .page-container {
+        padding-inline: var(--ds-size-4);
+    }
+}
+
+/* Header – sticky 75px, sentralt innhald som i eudiw-rp-lookup-web */
+body > header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 75px;
     background-color: var(--ds-color-neutral-background-default);
     border-block-end: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+    display: flex;
+    align-items: center;
 }
 
 .header__inner {
@@ -41,19 +53,15 @@ header {
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: var(--ds-size-4);
-    padding-block: var(--ds-size-5);
-}
-
-@media (min-width: 768px) {
-    .header__inner {
-        padding-block: var(--ds-size-6);
-    }
+    gap: var(--ds-size-8);
+    width: 100%;
+    height: 100%;
 }
 
 .header__brand {
     display: flex;
     align-items: center;
+    align-self: center;
     gap: var(--ds-size-3);
     color: var(--ds-color-neutral-text-default);
     text-decoration: none;
@@ -62,14 +70,14 @@ header {
 
 .header__brand svg {
     display: block;
+    width: var(--ds-size-7);
+    height: var(--ds-size-7);
 }
 
 .header__brand span {
-    /* Give the text a natural line box (instead of a tight line-height: 1)
-       so descenders like g/j render inside it. A too-tight box makes the
-       glyphs hang below their centered box, which reads as misaligned
-       next to the icon even though the boxes themselves are centered. */
-    line-height: 1.5;
+    line-height: 1;
+    display: flex;
+    align-items: center;
 }
 
 /* Mobile menu toggle */
@@ -104,14 +112,87 @@ header {
 }
 
 .header__nav-link {
+    /* Referanse: svarte lenkjer med enkel hover/aktiv botnkant, ikkje ds-link-understrek */
+    --dsc-link-color: var(--ds-color-neutral-text-default);
+    --dsc-link-color--hover: var(--ds-color-neutral-text-default);
+    --dsc-link-color--visited: var(--ds-color-neutral-text-default);
+    --dsc-link-color--active: var(--ds-color-neutral-text-default);
+    --dsc-link-background--active: transparent;
+    --dsc-link-background--focus: transparent;
+    --dsc-link-color--focus: var(--ds-color-neutral-text-default);
+    color: var(--ds-color-neutral-text-default);
+    text-decoration: none;
+    padding-block-end: var(--ds-size-2);
+    border-block-end: var(--ds-border-width-focus) solid transparent;
+    transition: border-color 0.1s ease-out;
+    font-weight: var(--ds-font-weight-regular);
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+}
+
+.header__nav-link:visited {
+    color: var(--ds-color-neutral-text-default);
+}
+
+.header__nav-link:hover,
+.header__nav-link:focus-visible {
+    color: var(--ds-color-neutral-text-default);
+    background: transparent;
+    border-block-end-color: var(--ds-color-neutral-border-subtle);
     text-decoration: none;
 }
 
+.header__nav-link:focus-visible {
+    box-shadow: var(--dsc-focus-boxShadow);
+    outline: var(--dsc-focus-outline);
+    outline-offset: var(--ds-border-width-focus);
+}
+
+.header__nav-link[aria-current="page"],
+.header__nav-link--active {
+    border-block-end-color: var(--ds-color-neutral-border-strong);
+    font-weight: var(--ds-font-weight-medium);
+}
+
 @media (max-width: 767px) {
+    body > header {
+        height: auto;
+        min-height: 75px;
+        padding-block: var(--ds-size-3);
+    }
+
+    .header__inner {
+        height: auto;
+        gap: var(--ds-size-3);
+    }
+
+    .header__brand {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .header__brand span:last-child {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        hyphens: auto;
+        line-height: 1.2;
+    }
+
+    .header__nav-toggle {
+        flex: 0 0 auto;
+        margin-left: auto;
+        align-self: center;
+    }
+
     .header__nav {
+        flex-basis: 100%;
+        width: 100%;
         gap: var(--ds-size-2);
         padding-block-start: var(--ds-size-3);
         border-block-start: var(--ds-border-width-default) solid var(--ds-color-neutral-border-subtle);
+        margin-left: auto;
     }
 
     .header__nav-link {
@@ -120,7 +201,6 @@ header {
         width: 100%;
         min-height: var(--ds-size-12);
         padding-block: var(--ds-size-2);
-        font-size: var(--ds-body-lg-font-size);
     }
 }
 
@@ -135,16 +215,15 @@ header {
         width: auto;
         gap: var(--ds-size-7);
     }
-
 }
 
 /* Main content */
 main {
     width: 100%;
-    max-width: 1380px;
+    max-width: 1280px;
     margin-inline: auto;
     padding-block: var(--ds-size-8);
-    padding-inline: var(--ds-size-5);
+    padding-inline: var(--ds-size-6);
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-10);
@@ -200,6 +279,12 @@ main {
 
     .step-number {
         color: var(--ds-color-neutral-text-subtle);
+    }
+}
+
+@media (max-width: 899px) {
+    main {
+        padding-inline: var(--ds-size-4);
     }
 }
 
@@ -436,7 +521,6 @@ main {
 }
 
 .card-narrow {
-    max-width: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -730,25 +814,117 @@ main {
     }
 }
 
-/* Verification result */
-.verification-result__card {
+/* Verification result – summary */
+.verification-result__summary {
+    margin-block-end: var(--ds-size-6);
+}
+
+.verification-result__summary-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-2);
+    min-width: 0;
+}
+
+.verification-result__summary-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--ds-size-3);
+    row-gap: var(--ds-size-2);
+}
+
+.verification-result__summary-title .ds-heading {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+.verification-result__summary-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.verification-result__summary-icon svg {
+    width: var(--ds-size-8);
+    height: var(--ds-size-8);
+}
+
+/* Verification result – per-credential cards */
+.verification-result__list {
     display: flex;
     flex-direction: column;
     gap: var(--ds-size-6);
 }
+
+.verification-result__item-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-3);
+}
+
+.verification-result__index {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--ds-size-9);
+    height: var(--ds-size-9);
+    border-radius: var(--ds-border-radius-full);
+    background-color: var(--ds-color-neutral-surface-tinted);
+    font-size: var(--ds-body-sm-font-size);
+    font-weight: var(--ds-font-weight-medium);
+}
+
+.verification-result__item-header .ds-heading {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.verification-result__item-status {
+    flex: none;
+}
+
+.verification-result__item-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ds-size-10);
+}
+
+/* ds-card__block reserves margin-block for child elements it inserts between;
+   here the grid/flex gap handles the spacing, so compensate for the extra margin. */
+.verification-result__item-body {
+    --dsc-card-content-margin-block: 0;
+}
+
+.verification-result__column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    min-width: 0;
+}
+
+.verification-result__column-heading {
+    color: var(--ds-color-neutral-text-subtle);
+    font-weight: var(--ds-font-weight-medium);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (max-width: 767px) {
+    .verification-result__item-body {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 /* Venstre kolonne på fullførings-sida: attributt-kort og feltgruppe-bokser,
    same struktur som før utferding */
 .issuance-complete__left {
     display: flex;
     flex-direction: column;
-    min-width: 0;
-}
-
-.verification-result__group {
-    display: flex;
-    flex-direction: column;
     gap: var(--ds-size-3);
+    min-width: 0;
 }
 
 .verification-result__claims {

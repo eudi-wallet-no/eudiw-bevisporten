@@ -2,8 +2,11 @@ package no.idporten.eudiw.issuer.api.openid4vci;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import no.idporten.eudiw.issuer.api.Endpoints;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerMetadataService;
 import no.idporten.eudiw.issuer.openid4vci.metadata.CredentialIssuerMetadata;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +25,13 @@ public class CredentialIssuerMetadataEndpointController {
     private static final String APPLICATION_JWT_VALUE = "application/jwt";
     private static final MediaType APPLICATION_JWT = MediaType.parseMediaType(APPLICATION_JWT_VALUE);
 
+    private final CredentialIssuerTenantService credentialIssuerTenantService;
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
 
-    public CredentialIssuerMetadataEndpointController(CredentialIssuerMetadataService credentialIssuerMetadataService) {
+    public CredentialIssuerMetadataEndpointController(
+            CredentialIssuerTenantService credentialIssuerTenantService,
+            CredentialIssuerMetadataService credentialIssuerMetadataService) {
+        this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuerMetadataService = credentialIssuerMetadataService;
     }
 
@@ -34,14 +41,19 @@ public class CredentialIssuerMetadataEndpointController {
     public ResponseEntity<?> credentialIssuerMetadataEndpoint(
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @RequestHeader(value = HttpHeaders.ACCEPT, required = false) String acceptHeader) {
+        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
         if (prefersSignedMetadata(acceptHeader)) {
             return ResponseEntity.ok()
+                    .cacheControl(CacheControl.maxAge(credentialIssuerTenant.getMetadataLifetime()))
+                    .varyBy(HttpHeaders.ACCEPT)
                     .contentType(APPLICATION_JWT)
-                    .body(credentialIssuerMetadataService.getSignedCredentialIssuerMetadata(tenant));
+                    .body(credentialIssuerMetadataService.getSignedCredentialIssuerMetadata(credentialIssuerTenant));
         }
 
-        CredentialIssuerMetadata metadata = credentialIssuerMetadataService.getCredentialIssuerMetadata(tenant);
+        CredentialIssuerMetadata metadata = credentialIssuerMetadataService.getCredentialIssuerMetadata(credentialIssuerTenant);
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(credentialIssuerTenant.getMetadataLifetime()))
+                .varyBy(HttpHeaders.ACCEPT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(metadata);
     }

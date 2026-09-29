@@ -10,6 +10,7 @@ import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialCon
 import org.springframework.util.StringUtils;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,12 @@ public class CredentialIssuerTenant {
 
     private String metadataSigningKeystore;
 
+    /**
+     * The lifetime for metadata validity.
+     */
+    @Builder.Default
+    private Duration metadataLifetime = Duration.ofMinutes(5);
+
     @Builder.Default
     private RegistrationCertificateProperties registrationCertificate = new RegistrationCertificateProperties(false, null, null);
 
@@ -45,6 +52,7 @@ public class CredentialIssuerTenant {
      * Batch issuance maximum batch size.
      */
     private int batchSize = 1;
+
 
     /**
      * The credential configuration sources containing the credential configurations supported by this credential issuer tenant.

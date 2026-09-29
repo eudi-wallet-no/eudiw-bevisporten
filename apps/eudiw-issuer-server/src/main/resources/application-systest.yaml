@@ -54,6 +54,8 @@ credential-issuer-server:
         api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     bevisgenerator:
+      metadata-lifetime: 30s
+      metadata-signing-keystore: eaa-access
       display-names:
         "no": "Digdir bevisgenerator"
       credential-configuration-sources-properties:
@@ -71,6 +73,8 @@ credential-issuer-server:
             connect-timeout: 2s
             read-timeout: 2s
     pid:
+      metadata-lifetime: 5m
+      metadata-signing-keystore: pid-access
       display-names:
         "no": "PID-utsteder (Norsk ID-bevis)"
       credential-configuration-sources-properties:
@@ -79,9 +83,10 @@ credential-issuer-server:
               - classpath:credential-configurations/pid/pid_mso_mdoc.json
               - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
     minid:
+      metadata-lifetime: 5m
       display-names:
         "no": "MinID bevisutsteder"
-      metadata-signing-keystore: minid-access-keystore
+      metadata-signing-keystore: minid-access
       credential-configuration-sources-properties:
         - local:
             paths:
@@ -96,19 +101,31 @@ idporten-key-manager:
       key-store-password: ${PID_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${PID_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${PID_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    pid-access:
+      key-store-type: ${PID_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${PID_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${PID_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${PID_ACCESS_KEYSTORE_KEY_ALIAS}
+      key-password: ${PID_ACCESS_KEYSTORE_KEY_PASSWORD}
     eaa-provider:
       key-store-type: ${EAA_PROVIDER_KEYSTORE_TYPE}
       key-store-location: ${EAA_PROVIDER_KEYSTORE_LOCATION}
       key-store-password: ${EAA_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${EAA_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${EAA_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    eaa-access:
+      key-store-type: ${EAA_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${EAA_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${EAA_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${EAA_ACCESS_KEYSTORE_KEY_ALIAS}
+      key-password: ${EAA_ACCESS_KEYSTORE_KEY_PASSWORD}
     minid-provider:
       key-store-type: ${MINID_PROVIDER_KEYSTORE_TYPE}
       key-store-location: ${MINID_PROVIDER_KEYSTORE_LOCATION}
       key-store-password: ${MINID_PROVIDER_KEYSTORE_PASSWORD}
       key-alias: ${MINID_PROVIDER_KEYSTORE_KEY_ALIAS}
       key-password: ${MINID_PROVIDER_KEYSTORE_KEY_PASSWORD}
-    minid-access-keystore:
+    minid-access:
       key-store-type: ${MINID_ACCESS_KEYSTORE_TYPE}
       key-store-location: ${MINID_ACCESS_KEYSTORE_LOCATION}
       key-store-password: ${MINID_ACCESS_KEYSTORE_PASSWORD}

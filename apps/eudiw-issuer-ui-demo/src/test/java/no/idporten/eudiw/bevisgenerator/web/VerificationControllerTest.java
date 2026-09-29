@@ -385,7 +385,7 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Attributt")))
                 .andExpect(content().string(containsString("Valideringsdetaljar")))
                 .andExpect(content().string(containsString("verification-result__claims")))
-                .andExpect(content().string(containsString(">PID</p>")))
+                .andExpect(content().string(containsString(">PID</h2>")))
                 .andExpect(content().string(not(containsString("proof of age"))))
                 .andExpect(content().string(not(containsString(">Heim<"))));
 
@@ -467,6 +467,56 @@ class VerificationControllerTest {
                 .andExpect(content().string(containsString("Kari")))
                 .andExpect(content().string(not(containsString("no.digdir.eudiw.pid"))))
                 .andExpect(content().string(not(containsString("eu.europa.ec.eudi.pid.1"))));
+
+        // Mixed-validity rendering: multiple credentials where one is invalid. The
+        // summary must report the partial count with danger status, and the invalid
+        // card must render its own "Ugyldig" status instead of a global success summary.
+        VerificationTransactionData mixedTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id-mixed"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id-mixed"),
+                URI.create("http://verifier/result/tx-id-mixed")
+        );
+        when(verifierService.retrieveVerificationResult("tx-id-mixed")).thenReturn(new VerificationResult(
+                "tx-id-mixed",
+                Map.of(
+                        "pid",
+                        List.of(
+                                new VerifiedCredential(Map.of("fornavn", "Kari"), true, List.of()),
+                                new VerifiedCredential(Map.of("epostadresse", "kari@example.com"), false, List.of())
+                        )
+                )
+        ));
+
+        thymeleafMockMvc.perform(get("/verification-result/mixedKey")
+                        .sessionAttr("verification_session_mixedKey", verificationSession(mixedTransactionData)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("1 av 2 bevis verifisert")))
+                .andExpect(content().string(containsString("Ugyldig")))
+                .andExpect(content().string(containsString("Beviset er ikkje gyldig")))
+                .andExpect(content().string(not(containsString("2 bevis delt og verifisert"))));
+
+        // Empty result: no credentials were overlevert. Must NOT render the success
+        // summary (previously showed "0 bevis delt og verifisert" as success) but a
+        // no-results card instead.
+        VerificationTransactionData emptyTransactionData = new VerificationTransactionData(
+                new VerificationStartResponse("eudi-openid4vp://example", "data:image/png;base64,abc123", "tx-id-empty"),
+                URI.create("http://verifier/start"),
+                "{\"dcql_query\":{\"credentials\":[]}}",
+                URI.create("http://verifier/status/tx-id-empty"),
+                URI.create("http://verifier/result/tx-id-empty")
+        );
+        when(verifierService.retrieveVerificationResult("tx-id-empty")).thenReturn(new VerificationResult(
+                "tx-id-empty",
+                Map.of()
+        ));
+
+        thymeleafMockMvc.perform(get("/verification-result/emptyKey")
+                        .sessionAttr("verification_session_emptyKey", verificationSession(emptyTransactionData)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Ingen bevis vart overlevert i verifikasjonen.")))
+                .andExpect(content().string(not(containsString("bevis delt og verifisert"))));
     }
 
     @Test
@@ -566,6 +616,16 @@ class VerificationControllerTest {
         mockMvc.perform(get("/verification-presentation/uniqueKey/status")
                         .sessionAttr("verification_session_uniqueKey", verificationSessionData))
                 .andExpect(status().isAccepted());
+    }
+
+    @Test
+    void getVerificationStatusReturnsGoneWhenStatusIsError() throws Exception {
+        when(verifierService.retrieveVerificationStatus("tx-id"))
+                .thenReturn(new VerificationStatus("ERROR", "tx-id"));
+
+        mockMvc.perform(get("/verification-presentation/uniqueKey/status")
+                        .sessionAttr("verification_session_uniqueKey", verificationSessionData))
+                .andExpect(status().isGone());
     }
 
     @Test

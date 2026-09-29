@@ -63,6 +63,7 @@ credential-issuer-server:
         api-key: ${AUTH_SOURCE_ADVOKATREGISTERET_API_KEY}
   tenants:
     bevisgenerator:
+      metadata-lifetime: 30s
       display-names:
         "no": "Digdir bevisgenerator"
       credential-configuration-sources-properties:
@@ -80,6 +81,7 @@ credential-issuer-server:
             connect-timeout: 2s
             read-timeout: 2s
     pid:
+      metadata-lifetime: 5m
       display-names:
         "no": "PID-utsteder (Norsk ID-bevis)"
       credential-configuration-sources-properties:
@@ -88,6 +90,7 @@ credential-issuer-server:
               - classpath:credential-configurations/pid/pid_mso_mdoc.json
               - classpath:credential-configurations/pid/pid_sd_jwt_vc.json
     minid:
+      metadata-lifetime: 5m
       display-names:
         "no": "MinID bevisutsteder"
       credential-configuration-sources-properties:
