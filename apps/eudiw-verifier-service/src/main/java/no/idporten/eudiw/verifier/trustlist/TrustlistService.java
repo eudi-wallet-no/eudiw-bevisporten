@@ -8,6 +8,10 @@ import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.DigitalId602Xml;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.LoTEXml602;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.TrustedEntity602Xml;
+import no.idporten.eudiw.verifier.trustlist.etsi602xml.TrustedEntityService602Xml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.DigitalId;
 import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
 import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
@@ -21,11 +25,9 @@ import org.springframework.web.client.RestClient;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import javax.security.auth.x500.X500Principal;
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,58 +44,51 @@ public class TrustlistService {
         this.trustlistsProperties = trustlistsProperties;
     }
 
-    public Object connectToTrustlist(URI uri)  {
-        String trustlist;
-        try{
-            trustlist = trustlistRestclient.get()
+    private String fetchTrustlist(URI uri) {
+        try {
+            return trustlistRestclient.get()
                     .uri(uri.toString())
                     .retrieve()
                     .body(String.class);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot fetch trustlist", e);
         }
-        if (uri.toString().endsWith("xtsl")) {
-            return xmlListMapping(trustlist);
-        } else if (uri.toString().endsWith("jws")) {
-            return jsonListMapping(trustlist);
-        } else {
-            throw new VerificationException("invalid_request", "unsupported trustlist format");
-        }
     }
 
-    public String issuerName(LdapName ldapName) {
-        for (Rdn rdn : ldapName.getRdns()) {
-            if ("O".equalsIgnoreCase(rdn.getType())) {
-                return rdn.getValue().toString();
-            }
-        }
-        return null;
+    /**
+     * Fetches and parses the trustlist at the given reference. The reference's {@link TrustlistFormat}
+     * is declared in configuration (see {@link TrustlistEntry}) and fully determines how the response
+     * body is parsed; no format guessing based on the URL happens here.
+     */
+    public Object connectToTrustlist(TrustlistReference reference) {
+        String trustlist = fetchTrustlist(reference.uri());
+        return switch (reference.format()) {
+            case ETSI_612_XML -> xmlListMapping(trustlist);
+            case ETSI_602_XML -> xml602Mapping(trustlist);
+            case ETSI_602_JSON -> jsonListMapping(trustlist);
+        };
     }
 
-    public List<URI> listOfTrustlists () {
-        return List.of(
-                trustlistsProperties.getSandboxTrustlist().attestations(),
-                trustlistsProperties.getSandboxTrustlist().pid()
-        );
+    public List<TrustlistReference> listOfTrustlists () {
+        List<TrustlistReference> trustlists = new ArrayList<>(trustlistsProperties.getAttestationTrustlists());
+        trustlists.addAll(trustlistsProperties.getPidTrustlists());
+        return trustlists;
     }
 
-    protected boolean checkJson602(URI uri, X509Certificate cert, String jwsHeaderCertificateIssuer)  {
-        LoTEJson lote = (LoTEJson) connectToTrustlist(uri);
+    protected boolean checkJson602(URI uri, X509Certificate cert)  {
+        LoTEJson lote = jsonListMapping(fetchTrustlist(uri));
         boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
         for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
             for(TrustedEntityService service : trustedEntity.trustedEntityServices()) {
                 for(X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
-                    String trustListIssuer = issuerName(ldapName(individual.getIssuerX500Principal().getName(X500Principal.RFC2253)));
-                    if(jwsHeaderCertificateIssuer.equals(trustListIssuer)) {
-                        if(compareCertificates(cert, individual)) {
-                            if(allActive || service.serviceInformation().serviceStatus() != null) {
-                                return true;
-                            } else {
-                                throw new VerificationException("invalid_request", "Service "+
-                                        service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
-                                        "  is set to inactive on trustlist," +
-                                        "or is missing status field ");
-                            }
+                    if(compareCertificates(cert, individual)) {
+                        if(allActive || service.serviceInformation().serviceStatus() != null) {
+                            return true;
+                        } else {
+                            throw new VerificationException("invalid_request", "Service "+
+                                    service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
+                                    "  is set to inactive on trustlist," +
+                                    "or is missing status field ");
                         }
                     }
                 }
@@ -102,17 +97,28 @@ public class TrustlistService {
         return false;
     }
 
-    protected boolean checkXml612(URI uri, X509Certificate cert, String jwsHeaderCertificateIssuer)  {
-        LoTEXml lote = (LoTEXml) connectToTrustlist(uri);
+    protected boolean checkXml612(URI uri, X509Certificate cert)  {
+        LoTEXml lote = xmlListMapping(fetchTrustlist(uri));
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
             for(TSPService service : sp.services().services()) {
                 for(DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
-                    String trustlistIssuer = issuerName(ldapName(digitalId.getCertificateAsX509Object().getIssuerX500Principal().
-                                    getName(X500Principal.RFC2253)));
-                    if (jwsHeaderCertificateIssuer.equals(trustlistIssuer)) {
-                        if (compareCertificates(cert,digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
-                            return true;
-                        }
+                    if (compareCertificates(cert,digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    protected boolean checkXml602(URI uri, X509Certificate cert)  {
+        LoTEXml602 lote = xml602Mapping(fetchTrustlist(uri));
+        for (TrustedEntity602Xml trustedEntity : lote.trustedEntitiesList().trustedEntities()) {
+            for (TrustedEntityService602Xml service : trustedEntity.trustedEntityServices().services()) {
+                for (DigitalId602Xml digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
+                    // No status concept exists in this XML format; every entry is treated as active.
+                    if (compareCertificates(cert, digitalId.getCertificateAsX509Object())) {
+                        return true;
                     }
                 }
             }
@@ -121,19 +127,19 @@ public class TrustlistService {
     }
 
     public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert)  {
-        String jwsHeaderCertificateIssuer = issuerName(ldapName(cert.getIssuerX500Principal().getName(X500Principal.RFC2253)));
-        for(URI uri : listOfTrustlists()){
-            if (uri.toString().endsWith("xtsl")) {
-                if (checkXml612(uri, cert, jwsHeaderCertificateIssuer)) {
-                    return ValidationStatus.VALID;
-                }
-            } else if (uri.toString().endsWith("jws")) {
-                if (checkJson602(uri, cert, jwsHeaderCertificateIssuer)) {
-                    return ValidationStatus.VALID;
-                }
-            }
-            else {
-                throw new VerificationException("invalid_request", "Unknown trustlist format for trustlist " + uri);
+        return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, listOfTrustlists());
+    }
+
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert, List<TrustlistReference> trustlists) {
+        for (TrustlistReference trustlist : trustlists) {
+            URI uri = trustlist.uri();
+            boolean valid = switch (trustlist.format()) {
+                case ETSI_612_XML -> checkXml612(uri, cert);
+                case ETSI_602_XML -> checkXml602(uri, cert);
+                case ETSI_602_JSON -> checkJson602(uri, cert);
+            };
+            if (valid) {
+                return ValidationStatus.VALID;
             }
         }
         return ValidationStatus.INVALID;
@@ -148,6 +154,18 @@ public class TrustlistService {
             return xmlMapper.readValue(trustlist, LoTEXml.class);
         } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 612 trustlist", e);
+        }
+    }
+
+    public LoTEXml602 xml602Mapping(String trustlist) {
+        try {
+            XmlMapper xmlMapper = XmlMapper.builder()
+                    .defaultUseWrapper(false)
+                    .enable(FromXmlParser.Feature.EMPTY_ELEMENT_AS_NULL)
+                    .build();
+            return xmlMapper.readValue(trustlist, LoTEXml602.class);
+        } catch (Exception e) {
+            throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 602 XML trustlist", e);
         }
     }
 
@@ -167,14 +185,6 @@ public class TrustlistService {
             return Arrays.toString(certificatesToCompareWith.getTBSCertificate()).equals(Arrays.toString(certificateFromWalletResponse.getTBSCertificate()));
         } catch (Exception e) {
             throw new VerificationException("invalid_request", "Cannot compare certificates", e);
-        }
-    }
-
-    protected LdapName ldapName(String distinguishedName) {
-        try {
-            return new LdapName(distinguishedName);
-        } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot parse distinguished name", e);
         }
     }
 
