@@ -146,14 +146,13 @@ public class OpenID4VPRequestService {
         KeyProvider keyProvider = keystoreManager.getKeyProvider(verificationTransaction.getClientApplication().getKeystoreName());
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
-        Audience audience = new Audience("https://self-issued.me/v2");
+        verificationTransaction.setAudience(makeClientId(verificationTransaction.getClientApplication()));
         Nonce nonce = new Nonce();
         verificationTransaction.setNonce(nonce.getValue());
-        verificationTransaction.setAudience(audience.getValue());
 
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-                .audience(audience.getValue())
+                .audience(verificationTransaction.getAudience())
                 .issuer(verifierServiceProperties.getExternalBaseUri())
                 .claim("response_uri", createResponseUri(clientApplication, verificationTransactionId).toString())
                 .claim("response_type", "vp_token")

@@ -71,7 +71,6 @@ class OpenID4VPRequestServiceTest {
 
     private OpenID4VPRequestService service;
     private ClientApplication clientApplication;
-    private MockHttpSession mockHttpSession;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -92,7 +91,6 @@ class OpenID4VPRequestServiceTest {
         lenient().when(keystoreManager.getKeyProvider(KEYSTORE_NAME)).thenReturn(keyProvider);
         lenient().when(keyProvider.certificate()).thenReturn(certificate);
         lenient().when(certificate.getEncoded()).thenReturn(new byte[]{1, 2, 3});
-        //mockHttpSession.setAttribute("SessionRecordElements", new SessionRecordElements( new Nonce("nonce"), new Audience("http://example.com/")));
     }
 
     @Test
