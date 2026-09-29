@@ -36,7 +36,6 @@ import tools.jackson.databind.ObjectMapper;
 import java.security.PrivateKey;
 import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,7 +49,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CredentialIssuerMetadataService {
     private static final JOSEObjectType METADATA_JWT_TYPE = new JOSEObjectType("openidvci-issuer-metadata+jwt");
-    private static final Duration METADATA_VALIDITY = Duration.ofMinutes(5);
 
     private final Logger log = LoggerFactory.getLogger(CredentialIssuerMetadataService.class);
 
@@ -77,19 +75,18 @@ public class CredentialIssuerMetadataService {
         this.objectMapper = objectMapper;
     }
 
-    public CredentialIssuerMetadata getCredentialIssuerMetadata(String tenant) {
-        final String normalizedTenant = credentialIssuerTenantService.normalizeTenant(tenant);
-        CredentialIssuerMetadata credentialIssuerMetadata = credentialIssuerMetadataCache.get(normalizedTenant);
+    public CredentialIssuerMetadata getCredentialIssuerMetadata(CredentialIssuerTenant tenant) {
+        final String tenantId = tenant.getId();
+        CredentialIssuerMetadata credentialIssuerMetadata = credentialIssuerMetadataCache.get(tenantId);
         if (credentialIssuerMetadata == null) {
-            credentialIssuerMetadata = credentialIssuerMetadata(credentialIssuerServerProperties, credentialIssuerTenantService.findTenantById(normalizedTenant));
-            credentialIssuerMetadataCache.put(normalizedTenant, credentialIssuerMetadata);
+            credentialIssuerMetadata = credentialIssuerMetadata(credentialIssuerServerProperties, tenant);
+            credentialIssuerMetadataCache.put(tenantId, credentialIssuerMetadata);
         }
         return credentialIssuerMetadata;
     }
 
-    public String getSignedCredentialIssuerMetadata(String tenant) {
-        CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
-        CredentialIssuerMetadata credentialIssuerMetadata = getCredentialIssuerMetadata(tenant);
+    public String getSignedCredentialIssuerMetadata(CredentialIssuerTenant credentialIssuerTenant) {
+        CredentialIssuerMetadata credentialIssuerMetadata = getCredentialIssuerMetadata(credentialIssuerTenant);
 
         return signCredentialIssuerMetadata(credentialIssuerMetadata, credentialIssuerTenant);
     }
@@ -113,7 +110,7 @@ public class CredentialIssuerMetadataService {
                     .issuer(tenant.getCredentialIssuer().toString())
                     .subject(tenant.getCredentialIssuer().toString())
                     .issueTime(issuedAt)
-                    .expirationTime(Date.from(issuedAt.toInstant().plus(METADATA_VALIDITY)))
+                    .expirationTime(Date.from(issuedAt.toInstant().plus(tenant.getMetadataLifetime())))
                     .build();
             PrivateKey privateKey = keyProvider.privateKey();
             final JWSAlgorithm jwsAlgorithm;

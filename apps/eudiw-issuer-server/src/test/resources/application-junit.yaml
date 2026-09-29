@@ -48,6 +48,7 @@ credential-issuer-server:
               - classpath:credential-configurations/junit_pre_sd_jwt_vc.json
     junit:
       batch-size: 5
+      metadata-lifetime: 1m
       display-names:
         "no": Junit Tenant
       credential-configuration-sources-properties:
