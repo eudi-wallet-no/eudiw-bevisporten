@@ -7,11 +7,8 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.shaded.gson.JsonObject;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
 import id.walt.sdjwt.*;
 import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -151,7 +148,6 @@ public class SdJwtService {
         Map<String, Object> jwk = (Map<String, Object>) cnf.get("jwk");
 
         ECPublicKey holderKey = jwkToEcPublicKey(jwk);
-
         try {
             JWSVerifier verifier = new ECDSAVerifier(holderKey);
             SimpleJWTCryptoProvider cryptoProviderHolderBinding =
@@ -162,21 +158,17 @@ public class SdJwtService {
         }
     }
 
-    private static ECPublicKey jwkToEcPublicKey(Map<String, Object> cnf) {
+    private static ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {
         try {
-            Object jwkObj = cnf.get("jwk");
-            if (!(jwkObj instanceof Map<?, ?> jwkMap)) {
+            if (!(jwk instanceof Map<?, ?> jwkMap)) {
                 throw new IllegalArgumentException("cnf.jwk missing");
             }
+            JWK parsedJwk = JWK.parse(jwkMap.toString());
 
-            JWK jwk = JWK.parse(jwkMap.toString());
-
-            if (!(jwk instanceof ECKey ecKey)) {
+            if (!(parsedJwk instanceof ECKey ecKey)) {
                 throw new IllegalArgumentException("cnf.jwk is not EC");
             }
-
             return ecKey.toECPublicKey();
-
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to parse cnf JWK", e);
         }

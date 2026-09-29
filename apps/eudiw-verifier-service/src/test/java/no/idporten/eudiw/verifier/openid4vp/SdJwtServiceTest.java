@@ -44,6 +44,7 @@ class SdJwtServiceTest {
     @BeforeEach
     void setUp() {
         service = new SdJwtService(JsonMapper.builder().build());
+        mockHttpSession = new MockHttpSession();
     }
 
     @Test

@@ -459,6 +459,7 @@ class OpenID4VPResponseServiceTest {
         }
     }
 
+
     private void assertVpTokenFailure(Map<?, ?> vpToken, String message) throws Exception {
         reset(verificationService);
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
