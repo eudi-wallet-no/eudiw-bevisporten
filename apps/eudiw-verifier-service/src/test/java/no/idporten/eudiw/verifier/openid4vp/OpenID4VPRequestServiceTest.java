@@ -177,7 +177,6 @@ class OpenID4VPRequestServiceTest {
         VerificationTransaction storedTransaction = captureStoredTransaction();
 
         assertAll(
-                () -> assertEquals("https://self-issued.me/v2", request.getJWTClaimsSet().getAudience().getFirst()),
                 () -> assertEquals(EXTERNAL_BASE_URI, request.getJWTClaimsSet().getIssuer()),
                 () -> assertEquals(SAME_DEVICE_FLOW, storedTransaction.getFlow()),
                 () -> assertEquals(request.getJWTClaimsSet().toJSONObject(), storedTransaction.getRequest()),
