@@ -74,7 +74,6 @@ class OpenID4VPResponseServiceTest {
     @Mock SDJwt sdJwt;
     @Mock VerificationResult<SDJwt> sdJwtResult;
     @Mock X509Certificate certificate;
-    MockHttpSession mockHttpSession;
 
     private OpenID4VPResponseService service;
     private ClientApplication client;
@@ -89,8 +88,6 @@ class OpenID4VPResponseServiceTest {
         client = new ClientApplication();
         client.setId("client");
         encryptionKey = new ECKeyGenerator(Curve.P_256).generate();
-        mockHttpSession = new MockHttpSession();
-        mockHttpSession.setAttribute("SessionRecordElements", new SessionRecordElements( new Nonce("nonce"), new Audience("http://example.com/")));
     }
 
     @Test
