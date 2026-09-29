@@ -10,6 +10,8 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.testdata.Certificates;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("When handling SD-JWT credentials")
 class SdJwtServiceTest {
 
+    private static final Logger log = LogManager.getLogger(SdJwtServiceTest.class);
     @Mock VerificationResult<SDJwt> verificationResult;
     @Mock SDJwt mockedSdJwt;
 

@@ -5,16 +5,22 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.shaded.gson.JsonObject;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.sdjwt.SDJwt;
-import id.walt.sdjwt.SimpleJWTCryptoProvider;
-import id.walt.sdjwt.VerificationResult;
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
+import id.walt.sdjwt.*;
+import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -28,6 +34,7 @@ import java.util.*;
 
 @Service
 public class SdJwtService {
+    private static final Logger log = LogManager.getLogger(SdJwtService.class);
     private final ObjectMapper objectMapper;
 
     public SdJwtService(ObjectMapper objectMapper) {
@@ -39,7 +46,7 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert) {
+    public VerificationResult<SDJwt> verifySdJwt(HttpSession session, SDJwt sdJwt, X509Certificate cert) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
@@ -50,6 +57,11 @@ public class SdJwtService {
                     "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(
                             verificationResult.getSignatureVerified(),
                             verificationResult.getDisclosuresVerified()));
+        }
+        if (!holderBinding(session, verificationResult.getSdJwt())) {
+            throw new VerificationException(
+                    "invalid_request",
+                    "Invalid vp_token. Holder binding failed.");
         }
         return verificationResult;
     }
@@ -119,16 +131,59 @@ public class SdJwtService {
         }
     }
 
-    protected JWSAlgorithm algorithm(X509Certificate cert) {
-        return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
+    public boolean holderBinding(HttpSession session, SDJwt sdJwt) {
+        return checkHolderBinding(session, sdJwt);
     }
 
-    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt) {
-        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(jwtCryptoProvider, null);
-        if (!verificationResult.getVerified()) {
-            throw new VerificationException("invalid_request", "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(verificationResult.getSignatureVerified(), verificationResult.getDisclosuresVerified()));
+
+    /**
+     * Check holder binding by verifying the key binding JWT using the holder's public key from the SD-JWT's "cnf" claim.
+     * @param session contains nonce and aud from authorization request.
+     * @param sdJwt the SD-JWT containing the key binding JWT and the holder's public key in the "cnf" claim.
+     * @return true if the holder binding is valid, false otherwise.
+     */
+    protected boolean checkHolderBinding(HttpSession session, SDJwt sdJwt) {
+
+        SessionRecordElements sessionRecordElements = (SessionRecordElements) session.getAttribute("sessionRecordElements");
+
+        Object cnfRaw = sdJwt.getFullPayload().get("cnf");
+        Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
+        Map<String, Object> jwk = (Map<String, Object>) cnf.get("jwk");
+
+        ECPublicKey holderKey = jwkToEcPublicKey(jwk);
+
+        try {
+            JWSVerifier verifier = new ECDSAVerifier(holderKey);
+            SimpleJWTCryptoProvider cryptoProviderHolderBinding =
+                    new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, null, verifier);
+            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, sessionRecordElements.aud().getValue(), sessionRecordElements.nonce().getValue(), sdJwt, null);
+        } catch (JOSEException e) {
+            throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
         }
-        return verificationResult;
+    }
+
+    private static ECPublicKey jwkToEcPublicKey(Map<String, Object> cnf) {
+        try {
+            Object jwkObj = cnf.get("jwk");
+            if (!(jwkObj instanceof Map<?, ?> jwkMap)) {
+                throw new IllegalArgumentException("cnf.jwk missing");
+            }
+
+            JWK jwk = JWK.parse(jwkMap.toString());
+
+            if (!(jwk instanceof ECKey ecKey)) {
+                throw new IllegalArgumentException("cnf.jwk is not EC");
+            }
+
+            return ecKey.toECPublicKey();
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to parse cnf JWK", e);
+        }
+    }
+
+    protected JWSAlgorithm algorithm(X509Certificate cert) {
+        return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {

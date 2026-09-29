@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.JWK;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
+import jakarta.servlet.http.HttpSession;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -47,13 +48,14 @@ public class OpenID4VPResponseService {
         this.sdJwtService = sdJwtService;
     }
 
-    public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
+    public WalletCallback receiveResponse(HttpSession session, ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
         }
         try {
             return processResponse(
+                    session,
                     clientApplication,
                     verifierTransactionId,
                     encryptedAuthorizationResponse,
@@ -65,6 +67,7 @@ public class OpenID4VPResponseService {
     }
 
     private WalletCallback processResponse(
+            HttpSession session,
             ClientApplication clientApplication,
             String verifierTransactionId,
             EncryptedAuthorizationResponse encryptedAuthorizationResponse,
@@ -102,7 +105,7 @@ public class OpenID4VPResponseService {
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
                 VerifiedCredential verifiedCredential;
                 if ("dc+sd-jwt".equals(format)) {
-                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
+                    verifiedCredential = sdJwtVerifiedCredential(session, verifiablePresentation.value(), verificationTransaction);
                 } else if ("mso_mdoc".equals(format)) {
                     verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
                 } else {
@@ -231,10 +234,10 @@ public class OpenID4VPResponseService {
         return status;
     }
 
-    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
+    private VerifiedCredential sdJwtVerifiedCredential(HttpSession session, String vpToken, VerificationTransaction verificationTransaction) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
-        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
+        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(session, unverifiedSDJwt, cert);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 
