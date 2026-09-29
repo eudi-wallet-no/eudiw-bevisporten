@@ -37,7 +37,7 @@ public class TrustlistService {
     private static final Logger log = LoggerFactory.getLogger(TrustlistService.class);
     private final RestClient trustlistRestclient;
 
-    private final TrustlistsProperties  trustlistsProperties;
+    private final TrustlistsProperties trustlistsProperties;
 
     public TrustlistService(@Qualifier("trustlist") RestClient trustlistRestclient, TrustlistsProperties trustlistsProperties) {
         this.trustlistRestclient = trustlistRestclient;
@@ -51,7 +51,7 @@ public class TrustlistService {
                     .retrieve()
                     .body(String.class);
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot fetch trustlist", e);
+            throw new VerificationException("invalid_request", "Cannot fetch trustlist %s".formatted(uri), e);
         }
     }
 
@@ -69,23 +69,24 @@ public class TrustlistService {
         };
     }
 
-    public List<TrustlistReference> listOfTrustlists () {
+    public List<TrustlistReference> listOfTrustlists() {
         List<TrustlistReference> trustlists = new ArrayList<>(trustlistsProperties.getAttestationTrustlists());
         trustlists.addAll(trustlistsProperties.getPidTrustlists());
         return trustlists;
     }
 
-    protected boolean checkJson602(URI uri, X509Certificate cert)  {
+    protected boolean checkJson602(URI uri, X509Certificate cert) {
+        log.info("Checking certificate against 119602 JSON trustlist at {}", uri);
         LoTEJson lote = jsonListMapping(fetchTrustlist(uri));
         boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
         for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
-            for(TrustedEntityService service : trustedEntity.trustedEntityServices()) {
-                for(X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
-                    if(compareCertificates(cert, individual)) {
-                        if(allActive || service.serviceInformation().serviceStatus() != null) {
+            for (TrustedEntityService service : trustedEntity.trustedEntityServices()) {
+                for (X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
+                    if (compareCertificates(cert, individual)) {
+                        if (allActive || service.serviceInformation().serviceStatus() != null) {
                             return true;
                         } else {
-                            throw new VerificationException("invalid_request", "Service "+
+                            throw new VerificationException("invalid_request", "Service " +
                                     service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
                                     "  is set to inactive on trustlist," +
                                     "or is missing status field ");
@@ -97,12 +98,13 @@ public class TrustlistService {
         return false;
     }
 
-    protected boolean checkXml612(URI uri, X509Certificate cert)  {
+    protected boolean checkXml612(URI uri, X509Certificate cert) {
+        log.info("Checking certificate against 119612 XML trustlist at {}", uri);
         LoTEXml lote = xmlListMapping(fetchTrustlist(uri));
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
-            for(TSPService service : sp.services().services()) {
-                for(DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
-                    if (compareCertificates(cert,digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
+            for (TSPService service : sp.services().services()) {
+                for (DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
+                    if (compareCertificates(cert, digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
                         return true;
                     }
                 }
@@ -111,7 +113,8 @@ public class TrustlistService {
         return false;
     }
 
-    protected boolean checkXml602(URI uri, X509Certificate cert)  {
+    protected boolean checkXml602(URI uri, X509Certificate cert) {
+        log.info("Checking certificate against 119602 XML trustlist at {}", uri);
         LoTEXml602 lote = xml602Mapping(fetchTrustlist(uri));
         for (TrustedEntity602Xml trustedEntity : lote.trustedEntitiesList().trustedEntities()) {
             for (TrustedEntityService602Xml service : trustedEntity.trustedEntityServices().services()) {
@@ -126,7 +129,7 @@ public class TrustlistService {
         return false;
     }
 
-    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert)  {
+    public ValidationStatus checkIfCertificateFromJwsHeaderIsOnTrustlist(X509Certificate cert) {
         return checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, listOfTrustlists());
     }
 
@@ -180,7 +183,7 @@ public class TrustlistService {
 
     }
 
-    protected boolean compareCertificates(X509Certificate certificateFromWalletResponse,X509Certificate certificatesToCompareWith) {
+    protected boolean compareCertificates(X509Certificate certificateFromWalletResponse, X509Certificate certificatesToCompareWith) {
         try {
             return Arrays.toString(certificatesToCompareWith.getTBSCertificate()).equals(Arrays.toString(certificateFromWalletResponse.getTBSCertificate()));
         } catch (Exception e) {
@@ -189,15 +192,11 @@ public class TrustlistService {
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
-        switch (status) {
-            case INCONCLUSIVE:
-                return "Tillitsliste: validering feila";
-            case VALID:
-                return "Tillitsliste: bevisets sertifikat er på tillitslista";
-            case INVALID:
-                return "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
-            default:
-                return "Tillitsliste: ukjent status";
-        }
+        return switch (status) {
+            case INCONCLUSIVE -> "Tillitsliste: validering feila";
+            case VALID -> "Tillitsliste: bevisets sertifikat er på tillitslista";
+            case INVALID -> "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
+            default -> "Tillitsliste: ukjent status";
+        };
     }
 }
