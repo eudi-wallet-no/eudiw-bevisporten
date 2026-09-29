@@ -49,8 +49,8 @@ trustlists:
       url: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_pid.jws
       encoding: json
     "[webuild-pid]":
-      url: https://trustlist.webuild.jwt
-      encoding: json
+      url: https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml
+      encoding: xml
     "[eidas2sandkasse.xtsl]":
       url: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
   pid:
