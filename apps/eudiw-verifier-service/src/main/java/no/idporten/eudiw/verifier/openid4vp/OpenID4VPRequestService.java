@@ -16,11 +16,7 @@ import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.id.Audience;
-import com.nimbusds.oauth2.sdk.pkce.CodeChallengeMethod;
-import com.nimbusds.oauth2.sdk.pkce.CodeVerifier;
 import com.nimbusds.openid.connect.sdk.Nonce;
-import com.nimbusds.oauth2.sdk.id.State;
-import jakarta.servlet.http.HttpSession;
 import lombok.SneakyThrows;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -112,7 +108,7 @@ public class OpenID4VPRequestService {
     }
 
     @SneakyThrows
-    public String retrieveAuthorizationRequest(HttpSession session, ClientApplication clientApplication, String requestId, String flow) {
+    public String retrieveAuthorizationRequest(ClientApplication clientApplication, String requestId, String flow) {
         String verificationTransactionId = cacheService.retrieveAuthorizationRequest(clientApplication, requestId);
         if (verificationTransactionId == null) {
             throw new VerificationException("invalid_request", "Unknown authorization request");
@@ -126,7 +122,7 @@ public class OpenID4VPRequestService {
         verificationTransaction.setState(state);
         verificationTransaction.setEncryptionKey(encryptionKey);
         verificationTransaction.setFlow(flow);
-        JWT authorizationRequest = makeRequestJwt(session, verificationTransaction, clientApplication, verificationTransactionId);
+        JWT authorizationRequest = makeRequestJwt(verificationTransaction, clientApplication, verificationTransactionId);
         verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
         cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
         return authorizationRequest.serialize();
@@ -146,20 +142,22 @@ public class OpenID4VPRequestService {
         }
     }
 
-    private JWT makeRequestJwt(HttpSession session, VerificationTransaction verificationTransaction, ClientApplication clientApplication, String verificationTransactionId) throws Exception {
+    private JWT makeRequestJwt(VerificationTransaction verificationTransaction, ClientApplication clientApplication, String verificationTransactionId) throws Exception {
         KeyProvider keyProvider = keystoreManager.getKeyProvider(verificationTransaction.getClientApplication().getKeystoreName());
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
-        SessionRecordElements sessionRecordElements = new SessionRecordElements(new Nonce(),new Audience("https://self-issued.me/v2"));
-        session.setAttribute("sessionRecordElements", sessionRecordElements);
+        Audience audience = new Audience("https://self-issued.me/v2");
+        Nonce nonce = new Nonce();
+        verificationTransaction.setNonce(nonce.getValue());
+
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
-                .audience(sessionRecordElements.aud().getValue())
+                .audience(audience.getValue())
                 .issuer(verifierServiceProperties.getExternalBaseUri())
                 .claim("response_uri", createResponseUri(clientApplication, verificationTransactionId).toString())
                 .claim("response_type", "vp_token")
                 .claim("response_mode", "direct_post.jwt")
-                .claim("nonce", sessionRecordElements.nonce().getValue())
+                .claim("nonce", verificationTransaction.getNonce())
                 .claim("state", verificationTransaction.getState())
                 .claim("client_id", makeClientId(verificationTransaction.getClientApplication()))
                 .claim("dcql_query", convertDcqlQuery(verificationTransaction.getDcqlQuery()))

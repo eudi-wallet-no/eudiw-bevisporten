@@ -43,7 +43,7 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verifySdJwt(HttpSession session, SDJwt sdJwt, X509Certificate cert) {
+    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
@@ -55,7 +55,7 @@ public class SdJwtService {
                             verificationResult.getSignatureVerified(),
                             verificationResult.getDisclosuresVerified()));
         }
-        if (!holderBinding(session, verificationResult.getSdJwt())) {
+        if (!holderBinding(verificationResult.getSdJwt(), verificationTransaction)) {
             throw new VerificationException(
                     "invalid_request",
                     "Invalid vp_token. Holder binding failed.");
@@ -128,20 +128,22 @@ public class SdJwtService {
         }
     }
 
-    public boolean holderBinding(HttpSession session, SDJwt sdJwt) {
-        return checkHolderBinding(session, sdJwt);
+    public boolean holderBindingRequired(String dcql) {
+        return dcql != null && dcql.contains("cnf");
+    }
+
+    public boolean holderBinding(SDJwt sdJwt, VerificationTransaction verificationTransaction) {
+        return checkHolderBinding(verificationTransaction, sdJwt);
     }
 
 
     /**
      * Check holder binding by verifying the key binding JWT using the holder's public key from the SD-JWT's "cnf" claim.
-     * @param session contains nonce and aud from authorization request.
+     * @param verificationTransaction contains nonce and aud from authorization request.
      * @param sdJwt the SD-JWT containing the key binding JWT and the holder's public key in the "cnf" claim.
      * @return true if the holder binding is valid, false otherwise.
      */
-    protected boolean checkHolderBinding(HttpSession session, SDJwt sdJwt) {
-
-        SessionRecordElements sessionRecordElements = (SessionRecordElements) session.getAttribute("sessionRecordElements");
+    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt) {
 
         Object cnfRaw = sdJwt.getFullPayload().get("cnf");
         Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
@@ -152,7 +154,7 @@ public class SdJwtService {
             JWSVerifier verifier = new ECDSAVerifier(holderKey);
             SimpleJWTCryptoProvider cryptoProviderHolderBinding =
                     new SimpleJWTCryptoProvider(JWSAlgorithm.ES256, null, verifier);
-            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, sessionRecordElements.aud().getValue(), sessionRecordElements.nonce().getValue(), sdJwt, null);
+            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, "aud", verificationTransaction.getNonce(), sdJwt, null);
         } catch (JOSEException e) {
             throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
         }
