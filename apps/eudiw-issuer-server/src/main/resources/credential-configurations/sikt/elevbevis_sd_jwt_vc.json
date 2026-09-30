@@ -25,7 +25,7 @@
     "claims": [
       {
         "path": "expiry_date",
-        "type": "string",
+        "type": "iso_date",
         "mandatory": true,
         "display": [
           {
