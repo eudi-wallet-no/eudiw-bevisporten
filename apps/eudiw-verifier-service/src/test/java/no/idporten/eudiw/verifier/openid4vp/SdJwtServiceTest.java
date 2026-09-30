@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpSession;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
@@ -200,4 +199,5 @@ class SdJwtServiceTest {
     private static String base64Url(String value) {
         return Base64URL.encode(value.getBytes(StandardCharsets.UTF_8)).toString();
     }
+
 }
