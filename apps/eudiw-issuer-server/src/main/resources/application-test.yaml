@@ -105,6 +105,16 @@ credential-issuer-server:
             paths:
               - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
 
+    sikt:
+      metadata-lifetime: 5m
+      metadata-signing-keystore: sikt-access
+      display-names:
+        "no": "Sikt bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/sikt/elevbevis_sd_jwt_vc.json
+
 idporten-key-manager:
   keystores:
     pid-provider:
@@ -155,3 +165,15 @@ idporten-key-manager:
       key-store-password: ${WEBUILD_ACCESS_KEYSTORE_PASSWORD}
       key-alias: ${WEBUILD_ACCESS_KEYSTORE_KEY_ALIAS}
       key-password: ${WEBUILD_ACCESS_KEYSTORE_KEY_PASSWORD}
+    sikt-provider:
+      key-store-type: ${SIKT_PROVIDER_KEYSTORE_TYPE}
+      key-store-location: ${SIKT_PROVIDER_KEYSTORE_LOCATION}
+      key-store-password: ${SIKT_PROVIDER_KEYSTORE_PASSWORD}
+      key-alias: ${SIKT_PROVIDER_KEYSTORE_KEY_ALIAS}
+      key-password: ${SIKT_PROVIDER_KEYSTORE_KEY_PASSWORD}
+    sikt-access:
+      key-store-type: ${SIKT_ACCESS_KEYSTORE_TYPE}
+      key-store-location: ${SIKT_ACCESS_KEYSTORE_LOCATION}
+      key-store-password: ${SIKT_ACCESS_KEYSTORE_PASSWORD}
+      key-alias: ${SIKT_ACCESS_KEYSTORE_KEY_ALIAS}
+      key-password: ${SIKT_ACCESS_KEYSTORE_KEY_PASSWORD}

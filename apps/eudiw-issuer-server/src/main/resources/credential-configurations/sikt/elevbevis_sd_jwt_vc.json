@@ -1,0 +1,119 @@
+{
+  "credential_configuration_id": "no.sikt.elevbevis_sd_jwt_vc",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource",
+    "credential_signing_keystore": "sikt-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "validity_days": 365,
+    "require_tx_code": false,
+    "include_status": true,
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "credential_type": "no.sikt.elevbevis.1",
+  "format": "dc+sd-jwt",
+  "scope": "eudiw:no:sikt:elevbevis",
+  "credential_metadata": {
+    "display": [
+      {
+        "name": "Elevbevis",
+        "locale": "no",
+        "background_color": null,
+        "text_color": null
+      }
+    ],
+    "claims": [
+      {
+        "path": "expiry_date",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Utløpsdato",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "role",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Rolle",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "school_administrative_number",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Organisasjonsnummer skole",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "school_name",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Navn skole",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "school_owner_administrative_number",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Organisasjonsnummer skoleeier",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "school_owner_name",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Navn skoleeier",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      },
+      {
+        "path": "school_type",
+        "type": "string",
+        "mandatory": true,
+        "display": [
+          {
+            "name": "Skoletype",
+            "locale": "no",
+            "background_color": null,
+            "text_color": null
+          }
+        ]
+      }
+    ]
+  }
+}
