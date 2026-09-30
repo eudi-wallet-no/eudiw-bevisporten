@@ -161,13 +161,12 @@ SimpleJWTCryptoProvider cryptoProviderHolderBinding =
                 throw new IllegalArgumentException("cnf.jwk missing");
             }
             JWK parsedJwk = JWK.parse(jwk.get("jwk").toString());
-            if (!(parsedJwk instanceof ECKey)) {
-                throw new IllegalArgumentException("cnf.jwk is not EC");
-            }
             ECKey ecKey = parsedJwk.toECKey();
             return ecKey.toECPublicKey();
-        } catch (Exception e) {
+        } catch (ParseException e) {
             throw new IllegalArgumentException("Failed to parse cnf JWK", e);
+        } catch (JOSEException e) {
+            throw new IllegalArgumentException("Failed to convert JWK to EC public key", e);
         }
     }
 
