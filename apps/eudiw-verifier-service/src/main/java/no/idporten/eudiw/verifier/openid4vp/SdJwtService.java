@@ -143,9 +143,8 @@ public class SdJwtService {
 
         Object cnfRaw = sdJwt.getFullPayload().get("cnf");
         Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
-        Map<String, Object> jwk = (Map<String, Object>) cnf.get("jwk");
 
-        ECPublicKey holderKey = jwkToEcPublicKey(jwk);
+        ECPublicKey holderKey = jwkToEcPublicKey(cnf);
         try {
             JWSVerifier verifier = new ECDSAVerifier(holderKey);
 SimpleJWTCryptoProvider cryptoProviderHolderBinding =
@@ -156,16 +155,16 @@ SimpleJWTCryptoProvider cryptoProviderHolderBinding =
         }
     }
 
-    private static ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {
+    private ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {
         try {
-if (jwk == null) {
+            if (jwk == null) {
                 throw new IllegalArgumentException("cnf.jwk missing");
             }
-            JWK parsedJwk = JWK.parse(jwk);
-
-            if (!(parsedJwk instanceof ECKey ecKey)) {
+            JWK parsedJwk = JWK.parse(jwk.get("jwk").toString());
+            if (!(parsedJwk instanceof ECKey)) {
                 throw new IllegalArgumentException("cnf.jwk is not EC");
             }
+            ECKey ecKey = parsedJwk.toECKey();
             return ecKey.toECPublicKey();
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to parse cnf JWK", e);
