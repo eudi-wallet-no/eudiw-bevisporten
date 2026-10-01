@@ -57,7 +57,7 @@ public class OpenID4VPResponseService {
         this.sdJwtService = sdJwtService;
     }
 
-    public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
+    public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) {
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
@@ -78,7 +78,7 @@ public class OpenID4VPResponseService {
             ClientApplication clientApplication,
             String verifierTransactionId,
             EncryptedAuthorizationResponse encryptedAuthorizationResponse,
-            VerificationTransaction verificationTransaction) throws Exception {
+            VerificationTransaction verificationTransaction)  {
         if (!StringUtils.hasText(encryptedAuthorizationResponse.getResponse())) {
             throw new VerificationException("invalid_request", "Missing authorization response");
         }
@@ -252,7 +252,7 @@ public class OpenID4VPResponseService {
     private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
-        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
+        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert, verificationTransaction);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 

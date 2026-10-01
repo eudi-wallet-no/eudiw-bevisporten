@@ -5,11 +5,11 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.sdjwt.SDJwt;
-import id.walt.sdjwt.SimpleJWTCryptoProvider;
-import id.walt.sdjwt.VerificationResult;
+import id.walt.sdjwt.*;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -39,7 +39,7 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert) {
+    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
@@ -50,6 +50,11 @@ public class SdJwtService {
                     "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(
                             verificationResult.getSignatureVerified(),
                             verificationResult.getDisclosuresVerified()));
+        }
+        if (!holderBinding(verificationResult.getSdJwt(), verificationTransaction)) {
+            throw new VerificationException(
+                    "invalid_request",
+                    "Invalid vp_token. Holder binding failed.");
         }
         return verificationResult;
     }
@@ -119,16 +124,54 @@ public class SdJwtService {
         }
     }
 
-    protected JWSAlgorithm algorithm(X509Certificate cert) {
-        return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
+    public boolean holderBindingRequired(String dcql) {
+        return dcql != null && dcql.contains("cnf");
     }
 
-    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt) {
-        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(jwtCryptoProvider, null);
-        if (!verificationResult.getVerified()) {
-            throw new VerificationException("invalid_request", "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(verificationResult.getSignatureVerified(), verificationResult.getDisclosuresVerified()));
+    public boolean holderBinding(SDJwt sdJwt, VerificationTransaction verificationTransaction) {
+        return checkHolderBinding(verificationTransaction, sdJwt);
+    }
+
+
+    /**
+     * Check holder binding by verifying the key binding JWT using the holder's public key from the SD-JWT's "cnf" claim.
+     * @param verificationTransaction contains nonce and aud from authorization request.
+     * @param sdJwt the SD-JWT containing the key binding JWT and the holder's public key in the "cnf" claim.
+     * @return true if the holder binding is valid, false otherwise.
+     */
+    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt) {
+
+        Object cnfRaw = sdJwt.getFullPayload().get("cnf");
+        Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
+
+        ECPublicKey holderKey = jwkToEcPublicKey(cnf);
+        try {
+            JWSVerifier verifier = new ECDSAVerifier(holderKey);
+SimpleJWTCryptoProvider cryptoProviderHolderBinding =
+                    new SimpleJWTCryptoProvider(ECUtils.jwsAlgorithmFromKey(holderKey), null, verifier);
+            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, verificationTransaction.getAudience(), verificationTransaction.getNonce(), sdJwt, null);
+        } catch (JOSEException e) {
+            throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
         }
-        return verificationResult;
+    }
+
+    private ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {
+        try {
+            if (jwk == null) {
+                throw new IllegalArgumentException("cnf.jwk missing");
+            }
+            JWK parsedJwk = JWK.parse(jwk.get("jwk").toString());
+            ECKey ecKey = parsedJwk.toECKey();
+            return ecKey.toECPublicKey();
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Failed to parse cnf JWK", e);
+        } catch (JOSEException e) {
+            throw new IllegalArgumentException("Failed to convert JWK to EC public key", e);
+        }
+    }
+
+    protected JWSAlgorithm algorithm(X509Certificate cert) {
+        return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {

@@ -43,6 +43,7 @@ class OpenID4VPControllerTest {
     @MockitoBean
     private OpenID4VPResponseService openID4VPResponseService;
 
+
     @Test
     @DisplayName("returns an authorization request using the default flow")
     void returnsAuthorizationRequestUsingDefaultFlow() throws Exception {

@@ -10,6 +10,8 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.testdata.Certificates;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,8 +32,10 @@ import static org.mockito.Mockito.*;
 @DisplayName("When handling SD-JWT credentials")
 class SdJwtServiceTest {
 
+    private static final Logger log = LogManager.getLogger(SdJwtServiceTest.class);
     @Mock VerificationResult<SDJwt> verificationResult;
     @Mock SDJwt mockedSdJwt;
+    @Mock VerificationTransaction verificationTransaction;
 
     private SdJwtService service;
 
@@ -93,7 +97,7 @@ class SdJwtServiceTest {
         when(verificationResult.getDisclosuresVerified()).thenReturn(true);
 
         VerificationException exception =
-                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate));
+                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate, verificationTransaction));
 
         assertEquals(
                 "Invalid vp_token. Signature verified: false, disclosures verified: true",
@@ -195,4 +199,5 @@ class SdJwtServiceTest {
     private static String base64Url(String value) {
         return Base64URL.encode(value.getBytes(StandardCharsets.UTF_8)).toString();
     }
+
 }

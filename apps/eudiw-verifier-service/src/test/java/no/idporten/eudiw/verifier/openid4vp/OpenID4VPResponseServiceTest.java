@@ -9,6 +9,8 @@ import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.oauth2.sdk.id.Audience;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import id.walt.mdoc.dataelement.StringElement;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.sdjwt.SDJwt;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpSession;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -311,7 +314,7 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate, transaction)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of("given_name", "Ola"));
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult))
@@ -330,7 +333,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertFalse(credential.valid()),
                 () -> assertEquals("Ola", credential.claims().get("given_name")),
                 () -> assertNull(credential.validationDetails()));
-        verify(sdJwtService).verifySdJwt(sdJwt, certificate);
+        verify(sdJwtService).verifySdJwt(sdJwt, certificate, transaction);
         verify(tokenStatuslistService)
                 .lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7);
         verifyNoInteractions(mDocService);
@@ -374,7 +377,7 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct("urn:example:attestation:1"));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate, transaction)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of());
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult)).thenReturn(null);
@@ -450,6 +453,7 @@ class OpenID4VPResponseServiceTest {
             }
         }
     }
+
 
     private void assertVpTokenFailure(Map<?, ?> vpToken, String message) throws Exception {
         reset(verificationService);
