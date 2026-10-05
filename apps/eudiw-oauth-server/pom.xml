@@ -16,8 +16,8 @@
         <java.version>25</java.version>
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
-        <idporten-audit-version>4.0.5</idporten-audit-version>
+        <idporten-access-log.version>4.0.5</idporten-access-log.version>
+        <idporten-audit-version>4.0.6</idporten-audit-version>
         <idporten-validators.version>1.6.3</idporten-validators.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
