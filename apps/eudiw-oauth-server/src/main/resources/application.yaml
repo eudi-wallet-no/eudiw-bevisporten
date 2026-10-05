@@ -89,6 +89,7 @@ oauth-authorization-server:
     - eudiw:eidas2sandkasse:dynamicvc
     - eudiw:no:kommunalsektor:hcregister
     - eudiw:no:helsesektor:legeerklaring
+    - eudiw:no:sikt:elevbevis
   api-key: ${INTERNAL_API_KEY}
   keystore:
     type: ${TOKEN_SIGNING_KEYSTORE_TYPE}
