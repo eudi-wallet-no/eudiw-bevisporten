@@ -19,7 +19,7 @@
         <kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <idporten-access-log.version>4.0.5</idporten-access-log.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>1.0.0</waltid-mdoc-credentials-jvm.version>
         <waltid-sdjwt-jvm.version>1.0.0</waltid-sdjwt-jvm.version>
