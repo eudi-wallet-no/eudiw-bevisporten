@@ -22,7 +22,7 @@
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <lombok.version>1.18.48</lombok.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <idporten-access-log.version>4.0.5</idporten-access-log.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
         <jakarta.xml.bind-api.version>4.0.2</jakarta.xml.bind-api.version>
         <springdoc.version>3.1.1</springdoc.version>
@@ -37,7 +37,7 @@
         <kotlinx-coroutines-core.version>1.11.0</kotlinx-coroutines-core.version>
         <kotlinx-datetime-jvm.version>0.8.0-0.6.x-compat</kotlinx-datetime-jvm.version>
         <kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
-        <idporten-log-audit.version>4.0.5</idporten-log-audit.version>
+        <idporten-log-audit.version>4.0.6</idporten-log-audit.version>
         <idporten-lib-keystore-spring-boot-4.version>3.0.0</idporten-lib-keystore-spring-boot-4.version>
         <netty.version>4.2.15.Final</netty.version>
     </properties>
