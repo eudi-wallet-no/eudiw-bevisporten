@@ -20,9 +20,9 @@
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.4</idporten-access-log.version>
+        <idporten-access-log.version>4.0.5</idporten-access-log.version>
         <opentelemetry-api.version>1.66.0</opentelemetry-api.version>
-        <idporten-log-audit.version>4.0.5</idporten-log-audit.version>
+        <idporten-log-audit.version>4.0.6</idporten-log-audit.version>
         <springdoc.version>3.1.1</springdoc.version>
         <maskinporten.client.version>6.0.3</maskinporten.client.version>
         <log-event.version>2.0.5</log-event.version>
