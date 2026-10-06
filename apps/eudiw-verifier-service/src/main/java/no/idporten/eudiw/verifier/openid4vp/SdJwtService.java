@@ -40,7 +40,7 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction, boolean isCryptographicHolderBindingRequired) {
+    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction, Boolean isCryptographicHolderBindingRequired) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
@@ -144,7 +144,7 @@ public class SdJwtService {
      * @param sdJwt the SD-JWT containing the key binding JWT and the holder's public key in the "cnf" claim.
      * @return true if the holder binding is valid, false otherwise.
      */
-    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, boolean isCryptographicHolderBindingRequired) {
+    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, Boolean isCryptographicHolderBindingRequired) {
         if (isCryptographicHolderBindingRequired || isCnfAndOrKbJwtPresent(sdJwt)) {
             Object cnfRaw = sdJwt.getFullPayload().get("cnf");
             Map<String, Object> cnf = (Map<String, Object>) cnfRaw;

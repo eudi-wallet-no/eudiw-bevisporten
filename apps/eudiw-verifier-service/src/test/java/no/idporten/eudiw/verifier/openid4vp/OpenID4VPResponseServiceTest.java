@@ -25,6 +25,7 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
+import no.idporten.eudiw.verifier.testdata.VpTokenTestdata;
 import no.idporten.eudiw.verifier.trustlist.TrustlistFormat;
 import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
@@ -105,7 +106,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("without an authorization response, then error status is expected")
     void rejectsMissingAuthorizationResponse() {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(
@@ -119,7 +120,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with an unencrypted authorization response, then error status is expected")
     void rejectsUnencryptedAuthorizationResponse() {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(
@@ -133,7 +134,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a real JWE and a missing selected credential, then missing credential persistence is expected")
     void decryptsRealJweAndPersistsMissingSelectedCredential() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         Map<String, Object> payload = Map.of("state", STATE, "nonce", "nonce", "vp_token", Map.of());
 
@@ -156,7 +157,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with an invalid state, then invalid request is expected")
     void rejectsInvalidState() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(VerificationException.class,
@@ -183,7 +184,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a blank credential ID, then invalid request is expected")
     void rejectsBlankCredentialId() throws Exception {
-        VerificationTransaction transaction = transaction(query(" ", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query(" ", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(VerificationException.class,
@@ -195,7 +196,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a selected credential in an unsupported format, then invalid request is expected")
     void rejectsUnsupportedFormatWhenCredentialWasSelected() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "jwt_vc_json"));
+        VerificationTransaction transaction = transaction(query("pid", "jwt_vc_json", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(VerificationException.class,
@@ -208,7 +209,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a non-map vp_token, then invalid request is expected")
     void rejectsNonMapVpToken() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
 
         VerificationException exception = assertThrows(
@@ -223,7 +224,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("when credential processing fails, then error status is expected")
     void marksCredentialProcessingFailureAsError() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException processingException =
                 new VerificationException("invalid_request", "Invalid mdoc");
@@ -243,7 +244,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("when persisting error status fails, then the response failure is preserved")
     void preservesResponseFailureWhenErrorStatusPersistenceFails() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         IllegalStateException persistenceException = new IllegalStateException("Cache unavailable");
         doThrow(persistenceException)
@@ -276,7 +277,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with an mdoc credential, then routing and combined validation details are expected")
     void routesMdocAndCombinesValidationStatusesAndDetails() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         transaction.setIncludeValidationDetails(true);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
@@ -309,7 +310,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with an SD-JWT credential and invalid status, then an invalid combined outcome is expected")
     void routesSdJwtAndMarksCombinedInvalidOutcome() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt"));
+        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
@@ -351,7 +352,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a non-PID mdoc credential, then the default trustlist is used")
     void routesNonPidMdocToDefaultTrustlist() throws Exception {
-        VerificationTransaction transaction = transaction(query("attestation", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("attestation", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement("eu.example.attestation.1"));
@@ -372,7 +373,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a non-PID SD-JWT credential, then the attestation trustlists are used")
     void routesNonPidSdJwtToAttestationTrustlists() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt"));
+        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct("urn:example:attestation:1"));
@@ -422,7 +423,7 @@ class OpenID4VPResponseServiceTest {
     @Test
     @DisplayName("with a same-device flow, then a redirect is expected")
     void returnsRedirectOnlyForSameDeviceFlow() throws Exception {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         transaction.setFlow("same_device");
         transaction.setRedirectUri(URI.create("https://client.example/callback"));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
@@ -432,8 +433,15 @@ class OpenID4VPResponseServiceTest {
         assertEquals(URI.create("https://client.example/callback"), callback.getRedirectUri());
     }
 
+    @Test
+    @DisplayName("with requireCryptographicHolderBinding not present, then cryptographic holder binding is required by default")
+    void requiresCryptographicHolderBindingByDefault() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", null));
+        assertTrue(transaction.getDcqlQuery().getCredentials().getFirst().getRequireCryptographicHolderBinding());
+    }
+
     private void prepareMdocWithStatus(String idx, ValidationStatus status) {
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
@@ -454,10 +462,9 @@ class OpenID4VPResponseServiceTest {
         }
     }
 
-
     private void assertVpTokenFailure(Map<?, ?> vpToken, String message) throws Exception {
         reset(verificationService);
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc"));
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException exception = assertThrows(VerificationException.class,
                 () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(vpToken))));
@@ -478,10 +485,11 @@ class OpenID4VPResponseServiceTest {
         return transaction;
     }
 
-    private static DcqlQuery query(String id, String format) {
+    private static DcqlQuery query(String id, String format, Boolean requireCryptographicHolderBinding) {
         DcqlCredentialQuery credential = new DcqlCredentialQuery();
         credential.setId(id);
         credential.setFormat(format);
+        credential.setRequireCryptographicHolderBinding(requireCryptographicHolderBinding);
         return dcql(List.of(credential));
     }
 

@@ -250,10 +250,9 @@ public class OpenID4VPResponseService {
         return status;
     }
 
-    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, boolean isCryptographicHolderBindingRequired) {
+    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, Boolean isCryptographicHolderBindingRequired) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
-        boolean holderBindingNotCheckedAndUnrequired = !isCryptographicHolderBindingRequired && sdJwtService.isCnfAndOrKbJwtPresent(unverifiedSDJwt);
         VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert, verificationTransaction, isCryptographicHolderBindingRequired);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
