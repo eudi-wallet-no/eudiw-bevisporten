@@ -102,6 +102,7 @@ public class OpenID4VPResponseService {
         Map<String, List<VerifiedCredential>> allCredentials = new LinkedHashMap<>();
         for (DcqlCredentialQuery credentialQuery : requestedCredentials) {
             String credentialId = credentialQuery.getId();
+            boolean isCryptographicHolderBindingRequired = credentialQuery.getRequireCryptographicHolderBinding();
             List<VerifiablePresentation> verifiablePresentations = vpToken.getVerifiablePresentation(credentialId);
             if (verifiablePresentations.isEmpty()) {
                 allCredentials.put(credentialId, List.of(new VerifiedCredential(Map.of(), false, List.of())));
@@ -112,7 +113,7 @@ public class OpenID4VPResponseService {
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
                 VerifiedCredential verifiedCredential;
                 if ("dc+sd-jwt".equals(format)) {
-                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
+                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction, isCryptographicHolderBindingRequired);
                 } else if ("mso_mdoc".equals(format)) {
                     verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
                 } else {
@@ -249,10 +250,11 @@ public class OpenID4VPResponseService {
         return status;
     }
 
-    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
+    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, boolean isCryptographicHolderBindingRequired) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
-        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert, verificationTransaction);
+        boolean holderBindingNotCheckedAndUnrequired = !isCryptographicHolderBindingRequired && sdJwtService.isCnfAndOrKbJwtPresent(unverifiedSDJwt);
+        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert, verificationTransaction, isCryptographicHolderBindingRequired);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 

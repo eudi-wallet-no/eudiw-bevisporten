@@ -12,6 +12,7 @@ import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.*;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -39,7 +40,7 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction) {
+    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction, boolean isCryptographicHolderBindingRequired) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
@@ -51,7 +52,7 @@ public class SdJwtService {
                             verificationResult.getSignatureVerified(),
                             verificationResult.getDisclosuresVerified()));
         }
-        if (!holderBinding(verificationResult.getSdJwt(), verificationTransaction)) {
+        if (!checkHolderBinding(verificationTransaction, sdJwt, isCryptographicHolderBindingRequired)) {
             throw new VerificationException(
                     "invalid_request",
                     "Invalid vp_token. Holder binding failed.");
@@ -124,12 +125,16 @@ public class SdJwtService {
         }
     }
 
-    public boolean holderBindingRequired(String dcql) {
-        return dcql != null && dcql.contains("cnf");
+    public boolean containsCnf(SDJwt sdJwt) {
+        return sdJwt.getFullPayload().get("cnf") != null;
     }
 
-    public boolean holderBinding(SDJwt sdJwt, VerificationTransaction verificationTransaction) {
-        return checkHolderBinding(verificationTransaction, sdJwt);
+    public boolean containsKBJwt(SDJwt sdJwt) {
+        return sdJwt.getKeyBindingJwt() != null;
+    }
+
+    public boolean isCnfAndOrKbJwtPresent(SDJwt sdJwt) {
+        return containsCnf(sdJwt) || containsKBJwt(sdJwt) || containsCnf(sdJwt) && containsKBJwt(sdJwt);
     }
 
 
@@ -139,20 +144,27 @@ public class SdJwtService {
      * @param sdJwt the SD-JWT containing the key binding JWT and the holder's public key in the "cnf" claim.
      * @return true if the holder binding is valid, false otherwise.
      */
-    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt) {
-
-        Object cnfRaw = sdJwt.getFullPayload().get("cnf");
-        Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
-
-        ECPublicKey holderKey = jwkToEcPublicKey(cnf);
-        try {
-            JWSVerifier verifier = new ECDSAVerifier(holderKey);
-SimpleJWTCryptoProvider cryptoProviderHolderBinding =
-                    new SimpleJWTCryptoProvider(ECUtils.jwsAlgorithmFromKey(holderKey), null, verifier);
-            return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, verificationTransaction.getAudience(), verificationTransaction.getNonce(), sdJwt, null);
-        } catch (JOSEException e) {
-            throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
+    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, boolean isCryptographicHolderBindingRequired) {
+        if (isCryptographicHolderBindingRequired || isCnfAndOrKbJwtPresent(sdJwt)) {
+            Object cnfRaw = sdJwt.getFullPayload().get("cnf");
+            Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
+            if(cnf == null || cnf.get("jwk") == null) {
+                throw new VerificationException("invalid_request", "Missing cnf.jwk claim in SDJwt");
+            }
+            ECPublicKey holderKey = jwkToEcPublicKey(cnf);
+            if(holderKey == null) {
+                throw new VerificationException("invalid_request", "Invalid holder public key in cnf.jwk claim");
+            }
+            try {
+                JWSVerifier verifier = new ECDSAVerifier(holderKey);
+                SimpleJWTCryptoProvider cryptoProviderHolderBinding =
+                        new SimpleJWTCryptoProvider(ECUtils.jwsAlgorithmFromKey(holderKey), null, verifier);
+                return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, verificationTransaction.getAudience(), verificationTransaction.getNonce(), sdJwt, null);
+            } catch (JOSEException e) {
+                throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
+            }
         }
+        return true;
     }
 
     private ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {

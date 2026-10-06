@@ -99,7 +99,7 @@ class SdJwtServiceTest {
         when(verificationResult.getDisclosuresVerified()).thenReturn(true);
 
         VerificationException exception =
-                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate, verificationTransaction));
+                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate, verificationTransaction, false));
 
         assertEquals(
                 "Invalid vp_token. Signature verified: false, disclosures verified: true",
@@ -172,7 +172,7 @@ class SdJwtServiceTest {
         SDJwt sdjwt = service.sdJwtFromVpToken(VpTokenTestdata.VP_TOKEN);
         assertAll(
                 () -> assertNotNull(sdjwt.getKeyBindingJwt()),
-                () -> assertTrue(service.checkHolderBinding(verificationTransaction, sdjwt))
+                () -> assertTrue(service.checkHolderBinding(verificationTransaction, sdjwt, true))
         );
     }
 
@@ -187,7 +187,7 @@ class SdJwtServiceTest {
 
         assertAll(
                 () -> assertNotNull(sdjwt.getKeyBindingJwt()),
-                () -> assertFalse(service.checkHolderBinding(verificationTransaction, sdjwt))
+                () -> assertFalse(service.checkHolderBinding(verificationTransaction, sdjwt, true))
         );
     }
 
