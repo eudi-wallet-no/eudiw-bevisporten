@@ -315,7 +315,7 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(sdJwt, certificate, transaction, true)).thenReturn(sdJwtResult);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of("given_name", "Ola"));
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult))
@@ -334,7 +334,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertFalse(credential.valid()),
                 () -> assertEquals("Ola", credential.claims().get("given_name")),
                 () -> assertNull(credential.validationDetails()));
-        verify(sdJwtService).verifySdJwt(sdJwt, certificate, transaction, true);
+        verify(sdJwtService).verifySdJwt(sdJwt, certificate);
         verify(tokenStatuslistService)
                 .lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7);
         verifyNoInteractions(mDocService);
@@ -378,7 +378,8 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct("urn:example:attestation:1"));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(sdJwt, certificate, transaction, true)).thenReturn(sdJwtResult);
+        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
+        when(sdJwtService.validationStatusHolderBinding(transaction, sdJwt, true)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of());
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult)).thenReturn(null);

@@ -254,16 +254,16 @@ public class OpenID4VPResponseService {
     private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, Boolean isCryptographicHolderBindingRequired) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
-        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert, verificationTransaction, isCryptographicHolderBindingRequired);
+        VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
+        ValidationStatus holderBindingStatus = sdJwtService.validationStatusHolderBinding(verificationTransaction, unverifiedSDJwt, isCryptographicHolderBindingRequired);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
         ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
         SDJwt verifiedSdJwt = verificationResult.getSdJwt();
-        ValidationStatus holderBindingStatus = sdJwtStatus;
         ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verifiedSdJwt), isPid(verifiedSdJwt));
-        if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus)) {
+        if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus, holderBindingStatus)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, holderBindingStatus, "SDJwt"));
         }
         else {
@@ -278,7 +278,7 @@ public class OpenID4VPResponseService {
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
-        if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus)) {
+        if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus, ValidationStatus.VALID)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
         } else {
             return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
@@ -302,8 +302,8 @@ public class OpenID4VPResponseService {
         return docType != null && PID_DOC_TYPE.equals(docType.getValue());
     }
 
-    private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus) {
-        return formatSpecificStatus == ValidationStatus.VALID &&
+    private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus, ValidationStatus holderBindingStatus) {
+        return formatSpecificStatus == ValidationStatus.VALID && holderBindingStatus == ValidationStatus.VALID &&
                 (statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE) &&
                 trustlistStatus == ValidationStatus.VALID;
     }

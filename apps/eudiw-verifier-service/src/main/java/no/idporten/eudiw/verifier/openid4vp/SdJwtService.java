@@ -41,7 +41,7 @@ public class SdJwtService {
         return SDJwt.Companion.parse(vpToken);
     }
 
-    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert, VerificationTransaction verificationTransaction, Boolean isCryptographicHolderBindingRequired) {
+    public VerificationResult<SDJwt> verifySdJwt(SDJwt sdJwt, X509Certificate cert) {
         JWSVerifier jwsVerifier = jwsVerifier(cert);
         JWSAlgorithm jwsAlgorithm = algorithm(cert);
         SimpleJWTCryptoProvider cryptoProvider = new SimpleJWTCryptoProvider(jwsAlgorithm, null, jwsVerifier);
@@ -53,11 +53,6 @@ public class SdJwtService {
                             verificationResult.getSignatureVerified(),
                             verificationResult.getDisclosuresVerified()));
         }
-        if (!checkHolderBinding(verificationTransaction, sdJwt, isCryptographicHolderBindingRequired)) {
-            throw new VerificationException(
-                    "invalid_request",
-                    "Invalid vp_token. Holder binding failed.");
-        }
         return verificationResult;
     }
 
@@ -67,6 +62,15 @@ public class SdJwtService {
         } else {
             return VALID;
         }
+    }
+
+    public ValidationStatus validationStatusHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, Boolean isCryptographicHolderBindingRequired) {
+        if (!checkHolderBinding(verificationTransaction, sdJwt, isCryptographicHolderBindingRequired)) {
+            throw new VerificationException(
+                    "invalid_request",
+                    "Invalid vp_token. Holder binding failed.");
+        }
+        return VALID;
     }
 
     public Map<String, Object> sdJwtClaims(VerificationResult<SDJwt> verificationResult) {

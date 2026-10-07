@@ -98,7 +98,7 @@ class SdJwtServiceTest {
         when(verificationResult.getDisclosuresVerified()).thenReturn(true);
 
         VerificationException exception =
-                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate, verificationTransaction, false));
+                assertThrows(VerificationException.class, () -> service.verifySdJwt(mockedSdJwt, certificate));
 
         assertEquals(
                 "Invalid vp_token. Signature verified: false, disclosures verified: true",
