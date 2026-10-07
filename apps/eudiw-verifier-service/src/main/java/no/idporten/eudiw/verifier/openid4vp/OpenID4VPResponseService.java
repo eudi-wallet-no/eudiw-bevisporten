@@ -57,7 +57,7 @@ public class OpenID4VPResponseService {
         this.sdJwtService = sdJwtService;
     }
 
-    public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
+    public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) {
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction id");
@@ -78,7 +78,7 @@ public class OpenID4VPResponseService {
             ClientApplication clientApplication,
             String verifierTransactionId,
             EncryptedAuthorizationResponse encryptedAuthorizationResponse,
-            VerificationTransaction verificationTransaction) throws Exception {
+            VerificationTransaction verificationTransaction)  {
         if (!StringUtils.hasText(encryptedAuthorizationResponse.getResponse())) {
             throw new VerificationException("invalid_request", "Missing authorization response");
         }
@@ -102,6 +102,7 @@ public class OpenID4VPResponseService {
         Map<String, List<VerifiedCredential>> allCredentials = new LinkedHashMap<>();
         for (DcqlCredentialQuery credentialQuery : requestedCredentials) {
             String credentialId = credentialQuery.getId();
+            boolean isCryptographicHolderBindingRequired = credentialQuery.getRequireCryptographicHolderBinding();
             List<VerifiablePresentation> verifiablePresentations = vpToken.getVerifiablePresentation(credentialId);
             if (verifiablePresentations.isEmpty()) {
                 allCredentials.put(credentialId, List.of(new VerifiedCredential(Map.of(), false, List.of())));
@@ -112,7 +113,7 @@ public class OpenID4VPResponseService {
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
                 VerifiedCredential verifiedCredential;
                 if ("dc+sd-jwt".equals(format)) {
-                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
+                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction, isCryptographicHolderBindingRequired);
                 } else if ("mso_mdoc".equals(format)) {
                     verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
                 } else {
@@ -164,7 +165,7 @@ public class OpenID4VPResponseService {
         throw new VerificationException("invalid_request", "Unsupported vp_token structure");
     }
 
-    private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, String format) {
+    private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, ValidationStatus holderBindingStatus, String format) {
         if (!isIncludeValidationStatus) {
             return null;
         }
@@ -174,7 +175,8 @@ public class OpenID4VPResponseService {
         if(format.equals("MDoc")) {
             validationDetails.add(new ValidationDetail(ValidationType.MDOC, formatSpecificStatus, mDocService.getValidationDetail(formatSpecificStatus)));
         } else if(format.equals("SDJwt")) {
-            validationDetails.add(new ValidationDetail(ValidationType.SDJWT, formatSpecificStatus, sdJwtService.getValidationDetail(formatSpecificStatus)));
+            validationDetails.add(new ValidationDetail(ValidationType.HOLDER_BINDING, holderBindingStatus, sdJwtService.getValidationDetailHolderBinding(holderBindingStatus)));
+            validationDetails.add(new ValidationDetail(ValidationType.SDJWT, formatSpecificStatus, sdJwtService.getValidationDetailSDJWT(formatSpecificStatus)));
         }
         return validationDetails;
 
@@ -249,10 +251,11 @@ public class OpenID4VPResponseService {
         return status;
     }
 
-    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
+    private VerifiedCredential sdJwtVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, Boolean isCryptographicHolderBindingRequired) {
         SDJwt unverifiedSDJwt = sdJwtService.sdJwtFromVpToken(vpToken);
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
         VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
+        ValidationStatus holderBindingStatus = sdJwtService.validationStatusHolderBinding(verificationTransaction, unverifiedSDJwt, isCryptographicHolderBindingRequired);
         ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 
@@ -260,11 +263,11 @@ public class OpenID4VPResponseService {
         ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
         SDJwt verifiedSdJwt = verificationResult.getSdJwt();
         ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verifiedSdJwt), isPid(verifiedSdJwt));
-        if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus)) {
-            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
+        if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus, holderBindingStatus)) {
+            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, holderBindingStatus, "SDJwt"));
         }
         else {
-            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
+            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, holderBindingStatus, "SDJwt"));
         }
     }
 
@@ -275,10 +278,10 @@ public class OpenID4VPResponseService {
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
-        if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus)) {
-            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
+        if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus, ValidationStatus.VALID)) {
+            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
         } else {
-            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
+            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
         }
 
     }
@@ -299,8 +302,8 @@ public class OpenID4VPResponseService {
         return docType != null && PID_DOC_TYPE.equals(docType.getValue());
     }
 
-    private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus) {
-        return formatSpecificStatus == ValidationStatus.VALID &&
+    private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus, ValidationStatus holderBindingStatus) {
+        return formatSpecificStatus == ValidationStatus.VALID && holderBindingStatus == ValidationStatus.VALID &&
                 (statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE) &&
                 trustlistStatus == ValidationStatus.VALID;
     }

@@ -5,11 +5,11 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.sdjwt.SDJwt;
-import id.walt.sdjwt.SimpleJWTCryptoProvider;
-import id.walt.sdjwt.VerificationResult;
+import id.walt.sdjwt.*;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -25,6 +25,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.*;
+
+import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*;
 
 @Service
 public class SdJwtService {
@@ -56,10 +58,19 @@ public class SdJwtService {
 
     public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult) {
         if (!verificationResult.getVerified()) {
-            return ValidationStatus.INVALID;
+            return INVALID;
         } else {
-            return ValidationStatus.VALID;
+            return VALID;
         }
+    }
+
+    public ValidationStatus validationStatusHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, Boolean isCryptographicHolderBindingRequired) {
+        if (!checkHolderBinding(verificationTransaction, sdJwt, isCryptographicHolderBindingRequired)) {
+            throw new VerificationException(
+                    "invalid_request",
+                    "Invalid vp_token. Holder binding failed.");
+        }
+        return VALID;
     }
 
     public Map<String, Object> sdJwtClaims(VerificationResult<SDJwt> verificationResult) {
@@ -119,19 +130,68 @@ public class SdJwtService {
         }
     }
 
+    public boolean containsCnf(SDJwt sdJwt) {
+        return sdJwt.getFullPayload().get("cnf") != null;
+    }
+
+    public boolean containsKBJwt(SDJwt sdJwt) {
+        return sdJwt.getKeyBindingJwt() != null;
+    }
+
+    public boolean isHolderBindingPresent(SDJwt sdJwt) {
+        return containsCnf(sdJwt) || containsKBJwt(sdJwt) || containsCnf(sdJwt) && containsKBJwt(sdJwt);
+    }
+
+
+    /**
+     * Check holder binding by verifying the key binding JWT using the holder's public key from the SD-JWT's "cnf" claim.
+     * @param verificationTransaction contains nonce and aud from authorization request.
+     * @param sdJwt the SD-JWT containing the key binding JWT and the holder's public key in the "cnf" claim.
+     * @return true if the holder binding is valid, false otherwise.
+     */
+    protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, Boolean isCryptographicHolderBindingRequired) {
+        if (isCryptographicHolderBindingRequired || isHolderBindingPresent(sdJwt)) {
+            Object cnfRaw = sdJwt.getFullPayload().get("cnf");
+            Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
+            if(cnf == null || cnf.get("jwk") == null) {
+                throw new VerificationException("invalid_request", "Missing cnf.jwk claim in SDJwt");
+            }
+            ECPublicKey holderKey = jwkToEcPublicKey(cnf);
+            if(holderKey == null) {
+                throw new VerificationException("invalid_request", "Invalid holder public key in cnf.jwk claim");
+            }
+            try {
+                JWSVerifier verifier = new ECDSAVerifier(holderKey);
+                SimpleJWTCryptoProvider cryptoProviderHolderBinding =
+                        new SimpleJWTCryptoProvider(ECUtils.jwsAlgorithmFromKey(holderKey), null, verifier);
+                return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, verificationTransaction.getAudience(), verificationTransaction.getNonce(), sdJwt, null);
+            } catch (JOSEException e) {
+                throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
+            }
+        }
+        return true;
+    }
+
+    private ECPublicKey jwkToEcPublicKey(Map<String, Object> jwk) {
+        try {
+            if (jwk == null) {
+                throw new IllegalArgumentException("cnf.jwk missing");
+            }
+            JWK parsedJwk = JWK.parse(jwk.get("jwk").toString());
+            ECKey ecKey = parsedJwk.toECKey();
+            return ecKey.toECPublicKey();
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("Failed to parse cnf JWK", e);
+        } catch (JOSEException e) {
+            throw new IllegalArgumentException("Failed to convert JWK to EC public key", e);
+        }
+    }
+
     protected JWSAlgorithm algorithm(X509Certificate cert) {
         return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
     }
 
-    protected VerificationResult<SDJwt> verificationResult(SimpleJWTCryptoProvider jwtCryptoProvider, SDJwt unverifiedSDJwt) {
-        VerificationResult<SDJwt> verificationResult = unverifiedSDJwt.verify(jwtCryptoProvider, null);
-        if (!verificationResult.getVerified()) {
-            throw new VerificationException("invalid_request", "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(verificationResult.getSignatureVerified(), verificationResult.getDisclosuresVerified()));
-        }
-        return verificationResult;
-    }
-
-    public @NonNull String getValidationDetail(ValidationStatus status) {
+    public @NonNull String getValidationDetailSDJWT(ValidationStatus status) {
         switch (status) {
             case INCONCLUSIVE:
                 return "SD-JWT VC: validering feila";
@@ -144,4 +204,16 @@ public class SdJwtService {
         }
     }
 
+   public @NonNull String getValidationDetailHolderBinding(ValidationStatus status) {
+        switch (status) {
+            case INCONCLUSIVE:
+                return "Holder binding: validering feila";
+            case VALID:
+                return "Holder binding: gyldig";
+            case INVALID:
+                return "Holder binding: ugyldig";
+            default:
+                return "Holder binding: ukjent status";
+        }
+    }
 }
