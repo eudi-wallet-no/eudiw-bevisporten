@@ -88,10 +88,10 @@ public class CredentialIssuanceStatusService {
     public void walletStatusUpdated(CredentialIssuerTenant credentialIssuerTenant, NotificationId notificationId, String status, JWT accessToken) {
         CredentialIssuanceTransactionEntity entity = issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElse(null);
         if (entity == null) {
-            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Unknown notification id.", "Unknown notification id %s for tenant %s with status %status.".formatted(notificationId, credentialIssuerTenant.getId(), status));
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Unknown notification id.", "Unknown notification id %s for tenant %s with status %s.".formatted(notificationId, credentialIssuerTenant.getId(), status));
         }
         if (!credentialIssuerTenant.getId().equals(entity.getCredentialIssuerTenant())) {
-            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Notification id does not belong to credential issuer tenant.", "Unknown notification id %s for tenant %s with status %status.".formatted(notificationId, credentialIssuerTenant.getId(), status));
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Notification id does not belong to credential issuer tenant.", "Unknown notification id %s for tenant %s with status %s.".formatted(notificationId, credentialIssuerTenant.getId(), status));
         }
         ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(entity.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
