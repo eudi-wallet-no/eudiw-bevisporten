@@ -12,7 +12,6 @@ import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.*;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
-import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -133,7 +132,7 @@ public class SdJwtService {
         return sdJwt.getKeyBindingJwt() != null;
     }
 
-    public boolean isCnfAndOrKbJwtPresent(SDJwt sdJwt) {
+    public boolean isHolderBindingPresent(SDJwt sdJwt) {
         return containsCnf(sdJwt) || containsKBJwt(sdJwt) || containsCnf(sdJwt) && containsKBJwt(sdJwt);
     }
 
@@ -145,7 +144,7 @@ public class SdJwtService {
      * @return true if the holder binding is valid, false otherwise.
      */
     protected boolean checkHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, Boolean isCryptographicHolderBindingRequired) {
-        if (isCryptographicHolderBindingRequired || isCnfAndOrKbJwtPresent(sdJwt)) {
+        if (isCryptographicHolderBindingRequired || isHolderBindingPresent(sdJwt)) {
             Object cnfRaw = sdJwt.getFullPayload().get("cnf");
             Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
             if(cnf == null || cnf.get("jwk") == null) {
