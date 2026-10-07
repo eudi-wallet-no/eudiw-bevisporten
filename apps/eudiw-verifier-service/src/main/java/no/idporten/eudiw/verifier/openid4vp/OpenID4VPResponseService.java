@@ -172,10 +172,10 @@ public class OpenID4VPResponseService {
         List<ValidationDetail> validationDetails = new ArrayList<>();
         validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, statuslistStatus, tokenStatuslistService.getValidationDetail(statuslistStatus)));
         validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
-        validationDetails.add(new ValidationDetail(ValidationType.HOLDER_BINDING, holderBindingStatus, sdJwtService.getValidationDetailHolderBinding(holderBindingStatus)));
         if(format.equals("MDoc")) {
             validationDetails.add(new ValidationDetail(ValidationType.MDOC, formatSpecificStatus, mDocService.getValidationDetail(formatSpecificStatus)));
         } else if(format.equals("SDJwt")) {
+            validationDetails.add(new ValidationDetail(ValidationType.HOLDER_BINDING, holderBindingStatus, sdJwtService.getValidationDetailHolderBinding(holderBindingStatus)));
             validationDetails.add(new ValidationDetail(ValidationType.SDJWT, formatSpecificStatus, sdJwtService.getValidationDetailSDJWT(formatSpecificStatus)));
         }
         return validationDetails;
