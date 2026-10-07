@@ -165,17 +165,18 @@ public class OpenID4VPResponseService {
         throw new VerificationException("invalid_request", "Unsupported vp_token structure");
     }
 
-    private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, String format) {
+    private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, ValidationStatus holderBindingStatus, String format) {
         if (!isIncludeValidationStatus) {
             return null;
         }
         List<ValidationDetail> validationDetails = new ArrayList<>();
         validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, statuslistStatus, tokenStatuslistService.getValidationDetail(statuslistStatus)));
         validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
+        validationDetails.add(new ValidationDetail(ValidationType.HOLDER_BINDING, holderBindingStatus, sdJwtService.getValidationDetailHolderBinding(holderBindingStatus)));
         if(format.equals("MDoc")) {
             validationDetails.add(new ValidationDetail(ValidationType.MDOC, formatSpecificStatus, mDocService.getValidationDetail(formatSpecificStatus)));
         } else if(format.equals("SDJwt")) {
-            validationDetails.add(new ValidationDetail(ValidationType.SDJWT, formatSpecificStatus, sdJwtService.getValidationDetail(formatSpecificStatus)));
+            validationDetails.add(new ValidationDetail(ValidationType.SDJWT, formatSpecificStatus, sdJwtService.getValidationDetailSDJWT(formatSpecificStatus)));
         }
         return validationDetails;
 
@@ -260,12 +261,13 @@ public class OpenID4VPResponseService {
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
         ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
         SDJwt verifiedSdJwt = verificationResult.getSdJwt();
+        ValidationStatus holderBindingStatus = sdJwtStatus;
         ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verifiedSdJwt), isPid(verifiedSdJwt));
         if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus)) {
-            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
+            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, holderBindingStatus, "SDJwt"));
         }
         else {
-            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, "SDJwt"));
+            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(), trustlistStatus, statuslistStatus, sdJwtStatus, holderBindingStatus, "SDJwt"));
         }
     }
 
@@ -277,9 +279,9 @@ public class OpenID4VPResponseService {
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
         if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus)) {
-            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
+            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
         } else {
-            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, "MDoc"));
+            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
         }
 
     }

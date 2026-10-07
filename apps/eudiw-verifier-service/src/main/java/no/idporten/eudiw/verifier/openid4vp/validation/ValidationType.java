@@ -7,7 +7,8 @@ public enum ValidationType {
     STATUS_LIST("statusList"),
     TRUST_LIST("trustlist"),
     MDOC("mdoc"),
-    SDJWT("sdjwt");
+    SDJWT("sdjwt"),
+    HOLDER_BINDING("holderBinding");
 
 
     ValidationType(String value) {

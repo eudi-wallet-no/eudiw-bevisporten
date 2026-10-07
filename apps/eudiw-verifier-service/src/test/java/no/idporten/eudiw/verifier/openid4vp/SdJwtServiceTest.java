@@ -6,7 +6,6 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
-import kotlinx.serialization.json.JsonObject;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -196,13 +195,13 @@ class SdJwtServiceTest {
     void returnsValidationDetailTextForEveryStatus() {
         assertAll(
                 () -> assertEquals("SD-JWT VC: SDJwt er gyldig",
-                        service.getValidationDetail(ValidationStatus.VALID)),
+                        service.getValidationDetailSDJWT(ValidationStatus.VALID)),
                 () -> assertEquals("SD-JWT VC: SDJwt er ugyldig",
-                        service.getValidationDetail(ValidationStatus.INVALID)),
+                        service.getValidationDetailSDJWT(ValidationStatus.INVALID)),
                 () -> assertEquals("SD-JWT VC: validering feila",
-                        service.getValidationDetail(ValidationStatus.INCONCLUSIVE)),
+                        service.getValidationDetailSDJWT(ValidationStatus.INCONCLUSIVE)),
                 () -> assertEquals("SD-JWT VC: ukjent status",
-                        service.getValidationDetail(ValidationStatus.NOT_APPLICABLE)));
+                        service.getValidationDetailSDJWT(ValidationStatus.NOT_APPLICABLE)));
     }
 
     private static X509Certificate certificate() {

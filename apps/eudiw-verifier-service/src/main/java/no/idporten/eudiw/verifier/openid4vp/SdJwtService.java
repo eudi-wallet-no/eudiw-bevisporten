@@ -26,6 +26,8 @@ import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.*;
 
+import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*;
+
 @Service
 public class SdJwtService {
     private final ObjectMapper objectMapper;
@@ -61,9 +63,9 @@ public class SdJwtService {
 
     public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult) {
         if (!verificationResult.getVerified()) {
-            return ValidationStatus.INVALID;
+            return INVALID;
         } else {
-            return ValidationStatus.VALID;
+            return VALID;
         }
     }
 
@@ -185,7 +187,7 @@ public class SdJwtService {
         return ECUtils.jwsAlgorithmFromKey(cert.getPublicKey());
     }
 
-    public @NonNull String getValidationDetail(ValidationStatus status) {
+    public @NonNull String getValidationDetailSDJWT(ValidationStatus status) {
         switch (status) {
             case INCONCLUSIVE:
                 return "SD-JWT VC: validering feila";
@@ -198,4 +200,16 @@ public class SdJwtService {
         }
     }
 
+   public @NonNull String getValidationDetailHolderBinding(ValidationStatus status) {
+        switch (status) {
+            case INCONCLUSIVE:
+                return "Holder binding: validering feila";
+            case VALID:
+                return "Holder binding: gyldig";
+            case INVALID:
+                return "Holder binding: ugyldig";
+            default:
+                return "Holder binding: ukjent status";
+        }
+    }
 }
