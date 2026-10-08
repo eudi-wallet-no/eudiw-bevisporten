@@ -2,16 +2,16 @@ package no.idporten.eudiw.verifier.openid4vp;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.oauth2.sdk.id.Audience;
-import com.nimbusds.openid.connect.sdk.Nonce;
+import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.jspecify.annotations.NonNull;
@@ -22,27 +22,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpSession;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("When handling OpenID4VP authorization requests")
@@ -187,6 +177,70 @@ class OpenID4VPRequestServiceTest {
 
     private @NonNull ECDSAVerifier getEcdsaVerifier(KeyProvider keyProvider1) throws JOSEException {
         return new ECDSAVerifier((java.security.interfaces.ECPublicKey) keyProvider1.publicKey());
+    }
+
+    @Test
+    @DisplayName("When signing a mixed query with retention choices, then mdoc values are preserved and SD-JWT values are omitted")
+    void includesOnlyMdocRetentionInSignedRequest() throws Exception {
+        JsonMapper mapper = JsonMapper.builder().build();
+        StartVerificationRequest input = mapper.readValue("""
+                {
+                  "dcql_query": {
+                    "credentials": [
+                      {
+                        "id": "pid",
+                        "format": "mso_mdoc",
+                        "meta": {"doctype_value": "eu.europa.ec.eudi.pid.1"},
+                        "claims": [
+                          {"id": "family_name", "path": ["eu.europa.ec.eudi.pid.1", "family_name"]},
+                          {"id": "given_name", "path": ["eu.europa.ec.eudi.pid.1", "given_name"], "intent_to_retain": true},
+                          {"id": "birth_date", "path": ["eu.europa.ec.eudi.pid.1", "birth_date"], "intent_to_retain": false}
+                        ]
+                      },
+                      {
+                        "id": "contact",
+                        "format": "dc+sd-jwt",
+                        "meta": {"vct_values": ["urn:example:contact"]},
+                        "claims": [
+                          {"path": ["email"]},
+                          {"path": ["given_name"], "intent_to_retain": true},
+                          {"path": ["family_name"], "intent_to_retain": false}
+                        ]
+                      }
+                    ]
+                  }
+                }
+                """, StartVerificationRequest.class);
+        new VerificationTransactionService(cacheService).initTransaction(
+                input.dcqlQuery(), null, TRANSACTION_ID, clientApplication, false);
+        ArgumentCaptor<VerificationTransaction> captor = ArgumentCaptor.forClass(VerificationTransaction.class);
+        verify(cacheService).putVerificationTransaction(eq(clientApplication), eq(TRANSACTION_ID), captor.capture());
+        configureExistingTransaction();
+        when(verificationTransactionService.getVerificationTransaction(clientApplication, TRANSACTION_ID))
+                .thenReturn(captor.getValue());
+
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(
+                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+
+        String serializedQuery = mapper.writeValueAsString(request.getJWTClaimsSet().getClaim("dcql_query"));
+        DcqlQuery query = mapper.readValue(serializedQuery, DcqlQuery.class);
+        var claims = query.getCredentials().get(0).getClaims();
+        var sdJwtClaims = query.getCredentials().get(1).getClaims();
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertTrue(claims.get(0).getIntentToRetain()),
+                () -> assertTrue(claims.get(1).getIntentToRetain()),
+                () -> assertFalse(claims.get(2).getIntentToRetain()),
+                () -> assertEquals("family_name", claims.get(0).getId()),
+                () -> assertEquals(List.of("eu.europa.ec.eudi.pid.1", "family_name"), claims.get(0).getPath()),
+                () -> assertEquals(3, sdJwtClaims.size()),
+                () -> assertEquals(List.of("email"), sdJwtClaims.get(0).getPath()),
+                () -> assertEquals(List.of("given_name"), sdJwtClaims.get(1).getPath()),
+                () -> assertEquals(List.of("family_name"), sdJwtClaims.get(2).getPath()),
+                () -> assertNull(sdJwtClaims.get(0).getIntentToRetain()),
+                () -> assertNull(sdJwtClaims.get(1).getIntentToRetain()),
+                () -> assertNull(sdJwtClaims.get(2).getIntentToRetain()),
+                () -> assertFalse(serializedQuery.contains("\"intent_to_retain\":null")));
     }
 
     private String expectedRequestUri() {

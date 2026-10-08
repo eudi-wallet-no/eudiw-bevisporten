@@ -3,6 +3,7 @@ package no.idporten.eudiw.verifier.openid4vp;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
 import java.util.List;
@@ -18,6 +20,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -79,6 +83,65 @@ class VerificationTransactionServiceTest {
                 () -> assertSame(clientApplication, transaction.getClientApplication()),
                 () -> assertEquals(VerificationTransactionService.STATUS_WAIT, transaction.getStatus()),
                 () -> assertTrue(transaction.isIncludeValidationDetails()));
+    }
+
+    @Test
+    @DisplayName("When initializing mixed queries with retention choices, then mdoc defaults are applied and SD-JWT values are cleared")
+    void defaultsMdocRetentionAndClearsOtherFormats() {
+        JsonMapper mapper = JsonMapper.builder().build();
+        StartVerificationRequest request = mapper.readValue("""
+                {
+                  "dcql_query": {
+                    "credentials": [
+                      {
+                        "id": "pid",
+                        "format": "mso_mdoc",
+                        "claims": [
+                          {"path": ["eu.europa.ec.eudi.pid.1", "family_name"]},
+                          {"path": ["eu.europa.ec.eudi.pid.1", "given_name"], "intent_to_retain": true},
+                          {"path": ["eu.europa.ec.eudi.pid.1", "birth_date"], "intent_to_retain": false},
+                          {"path": ["eu.europa.ec.eudi.pid.1", "nationality"], "intent_to_retain": null}
+                        ]
+                      },
+                      {
+                        "id": "contact",
+                        "format": "dc+sd-jwt",
+                        "claims": [
+                          {"path": ["email"]},
+                          {"path": ["given_name"], "intent_to_retain": true},
+                          {"path": ["family_name"], "intent_to_retain": false}
+                        ]
+                      },
+                      {"id": "without_claims", "format": "mso_mdoc"},
+                      {"id": "empty_claims", "format": "mso_mdoc", "claims": []}
+                    ]
+                  }
+                }
+                """, StartVerificationRequest.class);
+        ClientApplication client = clientApplication("client-id", "client-keystore");
+        ArgumentCaptor<VerificationTransaction> captor = ArgumentCaptor.forClass(VerificationTransaction.class);
+
+        verificationTransactionService.initTransaction(
+                request.dcqlQuery(), null, VERIFIER_TRANSACTION_ID, client, false);
+
+        verify(cacheService).putVerificationTransaction(eq(client), eq(VERIFIER_TRANSACTION_ID), captor.capture());
+        DcqlQuery storedQuery = mapper.readValue(
+                mapper.writeValueAsString(captor.getValue().getDcqlQuery()), DcqlQuery.class);
+        var mdocClaims = storedQuery.getCredentials().get(0).getClaims();
+        var sdJwtClaims = storedQuery.getCredentials().get(1).getClaims();
+        assertAll(
+                () -> assertTrue(mdocClaims.get(0).getIntentToRetain()),
+                () -> assertTrue(mdocClaims.get(1).getIntentToRetain()),
+                () -> assertFalse(mdocClaims.get(2).getIntentToRetain()),
+                () -> assertTrue(mdocClaims.get(3).getIntentToRetain()),
+                () -> assertEquals(3, sdJwtClaims.size()),
+                () -> assertEquals(List.of("email"), sdJwtClaims.get(0).getPath()),
+                () -> assertEquals(List.of("given_name"), sdJwtClaims.get(1).getPath()),
+                () -> assertEquals(List.of("family_name"), sdJwtClaims.get(2).getPath()),
+                () -> assertNull(sdJwtClaims.get(0).getIntentToRetain()),
+                () -> assertNull(sdJwtClaims.get(1).getIntentToRetain()),
+                () -> assertNull(sdJwtClaims.get(2).getIntentToRetain()),
+                () -> assertEquals(4, storedQuery.getCredentials().size()));
     }
 
     @Test

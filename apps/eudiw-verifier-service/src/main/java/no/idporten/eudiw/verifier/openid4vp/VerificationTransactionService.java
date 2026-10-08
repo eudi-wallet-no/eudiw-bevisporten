@@ -3,6 +3,8 @@ package no.idporten.eudiw.verifier.openid4vp;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ public class VerificationTransactionService {
     }
 
     public void initTransaction(DcqlQuery dcqlQuery, URI redirectUri, String verifierTransactionId, ClientApplication clientApplication, boolean includeValidationDetails) {
+        applyClaimRetentionDefaults(dcqlQuery);
         VerificationTransaction verificationTransaction = new VerificationTransaction();
         verificationTransaction.setDcqlQuery(dcqlQuery);
         verificationTransaction.setRedirectUri(redirectUri);
@@ -31,6 +34,24 @@ public class VerificationTransactionService {
         verificationTransaction.setStatus(STATUS_WAIT);
         verificationTransaction.setIncludeValidationDetails(includeValidationDetails);
         cacheService.putVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
+    }
+
+    private void applyClaimRetentionDefaults(DcqlQuery dcqlQuery) {
+        if (dcqlQuery == null || dcqlQuery.getCredentials() == null) {
+            return;
+        }
+        for (DcqlCredentialQuery credential : dcqlQuery.getCredentials()) {
+            if (credential.getClaims() == null) {
+                continue;
+            }
+            for (DcqlClaimQuery claim : credential.getClaims()) {
+                if (!"mso_mdoc".equals(credential.getFormat())) {
+                    claim.setIntentToRetain(null);
+                } else if (claim.getIntentToRetain() == null) {
+                    claim.setIntentToRetain(true);
+                }
+            }
+        }
     }
 
     public VerificationTransaction getVerificationTransaction(ClientApplication clientApplication, String verifierTransactionId) {
