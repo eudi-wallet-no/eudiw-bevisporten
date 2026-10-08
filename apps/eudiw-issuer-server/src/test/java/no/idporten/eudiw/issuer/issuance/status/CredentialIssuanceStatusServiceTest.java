@@ -4,6 +4,8 @@ package no.idporten.eudiw.issuer.issuance.status;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import no.idporten.eudiw.issuer.ErrorCode;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionEntity;
@@ -11,11 +13,15 @@ import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanc
 import no.idporten.eudiw.issuer.credentials.status.persistence.StatusListEntryDao;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,12 +29,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
-@DisplayName("When handling notifications")
+@DisplayName("When handling notifications, then validated issuance status updates are expected")
 @ActiveProfiles("junit")
 @SpringBootTest
 public class CredentialIssuanceStatusServiceTest {
+
+    private static final String CREDENTIAL_CONFIGURATION_ID = "junitdoc_pre_mso_mdoc";
+    private static final String WALLET_STATUS = "credential_accepted";
 
     @MockitoBean
     private AccessTokenValidationService accessTokenValidationService;
@@ -105,23 +114,98 @@ public class CredentialIssuanceStatusServiceTest {
         );
     }
 
-    @DisplayName("then the wallet can update status using notification id and client can poll using issuance transaction id")
-    @Test
-    void testUpdateAndPollStatus() {
+    @DisplayName("When a wallet updates status, then validation against the transaction's credential configuration is expected")
+    @ParameterizedTest
+    @CsvSource({
+            "root, junitdoc_pre_mso_mdoc",
+            "junit, junitdoc_pre_sd_jwt_vc"
+    })
+    void testUpdateAndPollStatus(String tenantId, String cid) {
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
         JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
-        String cid = "junitdoc_pre_mso_mdoc";
-        credentialIssuanceStatusService.offerIssued(credentialIssuerTenantService.findTenantById("root"), issuanceTransactionId, cid);
+        CredentialIssuerTenant tenant = credentialIssuerTenantService.findTenantById(tenantId);
+        credentialIssuanceStatusService.offerIssued(tenant, issuanceTransactionId, cid);
         NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(cid, issuanceTransactionId);
-        String status = "credential_accepted";
-        credentialIssuanceStatusService.walletStatusUpdated(notificationId, status);
-        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken,credentialIssuerTenantService.findTenantById("root"), issuanceTransactionId);
+        credentialIssuanceStatusService.walletStatusUpdated(tenant, notificationId, WALLET_STATUS, accessToken);
+        CredentialIssuanceStatus issuanceStatus = credentialIssuanceStatusService.getIssuanceStatus(accessToken, tenant, issuanceTransactionId);
         assertAll(
-                () -> assertEquals(status, issuanceStatus.status()),
+                () -> assertEquals(WALLET_STATUS, issuanceStatus.status()),
                 () -> assertEquals(issuanceTransactionId, issuanceStatus.issuanceTransactionId()),
                 () -> assertEquals(cid, issuanceStatus.credentialConfigurationId())
         );
-        verify(auditService).logWalletStatusUpdate(eq(cid), eq(issuanceTransactionId), eq(notificationId), eq(status));
+        verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(
+                same(accessToken), eq(AccessTokenCredentialValidationContext.forAuthorization(tenant.findCredentialConfiguration(cid))));
+        verify(auditService).logWalletStatusUpdate(eq(cid), eq(issuanceTransactionId), eq(notificationId), eq(WALLET_STATUS));
+    }
+
+    @DisplayName("When credential token validation fails, then unchanged status and no audit event are expected")
+    @ParameterizedTest
+    @EnumSource(value = ErrorCode.class, names = {"INVALID_TOKEN", "INSUFFICIENT_SCOPE"})
+    void testRejectedWalletStatusUpdate(ErrorCode errorCode) {
+        CredentialIssuerTenant tenant = credentialIssuerTenantService.findTenantById("root");
+        IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+        JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
+        credentialIssuanceStatusService.offerIssued(tenant, issuanceTransactionId, CREDENTIAL_CONFIGURATION_ID);
+        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(CREDENTIAL_CONFIGURATION_ID, issuanceTransactionId);
+        CredentialIssuanceTransactionEntity before = issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElseThrow();
+        IssuerServerException validationFailure = new IssuerServerException(errorCode, "Token does not authorize this credential configuration.");
+        doThrow(validationFailure).when(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(
+                same(accessToken), eq(AccessTokenCredentialValidationContext.forAuthorization(tenant.findCredentialConfiguration(CREDENTIAL_CONFIGURATION_ID))));
+
+        assertSame(validationFailure, assertThrows(IssuerServerException.class,
+                () -> credentialIssuanceStatusService.walletStatusUpdated(tenant, notificationId, WALLET_STATUS, accessToken)));
+        CredentialIssuanceTransactionEntity after = issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElseThrow();
+        assertEquals(before.getStatus(), after.getStatus());
+        assertEquals(before.getUpdatedMs(), after.getUpdatedMs());
+        verifyNoInteractions(auditService);
+    }
+
+    @DisplayName("When a notification belongs to another tenant, then rejection without a status update is expected")
+    @Test
+    void testNotificationForAnotherTenant() {
+        CredentialIssuerTenant tenant = credentialIssuerTenantService.findTenantById("root");
+        CredentialIssuerTenant otherTenant = credentialIssuerTenantService.findTenantById("junit");
+        IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+        JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
+        String credentialConfigurationId = "junitdoc_pre_sd_jwt_vc";
+        credentialIssuanceStatusService.offerIssued(tenant, issuanceTransactionId, credentialConfigurationId);
+        NotificationId notificationId = credentialIssuanceStatusService.credentialIssued(credentialConfigurationId, issuanceTransactionId);
+
+        IssuerServerException exception = assertThrows(IssuerServerException.class,
+                () -> credentialIssuanceStatusService.walletStatusUpdated(otherTenant, notificationId, WALLET_STATUS, accessToken));
+
+        assertEquals("invalid_notification_id", exception.getError());
+        assertEquals("credential_issued", issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElseThrow().getStatus());
+        verifyNoInteractions(accessTokenValidationService, auditService);
+    }
+
+    @DisplayName("When a notification is unknown, then an invalid notification id error is expected")
+    @Test
+    void testUnknownNotification() {
+        IssuerServerException exception = assertThrows(IssuerServerException.class,
+                () -> credentialIssuanceStatusService.walletStatusUpdated(credentialIssuerTenantService.findTenantById("root"), new NotificationId(), WALLET_STATUS, createIssuanceAccessToken(new IssuanceTransactionId())
+                ));
+        assertEquals("invalid_notification_id", exception.getError());
+        assertEquals(400, exception.getHttpStatus().value());
+        verifyNoInteractions(accessTokenValidationService, auditService);
+    }
+
+    @DisplayName("When a transaction has no status, then a validated status update is expected")
+    @Test
+    void testNotificationWithoutStatus() {
+        CredentialIssuerTenant tenant = credentialIssuerTenantService.findTenantById("root");
+        IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId();
+        NotificationId notificationId = new NotificationId();
+        JWT accessToken = createIssuanceAccessToken(issuanceTransactionId);
+        issuanceTransactionDao.insertTransaction(issuanceTransactionId.getValue(), CREDENTIAL_CONFIGURATION_ID, tenant.getId(), System.currentTimeMillis());
+        issuanceTransactionDao.updateNotificationId(issuanceTransactionId.getValue(), notificationId.getValue(), System.currentTimeMillis());
+
+        credentialIssuanceStatusService.walletStatusUpdated(tenant, notificationId, WALLET_STATUS, accessToken);
+
+        assertEquals(WALLET_STATUS, issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElseThrow().getStatus());
+        verify(accessTokenValidationService).validateAccessTokenForCredentialConfiguration(
+                same(accessToken), eq(AccessTokenCredentialValidationContext.forAuthorization(tenant.findCredentialConfiguration(CREDENTIAL_CONFIGURATION_ID))));
+        verify(auditService).logWalletStatusUpdate(CREDENTIAL_CONFIGURATION_ID, issuanceTransactionId, notificationId, WALLET_STATUS);
     }
 
     @DisplayName("then an unknown reference has the unknown status")
