@@ -12,6 +12,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.oauth2.sdk.id.Audience;
 import com.nimbusds.openid.connect.sdk.Nonce;
 import id.walt.mdoc.dataelement.StringElement;
+import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
@@ -225,10 +226,11 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("when credential processing fails, then error status is expected")
     void marksCredentialProcessingFailureAsError() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException processingException =
                 new VerificationException("invalid_request", "Invalid mdoc");
-        when(mDocService.mDocFromVpToken("mdoc-token")).thenThrow(processingException);
+        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenThrow(processingException);
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
@@ -278,12 +280,13 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("with an mdoc credential, then routing and combined validation details are expected")
     void routesMdocAndCombinesValidationStatusesAndDetails() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         transaction.setIncludeValidationDetails(true);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
+        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of("family_name", "Nordmann"));
-        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
@@ -303,7 +306,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertEquals("no status", credential.validationDetails().get(0).validationDetails()),
                 () -> assertEquals("trusted", credential.validationDetails().get(1).validationDetails()),
                 () -> assertEquals("valid mdoc", credential.validationDetails().get(2).validationDetails()));
-        verify(mDocService).mDocFromVpToken("mdoc-token");
+        verify(mDocService).mDocFromDeviceResponse(deviceResponse);
         verifyNoInteractions(sdJwtService);
     }
 
@@ -354,10 +357,11 @@ class OpenID4VPResponseServiceTest {
     void routesNonPidMdocToDefaultTrustlist() throws Exception {
         VerificationTransaction transaction = transaction(query("attestation", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
+        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
+        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement("eu.example.attestation.1"));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
@@ -443,11 +447,12 @@ class OpenID4VPResponseServiceTest {
 
     private void prepareMdocWithStatus(String idx, ValidationStatus status) {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
+        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc))
                 .thenReturn(new StatuslistEntry(idx, URI.create("https://status.example/list")));

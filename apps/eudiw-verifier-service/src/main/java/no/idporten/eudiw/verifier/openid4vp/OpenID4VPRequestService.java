@@ -146,8 +146,7 @@ public class OpenID4VPRequestService {
         List<Base64> certChain = new ArrayList<>();
         certChain.add(Base64.encode(keyProvider.certificate().getEncoded()));
         verificationTransaction.setAudience(makeClientId(verificationTransaction.getClientApplication()));
-        Nonce nonce = new Nonce();
-        verificationTransaction.setNonce(nonce.getValue());
+        verificationTransaction.setNonce(new Nonce().getValue());
 
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()

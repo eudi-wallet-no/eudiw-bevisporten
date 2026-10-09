@@ -4,6 +4,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
 import id.walt.mdoc.dataelement.StringElement;
+import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
@@ -115,7 +116,7 @@ public class OpenID4VPResponseService {
                 if ("dc+sd-jwt".equals(format)) {
                     verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction, isCryptographicHolderBindingRequired);
                 } else if ("mso_mdoc".equals(format)) {
-                    verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
+                    verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction, isCryptographicHolderBindingRequired);
                 } else {
                     throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
                 }
@@ -271,10 +272,11 @@ public class OpenID4VPResponseService {
         }
     }
 
-    private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
-        MDoc mdoc = mDocService.mDocFromVpToken(vpToken);
+    private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, boolean isCryptographicHolderBindingRequired) {
+        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken(vpToken);
+        MDoc mdoc = mDocService.mDocFromDeviceResponse(deviceResponse);
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
-        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
+        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc, verificationTransaction);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));

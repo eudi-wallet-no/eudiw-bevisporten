@@ -1,12 +1,16 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import id.walt.mdoc.COSECryptoProviderKeyInfo;
+import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
+import id.walt.mdoc.devicesigned.DeviceSigned;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import org.cose.java.AlgorithmID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +29,7 @@ public class MDocService  {
     public MDocService() {
     }
 
-    public MDoc mDocFromVpToken(String vpToken) {
+    public DeviceResponse deviceResponseFromVpToken(String vpToken) {
         DeviceResponse deviceResponse;
         try {
             deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
@@ -38,7 +42,20 @@ public class MDocService  {
         if (deviceResponse.getDocuments().isEmpty()) {
             throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
         }
-        return deviceResponse.getDocuments().getFirst();
+        return deviceResponse;
+    }
+
+    /**
+     * According to HAIP §5.3.1, only one document per DeviceResponse is supported.
+     * @param deviceResponse this contains the single MDoc.
+     * @return
+     */
+    public MDoc mDocFromDeviceResponse(DeviceResponse deviceResponse) {
+        if(deviceResponse.getDocuments().size() > 1) {
+            throw new VerificationException("invalid_request", "Multiple mdoc documents in vp_token, only one is supported");
+        } else {
+            return deviceResponse.getDocuments().getFirst();
+        }
     }
 
     public Map<String, Object> claimsFromMDoc(MDoc mDoc) {
@@ -47,14 +64,36 @@ public class MDocService  {
         return claims;
     }
 
-    protected ValidationStatus verifyMDoc (id.walt.mdoc.doc.MDoc mDoc) {
+    protected ValidationStatus verifyMDoc (id.walt.mdoc.doc.MDoc mDoc, VerificationTransaction verificationTransaction) {
         mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
         // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
         // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
         // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
+        //VERIFY::
+        //- Issuer signature (x5Chain)
+        //- Device signature
+        //- Validity period
+        //- Session transcript
+        DeviceSigned deviceSigned = mDoc.getDeviceSigned();
+        IssuerSigned issuerSigned = mDoc.getIssuerSigned();
+
+        X509Certificate issuerCertificate = extractCertificateFromMdoc(mDoc);
+
+        // Verify issuer signature
+        //Params:
+        //cryptoProvider - The crypto provider implementation to use for the verification
+        //keyID - Optional key ID of the key to use, if crypto provider requires it.
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSigAlgOID(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), null);
+        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
+        Boolean verificationResult = mDoc.verifySignature(cryptoProvider, null);
+
         boolean verifyDocType = mDoc.verifyDocType();
         boolean verifyIssuerSignedItems = mDoc.verifyIssuerSignedItems();
         boolean verifyValidity = mDoc.verifyValidity();
+
+
+
+
         if (verifyDocType && verifyIssuerSignedItems && verifyValidity) {
             return ValidationStatus.VALID;
         } else {
