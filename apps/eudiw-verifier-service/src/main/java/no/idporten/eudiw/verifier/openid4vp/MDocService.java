@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class MDocService  {
+public class MDocService {
 
 
     public MDocService() {
@@ -47,7 +47,7 @@ public class MDocService  {
         return claims;
     }
 
-    protected ValidationStatus verifyMDoc (id.walt.mdoc.doc.MDoc mDoc) {
+    protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc) {
         mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
         // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
         // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
@@ -67,7 +67,7 @@ public class MDocService  {
      * to a map of element identifier to value.
      **/
 
-    protected Map<String, Object> mDocClaims (IssuerSigned issuerSigned, Map < String, Object > claims){
+    protected Map<String, Object> mDocClaims(IssuerSigned issuerSigned, Map<String, Object> claims) {
         for (String namespace : issuerSigned.getNameSpaces().keySet()) {
             List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
             for (EncodedCBORElement element : elements) {
@@ -117,7 +117,7 @@ public class MDocService  {
 
     }
 
-    protected X509Certificate extractCertificateFromMdoc (MDoc mDoc){
+    protected X509Certificate extractCertificateFromMdoc(MDoc mDoc) {
         IssuerSigned issuerSigned = mDoc.getIssuerSigned();
         if (issuerSigned.getIssuerAuth() == null) {
             throw new VerificationException("invalid_request", "issuerAuth is missing in mdoc");
@@ -128,33 +128,33 @@ public class MDocService  {
             throw new VerificationException("invalid_request", "x5chain is missing in issuerAuth of mdoc");
         }
         byte[] leafDer = x5chain.getFirst();
+        X509Certificate cert;
         try {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
-            return cert;
+            cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
         } catch (CertificateException e) {
             throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc", e);
         }
+        if (cert == null) {
+            throw new VerificationException("invalid_request", "Failed to extract certificate from issuerAuth x5chain mdoc since certificate is null");
+        }
+        return cert;
     }
 
 
     protected StatuslistEntry extractStatuslistUriAndIdx(MDoc mDoc) {
-        if(!Objects.isNull(mDoc.getMSO()) && !Objects.isNull(mDoc.getMSO().getStatus()) && !Objects.isNull(mDoc.getMSO().getStatus().getStatusList())) {
+        if (!Objects.isNull(mDoc.getMSO()) && !Objects.isNull(mDoc.getMSO().getStatus()) && !Objects.isNull(mDoc.getMSO().getStatus().getStatusList())) {
             return new StatuslistEntry(mDoc.getMSO().getStatus().getStatusList().toJSON().get("idx").toString(), URI.create(mDoc.getMSO().getStatus().getStatusList().getUri()));
         }
         return null;
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
-        switch (status) {
-            case INCONCLUSIVE:
-                return "mdoc: validering feila";
-            case VALID:
-                return "mdoc: mdoc er gyldig";
-            case INVALID:
-                return "mdoc: mdoc er ugyldig";
-            default:
-                return "mdoc: ukjent status";
-        }
+        return switch (status) {
+            case INCONCLUSIVE -> "mdoc: validering feila";
+            case VALID -> "mdoc: mdoc er gyldig";
+            case INVALID -> "mdoc: mdoc er ugyldig";
+            default -> "mdoc: ukjent status";
+        };
     }
 }

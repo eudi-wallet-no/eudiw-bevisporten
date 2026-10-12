@@ -114,12 +114,17 @@ public class SdJwtService {
 
 
     protected X509Certificate certificate(SDJwt unverifiedSDJwt) {
+        X509Certificate cert;
         try {
             JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
-            return X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
+            cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
         } catch (Exception e) {
             throw new VerificationException("invalid_request", "Failed to extract certificate from SDJwt", e);
         }
+        if(cert == null) {
+            throw new VerificationException("invalid_request", "Failed to extract certificate from SDJwt or certificate is null");
+        }
+        return cert;
     }
 
     protected JWSVerifier jwsVerifier(X509Certificate cert) {

@@ -14,6 +14,8 @@ import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -40,6 +42,8 @@ import java.util.Set;
 public class TokenStatuslistService {
     private final RestClient restClient;
     private final TokenStatuslistConfig tokenStatuslistConfig;
+
+    private static final Logger log = LoggerFactory.getLogger(TokenStatuslistService.class);
 
     public TokenStatuslistService(RestClient restClient, TokenStatuslistConfig tokenStatuslistConfig) {
         this.restClient = restClient;
@@ -135,23 +139,19 @@ public class TokenStatuslistService {
                     Instant.now());
         } catch (StatusCommunicationException | IOConnectionException e) {
             // TODO: create and update metrics for IOConnectionException.
+            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
             status = ValidationStatus.INCONCLUSIVE;
         }
         return status;
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {
-        switch (status) {
-            case INCONCLUSIVE:
-                return "Statusliste: validering feila";
-            case VALID:
-                return "Statusliste: bevis er gyldig";
-            case INVALID:
-                return "Statusliste: bevis er revokert";
-            case NOT_APPLICABLE:
-                return "Statusliste: bevis er ikke revokerbart";
-            default:
-                return "Statusliste: ukjent status";
-        }
+        return switch (status) {
+            case INCONCLUSIVE -> "Statusliste: validering feila";
+            case VALID -> "Statusliste: bevis er gyldig";
+            case INVALID -> "Statusliste: bevis er revokert";
+            case NOT_APPLICABLE -> "Statusliste: bevis er ikke revokerbart";
+            default -> "Statusliste: ukjent status";
+        };
     }
 }

@@ -3,8 +3,11 @@ package no.idporten.eudiw.verifier.trustlist;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import com.nimbusds.jose.JWSObject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
+import no.idporten.eudiw.verifier.trustlist.etsi602.ServiceInformation;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntity;
 import no.idporten.eudiw.verifier.trustlist.etsi602.TrustedEntityService;
 import no.idporten.eudiw.verifier.trustlist.etsi602.LoTEJson;
@@ -12,10 +15,7 @@ import no.idporten.eudiw.verifier.trustlist.etsi602xml.DigitalId602Xml;
 import no.idporten.eudiw.verifier.trustlist.etsi602xml.LoTEXml602;
 import no.idporten.eudiw.verifier.trustlist.etsi602xml.TrustedEntity602Xml;
 import no.idporten.eudiw.verifier.trustlist.etsi602xml.TrustedEntityService602Xml;
-import no.idporten.eudiw.verifier.trustlist.etsi612.DigitalId;
-import no.idporten.eudiw.verifier.trustlist.etsi612.LoTEXml;
-import no.idporten.eudiw.verifier.trustlist.etsi612.TLServiceProvider;
-import no.idporten.eudiw.verifier.trustlist.etsi612.TSPService;
+import no.idporten.eudiw.verifier.trustlist.etsi612.*;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,10 +84,11 @@ public class TrustlistService {
                 for (X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
                     if (compareCertificates(cert, individual)) {
                         if (allActive || service.serviceInformation().serviceStatus() != null) {
+                            log.info("Certificate found and validated OK against 119602 JSON trustlist at {} for service {}", uri, find602ServiceName(service.serviceInformation()));
                             return true;
                         } else {
                             throw new VerificationException("invalid_request", "Service " +
-                                    service.serviceInformation().serviceName().getFirst().getLocalisedValue() +
+                                    find602ServiceName(service.serviceInformation()) +
                                     "  is set to inactive on trustlist," +
                                     "or is missing status field ");
                         }
@@ -98,19 +99,34 @@ public class TrustlistService {
         return false;
     }
 
+    private static String find602ServiceName(ServiceInformation serviceInformation) {
+        if(serviceInformation == null || serviceInformation.serviceName() == null || serviceInformation.serviceName().isEmpty()) {
+            return "Unknown";
+        }
+        return serviceInformation.serviceName().getFirst().getLocalisedValue();
+    }
+
     protected boolean checkXml612(URI uri, X509Certificate cert) {
-        log.info("Checking certificate against 119612 XML trustlist at {}", uri);
+        log.info("Checking certificate serialNumber={} against 119612 XML trustlist at {}", cert.getSerialNumber(), uri);
         LoTEXml lote = xmlListMapping(fetchTrustlist(uri));
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
             for (TSPService service : sp.services().services()) {
                 for (DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
                     if (compareCertificates(cert, digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
+                        log.info("Certificate found and validated OK against 119612 XML trustlist at {} for service {}", uri, getTruslistServiceName(service.serviceInformation()));
                         return true;
                     }
                 }
             }
         }
         return false;
+    }
+
+    private static String getTruslistServiceName(@Valid @NotNull TLService tlService) {
+        if (tlService == null || tlService.name() == null || tlService.name().names() == null || tlService.name().names().isEmpty()) {
+            return "Unknown";
+        }
+        return tlService.name().names().getFirst().getValue();
     }
 
     protected boolean checkXml602(URI uri, X509Certificate cert) {
@@ -121,6 +137,7 @@ public class TrustlistService {
                 for (DigitalId602Xml digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
                     // No status concept exists in this XML format; every entry is treated as active.
                     if (compareCertificates(cert, digitalId.getCertificateAsX509Object())) {
+                        log.info("Certificate found and validated OK against 119602 XML trustlist at {}", uri);
                         return true;
                     }
                 }
@@ -195,7 +212,8 @@ public class TrustlistService {
         return switch (status) {
             case INCONCLUSIVE -> "Tillitsliste: validering feila";
             case VALID -> "Tillitsliste: bevisets sertifikat er på tillitslista";
-            case INVALID -> "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
+            case INVALID ->
+                    "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
             default -> "Tillitsliste: ukjent status";
         };
     }
