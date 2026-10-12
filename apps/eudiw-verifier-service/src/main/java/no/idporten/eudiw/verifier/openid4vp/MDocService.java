@@ -1,6 +1,5 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.COSECryptoProviderKeyInfo;
 import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.*;
@@ -8,6 +7,7 @@ import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.certificateauthority.CertificateAuthorityService;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import org.cose.java.AlgorithmID;
@@ -25,8 +25,11 @@ import java.util.stream.Collectors;
 @Service
 public class MDocService {
 
+    private final CertificateAuthorityService certificateAuthorityService;
 
-    public MDocService() {
+
+    public MDocService(CertificateAuthorityService certificateAuthorityService) {
+        this.certificateAuthorityService = certificateAuthorityService;
     }
 
     public DeviceResponse deviceResponseFromVpToken(String vpToken) {
@@ -87,8 +90,8 @@ public class MDocService {
     }
 
     protected Boolean verifyIssuerSignature(MDoc mdoc, X509Certificate issuerCertificate) {
-        X509Certificate rootCa = X509CertUtils.parse("-----BEGIN CERTIFICATE-----MIICMzCCAdmgAwIBAgIIbLk59uoMYY4wCgYIKoZIzj0EAwIwfzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSowKAYDVQQDEyFlaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHN5c3Rlc3QwHhcNMjYwMzExMDYyODE2WhcNMzEwMzEwMDYyODE2WjB/MR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxKjAoBgNVBAMTIWVpZGFzMnNhbmRrYXNzZSByb290IENBIDIgc3lzdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEPMSVuEwHRIVXmHGxCeXStQRZLN19EDpgO8sPyqgckHAXL0UuE4uuV4mtoUmTfwlZyGo6d0/IrXq0sE/5V7fAWjPzA9MB0GA1UdDgQWBBQUeG7cOumLe28MkYC1zhwUuck/8jAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zAKBggqhkjOPQQDAgNIADBFAiEAqhJeWoE7mHLhMRvtYwO5XN96ttIp9f3OVHMaTb3dyv4CIGXjpOYK5+shq416BS47WGsq01TWAaU5fHvnVo/pz9c8-----END CERTIFICATE-----");
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSubjectX500Principal().getName(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), List.of(rootCa));
+        X509Certificate root = certificateAuthorityService.getCertificate();
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSubjectX500Principal().getName(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), List.of(root));
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
         return mdoc.verifySignature(cryptoProvider, issuerCertificate.getSubjectX500Principal().getName());
     }

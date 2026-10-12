@@ -16,8 +16,7 @@ public class TrustlistRestclient {
         this.trustlistConfig = trustlistConfig;
     }
 
-    @Bean
-    @Qualifier("trustlist")
+    @Bean("trustlist")
     public RestClient trustlistRestClient() {
         SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         clientHttpRequestFactory.setConnectTimeout(trustlistConfig.connectTimeout());

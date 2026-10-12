@@ -16,6 +16,7 @@ import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
@@ -45,7 +46,7 @@ public class TokenStatuslistService {
 
     private static final Logger log = LoggerFactory.getLogger(TokenStatuslistService.class);
 
-    public TokenStatuslistService(RestClient restClient, TokenStatuslistConfig tokenStatuslistConfig) {
+    public TokenStatuslistService(@Qualifier("tokenStatuslist") RestClient restClient, TokenStatuslistConfig tokenStatuslistConfig) {
         this.restClient = restClient;
         this.tokenStatuslistConfig = tokenStatuslistConfig;
     }

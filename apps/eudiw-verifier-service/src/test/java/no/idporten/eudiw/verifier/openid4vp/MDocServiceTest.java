@@ -1,14 +1,18 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.cose.COSESign1;
 import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.certificateauthority.CertificateAuthorityService;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import no.idporten.eudiw.verifier.testdata.Certificates;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +38,20 @@ class MDocServiceTest {
     private static final String VP_TOKEN_WITHOUT_DOCUMENTS =
             "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOAZnN0YXR1cwA";
 
-    private final MDocService service = new MDocService();
+    @Mock CertificateAuthorityService certificateAuthorityService;
+
+    private MDocService service; //= new MDocService(certificateAuthorityService);
 
     @Mock MDoc mDoc;
     @Mock IssuerSigned issuerSigned;
     @Mock COSESign1 issuerAuth;
     @Mock DeviceResponse deviceResponse;
+    Certificates certificates = new Certificates();
 
+    @BeforeEach
+    void setup() {
+        service = new MDocService(certificateAuthorityService);
+    }
     @Test
     @DisplayName("with a valid VP token, then PID claims are expected")
     void parsesRealVpTokenAndExtractsClaims() {
@@ -73,8 +84,9 @@ class MDocServiceTest {
         VerificationTransaction verificationTransaction = new VerificationTransaction();
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
         id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
-        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned); //TODO: Legg til disse linjer når issuer signatur er implementert!
+        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
+        when(certificateAuthorityService.getCertificate()).thenReturn(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.rootCertificate()+"-----END CERTIFICATE-----"));
         when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
         assertAll(
                 () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
@@ -184,5 +196,12 @@ class MDocServiceTest {
         when(deviceResponse.getDocuments()).thenReturn(List.of(mDoc, mDoc));
         VerificationException exception = assertThrows(VerificationException.class, () -> service.mDocFromDeviceResponse(deviceResponse));
         assertEquals("Multiple mdoc documents in vp_token, only one is supported", exception.getErrorDescription());
+    }
+
+    @Test
+    @DisplayName("with wrong issuer signature, then invalid request is expected")
+    void throwsExceptionWhenWrongIssuerSignature() {
+        when(certificateAuthorityService.getCertificate()).thenReturn(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.rootCertificate()+"-----END CERTIFICATE-----"));
+        assertFalse(service.verifyIssuerSignature(mDoc, X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.webuildPidDigdirCertificate()+"-----END CERTIFICATE-----")));
     }
 }
