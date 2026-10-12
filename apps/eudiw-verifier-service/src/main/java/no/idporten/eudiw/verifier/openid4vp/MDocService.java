@@ -1,5 +1,8 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import com.nimbusds.jose.util.X509CertUtils;
+import id.walt.mdoc.COSECryptoProviderKeyInfo;
+import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
@@ -7,6 +10,7 @@ import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import org.cose.java.AlgorithmID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +51,13 @@ public class MDocService {
         return claims;
     }
 
-    protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc) {
+    protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc, VerificationTransaction verificationTransaction) {
+
+        // Step one, verify the isuer signature
+        X509Certificate issuerCertificate = extractCertificateFromMdoc(mDoc);
+        Boolean issuerSignatureValid = verifyIssuerSignature(mDoc, issuerCertificate);
+
+
         mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
         // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
         // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
@@ -55,11 +65,18 @@ public class MDocService {
         boolean verifyDocType = mDoc.verifyDocType();
         boolean verifyIssuerSignedItems = mDoc.verifyIssuerSignedItems();
         boolean verifyValidity = mDoc.verifyValidity();
-        if (verifyDocType && verifyIssuerSignedItems && verifyValidity) {
+        if (verifyDocType && verifyIssuerSignedItems && verifyValidity && issuerSignatureValid != null && issuerSignatureValid) {
             return ValidationStatus.VALID;
         } else {
             return ValidationStatus.INVALID;
         }
+    }
+
+    protected Boolean verifyIssuerSignature(MDoc mdoc, X509Certificate issuerCertificate) {
+        X509Certificate rootCa = X509CertUtils.parse("-----BEGIN CERTIFICATE-----MIICMzCCAdmgAwIBAgIIbLk59uoMYY4wCgYIKoZIzj0EAwIwfzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSowKAYDVQQDEyFlaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHN5c3Rlc3QwHhcNMjYwMzExMDYyODE2WhcNMzEwMzEwMDYyODE2WjB/MR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxKjAoBgNVBAMTIWVpZGFzMnNhbmRrYXNzZSByb290IENBIDIgc3lzdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEPMSVuEwHRIVXmHGxCeXStQRZLN19EDpgO8sPyqgckHAXL0UuE4uuV4mtoUmTfwlZyGo6d0/IrXq0sE/5V7fAWjPzA9MB0GA1UdDgQWBBQUeG7cOumLe28MkYC1zhwUuck/8jAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zAKBggqhkjOPQQDAgNIADBFAiEAqhJeWoE7mHLhMRvtYwO5XN96ttIp9f3OVHMaTb3dyv4CIGXjpOYK5+shq416BS47WGsq01TWAaU5fHvnVo/pz9c8-----END CERTIFICATE-----");
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSubjectX500Principal().getName(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), List.of(rootCa));
+        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
+        return mdoc.verifySignature(cryptoProvider, issuerCertificate.getSubjectX500Principal().getName());
     }
 
     /**

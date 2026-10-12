@@ -75,13 +75,14 @@ class MDocServiceTest {
     @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
+        VerificationTransaction transaction = new VerificationTransaction();
         when(mDoc.getMSO()).thenReturn(null);
         when(mDoc.verifyDocType()).thenReturn(true);
         when(mDoc.verifyIssuerSignedItems()).thenReturn(true);
         when(mDoc.verifyValidity()).thenReturn(true, false);
 
-        assertEquals(ValidationStatus.VALID, service.verifyMDoc(mDoc));
-        assertEquals(ValidationStatus.INVALID, service.verifyMDoc(mDoc));
+        assertEquals(ValidationStatus.VALID, service.verifyMDoc(mDoc, transaction));
+        assertEquals(ValidationStatus.INVALID, service.verifyMDoc(mDoc, transaction));
     }
 
     @Test

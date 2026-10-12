@@ -274,7 +274,7 @@ public class OpenID4VPResponseService {
     private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
         MDoc mdoc = mDocService.mDocFromVpToken(vpToken);
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
-        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
+        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc, verificationTransaction);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));

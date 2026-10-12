@@ -283,7 +283,7 @@ class OpenID4VPResponseServiceTest {
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of("family_name", "Nordmann"));
-        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
@@ -357,7 +357,7 @@ class OpenID4VPResponseServiceTest {
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement("eu.example.attestation.1"));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
@@ -447,7 +447,7 @@ class OpenID4VPResponseServiceTest {
         when(mDocService.mDocFromVpToken("mdoc-token")).thenReturn(mDoc);
         when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc)).thenReturn(ValidationStatus.VALID);
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
         when(mDocService.extractStatuslistUriAndIdx(mDoc))
                 .thenReturn(new StatuslistEntry(idx, URI.create("https://status.example/list")));
