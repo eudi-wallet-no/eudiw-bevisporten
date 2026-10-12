@@ -2,11 +2,13 @@ package no.idporten.eudiw.verifier.openid4vp;
 
 import id.walt.mdoc.cose.COSESign1;
 import id.walt.mdoc.dataelement.*;
+import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
@@ -71,18 +74,20 @@ class MDocServiceTest {
 
         assertEquals("Failed to parse mdoc vp_token", exception.getErrorDescription());
     }
-
     @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
-        VerificationTransaction transaction = new VerificationTransaction();
-        when(mDoc.getMSO()).thenReturn(null);
-        when(mDoc.verifyDocType()).thenReturn(true);
-        when(mDoc.verifyIssuerSignedItems()).thenReturn(true);
-        when(mDoc.verifyValidity()).thenReturn(true, false);
-
-        assertEquals(ValidationStatus.VALID, service.verifyMDoc(mDoc, transaction));
-        assertEquals(ValidationStatus.INVALID, service.verifyMDoc(mDoc, transaction));
+        Security.addProvider(new BouncyCastleProvider());
+        VerificationTransaction verificationTransaction = new VerificationTransaction();
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
+        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
+        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+        assertAll(
+                () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
+                () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction))
+        );
     }
 
     @Test
