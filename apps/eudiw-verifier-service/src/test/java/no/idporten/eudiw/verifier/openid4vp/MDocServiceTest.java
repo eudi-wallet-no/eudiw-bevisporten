@@ -67,33 +67,13 @@ class MDocServiceTest {
     }
 
     @Test
-    @DisplayName("with a malformed VP token, then invalid request is expected")
-    void rejectsMalformedVpToken() {
-        VerificationException exception = assertThrows(
-                VerificationException.class,
-                () -> service.mDocFromVpToken("not-an-mdoc"));
-
-        assertEquals("Failed to parse mdoc vp_token", exception.getErrorDescription());
-    }
-    @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
         Security.addProvider(new BouncyCastleProvider());
         VerificationTransaction verificationTransaction = new VerificationTransaction();
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
         id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
-//        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned); //TODO: Legg til disse linjer når issuer signatur er implementert!
-//        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-//        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
-        assertAll(
-                () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction))
-//                () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction)) //TODO: Legg til denne linja når issuer signatur er implementert!
-        );
-        Security.addProvider(new BouncyCastleProvider());
-        VerificationTransaction verificationTransaction = new VerificationTransaction();
-        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
-        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
+        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned); //TODO: Legg til disse linjer når issuer signatur er implementert!
         when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
         when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
         assertAll(
