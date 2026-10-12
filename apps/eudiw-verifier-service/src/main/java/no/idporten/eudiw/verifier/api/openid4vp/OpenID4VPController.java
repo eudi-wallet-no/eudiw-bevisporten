@@ -28,10 +28,9 @@ public class OpenID4VPController {
      * Retrieve authz request by request_uri.  The flow parameter is used to track same device or cross device flow.
      */
     @GetMapping(value = "/openid4vp/authz-request/{client_application_id}/{request_id}", produces = "application/oauth-authz-req+jwt")
-    public ResponseEntity<String> retrieveRequest(
-            @PathVariable("client_application_id") String clientApplicationId,
+    public ResponseEntity<String> retrieveRequest(@PathVariable("client_application_id") String clientApplicationId,
             @PathVariable("request_id") String requestId,
-            @RequestParam(name = "flow", defaultValue = "same_device", required = false) String flow) throws Exception {
+            @RequestParam(name = "flow", defaultValue = "same_device", required = false) String flow) {
         return ResponseEntity.ok(openID4VPRequestService.retrieveAuthorizationRequest(verifierServiceProperties.findClientApplication(clientApplicationId), requestId, flow));
     }
 
@@ -39,10 +38,9 @@ public class OpenID4VPController {
      * Receive wallet response and return a wallet callback.
      */
     @PostMapping(value = "/openid4vp/authz-response/{client_application_id}/{verifier_transaction_id}")
-    public ResponseEntity<WalletCallback> receiveResponse(
-            @PathVariable("client_application_id") String clientApplicationId,
-            @PathVariable("verifier_transaction_id") String verifierTransactionId,
-            EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
+    public ResponseEntity<WalletCallback> receiveResponse(@PathVariable("client_application_id") String clientApplicationId,
+                                                          @PathVariable("verifier_transaction_id") String verifierTransactionId,
+                                                          EncryptedAuthorizationResponse encryptedAuthorizationResponse) throws Exception {
         return ResponseEntity.ok(openID4VPResponseService.receiveResponse(verifierServiceProperties.findClientApplication(clientApplicationId), verifierTransactionId, encryptedAuthorizationResponse));
     }
 

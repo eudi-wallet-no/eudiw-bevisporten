@@ -6,6 +6,8 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.oauth2.sdk.id.Audience;
+import com.nimbusds.openid.connect.sdk.Nonce;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockHttpSession;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -167,7 +170,6 @@ class OpenID4VPRequestServiceTest {
     @DisplayName("When a verification transaction exists, then a signed authorization request is stored and returned")
     void createsAndStoresSignedAuthorizationRequest() throws Exception {
         configureExistingTransaction();
-
         String serializedRequest = service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
@@ -175,7 +177,6 @@ class OpenID4VPRequestServiceTest {
         VerificationTransaction storedTransaction = captureStoredTransaction();
 
         assertAll(
-                () -> assertEquals("https://self-issued.me/v2", request.getJWTClaimsSet().getAudience().getFirst()),
                 () -> assertEquals(EXTERNAL_BASE_URI, request.getJWTClaimsSet().getIssuer()),
                 () -> assertEquals(SAME_DEVICE_FLOW, storedTransaction.getFlow()),
                 () -> assertEquals(request.getJWTClaimsSet().toJSONObject(), storedTransaction.getRequest()),

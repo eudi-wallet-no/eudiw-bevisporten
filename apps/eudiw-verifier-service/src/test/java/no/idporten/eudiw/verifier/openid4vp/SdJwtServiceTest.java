@@ -10,6 +10,9 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.testdata.Certificates;
+import no.idporten.eudiw.verifier.testdata.VpTokenTestdata;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,8 +33,10 @@ import static org.mockito.Mockito.*;
 @DisplayName("When handling SD-JWT credentials")
 class SdJwtServiceTest {
 
+    private static final Logger log = LogManager.getLogger(SdJwtServiceTest.class);
     @Mock VerificationResult<SDJwt> verificationResult;
     @Mock SDJwt mockedSdJwt;
+    @Mock VerificationTransaction verificationTransaction;
 
     private SdJwtService service;
 
@@ -158,17 +163,45 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("With a valid SD-JWT, there is a cnf attributte, and the holder binding is valid")
+    void checkThatThereIsACnfAttributteInSdJwt () {
+        VerificationTransaction verificationTransaction = new VerificationTransaction();
+        verificationTransaction.setNonce("ac93b65f-ae6c-4626-8a39-0442bfd6a0cb");
+        verificationTransaction.setAudience("x509_hash:bBAVx4HHUDYrBmotXFW11s37ThLpQ_qRqRGfsAYg-8g");
+        SDJwt sdjwt = service.sdJwtFromVpToken(VpTokenTestdata.VP_TOKEN);
+        assertAll(
+                () -> assertNotNull(sdjwt.getKeyBindingJwt()),
+                () -> assertTrue(service.checkHolderBinding(verificationTransaction, sdjwt, true))
+        );
+    }
+
+    @Test
+    @DisplayName("With a valid SD-JWT, there is a cnf attributte, and the holder binding is invalid" +
+            "when non-matching nonce is used")
+    void nonceNotMatchingGivesFalseHolderBinding () {
+        VerificationTransaction verificationTransaction = new VerificationTransaction();
+        verificationTransaction.setNonce("123");
+        verificationTransaction.setAudience("x509_hash:bBAVx4HHUDYrBmotXFW11s37ThLpQ_qRqRGfsAYg-8g");
+        SDJwt sdjwt = service.sdJwtFromVpToken(VpTokenTestdata.VP_TOKEN);
+
+        assertAll(
+                () -> assertNotNull(sdjwt.getKeyBindingJwt()),
+                () -> assertFalse(service.checkHolderBinding(verificationTransaction, sdjwt, true))
+        );
+    }
+
+    @Test
     @DisplayName("with every validation status, then matching detail text is expected")
     void returnsValidationDetailTextForEveryStatus() {
         assertAll(
                 () -> assertEquals("SD-JWT VC: SDJwt er gyldig",
-                        service.getValidationDetail(ValidationStatus.VALID)),
+                        service.getValidationDetailSDJWT(ValidationStatus.VALID)),
                 () -> assertEquals("SD-JWT VC: SDJwt er ugyldig",
-                        service.getValidationDetail(ValidationStatus.INVALID)),
+                        service.getValidationDetailSDJWT(ValidationStatus.INVALID)),
                 () -> assertEquals("SD-JWT VC: validering feila",
-                        service.getValidationDetail(ValidationStatus.INCONCLUSIVE)),
+                        service.getValidationDetailSDJWT(ValidationStatus.INCONCLUSIVE)),
                 () -> assertEquals("SD-JWT VC: ukjent status",
-                        service.getValidationDetail(ValidationStatus.NOT_APPLICABLE)));
+                        service.getValidationDetailSDJWT(ValidationStatus.NOT_APPLICABLE)));
     }
 
     private static X509Certificate certificate() {
@@ -195,4 +228,5 @@ class SdJwtServiceTest {
     private static String base64Url(String value) {
         return Base64URL.encode(value.getBytes(StandardCharsets.UTF_8)).toString();
     }
+
 }

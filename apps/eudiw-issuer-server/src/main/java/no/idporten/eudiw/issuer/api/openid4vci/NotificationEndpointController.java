@@ -1,21 +1,25 @@
 package no.idporten.eudiw.issuer.api.openid4vci;
 
+import com.nimbusds.jwt.JWT;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 import no.idporten.eudiw.issuer.api.Endpoints;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
+import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
+import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
-import no.idporten.eudiw.issuer.openid4vci.protocol.NotificationRequest;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
-import no.idporten.eudiw.issuer.issuance.status.CredentialIssuanceStatusService;
+import no.idporten.eudiw.issuer.openid4vci.protocol.NotificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Hidden
 @RestController
@@ -39,13 +43,12 @@ public class NotificationEndpointController {
     public ResponseEntity<?> notificationEndpoint(
             @PathVariable(value = Endpoints.TENANT_PATH_VARIABLE, required = false) String tenant,
             @RequestBody NotificationRequest notificationRequest,
-            @RequestHeader(required = false, value = HttpHeaders.AUTHORIZATION) String authorizationHeader) {
-        // TODO JWT accessToken = https://digdir.atlassian.net/browse/EUW-533
-        log.info("Received notification request: {}", notificationRequest);
-        log.info("Received notification request authorization header: {}", authorizationHeader);
+            HttpServletRequest request) {
         CredentialIssuerTenant credentialIssuerTenant = credentialIssuerTenantService.findTenantById(tenant);
+        JWT accessToken = accessTokenValidationService.validateAccessToken(AccessTokenValidationContext.forDPoPToken(request, List.of(authorizationServerService.getPrimaryAuthorizationServer()), credentialIssuerTenant.getCredentialIssuer()));
         notificationRequest.validate();
-        credentialIssuanceStatusService.walletStatusUpdated(new NotificationId(notificationRequest.notificationId()), notificationRequest.event());
+        log.info("Received notification request: {}", notificationRequest);
+        credentialIssuanceStatusService.walletStatusUpdated(credentialIssuerTenant, new NotificationId(notificationRequest.notificationId()), notificationRequest.event(), accessToken);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();

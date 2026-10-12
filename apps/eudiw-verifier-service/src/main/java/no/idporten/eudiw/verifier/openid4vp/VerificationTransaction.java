@@ -19,6 +19,7 @@ public class VerificationTransaction implements Serializable {
     private String status;
     private String state;
     private String nonce;
+    private String audience;
     private JWK encryptionKey;
     private VerifiedCredentials verifiedCredentials;
     private Map<String, Object> request;

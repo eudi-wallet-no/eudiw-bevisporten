@@ -1,6 +1,8 @@
 package no.idporten.eudiw.issuer.issuance.status;
 
 import com.nimbusds.jwt.JWT;
+import no.idporten.eudiw.issuer.ErrorCode;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionEntity;
@@ -81,18 +83,18 @@ public class CredentialIssuanceStatusService {
     }
 
     /**
-     * Updates status from wallet events.
+     * Updates status from wallet notification.  Validates access token against the actual credential configuration.
      */
-    public void walletStatusUpdated(NotificationId notificationId, String status) {
+    public void walletStatusUpdated(CredentialIssuerTenant credentialIssuerTenant, NotificationId notificationId, String status, JWT accessToken) {
         CredentialIssuanceTransactionEntity entity = issuanceTransactionDao.findByNotificationId(notificationId.getValue()).orElse(null);
         if (entity == null) {
-            log.info("No issuance transaction id found for notification_id {}, ignoring status {}", notificationId, status);
-            return;
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Unknown notification id.", "Unknown notification id %s for tenant %s with status %s.".formatted(notificationId, credentialIssuerTenant.getId(), status));
         }
-        if (entity.getStatus() == null) {
-            log.info("No issuance status found for issuance_transaction_id {}, ignoring status {}", entity.getIssuanceTransactionId(), status);
-            return;
+        if (!credentialIssuerTenant.getId().equals(entity.getCredentialIssuerTenant())) {
+            throw new IssuerServerException(ErrorCode.INVALID_NOTIFICATION_ID, "Unknown notification id.", "Notification id %s does not belong to tenant %s. Notified status %s.".formatted(notificationId, credentialIssuerTenant.getId(), status));
         }
+        ExtendedCredentialConfiguration credentialConfiguration = credentialIssuerTenant.findCredentialConfiguration(entity.getCredentialConfigurationId());
+        accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         issuanceTransactionDao.updateStatus(entity.getIssuanceTransactionId(), status, System.currentTimeMillis());
         IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(entity.getIssuanceTransactionId());
         log.info("Recorded issuance status {} for issuance_transaction_id {} from wallet with notification id {}", status, issuanceTransactionId, notificationId);
@@ -100,4 +102,3 @@ public class CredentialIssuanceStatusService {
     }
 
 }
-
