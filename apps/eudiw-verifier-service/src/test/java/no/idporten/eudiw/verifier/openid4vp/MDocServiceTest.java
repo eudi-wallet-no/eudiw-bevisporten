@@ -39,6 +39,7 @@ class MDocServiceTest {
     @Mock MDoc mDoc;
     @Mock IssuerSigned issuerSigned;
     @Mock COSESign1 issuerAuth;
+    @Mock DeviceResponse deviceResponse;
 
     @Test
     @DisplayName("with a valid VP token, then PID claims are expected")
@@ -65,7 +66,6 @@ class MDocServiceTest {
 
         assertEquals("No mdoc documents in vp_token", exception.getErrorDescription());
     }
-
     @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
@@ -176,5 +176,13 @@ class MDocServiceTest {
                         service.getValidationDetail(ValidationStatus.INCONCLUSIVE)),
                 () -> assertEquals("mdoc: ukjent status",
                         service.getValidationDetail(ValidationStatus.NOT_APPLICABLE)));
+    }
+
+    @Test
+    @DisplayName("with two mdocs from the same device response, then invalid request is expected")
+    void throwsExceptionWhenTwoDeviceResponsesForSameMdoc() {
+        when(deviceResponse.getDocuments()).thenReturn(List.of(mDoc, mDoc));
+        VerificationException exception = assertThrows(VerificationException.class, () -> service.mDocFromDeviceResponse(deviceResponse));
+        assertEquals("Multiple mdoc documents in vp_token, only one is supported", exception.getErrorDescription());
     }
 }

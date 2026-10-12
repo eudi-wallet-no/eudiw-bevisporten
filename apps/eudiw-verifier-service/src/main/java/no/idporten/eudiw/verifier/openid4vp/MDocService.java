@@ -46,7 +46,8 @@ public class MDocService {
     }
 
     /**
-     * According to HAIP §5.3.1, only one document per DeviceResponse is supported.
+     * According to HAIP §5.3.1, only one document per DeviceResponse is supported. See also HAIP 1.0.4
+     * https://openid.net/specs/openid4vc-high-assurance-interoperability-profile-1_0.html#name-openid-for-verifiable-crede
      * @param deviceResponse this contains the single MDoc.
      * @return
      */
