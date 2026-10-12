@@ -20,9 +20,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -242,6 +246,76 @@ class OpenID4VPRequestServiceTest {
                 () -> assertNull(sdJwtClaims.get(1).getIntentToRetain()),
                 () -> assertNull(sdJwtClaims.get(2).getIntentToRetain()),
                 () -> assertFalse(serializedQuery.contains("\"intent_to_retain\":null")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"mso_mdoc", "dc+sd-jwt"})
+    @DisplayName("When a query contains trusted authorities, then unchanged values in the cached transaction and signed request are expected")
+    void forwardsTrustedAuthoritiesThroughCacheAndSignedRequest(String format) throws Exception {
+        JsonMapper mapper = JsonMapper.builder().build();
+        String inputJson = """
+                {
+                  "dcql_query": {
+                    "credentials": [
+                      {
+                        "id": "with_authorities",
+                        "format": "%1$s",
+                        "meta": {},
+                        "trusted_authorities": [
+                          {"type": "aki", "values": ["s9tIpPmhxdiuNkHMEWNpYim8S8Y", "AQID"]},
+                          {"type": "etsi_tl", "values": ["https://lotl.example.com", "https://other.example.com"]},
+                          {"type": "openid_federation", "values": ["https://trustanchor.example.com"]},
+                          {"type": "custom_framework", "values": ["urn:example:trust"]}
+                        ]
+                      },
+                      {
+                        "id": "different_authorities",
+                        "format": "%1$s",
+                        "meta": {},
+                        "trusted_authorities": [
+                          {"type": "etsi_tl", "values": ["https://another.example.com"]}
+                        ]
+                      },
+                      {"id": "omitted_authorities", "format": "%1$s", "meta": {}},
+                      {"id": "null_authorities", "format": "%1$s", "meta": {}, "trusted_authorities": null},
+                      {"id": "empty_authorities", "format": "%1$s", "meta": {}, "trusted_authorities": []}
+                    ]
+                  }
+                }
+                """.formatted(format);
+        StartVerificationRequest input = mapper.readValue(inputJson, StartVerificationRequest.class);
+        new VerificationTransactionService(cacheService).initTransaction(
+                input.dcqlQuery(), null, TRANSACTION_ID, clientApplication, false);
+        ArgumentCaptor<VerificationTransaction> captor = ArgumentCaptor.forClass(VerificationTransaction.class);
+        verify(cacheService).putVerificationTransaction(eq(clientApplication), eq(TRANSACTION_ID), captor.capture());
+
+        JdkSerializationRedisSerializer serializer = new JdkSerializationRedisSerializer();
+        VerificationTransaction cachedTransaction = assertInstanceOf(
+                VerificationTransaction.class, serializer.deserialize(serializer.serialize(captor.getValue())));
+        assertEquals(input.dcqlQuery(), cachedTransaction.getDcqlQuery());
+        configureExistingTransaction();
+        when(verificationTransactionService.getVerificationTransaction(clientApplication, TRANSACTION_ID))
+                .thenReturn(cachedTransaction);
+
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(
+                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+
+        assertTrue(request.verify(getEcdsaVerifier(keyProvider)));
+        JsonNode expectedCredentials = mapper.readTree(inputJson)
+                .path("dcql_query").path("credentials");
+        JsonNode actualCredentials = mapper.valueToTree(
+                request.getJWTClaimsSet().getClaim("dcql_query")).path("credentials");
+        assertEquals(expectedCredentials.size(), actualCredentials.size());
+        for (int i = 0; i < expectedCredentials.size(); i++) {
+            assertEquals(expectedCredentials.get(i).get("id"), actualCredentials.get(i).get("id"));
+            assertEquals(format, actualCredentials.get(i).path("format").asString());
+            if (i < 2) {
+                assertEquals(expectedCredentials.get(i).get("trusted_authorities"),
+                        actualCredentials.get(i).get("trusted_authorities"));
+            } else {
+                assertFalse(actualCredentials.get(i).has("trusted_authorities"));
+            }
+        }
     }
 
     private String expectedRequestUri() {
