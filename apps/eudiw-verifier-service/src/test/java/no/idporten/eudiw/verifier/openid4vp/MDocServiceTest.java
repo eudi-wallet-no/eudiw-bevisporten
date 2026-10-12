@@ -13,8 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
@@ -67,17 +69,17 @@ class MDocServiceTest {
     @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
+        Security.addProvider(new BouncyCastleProvider());
         VerificationTransaction verificationTransaction = new VerificationTransaction();
-        when(mDoc.getMSO()).thenReturn(null);
-        when(mDoc.verifyDocType()).thenReturn(true);
-        when(mDoc.verifyIssuerSignedItems()).thenReturn(true);
-        when(mDoc.verifyValidity()).thenReturn(true, false);
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-
-        assertEquals(ValidationStatus.VALID, service.verifyMDoc(mDoc, verificationTransaction));
-        assertThrows(
-                VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction));
+        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+        assertAll(
+                () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
+                () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction))
+        );
     }
 
     @Test
