@@ -29,7 +29,7 @@ public class MDocService {
     public MDocService() {
     }
 
-    public MDoc mDocFromVpToken(String vpToken) {
+    public DeviceResponse deviceResponseFromVpToken(String vpToken) {
         DeviceResponse deviceResponse;
         try {
             deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
@@ -42,7 +42,20 @@ public class MDocService {
         if (deviceResponse.getDocuments().isEmpty()) {
             throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
         }
-        return deviceResponse.getDocuments().getFirst();
+        return deviceResponse;
+    }
+
+    /**
+     * According to HAIP §5.3.1, only one document per DeviceResponse is supported.
+     * @param deviceResponse this contains the single MDoc.
+     * @return
+     */
+    public MDoc mDocFromDeviceResponse(DeviceResponse deviceResponse) {
+        if(deviceResponse.getDocuments().size() > 1) {
+            throw new VerificationException("invalid_request", "Multiple mdoc documents in vp_token, only one is supported");
+        } else {
+            return deviceResponse.getDocuments().getFirst();
+        }
     }
 
     public Map<String, Object> claimsFromMDoc(MDoc mDoc) {
