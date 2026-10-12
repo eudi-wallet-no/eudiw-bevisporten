@@ -76,7 +76,7 @@ public class MDocService {
         return claims;
     }
 
-    protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc) {
+    protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc, VerificationTransaction verificationTransaction) {
         mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
         // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
         // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.

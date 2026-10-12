@@ -276,7 +276,7 @@ public class OpenID4VPResponseService {
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken(vpToken);
         MDoc mdoc = mDocService.mDocFromDeviceResponse(deviceResponse);
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
-        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc);
+        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc, verificationTransaction);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
