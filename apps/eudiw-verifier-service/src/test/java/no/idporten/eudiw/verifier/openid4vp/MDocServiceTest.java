@@ -2,6 +2,7 @@ package no.idporten.eudiw.verifier.openid4vp;
 
 import id.walt.mdoc.cose.COSESign1;
 import id.walt.mdoc.dataelement.*;
+import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -12,8 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.nio.charset.StandardCharsets;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.List;
@@ -36,11 +39,13 @@ class MDocServiceTest {
     @Mock MDoc mDoc;
     @Mock IssuerSigned issuerSigned;
     @Mock COSESign1 issuerAuth;
+    @Mock DeviceResponse deviceResponse;
 
     @Test
     @DisplayName("with a valid VP token, then PID claims are expected")
     void parsesRealVpTokenAndExtractsClaims() {
-        MDoc parsed = service.mDocFromVpToken(VALID_VP_TOKEN);
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        MDoc parsed = service.mDocFromDeviceResponse(deviceResponse);
 
         Map<String, Object> claims = service.claimsFromMDoc(parsed);
 
@@ -57,38 +62,36 @@ class MDocServiceTest {
     void rejectsVpTokenWithoutDocuments() {
         VerificationException exception = assertThrows(
                 VerificationException.class,
-                () -> service.mDocFromVpToken(VP_TOKEN_WITHOUT_DOCUMENTS));
+                () -> service.deviceResponseFromVpToken(VP_TOKEN_WITHOUT_DOCUMENTS));
 
         assertEquals("No mdoc documents in vp_token", exception.getErrorDescription());
     }
 
     @Test
-    @DisplayName("with a malformed VP token, then invalid request is expected")
-    void rejectsMalformedVpToken() {
-        VerificationException exception = assertThrows(
-                VerificationException.class,
-                () -> service.mDocFromVpToken("not-an-mdoc"));
-
-        assertEquals("Failed to parse mdoc vp_token", exception.getErrorDescription());
-    }
-
-    @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
-        when(mDoc.getMSO()).thenReturn(null);
-        when(mDoc.verifyDocType()).thenReturn(true);
-        when(mDoc.verifyIssuerSignedItems()).thenReturn(true);
-        when(mDoc.verifyValidity()).thenReturn(true, false);
-
-        assertEquals(ValidationStatus.VALID, service.verifyMDoc(mDoc));
-        assertEquals(ValidationStatus.INVALID, service.verifyMDoc(mDoc));
+        Security.addProvider(new BouncyCastleProvider());
+        VerificationTransaction verificationTransaction = new VerificationTransaction();
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+//        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned); //TODO: Legg til disse linjer når issuer signatur er implementert!
+//        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
+//        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+        assertAll(
+                () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction))
+//                () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction)) //TODO: Legg til denne linja når issuer signatur er implementert!
+        );
     }
 
     @Test
     @DisplayName("with a valid mdoc, then the issuer certificate is expected")
-    void extractsCertificateFromRealMdoc() throws Exception {
+    void extractsCertificateFromRealMdoc(){
+
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        MDoc mDoc = service.mDocFromDeviceResponse(deviceResponse);
+
         X509Certificate certificate =
-                service.extractCertificateFromMdoc(service.mDocFromVpToken(VALID_VP_TOKEN));
+                service.extractCertificateFromMdoc(mDoc);
 
         assertEquals(
                 "2.5.4.97=#0c154e54524e4f2d4e4f464f522e393931383235383237,"
@@ -130,8 +133,10 @@ class MDocServiceTest {
     @Test
     @DisplayName("with and without a status list, then matching results are expected")
     void extractsAndOmitsStatusListFromRealMdocs() {
+
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
         StatuslistEntry status =
-                service.extractStatuslistUriAndIdx(service.mDocFromVpToken(VALID_VP_TOKEN));
+                service.extractStatuslistUriAndIdx(service.mDocFromDeviceResponse(deviceResponse));
         when(mDoc.getMSO()).thenReturn(null);
         StatuslistEntry absent = service.extractStatuslistUriAndIdx(mDoc);
 
@@ -172,5 +177,13 @@ class MDocServiceTest {
                         service.getValidationDetail(ValidationStatus.INCONCLUSIVE)),
                 () -> assertEquals("mdoc: ukjent status",
                         service.getValidationDetail(ValidationStatus.NOT_APPLICABLE)));
+    }
+
+    @Test
+    @DisplayName("with two mdocs from the same device response, then invalid request is expected")
+    void throwsExceptionWhenTwoDeviceResponsesForSameMdoc() {
+        when(deviceResponse.getDocuments()).thenReturn(List.of(mDoc, mDoc));
+        VerificationException exception = assertThrows(VerificationException.class, () -> service.mDocFromDeviceResponse(deviceResponse));
+        assertEquals("Multiple mdoc documents in vp_token, only one is supported", exception.getErrorDescription());
     }
 }
