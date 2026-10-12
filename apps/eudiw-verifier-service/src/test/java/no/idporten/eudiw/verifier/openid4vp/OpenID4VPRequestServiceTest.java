@@ -11,6 +11,7 @@ import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -224,8 +225,8 @@ class OpenID4VPRequestServiceTest {
 
         String serializedQuery = mapper.writeValueAsString(request.getJWTClaimsSet().getClaim("dcql_query"));
         DcqlQuery query = mapper.readValue(serializedQuery, DcqlQuery.class);
-        var claims = query.getCredentials().get(0).getClaims();
-        var sdJwtClaims = query.getCredentials().get(1).getClaims();
+        List<DcqlClaimQuery> claims = query.getCredentials().get(0).getClaims();
+        List<DcqlClaimQuery> sdJwtClaims = query.getCredentials().get(1).getClaims();
         assertAll(
                 () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
                 () -> assertTrue(claims.get(0).getIntentToRetain()),

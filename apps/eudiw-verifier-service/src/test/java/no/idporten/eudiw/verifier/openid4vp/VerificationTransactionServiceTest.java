@@ -4,6 +4,7 @@ import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -127,8 +128,8 @@ class VerificationTransactionServiceTest {
         verify(cacheService).putVerificationTransaction(eq(client), eq(VERIFIER_TRANSACTION_ID), captor.capture());
         DcqlQuery storedQuery = mapper.readValue(
                 mapper.writeValueAsString(captor.getValue().getDcqlQuery()), DcqlQuery.class);
-        var mdocClaims = storedQuery.getCredentials().get(0).getClaims();
-        var sdJwtClaims = storedQuery.getCredentials().get(1).getClaims();
+        List<DcqlClaimQuery> mdocClaims = storedQuery.getCredentials().get(0).getClaims();
+        List<DcqlClaimQuery> sdJwtClaims = storedQuery.getCredentials().get(1).getClaims();
         assertAll(
                 () -> assertTrue(mdocClaims.get(0).getIntentToRetain()),
                 () -> assertTrue(mdocClaims.get(1).getIntentToRetain()),
