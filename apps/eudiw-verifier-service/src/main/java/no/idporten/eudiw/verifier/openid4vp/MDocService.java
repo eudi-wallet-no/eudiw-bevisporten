@@ -5,7 +5,6 @@ import id.walt.mdoc.COSECryptoProviderKeyInfo;
 import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.devicesigned.DeviceSigned;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocVerificationParams;
 import id.walt.mdoc.doc.VerificationType;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -76,14 +76,10 @@ public class MDocService  {
 
     protected ValidationStatus verifyMDoc (id.walt.mdoc.doc.MDoc mDoc, VerificationTransaction verificationTransaction) {
 
-        X509Certificate issuerCertificate = extractCertificateFromMdoc(mDoc);
-//        SimpleCOSECryptoProvider cryptoProvider = cryptoProvider(issuerCertificate, mDoc.getMSO());
-
-        // First check issuer signature:
-        Boolean verifyIssuerSignature = verifyIssuerSignature(mDoc, issuerCertificate);
+        // First, check issuer signature
 
         // Second, check device signature:
-        Boolean verifyDeviceSignature = verifyDeviceSignature(mDoc);
+        Boolean verifyDeviceSignature = verifyHolderBinding(mDoc);
 
         // Third, check validity period:
         boolean verifyValidity = mDoc.verifyValidity();
@@ -91,7 +87,7 @@ public class MDocService  {
         // Fourth, check nonce:
         boolean verifyNonce = verifyNonce(mDoc, verificationTransaction);
 
-        if (verifyIssuerSignature && verifyDeviceSignature && verifyValidity && verifyNonce) {
+        if (verifyDeviceSignature && verifyValidity && verifyNonce) {
             return ValidationStatus.VALID;
         } else {
             return ValidationStatus.INVALID;
@@ -101,73 +97,42 @@ public class MDocService  {
         // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
         // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
         // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
-        //VERIFY::
-        //- Issuer signature (x5Chain)
-        //- Device signature
-        //- Validity period
-        //- Session transcript
-        // First, we need to check issuer signature.
-
-
-//        Boolean verifyMdoc = null;
-//        try {
-//            verifyMdoc = mDoc.verify(verificationParams);
-//        } catch (Exception e) {
-//            log.error("Error verifying mdoc", e);
-//        }
-//
-//        if (verifyMdoc != null && verifyMdoc) {
-//            return ValidationStatus.VALID;
-//        } else {
-//            log.info("Verification result for mdoc: " + verifyMdoc);
-//            return ValidationStatus.INVALID;
-//        }
-
-//        Boolean verificationResult = verifyIssuerSignature(mDoc);
-//        boolean verifyIssuerSignedItems = mDoc.verifyIssuerSignedItems();
-//
-//        // Second, we need to check device signature.
-//        DeviceSigned deviceSigned = mDoc.getDeviceSigned();
-//
-//        // Third, we need to check validity period.
-//        boolean verifyValidity = mDoc.verifyValidity();
-//
-//        // Fourth, we need to check nonce.
-//
-//
-//        // what is this?
-//        boolean verifyDocType = mDoc.verifyDocType();
-//
-//
-//        if (verifyDocType && verifyIssuerSignedItems && verifyValidity && verificationResult != null && verificationResult) {
-//            return ValidationStatus.VALID;
-//        } else {
-//            return ValidationStatus.INVALID;
-//        }
-    }
-
-    protected Boolean verifyIssuerSignature(MDoc mdoc, X509Certificate issuerCertificate) {
-        X509Certificate rootCa = X509CertUtils.parse("-----BEGIN CERTIFICATE-----MIICMzCCAdmgAwIBAgIIbLk59uoMYY4wCgYIKoZIzj0EAwIwfzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSowKAYDVQQDEyFlaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHN5c3Rlc3QwHhcNMjYwMzExMDYyODE2WhcNMzEwMzEwMDYyODE2WjB/MR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxKjAoBgNVBAMTIWVpZGFzMnNhbmRrYXNzZSByb290IENBIDIgc3lzdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEPMSVuEwHRIVXmHGxCeXStQRZLN19EDpgO8sPyqgckHAXL0UuE4uuV4mtoUmTfwlZyGo6d0/IrXq0sE/5V7fAWjPzA9MB0GA1UdDgQWBBQUeG7cOumLe28MkYC1zhwUuck/8jAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zAKBggqhkjOPQQDAgNIADBFAiEAqhJeWoE7mHLhMRvtYwO5XN96ttIp9f3OVHMaTb3dyv4CIGXjpOYK5+shq416BS47WGsq01TWAaU5fHvnVo/pz9c8-----END CERTIFICATE-----");
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSubjectX500Principal().getName(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), List.of(rootCa));
-        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
-        return mdoc.verifySignature(cryptoProvider, issuerCertificate.getSubjectX500Principal().getName());
-    }
-
-    protected Boolean verifyDeviceSignature(MDoc mdoc) {
-        X509Certificate rootCa = X509CertUtils.parse("-----BEGIN CERTIFICATE-----MIICMzCCAdmgAwIBAgIIbLk59uoMYY4wCgYIKoZIzj0EAwIwfzEeMBwGA1UEYRMVTlRSTk8tTk9GT1IuOTkxODI1ODI3MQswCQYDVQQGEwJOTzEkMCIGA1UEChMbRElHSVRBTElTRVJJTkdTRElSRUtUT1JBVEVUMSowKAYDVQQDEyFlaWRhczJzYW5ka2Fzc2Ugcm9vdCBDQSAyIHN5c3Rlc3QwHhcNMjYwMzExMDYyODE2WhcNMzEwMzEwMDYyODE2WjB/MR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxKjAoBgNVBAMTIWVpZGFzMnNhbmRrYXNzZSByb290IENBIDIgc3lzdGVzdDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABEPMSVuEwHRIVXmHGxCeXStQRZLN19EDpgO8sPyqgckHAXL0UuE4uuV4mtoUmTfwlZyGo6d0/IrXq0sE/5V7fAWjPzA9MB0GA1UdDgQWBBQUeG7cOumLe28MkYC1zhwUuck/8jAOBgNVHQ8BAf8EBAMCAQYwDAYDVR0TBAUwAwEB/zAKBggqhkjOPQQDAgNIADBFAiEAqhJeWoE7mHLhMRvtYwO5XN96ttIp9f3OVHMaTb3dyv4CIGXjpOYK5+shq416BS47WGsq01TWAaU5fHvnVo/pz9c8-----END CERTIFICATE-----");
-        DeviceKeyInfo deviceKeyInfo = mdoc.getMSO().getDeviceKeyInfo();
-
-        // Her må man da finne public keyen.
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(deviceKeyInfo.getKeyInfo().getValue().get("key_id"), AlgorithmID.ECDSA_256, List.of(deviceKeyInfo.getDeviceKey().getValue()), null,  List.of(rootCa));
-        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
-
-        // DeviceAuthentification, finner bare DeviceAuth.
-        return mdoc.verifyDeviceSignature(, cryptoProvider);
 
     }
+
+    public boolean verifyHolderBinding(MDoc mdoc) {
+
+        DeviceKeyInfo deviceKeyInfo = mdoc.getMSO() != null ? mdoc.getMSO().getDeviceKeyInfo() : null;
+        if (deviceKeyInfo == null || deviceKeyInfo.getDeviceKey() == null) {
+            return false;
+        }
+
+        PublicKey devicePublicKey = (PublicKey) deviceKeyInfo.getDeviceKey().getValue();
+
+        if (devicePublicKey == null) {
+            return false;
+        }
+
+        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(
+                new COSECryptoProviderKeyInfo(null, AlgorithmID.ECDSA_256, devicePublicKey, null, null, null)
+        ));
+
+
+        DeviceAuthentication deviceAuthentication = new DeviceAuthentication(mdoc.getDeviceSigned().getDeviceAuth().getDeviceSignature().getData());
+
+        if (deviceAuthentication == null) {
+            return false;
+        }
+        try {
+            return mdoc.verifyDeviceSignature(deviceAuthentication, cryptoProvider, null);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 
     protected boolean verifyNonce (MDoc mdoc, VerificationTransaction verificationTransaction) {
-        if()
+        return false;
     }
 
     /**
