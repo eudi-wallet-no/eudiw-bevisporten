@@ -110,16 +110,12 @@ public class MDocService  {
 
     public boolean verifyHolderBinding(MDoc mdoc, VerificationTransaction verificationTransaction) {
 
-
         PublicKey devicePublicKey = devicePublicKeyFromMso(mdoc);
-
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(
-                new COSECryptoProviderKeyInfo("123", AlgorithmID.ECDSA_256, devicePublicKey, null, List.of(extractCertificateFromMdoc(mdoc)), null)
+                new COSECryptoProviderKeyInfo("123", AlgorithmID.ECDSA_256, devicePublicKey, null, List.of(extractCertificateFromMdoc(mdoc)), List.of())
         ));
 
-
         // Device authentication is the signed proof
-
         DeviceAuthentication deviceAuthentication = new DeviceAuthentication(mdoc.getDeviceSigned().getDeviceAuth().getDeviceSignature().getData());
 
         if (deviceAuthentication == null) {
