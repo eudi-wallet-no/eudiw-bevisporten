@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.COSECryptoProviderKeyInfo;
 import id.walt.mdoc.SimpleCOSECryptoProvider;
@@ -22,11 +23,18 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
 import java.net.URI;
+import java.security.AlgorithmParameters;
+import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,7 +87,7 @@ public class MDocService  {
         // First, check issuer signature
 
         // Second, check device signature:
-        Boolean verifyDeviceSignature = verifyHolderBinding(mDoc);
+        Boolean verifyDeviceSignature = verifyHolderBinding(mDoc, verificationTransaction);
 
         // Third, check validity period:
         boolean verifyValidity = mDoc.verifyValidity();
@@ -100,29 +108,25 @@ public class MDocService  {
 
     }
 
-    public boolean verifyHolderBinding(MDoc mdoc) {
+    public boolean verifyHolderBinding(MDoc mdoc, VerificationTransaction verificationTransaction) {
 
-        DeviceKeyInfo deviceKeyInfo = mdoc.getMSO() != null ? mdoc.getMSO().getDeviceKeyInfo() : null;
-        if (deviceKeyInfo == null || deviceKeyInfo.getDeviceKey() == null) {
-            return false;
-        }
 
-        PublicKey devicePublicKey = (PublicKey) deviceKeyInfo.getDeviceKey().getValue();
-
-        if (devicePublicKey == null) {
-            return false;
-        }
+        PublicKey devicePublicKey = devicePublicKeyFromMso(mdoc);
 
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(
-                new COSECryptoProviderKeyInfo(null, AlgorithmID.ECDSA_256, devicePublicKey, null, null, null)
+                new COSECryptoProviderKeyInfo("123", AlgorithmID.ECDSA_256, devicePublicKey, null, List.of(extractCertificateFromMdoc(mdoc)), null)
         ));
 
+
+        // Device authentication is the signed proof
 
         DeviceAuthentication deviceAuthentication = new DeviceAuthentication(mdoc.getDeviceSigned().getDeviceAuth().getDeviceSignature().getData());
 
         if (deviceAuthentication == null) {
             return false;
         }
+
+        challengeMatches(deviceAuthentication, verificationTransaction.getNonce(), verificationTransaction.getAudience());
         try {
             return mdoc.verifyDeviceSignature(deviceAuthentication, cryptoProvider, null);
         } catch (Exception e) {
@@ -130,9 +134,109 @@ public class MDocService  {
         }
     }
 
+    protected PublicKey devicePublicKeyFromMso(MDoc mdoc) {
+        DeviceKeyInfo deviceKeyInfo = mdoc.getMSO().getDeviceKeyInfo();
+
+        // This is a CBOR map of DataElement values, not a plain Java map
+        MapElement deviceKeyElement = (MapElement) deviceKeyInfo.getDeviceKey();
+        Map<MapKey, id.walt.mdoc.dataelement.DataElement> keyMap = deviceKeyElement.getValue();
+
+        // COSE EC key:
+        // 1 = kty, -1 = crv, -2 = x, -3 = y
+        NumberElement kty = (NumberElement) keyMap.get(new MapKey(1));
+        NumberElement crv = (NumberElement) keyMap.get(new MapKey(-1));
+        ByteStringElement xElem = (ByteStringElement) keyMap.get(new MapKey(-2));
+        ByteStringElement yElem = (ByteStringElement) keyMap.get(new MapKey(-3));
+
+        if (kty == null || crv == null || xElem == null || yElem == null) {
+            throw new IllegalArgumentException("Invalid COSE EC key in deviceKeyInfo");
+        }
+
+        // kty = 2 => EC2
+        int ktyValue = kty.getValue().intValue();
+
+        // crv = 1 => P-256
+        int crvValue = crv.getValue().intValue();
+
+        if (ktyValue != 2) {
+            throw new IllegalArgumentException("Unsupported COSE key type: " + ktyValue);
+        }
+
+        if (crvValue != 1) {
+            throw new IllegalArgumentException("Unsupported EC curve: " + crvValue);
+        }
+
+        byte[] xBytes = xElem.getValue();
+        byte[] yBytes = yElem.getValue();
+
+        BigInteger x = new BigInteger(1, xBytes);
+        BigInteger y = new BigInteger(1, yBytes);
+
+        try {
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC");
+            parameters.init(new ECGenParameterSpec("secp256r1"));
+
+            ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
+            ECPoint ecPoint = new ECPoint(x, y);
+
+            ECPublicKeySpec spec = new ECPublicKeySpec(ecPoint, ecParameters);
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+            return keyFactory.generatePublic(spec);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Unable to build EC public key from device key", e);
+        }
+    }
+
 
     protected boolean verifyNonce (MDoc mdoc, VerificationTransaction verificationTransaction) {
         return false;
+    }
+
+    private boolean challengeMatches(DeviceAuthentication deviceAuth, String expectedNonce, String expectedAudience) {
+        // 1) Decode the signed COSE payload from the deviceAuth object
+        DataElement signedPayload = decodeSignedPayload(deviceAuth);
+        Object internalValue = signedPayload.getInternalValue();
+        log.info("Signed payload internal value: {}", internalValue);
+
+        if (signedPayload == null) {
+            return false;
+        }
+
+        // 2) Extract the signed challenge values
+        // Abstract names vary by implementation, but conceptually:
+//        String signedNonce = extractString(signedPayload, "nonce");
+//        String signedAudience = extractString(signedPayload, "aud");
+return false;
+
+
+        // 3) Compare them to expected values
+//        return expectedNonce.equals(signedNonce)
+//                && expectedAudience.equals(signedAudience);
+    }
+
+
+    private DataElement decodeSignedPayload(DeviceAuthentication deviceAuth) {
+        try {
+            byte[] payload = null;
+            log.info("DeviceAuth Data: {}", deviceAuth.getData().getFirst());
+
+            // Example: if your library exposes the COSE payload bytes:
+             payload = deviceAuth.toCBOR();
+            // or:
+            // payload = deviceAuth.getDeviceMac().getPayload();
+
+            if (payload == null) {
+                return null;
+            }
+
+            // Decide how your library decodes CBOR.
+            // For a generic map:
+
+
+            return null; // replace with real CBOR decode
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
