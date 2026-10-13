@@ -67,14 +67,35 @@ class MDocServiceTest {
     }
 
     @Test
+    @DisplayName("DELETEME")
+    void deleteme() {
+        Security.addProvider(new BouncyCastleProvider());
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+
+        VerificationTransaction tx = new VerificationTransaction();
+        tx.setNonce("nonce-from-request");
+        tx.setAudience("client-id-or-redirect-origin");
+
+        ValidationStatus status = service.verifyMDoc(validMdoc, tx);
+
+        assertAll(
+                () -> assertEquals(ValidationStatus.VALID, status)
+        );
+    }
+
+
+    @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
     void reportsValidAndInvalidVerification() {
         Security.addProvider(new BouncyCastleProvider());
         VerificationTransaction verificationTransaction = new VerificationTransaction();
+        verificationTransaction.setNonce("test-nonce-123");
+        verificationTransaction.setAudience("https://verifier.example.com");
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
         id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
-        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
-        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
+//        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
+//        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
         when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
         assertAll(
                 () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
