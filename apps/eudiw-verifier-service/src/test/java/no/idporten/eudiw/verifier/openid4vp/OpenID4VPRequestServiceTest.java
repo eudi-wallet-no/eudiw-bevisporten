@@ -12,7 +12,9 @@ import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlTrustedAuthoritiesQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.jspecify.annotations.NonNull;
@@ -20,9 +22,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.CollectionUtils;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -41,8 +46,8 @@ class OpenID4VPRequestServiceTest {
 
     private static final String CLIENT_ID = "junit";
     private static final String TRANSACTION_ID = "transaction-id";
-    private static final String EXTERNAL_BASE_URI = "https://verifier.example";
-    private static final String SIOP2_CLIENT_ID = "verifier.example";
+    private static final String EXTERNAL_BASE_URI = "https://verifier.eidas2sandkasse.dev";
+    private static final String SIOP2_CLIENT_ID = "verifier.eidas2sandkasse.dev";
     private static final String REQUEST_ID = "request-id";
     private static final String SAME_DEVICE_FLOW = "same_device";
     private static final String CROSS_DEVICE_FLOW = "cross_device";
@@ -244,6 +249,76 @@ class OpenID4VPRequestServiceTest {
                 () -> assertFalse(serializedQuery.contains("\"intent_to_retain\":null")));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"mso_mdoc", "dc+sd-jwt"})
+    @DisplayName("When a query contains trusted authorities, then unchanged values in the cached transaction and signed request are expected")
+    void forwardsTrustedAuthoritiesThroughCacheAndSignedRequest(String format) throws Exception {
+        JsonMapper mapper = JsonMapper.builder().build();
+        String inputJson = """
+                {
+                  "dcql_query": {
+                    "credentials": [
+                      {
+                        "id": "with_authorities",
+                        "format": "%1$s",
+                        "meta": {},
+                        "trusted_authorities": [
+                          {"type": "aki", "values": ["s9tIpPmhxdiuNkHMEWNpYim8S8Y", "AQID"]},
+                          {"type": "etsi_tl", "values": ["https://lotl.eidas2sandkasse.dev", "https://other.eidas2sandkasse.dev"]},
+                          {"type": "openid_federation", "values": ["https://trustanchor.eidas2sandkasse.dev"]},
+                          {"type": "custom_framework", "values": ["urn:example:trust"]}
+                        ]
+                      },
+                      {
+                        "id": "different_authorities",
+                        "format": "%1$s",
+                        "meta": {},
+                        "trusted_authorities": [
+                          {"type": "etsi_tl", "values": ["https://another.eidas2sandkasse.dev"]}
+                        ]
+                      },
+                      {"id": "omitted_authorities", "format": "%1$s", "meta": {}},
+                      {"id": "null_authorities", "format": "%1$s", "meta": {}, "trusted_authorities": null},
+                      {"id": "empty_authorities", "format": "%1$s", "meta": {}, "trusted_authorities": []}
+                    ]
+                  }
+                }
+                """.formatted(format);
+        StartVerificationRequest input = mapper.readValue(inputJson, StartVerificationRequest.class);
+        VerificationTransaction transaction = configureExistingTransaction();
+        transaction.setDcqlQuery(input.dcqlQuery());
+        assertEquals(input.dcqlQuery(), transaction.getDcqlQuery());
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+
+        String serializedQuery = mapper.writeValueAsString(request.getJWTClaimsSet().getClaim("dcql_query"));
+        DcqlQuery query = mapper.readValue(serializedQuery, DcqlQuery.class);
+        List<DcqlCredentialQuery> expectedCredentials = input.dcqlQuery().getCredentials();
+        List<DcqlCredentialQuery> actualCredentials = query.getCredentials();
+        List<DcqlTrustedAuthoritiesQuery> authorities = actualCredentials.getFirst().getTrustedAuthorities();
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertEquals(expectedCredentials.size(), actualCredentials.size()),
+                () -> assertEquals(List.of("aki", "etsi_tl", "openid_federation", "custom_framework"),
+                        authorities.stream().map(DcqlTrustedAuthoritiesQuery::getType).toList()),
+                () -> assertEquals(List.of(
+                                List.of("s9tIpPmhxdiuNkHMEWNpYim8S8Y", "AQID"),
+                                List.of("https://lotl.eidas2sandkasse.dev", "https://other.eidas2sandkasse.dev"),
+                                List.of("https://trustanchor.eidas2sandkasse.dev"),
+                                List.of("urn:example:trust")),
+                        authorities.stream().map(DcqlTrustedAuthoritiesQuery::getValues).toList()));
+        for (int i = 0; i < expectedCredentials.size(); i++) {
+            DcqlCredentialQuery expectedCredential = expectedCredentials.get(i);
+            DcqlCredentialQuery actualCredential = actualCredentials.get(i);
+            assertEquals(expectedCredential.getId(), actualCredential.getId());
+            assertEquals(format, actualCredential.getFormat());
+            if (CollectionUtils.isEmpty(expectedCredential.getTrustedAuthorities())) {
+                assertNull(actualCredential.getTrustedAuthorities());
+            } else {
+                assertEquals(expectedCredential.getTrustedAuthorities(), actualCredential.getTrustedAuthorities());
+            }
+        }
+    }
+
     private String expectedRequestUri() {
         return "request_uri=%s/openid4vp/authz-request/%s/%s?flow=%s"
                 .formatted(EXTERNAL_BASE_URI, CLIENT_ID, REQUEST_ID, CROSS_DEVICE_FLOW);
@@ -258,7 +333,7 @@ class OpenID4VPRequestServiceTest {
         return java.util.Base64.getDecoder().decode(encodedPng);
     }
 
-    private void configureExistingTransaction() throws Exception {
+    private VerificationTransaction configureExistingTransaction() throws Exception {
         ECKey signingKey = new ECKeyGenerator(Curve.P_256).generate();
         VerificationTransaction transaction = new VerificationTransaction();
         transaction.setClientApplication(clientApplication);
@@ -269,6 +344,7 @@ class OpenID4VPRequestServiceTest {
                 .thenReturn(transaction);
         when(keyProvider.privateKey()).thenReturn(signingKey.toECPrivateKey());
         when(keyProvider.publicKey()).thenReturn(signingKey.toECPublicKey());
+        return transaction;
     }
 
     private VerificationTransaction captureStoredTransaction() {
