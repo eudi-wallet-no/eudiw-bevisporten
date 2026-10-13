@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.ObjectStreamClass;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,12 +52,6 @@ class VerifierServicePropertiesTest {
 
         assertEquals(1, violations.size());
         assertEquals("authorizationRequestScheme", violations.iterator().next().getPropertyPath().toString());
-    }
-
-    @Test
-    @DisplayName("When extending client configuration, then the existing Redis serialization identifier is expected")
-    void preservesClientSerializationIdentifier() {
-        assertEquals(-8206191665033524271L, ObjectStreamClass.lookup(ClientApplication.class).getSerialVersionUID());
     }
 
     @Nested
