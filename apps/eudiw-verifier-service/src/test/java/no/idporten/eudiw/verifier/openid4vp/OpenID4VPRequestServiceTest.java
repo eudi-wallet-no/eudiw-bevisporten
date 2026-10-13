@@ -12,7 +12,9 @@ import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlTrustedAuthoritiesQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.jspecify.annotations.NonNull;
@@ -25,8 +27,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import tools.jackson.databind.JsonNode;
+import org.springframework.util.CollectionUtils;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
@@ -45,8 +46,8 @@ class OpenID4VPRequestServiceTest {
 
     private static final String CLIENT_ID = "junit";
     private static final String TRANSACTION_ID = "transaction-id";
-    private static final String EXTERNAL_BASE_URI = "https://verifier.example";
-    private static final String SIOP2_CLIENT_ID = "verifier.example";
+    private static final String EXTERNAL_BASE_URI = "https://verifier.eidas2sandkasse.dev";
+    private static final String SIOP2_CLIENT_ID = "verifier.eidas2sandkasse.dev";
     private static final String REQUEST_ID = "request-id";
     private static final String SAME_DEVICE_FLOW = "same_device";
     private static final String CROSS_DEVICE_FLOW = "cross_device";
@@ -263,8 +264,8 @@ class OpenID4VPRequestServiceTest {
                         "meta": {},
                         "trusted_authorities": [
                           {"type": "aki", "values": ["s9tIpPmhxdiuNkHMEWNpYim8S8Y", "AQID"]},
-                          {"type": "etsi_tl", "values": ["https://lotl.example.com", "https://other.example.com"]},
-                          {"type": "openid_federation", "values": ["https://trustanchor.example.com"]},
+                          {"type": "etsi_tl", "values": ["https://lotl.eidas2sandkasse.dev", "https://other.eidas2sandkasse.dev"]},
+                          {"type": "openid_federation", "values": ["https://trustanchor.eidas2sandkasse.dev"]},
                           {"type": "custom_framework", "values": ["urn:example:trust"]}
                         ]
                       },
@@ -273,7 +274,7 @@ class OpenID4VPRequestServiceTest {
                         "format": "%1$s",
                         "meta": {},
                         "trusted_authorities": [
-                          {"type": "etsi_tl", "values": ["https://another.example.com"]}
+                          {"type": "etsi_tl", "values": ["https://another.eidas2sandkasse.dev"]}
                         ]
                       },
                       {"id": "omitted_authorities", "format": "%1$s", "meta": {}},
@@ -284,36 +285,36 @@ class OpenID4VPRequestServiceTest {
                 }
                 """.formatted(format);
         StartVerificationRequest input = mapper.readValue(inputJson, StartVerificationRequest.class);
-        new VerificationTransactionService(cacheService).initTransaction(
-                input.dcqlQuery(), null, TRANSACTION_ID, clientApplication, false);
-        ArgumentCaptor<VerificationTransaction> captor = ArgumentCaptor.forClass(VerificationTransaction.class);
-        verify(cacheService).putVerificationTransaction(eq(clientApplication), eq(TRANSACTION_ID), captor.capture());
+        VerificationTransaction transaction = configureExistingTransaction();
+        transaction.setDcqlQuery(input.dcqlQuery());
+        assertEquals(input.dcqlQuery(), transaction.getDcqlQuery());
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
 
-        JdkSerializationRedisSerializer serializer = new JdkSerializationRedisSerializer();
-        VerificationTransaction cachedTransaction = assertInstanceOf(
-                VerificationTransaction.class, serializer.deserialize(serializer.serialize(captor.getValue())));
-        assertEquals(input.dcqlQuery(), cachedTransaction.getDcqlQuery());
-        configureExistingTransaction();
-        when(verificationTransactionService.getVerificationTransaction(clientApplication, TRANSACTION_ID))
-                .thenReturn(cachedTransaction);
-
-        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(
-                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
-
-        assertTrue(request.verify(getEcdsaVerifier(keyProvider)));
-        JsonNode expectedCredentials = mapper.readTree(inputJson)
-                .path("dcql_query").path("credentials");
-        JsonNode actualCredentials = mapper.valueToTree(
-                request.getJWTClaimsSet().getClaim("dcql_query")).path("credentials");
-        assertEquals(expectedCredentials.size(), actualCredentials.size());
+        String serializedQuery = mapper.writeValueAsString(request.getJWTClaimsSet().getClaim("dcql_query"));
+        DcqlQuery query = mapper.readValue(serializedQuery, DcqlQuery.class);
+        List<DcqlCredentialQuery> expectedCredentials = input.dcqlQuery().getCredentials();
+        List<DcqlCredentialQuery> actualCredentials = query.getCredentials();
+        List<DcqlTrustedAuthoritiesQuery> authorities = actualCredentials.getFirst().getTrustedAuthorities();
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertEquals(expectedCredentials.size(), actualCredentials.size()),
+                () -> assertEquals(List.of("aki", "etsi_tl", "openid_federation", "custom_framework"),
+                        authorities.stream().map(DcqlTrustedAuthoritiesQuery::getType).toList()),
+                () -> assertEquals(List.of(
+                                List.of("s9tIpPmhxdiuNkHMEWNpYim8S8Y", "AQID"),
+                                List.of("https://lotl.eidas2sandkasse.dev", "https://other.eidas2sandkasse.dev"),
+                                List.of("https://trustanchor.eidas2sandkasse.dev"),
+                                List.of("urn:example:trust")),
+                        authorities.stream().map(DcqlTrustedAuthoritiesQuery::getValues).toList()));
         for (int i = 0; i < expectedCredentials.size(); i++) {
-            assertEquals(expectedCredentials.get(i).get("id"), actualCredentials.get(i).get("id"));
-            assertEquals(format, actualCredentials.get(i).path("format").asString());
-            if (i < 2) {
-                assertEquals(expectedCredentials.get(i).get("trusted_authorities"),
-                        actualCredentials.get(i).get("trusted_authorities"));
+            DcqlCredentialQuery expectedCredential = expectedCredentials.get(i);
+            DcqlCredentialQuery actualCredential = actualCredentials.get(i);
+            assertEquals(expectedCredential.getId(), actualCredential.getId());
+            assertEquals(format, actualCredential.getFormat());
+            if (CollectionUtils.isEmpty(expectedCredential.getTrustedAuthorities())) {
+                assertNull(actualCredential.getTrustedAuthorities());
             } else {
-                assertFalse(actualCredentials.get(i).has("trusted_authorities"));
+                assertEquals(expectedCredential.getTrustedAuthorities(), actualCredential.getTrustedAuthorities());
             }
         }
     }
@@ -332,7 +333,7 @@ class OpenID4VPRequestServiceTest {
         return java.util.Base64.getDecoder().decode(encodedPng);
     }
 
-    private void configureExistingTransaction() throws Exception {
+    private VerificationTransaction configureExistingTransaction() throws Exception {
         ECKey signingKey = new ECKeyGenerator(Curve.P_256).generate();
         VerificationTransaction transaction = new VerificationTransaction();
         transaction.setClientApplication(clientApplication);
@@ -343,6 +344,7 @@ class OpenID4VPRequestServiceTest {
                 .thenReturn(transaction);
         when(keyProvider.privateKey()).thenReturn(signingKey.toECPrivateKey());
         when(keyProvider.publicKey()).thenReturn(signingKey.toECPublicKey());
+        return transaction;
     }
 
     private VerificationTransaction captureStoredTransaction() {
