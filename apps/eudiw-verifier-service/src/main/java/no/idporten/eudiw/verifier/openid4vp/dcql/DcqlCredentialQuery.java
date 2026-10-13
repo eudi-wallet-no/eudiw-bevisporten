@@ -3,6 +3,8 @@ package no.idporten.eudiw.verifier.openid4vp.dcql;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -21,6 +23,11 @@ public class DcqlCredentialQuery implements Serializable {
 
     @JsonProperty("format")
     private String format;
+
+    @Schema(description = "Whether multiple presentations may be returned for this credential query. Defaults to false.", defaultValue = "false")
+    @JsonProperty("multiple")
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
+    private boolean multiple;
 
     @JsonProperty("meta")
     private DcqlCredentialMeta meta;

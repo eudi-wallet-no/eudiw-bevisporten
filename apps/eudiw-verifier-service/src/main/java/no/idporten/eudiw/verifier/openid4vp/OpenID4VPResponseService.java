@@ -28,6 +28,7 @@ import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 import org.springframework.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
@@ -109,6 +110,9 @@ public class OpenID4VPResponseService {
                 allCredentials.put(credentialId, List.of(new VerifiedCredential(Map.of(), false, List.of())));
                 continue;
             }
+            if (!credentialQuery.isMultiple() && verifiablePresentations.size() > 1) {
+                throw new VerificationException("invalid_request", "Multiple presentations are not allowed for credential id: %s".formatted(credentialId));
+            }
             String format = credentialQuery.getFormat();
             List<VerifiedCredential> parsedCredentials = new ArrayList<>();
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
@@ -185,6 +189,9 @@ public class OpenID4VPResponseService {
 
     private List<VerifiablePresentation> toVerifiablePresentations(Object vpTokenValue, String credentialId) {
         if (vpTokenValue instanceof List<?> presentations) {
+            if (CollectionUtils.isEmpty(presentations)) {
+                throw new VerificationException("invalid_request", "Empty presentation array for credential id: %s".formatted(credentialId));
+            }
             List<VerifiablePresentation> verifiablePresentations = new ArrayList<>();
             for (Object presentation : presentations) {
                 if (!(presentation instanceof String)) {
@@ -193,9 +200,6 @@ public class OpenID4VPResponseService {
                 verifiablePresentations.add(new VerifiablePresentation((String) presentation));
             }
             return verifiablePresentations;
-        }
-        if (vpTokenValue instanceof String presentation) {
-            return List.of(new VerifiablePresentation(presentation));
         }
         throw new VerificationException("invalid_request", "Unsupported vp_token structure for credential id: " + credentialId);
     }

@@ -34,6 +34,7 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -337,6 +338,45 @@ class OpenID4VPRequestServiceTest {
     private String expectedRequestUri(String flow) {
         return "request_uri=%s/openid4vp/authz-request/%s/%s?flow=%s"
                 .formatted(EXTERNAL_BASE_URI, CLIENT_ID, REQUEST_ID, flow);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"mso_mdoc", "dc+sd-jwt"})
+    @DisplayName("When multiple is omitted, null, false or true, then effective booleans in the transaction and signed request are expected")
+    void forwardsMultipleThroughTransactionAndSignedRequest(String format) throws Exception {
+        JsonMapper mapper = JsonMapper.builder().build();
+        StartVerificationRequest input = mapper.readValue("""
+                {
+                  "dcql_query": {
+                    "credentials": [
+                      {"id": "omitted", "format": "%1$s", "meta": {}},
+                      {"id": "null_value", "format": "%1$s", "meta": {}, "multiple": null},
+                      {"id": "single", "format": "%1$s", "meta": {}, "multiple": false},
+                      {"id": "many", "format": "%1$s", "meta": {}, "multiple": true}
+                    ]
+                  }
+                }
+                """.formatted(format), StartVerificationRequest.class);
+        VerificationTransactionService transactionService = new VerificationTransactionService(cacheService);
+        transactionService.initTransaction(input.dcqlQuery(), null, TRANSACTION_ID, clientApplication, false);
+        ArgumentCaptor<VerificationTransaction> initialTransaction = ArgumentCaptor.forClass(VerificationTransaction.class);
+        verify(cacheService).putVerificationTransaction(eq(clientApplication), eq(TRANSACTION_ID), initialTransaction.capture());
+        DcqlQuery storedQuery = mapper.readValue(
+                mapper.writeValueAsString(initialTransaction.getValue().getDcqlQuery()), DcqlQuery.class);
+        VerificationTransaction transaction = configureExistingTransaction();
+        transaction.setDcqlQuery(storedQuery);
+
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+
+        DcqlQuery signedQuery = mapper.convertValue(request.getJWTClaimsSet().getClaim("dcql_query"), DcqlQuery.class);
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertEquals(List.of(false, false, false, true),
+                        storedQuery.getCredentials().stream().map(DcqlCredentialQuery::isMultiple).toList()),
+                () -> assertEquals(List.of(false, false, false, true),
+                        signedQuery.getCredentials().stream().map(DcqlCredentialQuery::isMultiple).toList()),
+                () -> assertEquals(mapper.convertValue(signedQuery, Map.class), request.getJWTClaimsSet().getClaim("dcql_query")),
+                () -> assertEquals(storedQuery, captureStoredTransaction().getDcqlQuery()));
     }
 
     private URI qrCodeContent() {
