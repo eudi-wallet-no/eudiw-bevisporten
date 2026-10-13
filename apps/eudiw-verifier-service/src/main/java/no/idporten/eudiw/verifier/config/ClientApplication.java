@@ -9,9 +9,12 @@ import java.io.Serializable;
 @Data
 @Validated
 public class ClientApplication implements Serializable {
+
     private String id;
     @NotBlank
     private String keystoreName;
+    @NotBlank
+    private String authorizationRequestScheme = "eudi-openid4vp";
     private boolean disabled = false;
     @NotBlank
     private transient String apiKey;

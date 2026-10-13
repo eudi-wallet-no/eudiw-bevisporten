@@ -89,17 +89,32 @@ class OpenID4VPRequestServiceTest {
         lenient().when(certificate.getEncoded()).thenReturn(new byte[]{1, 2, 3});
     }
 
-    @Test
-    @DisplayName("When creating an authorization request, then the expected URI is returned")
-    void createsAuthorizationRequestUri() {
+    @ParameterizedTest
+    @ValueSource(strings = {SAME_DEVICE_FLOW, CROSS_DEVICE_FLOW})
+    @DisplayName("When creating an authorization request without a configured scheme, then the default scheme is expected")
+    void createsAuthorizationRequestUri(String flow) {
         URI authorizationRequest = service.createAuthorizationRequest(
-                REQUEST_ID, clientApplication, CROSS_DEVICE_FLOW);
+                REQUEST_ID, clientApplication, flow);
 
         assertAll(
                 () -> assertEquals("eudi-openid4vp", authorizationRequest.getScheme()),
                 () -> assertEquals(SIOP2_CLIENT_ID, authorizationRequest.getHost()),
                 () -> assertTrue(authorizationRequest.getQuery().contains("client_id=x509_hash:")),
-                () -> assertTrue(authorizationRequest.getQuery().contains(expectedRequestUri())));
+                () -> assertTrue(authorizationRequest.getQuery().contains(expectedRequestUri(flow))));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {SAME_DEVICE_FLOW, CROSS_DEVICE_FLOW})
+    @DisplayName("When creating an authorization request with a client scheme, then only the URI scheme is expected to change")
+    void createsAuthorizationRequestWithClientScheme(String flow) {
+        URI defaultRequest = service.createAuthorizationRequest(REQUEST_ID, clientApplication, flow);
+        clientApplication.setAuthorizationRequestScheme("eu-eaap");
+
+        URI authorizationRequest = service.createAuthorizationRequest(REQUEST_ID, clientApplication, flow);
+
+        assertAll(
+                () -> assertEquals("eu-eaap", authorizationRequest.getScheme()),
+                () -> assertEquals(defaultRequest.getRawSchemeSpecificPart(), authorizationRequest.getRawSchemeSpecificPart()));
     }
 
     @Test
@@ -319,9 +334,9 @@ class OpenID4VPRequestServiceTest {
         }
     }
 
-    private String expectedRequestUri() {
+    private String expectedRequestUri(String flow) {
         return "request_uri=%s/openid4vp/authz-request/%s/%s?flow=%s"
-                .formatted(EXTERNAL_BASE_URI, CLIENT_ID, REQUEST_ID, CROSS_DEVICE_FLOW);
+                .formatted(EXTERNAL_BASE_URI, CLIENT_ID, REQUEST_ID, flow);
     }
 
     private URI qrCodeContent() {

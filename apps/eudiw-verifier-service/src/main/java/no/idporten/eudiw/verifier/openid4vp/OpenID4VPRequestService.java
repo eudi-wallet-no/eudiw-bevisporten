@@ -76,7 +76,7 @@ public class OpenID4VPRequestService {
 
     protected URI createOpenID4VPAuthorizationRequest(String requestId, ClientApplication clientApplication, String flow) {
         return UriComponentsBuilder.newInstance()
-                .scheme("eudi-openid4vp")
+                .scheme(clientApplication.getAuthorizationRequestScheme())
                 .host(verifierServiceProperties.getSiop2ClientId())
                 .queryParam("client_id", makeClientId(clientApplication))
                 .queryParam("request_uri", createRequestUri(clientApplication, requestId, flow).toString())

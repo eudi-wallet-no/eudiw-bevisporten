@@ -7,6 +7,10 @@ verifier-service:
     junit:
       keystore-name: junit-access
       api-key: not-hidden-api-key
+    junit-custom-scheme:
+      keystore-name: junit-access
+      api-key: not-hidden-api-key
+      authorization-request-scheme: eu-eaap
     junit-disabled:
       keystore-name: junit-access
       disabled: true
