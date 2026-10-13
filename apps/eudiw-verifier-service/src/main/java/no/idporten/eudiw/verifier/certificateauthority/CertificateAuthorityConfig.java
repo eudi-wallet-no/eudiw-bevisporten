@@ -1,6 +1,5 @@
 package no.idporten.eudiw.verifier.certificateauthority;
 
-import jakarta.validation.constraints.NotBlank;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;

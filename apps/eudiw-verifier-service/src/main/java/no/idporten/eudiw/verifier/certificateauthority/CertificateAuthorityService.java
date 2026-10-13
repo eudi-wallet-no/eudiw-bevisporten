@@ -2,6 +2,8 @@ package no.idporten.eudiw.verifier.certificateauthority;
 
 import com.nimbusds.jose.util.X509CertUtils;
 import no.idporten.eudiw.verifier.VerificationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -11,6 +13,7 @@ import java.security.cert.X509Certificate;
 @Service
 public class CertificateAuthorityService {
 
+    private static final Logger log = LogManager.getLogger(CertificateAuthorityService.class);
     private final RestClient certificateAuthorityRestClient;
     private final CertificateAuthorityConfig certificateAuthorityConfig;
 
