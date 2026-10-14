@@ -58,7 +58,3 @@ trustlists:
     - webuild-pid
   attestations:
     - eidas2sandkasse.xtsl
-certificate-authority:
-  connect-timeout: 3s
-  read-timeout: 3s
-  certificate-authority-url: https://ca.eidas2sandkasse.dev/v1/certs/root2.pem
