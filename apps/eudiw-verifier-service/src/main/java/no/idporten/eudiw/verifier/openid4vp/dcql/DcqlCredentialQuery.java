@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.oauth2.sdk.util.StringUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,6 +24,10 @@ public class DcqlCredentialQuery implements Serializable {
 
     @JsonProperty("meta")
     private DcqlCredentialMeta meta;
+
+    @Schema(description = "Expected authorities or trust frameworks, forwarded to the wallet without changing verifier trust validation. Omitted when null or empty.")
+    @JsonProperty("trusted_authorities")
+    private List<DcqlTrustedAuthoritiesQuery> trustedAuthorities;
 
     @JsonProperty("require_cryptographic_holder_binding")
     private Boolean requireCryptographicHolderBinding;
