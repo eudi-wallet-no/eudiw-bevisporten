@@ -355,20 +355,29 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             if (audiences.size() != 1) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unique JWT audience required.", 401);
             }
-            URI endpoint = switch (authenticatedRequest) {
-                case PushedAuthorizationRequest request -> serverConfiguration.getPushedAuthorizationRequestEndpoint();
-                case TokenRequest request -> serverConfiguration.getTokenEndpoint();
-                default -> null;
-            };
             String audience = audiences.getFirst();
-            if (!serverConfiguration.getIssuer().toString().equals(audience)
-                    && (endpoint == null || !endpoint.toString().equals(audience))) {
+            if (! acceptedAudiences(authenticatedRequest).contains(audience) ) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown JWT audience.", 401);
             }
         } catch (ParseException e) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unparsable JWT audience.", 401, e);
         }
     }
+
+    protected List<String> acceptedAudiences(AuthenticatedRequest authenticatedRequest) {
+        List<String> audiences = new ArrayList<>();
+        audiences.add(serverConfiguration.getIssuer().toString());
+        URI endpoint = switch (authenticatedRequest) {
+            case PushedAuthorizationRequest _ -> serverConfiguration.getPushedAuthorizationRequestEndpoint();
+            case TokenRequest _ -> serverConfiguration.getTokenEndpoint();
+            default -> null;
+        };
+        if (endpoint != null) {
+            audiences.add(endpoint.toString());
+        }
+        return audiences;
+    }
+
 
     protected ClientAuthentication authenticateClientByNone(AuthenticatedRequest authenticatedRequest) {
         return ClientAuthentication.builder().clientId(authenticatedRequest.getClientId()).tokenEndpointAuthMethod("none").build();
