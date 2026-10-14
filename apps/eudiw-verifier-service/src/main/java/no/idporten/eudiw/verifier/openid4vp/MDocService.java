@@ -1,12 +1,19 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import id.walt.mdoc.COSECryptoProviderKeyInfo;
+import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
+import id.walt.mdoc.doc.MDocVerificationParams;
+import id.walt.mdoc.doc.VerificationType;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.cose.java.AlgorithmID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +28,7 @@ import java.util.stream.Collectors;
 @Service
 public class MDocService {
 
+    private static final Logger log = LogManager.getLogger(MDocService.class);
 
     public MDocService() {
     }
@@ -62,14 +70,30 @@ public class MDocService {
     }
 
     protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc, VerificationTransaction verificationTransaction) {
-        mDoc.getMSO(); // MSO (Mobile Security Object) verification is not performed here because the issuer's public key or certificate is not available in this context.
-        // Proper MSO verification is critical for mdoc validation and should be implemented as soon as the issuer's public key can be obtained.
-        // Failing to verify the MSO means the authenticity and integrity of the credential cannot be guaranteed.
-        // TODO: Implement MSO verification using the issuer's public key or certificate when it becomes available.
-        boolean verifyDocType = mDoc.verifyDocType();
-        boolean verifyIssuerSignedItems = mDoc.verifyIssuerSignedItems();
-        boolean verifyValidity = mDoc.verifyValidity();
-        if (verifyDocType && verifyIssuerSignedItems && verifyValidity) {
+
+        X509Certificate issuerCertificate = extractCertificateFromMdoc(mDoc);
+
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(
+                issuerCertificate.getSubjectX500Principal().getName(),
+                AlgorithmID.ECDSA_256,
+                issuerCertificate.getPublicKey(),
+                null,
+                List.of(issuerCertificate),
+                Collections.emptyList());
+        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
+        boolean verify =  mDoc.verify(new MDocVerificationParams(
+                        Set.of(VerificationType.VALIDITY,
+                                VerificationType.DOC_TYPE,
+                                VerificationType.ISSUER_SIGNATURE,
+                                VerificationType.ITEMS_TAMPER_CHECK),
+                        issuerCertificate.getSubjectX500Principal().getName(),
+                        null,
+                        null,
+                        null,
+                        null),
+                cryptoProvider);
+
+        if (verify) {
             return ValidationStatus.VALID;
         } else {
             return ValidationStatus.INVALID;
