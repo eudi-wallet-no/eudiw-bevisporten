@@ -22,6 +22,7 @@ import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
 import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.util.JsonObjectBuilder;
 import no.idporten.eudiw.oauth2.server.util.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -345,15 +346,23 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         serverConfiguration.getAuditLogger().auditClientAuthentication(clientAuthentication);
         return clientMetadata;
     }
-    private void validateJWTAudience(SignedJWT signedJWT) {
+    private void validateJWTAudience(SignedJWT signedJWT, AuthenticatedRequest authenticatedRequest) {
         try {
-            if (signedJWT.getJWTClaimsSet().getAudience() == null || signedJWT.getJWTClaimsSet().getAudience().isEmpty()) {
+            List<String> audiences = signedJWT.getJWTClaimsSet().getAudience();
+            if (CollectionUtils.isEmpty(audiences)) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing JWT audience.", 401);
             }
-            if (signedJWT.getJWTClaimsSet().getAudience().size() != 1) {
+            if (audiences.size() != 1) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unique JWT audience required.", 401);
             }
-            if (!signedJWT.getJWTClaimsSet().getAudience().contains(serverConfiguration.getIssuer().toString())) {
+            URI endpoint = switch (authenticatedRequest) {
+                case PushedAuthorizationRequest request -> serverConfiguration.getPushedAuthorizationRequestEndpoint();
+                case TokenRequest request -> serverConfiguration.getTokenEndpoint();
+                default -> null;
+            };
+            String audience = audiences.getFirst();
+            if (!serverConfiguration.getIssuer().toString().equals(audience)
+                    && (endpoint == null || !endpoint.toString().equals(audience))) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown JWT audience.", 401);
             }
         } catch (ParseException e) {
@@ -371,7 +380,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             final SignedJWT clientAttestationJWT = SignedJWT.parse(authenticatedRequest.getClientAttestation());
             final SignedJWT clientAttestationPoPJWT = SignedJWT.parse(authenticatedRequest.getClientAttestationPoP());
             validateClientAttestation(clientAttestationJWT);
-            validateClientAttestationPoP(clientAttestationJWT, clientAttestationPoPJWT);
+            validateClientAttestationPoP(clientAttestationJWT, clientAttestationPoPJWT, authenticatedRequest);
             final String attestedClientId = clientAttestationJWT.getJWTClaimsSet().getSubject();
             if (!StringUtils.hasText(attestedClientId)) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Missing subject.", 401);
@@ -434,14 +443,14 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
     }
 
-    protected void validateClientAttestationPoP(SignedJWT clientAttestation, SignedJWT clientAttestationPoP) {
+    protected void validateClientAttestationPoP(SignedJWT clientAttestation, SignedJWT clientAttestationPoP, AuthenticatedRequest authenticatedRequest) {
         if (!serverConfiguration.getClientAttestationPoPSigningAlgValuesSupported().contains(clientAttestationPoP.getHeader().getAlgorithm())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Unsupported PoP JWT signing algorithm.", 401);
         }
         ECKey clientKey = extractJWKFromCnf(clientAttestation);
         verifyJWTSignature(clientAttestationPoP, clientKey);
         verifyJWTType(clientAttestationPoP, "oauth-client-attestation-pop+jwt");
-        validateJWTAudience(clientAttestationPoP);
+        validateJWTAudience(clientAttestationPoP, authenticatedRequest);
         validateAttestationChallenge(clientAttestationPoP);
     }
 
