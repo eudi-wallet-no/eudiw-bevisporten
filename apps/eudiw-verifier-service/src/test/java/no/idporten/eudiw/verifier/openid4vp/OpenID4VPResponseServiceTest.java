@@ -1,16 +1,10 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import com.nimbusds.jose.JWEAlgorithm;
-import com.nimbusds.jose.JWEHeader;
-import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDHEncrypter;
-import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.oauth2.sdk.id.Audience;
-import com.nimbusds.openid.connect.sdk.Nonce;
 import id.walt.mdoc.dataelement.StringElement;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
@@ -26,7 +20,6 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
-import no.idporten.eudiw.verifier.testdata.VpTokenTestdata;
 import no.idporten.eudiw.verifier.trustlist.TrustlistFormat;
 import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
@@ -35,10 +28,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockHttpSession;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -202,7 +197,7 @@ class OpenID4VPResponseServiceTest {
 
         VerificationException exception = assertThrows(VerificationException.class,
                 () -> service.receiveResponse(client, TRANSACTION_ID,
-                        encrypted(validPayload(Map.of("pid", "token")))));
+                        encrypted(validPayload(Map.of("pid", List.of("token"))))));
 
         assertEquals("Unsupported credential format: jwt_vc_json", exception.getErrorDescription());
     }
@@ -237,7 +232,7 @@ class OpenID4VPResponseServiceTest {
                 () -> service.receiveResponse(
                         client,
                         TRANSACTION_ID,
-                        encrypted(validPayload(Map.of("pid", "mdoc-token")))));
+                        encrypted(validPayload(Map.of("pid", List.of("mdoc-token"))))));
 
         assertSame(processingException, exception);
         verify(verificationService).markAsError(client, TRANSACTION_ID);
@@ -274,6 +269,155 @@ class OpenID4VPResponseServiceTest {
                 "Unsupported vp_token value type for credential id: pid");
         assertVpTokenFailure(Map.of("pid", Map.of("nested", "token")),
                 "Unsupported vp_token structure for credential id: pid");
+        assertVpTokenFailure(Map.of("pid", List.of()),
+                "Empty presentation array for credential id: pid");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "mso_mdoc,", "mso_mdoc,false", "mso_mdoc,true",
+            "dc+sd-jwt,", "dc+sd-jwt,false", "dc+sd-jwt,true"
+    })
+    @DisplayName("then a single String verified credential is expected for backwards compatibility")
+    void acceptsPresentationAsString(String format, Boolean multiple) throws Exception {
+        DcqlQuery dcqlQuery = query("pid", format, true);
+        if (multiple != null) {
+            dcqlQuery.getCredentials().getFirst().setMultiple(multiple);
+        }
+        VerificationTransaction transaction = transaction(dcqlQuery);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        preparePresentation(format, "token", transaction, ValidationStatus.VALID);
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("pid", "token"))));
+
+        ArgumentCaptor<VerifiedCredentials> credentials = ArgumentCaptor.forClass(VerifiedCredentials.class);
+        verify(verificationService).addVerifiedCredentials(eq(client), eq(TRANSACTION_ID), credentials.capture(), any());
+        List<VerifiedCredential> results = credentials.getValue().credentials().get("pid");
+        assertAll(
+                () -> assertEquals(List.of(Map.of("value", "token")),
+                        results.stream().map(VerifiedCredential::claims).toList()),
+                () -> assertEquals(List.of(true), results.stream().map(VerifiedCredential::valid).toList()));
+        verify(verificationService, never()).markAsError(any(), anyString());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"mso_mdoc,", "mso_mdoc,false", "dc+sd-jwt,", "dc+sd-jwt,false"})
+    @DisplayName("When multiple is omitted or false with two presentations, then rejection and error status are expected")
+    void rejectsMultiplePresentationsWithoutPermission(String format, Boolean multiple) throws Exception {
+        DcqlQuery dcqlQuery = query("pid", format, true);
+        if (multiple != null) {
+            dcqlQuery.getCredentials().getFirst().setMultiple(multiple);
+        }
+        VerificationTransaction transaction = transaction(dcqlQuery);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID,
+                        encrypted(validPayload(Map.of("pid", List.of("first", "second"))))));
+
+        assertAll(
+                () -> assertEquals("invalid_request", exception.getError()),
+                () -> assertEquals("Multiple presentations are not allowed for credential id: pid",
+                        exception.getErrorDescription()));
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
+        verifyNoInteractions(mDocService, sdJwtService, tokenStatuslistService, trustlistService);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "mso_mdoc,,1", "mso_mdoc,false,1", "mso_mdoc,true,1", "mso_mdoc,true,2",
+            "dc+sd-jwt,,1", "dc+sd-jwt,false,1", "dc+sd-jwt,true,1", "dc+sd-jwt,true,2"
+    })
+    @DisplayName("When the presentation count is permitted, then all independently verified results are expected")
+    void verifiesPermittedPresentations(String format, Boolean multiple, int count) throws Exception {
+        DcqlQuery dcqlQuery = query("pid", format, true);
+        if (multiple != null) {
+            dcqlQuery.getCredentials().getFirst().setMultiple(multiple);
+        }
+        VerificationTransaction transaction = transaction(dcqlQuery);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        List<String> tokens = List.of("first", "second").subList(0, count);
+        for (String token : tokens) {
+            preparePresentation(format, token, transaction, ValidationStatus.VALID);
+        }
+
+        service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(Map.of("pid", tokens))));
+
+        ArgumentCaptor<VerifiedCredentials> credentials = ArgumentCaptor.forClass(VerifiedCredentials.class);
+        verify(verificationService).addVerifiedCredentials(eq(client), eq(TRANSACTION_ID), credentials.capture(), any());
+        List<VerifiedCredential> results = credentials.getValue().credentials().get("pid");
+        assertAll(
+                () -> assertEquals(count, results.size()),
+                () -> assertEquals(tokens.stream().map(token -> Map.of("value", token)).toList(),
+                        results.stream().map(VerifiedCredential::claims).toList()),
+                () -> assertTrue(results.stream().allMatch(VerifiedCredential::valid)));
+        verify(verificationService, never()).markAsError(any(), anyString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"mso_mdoc", "dc+sd-jwt"})
+    @DisplayName("When queries have different multiple settings, then independent counts and validation results are expected")
+    void handlesMultiplePerQueryAndPreservesInvalidResults(String format) throws Exception {
+        DcqlCredentialQuery multipleQuery = query("many", format, true).getCredentials().getFirst();
+        multipleQuery.setMultiple(true);
+        DcqlCredentialQuery singleQuery = query("single", format, true).getCredentials().getFirst();
+        VerificationTransaction transaction = transaction(dcql(List.of(multipleQuery, singleQuery)));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        preparePresentation(format, "first", transaction, ValidationStatus.VALID);
+        preparePresentation(format, "second", transaction, ValidationStatus.INVALID);
+        preparePresentation(format, "third", transaction, ValidationStatus.VALID);
+
+        service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(
+                Map.of("many", List.of("first", "second"), "single", List.of("third")))));
+
+        ArgumentCaptor<VerifiedCredentials> credentials = ArgumentCaptor.forClass(VerifiedCredentials.class);
+        verify(verificationService).addVerifiedCredentials(eq(client), eq(TRANSACTION_ID), credentials.capture(), any());
+        Map<String, List<VerifiedCredential>> results = credentials.getValue().credentials();
+        assertAll(
+                () -> assertEquals(List.of(true, false), results.get("many").stream().map(VerifiedCredential::valid).toList()),
+                () -> assertEquals(List.of(Map.of("value", "first"), Map.of("value", "second")),
+                        results.get("many").stream().map(VerifiedCredential::claims).toList()),
+                () -> assertEquals(List.of(true), results.get("single").stream().map(VerifiedCredential::valid).toList()),
+                () -> assertEquals(List.of(Map.of("value", "third")),
+                        results.get("single").stream().map(VerifiedCredential::claims).toList()));
+    }
+
+    @Test
+    @DisplayName("When another query permits multiple presentations, then a single-only query still rejects multiple presentations")
+    void rejectsMultipleForSingleQueryWhenAnotherAllowsIt() throws Exception {
+        DcqlCredentialQuery multipleQuery = query("many", "mso_mdoc", true).getCredentials().getFirst();
+        multipleQuery.setMultiple(true);
+        DcqlCredentialQuery singleQuery = query("single", "mso_mdoc", true).getCredentials().getFirst();
+        VerificationTransaction transaction = transaction(dcql(List.of(singleQuery, multipleQuery)));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(
+                        Map.of("many", List.of("first", "second"), "single", List.of("third", "fourth"))))));
+
+        assertEquals("Multiple presentations are not allowed for credential id: single", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
+        verifyNoInteractions(mDocService, sdJwtService, tokenStatuslistService, trustlistService);
+    }
+
+    @Test
+    @DisplayName("When multiple is true with an empty array, then rejection rather than missing-credential persistence is expected")
+    void rejectsEmptyArrayWithMultipleAllowed() throws Exception {
+        DcqlQuery dcqlQuery = query("pid", "mso_mdoc", true);
+        dcqlQuery.getCredentials().getFirst().setMultiple(true);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction(dcqlQuery));
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID,
+                        encrypted(validPayload(Map.of("pid", List.of())))));
+
+        assertEquals("Empty presentation array for credential id: pid", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
+        verifyNoInteractions(mDocService, sdJwtService, tokenStatuslistService, trustlistService);
     }
 
     @Test
@@ -296,7 +440,7 @@ class OpenID4VPResponseServiceTest {
         when(mDocService.getValidationDetail(ValidationStatus.VALID)).thenReturn("valid mdoc");
 
         service.receiveResponse(client, TRANSACTION_ID,
-                encrypted(validPayload(Map.of("pid", "mdoc-token"))));
+                encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
 
         VerifiedCredential credential = persistedCredential("pid");
         assertAll(
@@ -348,7 +492,7 @@ class OpenID4VPResponseServiceTest {
     void statusListValidProducesValidCredential() throws Exception {
         prepareMdocWithStatus("0", ValidationStatus.VALID);
         service.receiveResponse(client, TRANSACTION_ID,
-                encrypted(validPayload(Map.of("pid", "mdoc-token"))));
+                encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
         assertTrue(persistedCredential("pid").valid());
     }
 
@@ -368,7 +512,7 @@ class OpenID4VPResponseServiceTest {
                 .thenReturn(ValidationStatus.VALID);
 
         service.receiveResponse(client, TRANSACTION_ID,
-                encrypted(validPayload(Map.of("attestation", "mdoc-token"))));
+                encrypted(validPayload(Map.of("attestation", List.of("mdoc-token")))));
 
         assertTrue(persistedCredential("attestation").valid());
         verify(trustlistService).checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS);
@@ -392,7 +536,7 @@ class OpenID4VPResponseServiceTest {
                 .thenReturn(ValidationStatus.VALID);
 
         service.receiveResponse(client, TRANSACTION_ID,
-                encrypted(validPayload(Map.of("pid", "sd-token"))));
+                encrypted(validPayload(Map.of("pid", List.of("sd-token")))));
 
         assertTrue(persistedCredential("pid").valid());
         verify(trustlistService).checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS);
@@ -406,7 +550,7 @@ class OpenID4VPResponseServiceTest {
             prepareMdocWithStatus(idx, ValidationStatus.VALID);
             VerificationException exception = assertThrows(VerificationException.class,
                     () -> service.receiveResponse(client, TRANSACTION_ID,
-                            encrypted(validPayload(Map.of("pid", "mdoc-token")))));
+                            encrypted(validPayload(Map.of("pid", List.of("mdoc-token"))))));
             assertEquals("Invalid status list idx in vp_token", exception.getErrorDescription());
             verify(tokenStatuslistService, never()).lookupStatusFromStatuslist(any(), anyInt());
         }
@@ -419,7 +563,7 @@ class OpenID4VPResponseServiceTest {
             reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
             prepareMdocWithStatus(Integer.toString(idx), ValidationStatus.VALID);
             service.receiveResponse(client, TRANSACTION_ID,
-                    encrypted(validPayload(Map.of("pid", "mdoc-token"))));
+                    encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
             verify(tokenStatuslistService)
                     .lookupStatusFromStatuslist(URI.create("https://status.example/list"), idx);
         }
@@ -443,6 +587,33 @@ class OpenID4VPResponseServiceTest {
     void requiresCryptographicHolderBindingByDefault() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", null));
         assertTrue(transaction.getDcqlQuery().getCredentials().getFirst().getRequireCryptographicHolderBinding());
+    }
+
+    private void preparePresentation(String format, String token, VerificationTransaction transaction, ValidationStatus status) {
+        X509Certificate presentationCertificate = mock(X509Certificate.class);
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(presentationCertificate, PID_TRUSTLISTS))
+                .thenReturn(ValidationStatus.VALID);
+        if ("mso_mdoc".equals(format)) {
+            DeviceResponse deviceResponse = mock(DeviceResponse.class);
+            MDoc document = mock(MDoc.class);
+            when(mDocService.deviceResponseFromVpToken(token)).thenReturn(deviceResponse);
+            when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(document);
+            when(document.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
+            when(mDocService.claimsFromMDoc(document)).thenReturn(Map.of("value", token));
+            when(mDocService.verifyMDoc(document, transaction)).thenReturn(status);
+            when(mDocService.extractCertificateFromMdoc(document)).thenReturn(presentationCertificate);
+        } else {
+            SDJwt presentation = mock(SDJwt.class);
+            VerificationResult<SDJwt> result = mock();
+            when(result.getSdJwt()).thenReturn(presentation);
+            when(sdJwtService.sdJwtFromVpToken(token)).thenReturn(presentation);
+            when(presentation.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
+            when(sdJwtService.certificate(presentation)).thenReturn(presentationCertificate);
+            when(sdJwtService.verifySdJwt(presentation, presentationCertificate)).thenReturn(result);
+            when(sdJwtService.validationStatusHolderBinding(transaction, presentation, true)).thenReturn(ValidationStatus.VALID);
+            when(sdJwtService.validationStatusSdJwt(result)).thenReturn(status);
+            when(sdJwtService.sdJwtClaims(result)).thenReturn(Map.of("value", token));
+        }
     }
 
     private void prepareMdocWithStatus(String idx, ValidationStatus status) {
@@ -475,6 +646,8 @@ class OpenID4VPResponseServiceTest {
         VerificationException exception = assertThrows(VerificationException.class,
                 () -> service.receiveResponse(client, TRANSACTION_ID, encrypted(validPayload(vpToken))));
         assertEquals(message, exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
     }
 
     private VerifiedCredential persistedCredential(String id) {
