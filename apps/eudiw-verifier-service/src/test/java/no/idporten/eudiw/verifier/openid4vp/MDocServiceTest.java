@@ -193,4 +193,13 @@ class MDocServiceTest {
         VerificationException exception = assertThrows(VerificationException.class, () -> service.mDocFromDeviceResponse(deviceResponse));
         assertEquals("Multiple mdoc documents in vp_token, only one is supported", exception.getErrorDescription());
     }
+
+    @Test
+    @DisplayName("when valid issuer signature and valid mdoc, then verifyMDoc is expected to be valid")
+    void validMdocSignatureTest() {
+        Security.addProvider(new BouncyCastleProvider());
+        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        MDoc parsed = service.mDocFromDeviceResponse(deviceResponse);
+        assertEquals(ValidationStatus.VALID, service.verifyMDoc(parsed, new VerificationTransaction()));
+    }
 }
