@@ -14,12 +14,15 @@ import no.idporten.eudiw.oauth2.server.protocol.AuditData;
 import no.idporten.eudiw.oauth2.server.protocol.AuthenticatedRequest;
 import no.idporten.eudiw.oauth2.server.protocol.Challenge;
 import no.idporten.eudiw.oauth2.server.protocol.ClientAuthentication;
+import no.idporten.eudiw.oauth2.server.protocol.TokenRequest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -61,6 +64,7 @@ public class ClientAuthenticationTest {
     public void setUp() throws Exception {
         OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .client(ClientMetadata.builder().clientId("anotherclient").scope("openid").redirectUri("https://junit.idporten.no/").build())
+                .tokenEndpoint(URI.create("https://oauth.eidas2sandkasse.dev/token"))
                 .cache(new SimpleOpenIDConnectCache())
                 .auditLogger(auditLogger)
                 .build();
@@ -117,6 +121,34 @@ public class ClientAuthenticationTest {
             assertEquals(challenge.challenge(), auditData.getAttribute("attestation_challenge"));
             assertEquals("w", auditData.getAttribute("wallet_name"));
             assertEquals("https://w.eidas2sandkasse.dev", auditData.getAttribute("wallet_link"));
+        }
+
+        @Test
+        @DisplayName("then the token endpoint is valid as PoP audience")
+        public void testValidAttestationWithTokenEndpointAudience() throws Exception {
+            final String clientId = "eudiw-abca";
+            final ECKey clientKey = TestUtils.createECPrivateKey();
+            final Challenge challenge = new Challenge("dgsdjhagdhjaj", 120);
+            authorizationServer.getConfiguration().getCache().putChallenge(challenge);
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
+            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
+                    clientId,
+                    challenge.challenge(),
+                    authorizationServer.getConfiguration().getTokenEndpoint().toString(),
+                    clientKey);
+            AuthenticatedRequest authenticatedRequest = TokenRequest.builder()
+                    .clientAttestation(clientAttestation.serialize())
+                    .clientAttestationPoP(clientAttestationPoPJwt.serialize())
+                    .build();
+            ClientMetadata clientMetadata = authorizationServer.authenticateClient(authenticatedRequest);
+            assertEquals(clientId, clientMetadata.getClientId());
+            verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
+            AuditData auditData = clientAuthenticationCaptor.getValue().getAuditData();
+            assertAll(
+                    () -> assertEquals(clientId, auditData.getAttribute("client_id")),
+                    () -> assertEquals("attest_jwt_client_auth", auditData.getAttribute("token_endpoint_auth_method")),
+                    () -> assertEquals(challenge.challenge(), auditData.getAttribute("attestation_challenge"))
+            );
         }
 
         @Test
