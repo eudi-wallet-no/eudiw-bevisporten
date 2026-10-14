@@ -7,7 +7,6 @@ import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
-import no.idporten.eudiw.verifier.certificateauthority.CertificateAuthorityService;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.testdata.Certificates;
@@ -38,8 +37,6 @@ class MDocServiceTest {
     private static final String VP_TOKEN_WITHOUT_DOCUMENTS =
             "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOAZnN0YXR1cwA";
 
-    @Mock CertificateAuthorityService certificateAuthorityService;
-
     private MDocService service; //= new MDocService(certificateAuthorityService);
 
     @Mock MDoc mDoc;
@@ -50,7 +47,7 @@ class MDocServiceTest {
 
     @BeforeEach
     void setup() {
-        service = new MDocService(certificateAuthorityService);
+        service = new MDocService();
     }
     @Test
     @DisplayName("with a valid VP token, then PID claims are expected")
@@ -86,7 +83,6 @@ class MDocServiceTest {
         id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
         when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-        when(certificateAuthorityService.getCertificate()).thenReturn(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.rootCertificate()+"-----END CERTIFICATE-----"));
         when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
         assertAll(
                 () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
@@ -201,7 +197,6 @@ class MDocServiceTest {
     @Test
     @DisplayName("with wrong issuer signature, then invalid request is expected")
     void throwsExceptionWhenWrongIssuerSignature() {
-        when(certificateAuthorityService.getCertificate()).thenReturn(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.rootCertificate()+"-----END CERTIFICATE-----"));
         assertFalse(service.verifyIssuerSignature(mDoc, X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.webuildPidDigdirCertificate()+"-----END CERTIFICATE-----")));
     }
 }

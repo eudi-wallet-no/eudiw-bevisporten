@@ -7,7 +7,6 @@ import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.issuersigned.IssuerSigned;
 import no.idporten.eudiw.verifier.VerificationException;
-import no.idporten.eudiw.verifier.certificateauthority.CertificateAuthorityService;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import org.cose.java.AlgorithmID;
@@ -25,11 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class MDocService {
 
-    private final CertificateAuthorityService certificateAuthorityService;
-
-
-    public MDocService(CertificateAuthorityService certificateAuthorityService) {
-        this.certificateAuthorityService = certificateAuthorityService;
+    public MDocService() {
     }
 
     public DeviceResponse deviceResponseFromVpToken(String vpToken) {
@@ -90,8 +85,7 @@ public class MDocService {
     }
 
     protected Boolean verifyIssuerSignature(MDoc mdoc, X509Certificate issuerCertificate) {
-        X509Certificate root = certificateAuthorityService.getCertificate();
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSubjectX500Principal().getName(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), List.of(root));
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(issuerCertificate.getSubjectX500Principal().getName(), AlgorithmID.ECDSA_256, issuerCertificate.getPublicKey(), null, List.of(issuerCertificate), Collections.emptyList());
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
         return mdoc.verifySignature(cryptoProvider, issuerCertificate.getSubjectX500Principal().getName());
     }
