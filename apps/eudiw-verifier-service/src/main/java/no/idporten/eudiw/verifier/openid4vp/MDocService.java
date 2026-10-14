@@ -81,7 +81,7 @@ public class MDocService {
                 List.of(issuerCertificate),
                 Collections.emptyList());
         SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
-        Boolean verify =  mDoc.verify(new MDocVerificationParams(
+        boolean verify =  mDoc.verify(new MDocVerificationParams(
                         Set.of(VerificationType.VALIDITY,
                                 VerificationType.DOC_TYPE,
                                 VerificationType.ISSUER_SIGNATURE,
