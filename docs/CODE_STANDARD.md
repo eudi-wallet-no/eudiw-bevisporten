@@ -20,6 +20,7 @@ Keep code clear, predictable and consistent with the existing codebase. The defa
 ## Testing expectations
 
 - Write tests for observable behavior and important boundaries, not implementation details.
+- When a test has multiple assertions, use `assertAll` where appropriate to report independent failures together. Keep prerequisite assertions separate when later checks depend on them succeeding.
 - When testing Spring `RestClient` integrations, use `MockRestServiceServer` bound to the same `RestClient.Builder` before building the client.
 - Add `@DisplayName` to every test class and test method. Use Gherkin-style descriptions in the form
   `When ..., then ... is expected` or `When ... with ..., then ... is expected`.
