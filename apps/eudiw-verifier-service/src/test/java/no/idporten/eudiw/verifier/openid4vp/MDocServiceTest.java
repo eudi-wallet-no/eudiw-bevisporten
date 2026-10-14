@@ -37,7 +37,7 @@ class MDocServiceTest {
     private static final String VP_TOKEN_WITHOUT_DOCUMENTS =
             "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOAZnN0YXR1cwA";
 
-    private MDocService service; //= new MDocService(certificateAuthorityService);
+    private MDocService service;
 
     @Mock MDoc mDoc;
     @Mock IssuerSigned issuerSigned;
