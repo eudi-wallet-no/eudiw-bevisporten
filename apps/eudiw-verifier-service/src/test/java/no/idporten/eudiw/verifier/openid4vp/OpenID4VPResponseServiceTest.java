@@ -269,10 +269,36 @@ class OpenID4VPResponseServiceTest {
                 "Unsupported vp_token value type for credential id: pid");
         assertVpTokenFailure(Map.of("pid", Map.of("nested", "token")),
                 "Unsupported vp_token structure for credential id: pid");
-        assertVpTokenFailure(Map.of("pid", "token"),
-                "Unsupported vp_token structure for credential id: pid");
         assertVpTokenFailure(Map.of("pid", List.of()),
                 "Empty presentation array for credential id: pid");
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "mso_mdoc,", "mso_mdoc,false", "mso_mdoc,true",
+            "dc+sd-jwt,", "dc+sd-jwt,false", "dc+sd-jwt,true"
+    })
+    @DisplayName("then a single String verified credential is expected for backwards compatibility")
+    void acceptsPresentationAsString(String format, Boolean multiple) throws Exception {
+        DcqlQuery dcqlQuery = query("pid", format, true);
+        if (multiple != null) {
+            dcqlQuery.getCredentials().getFirst().setMultiple(multiple);
+        }
+        VerificationTransaction transaction = transaction(dcqlQuery);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        preparePresentation(format, "token", transaction, ValidationStatus.VALID);
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("pid", "token"))));
+
+        ArgumentCaptor<VerifiedCredentials> credentials = ArgumentCaptor.forClass(VerifiedCredentials.class);
+        verify(verificationService).addVerifiedCredentials(eq(client), eq(TRANSACTION_ID), credentials.capture(), any());
+        List<VerifiedCredential> results = credentials.getValue().credentials().get("pid");
+        assertAll(
+                () -> assertEquals(List.of(Map.of("value", "token")),
+                        results.stream().map(VerifiedCredential::claims).toList()),
+                () -> assertEquals(List.of(true), results.stream().map(VerifiedCredential::valid).toList()));
+        verify(verificationService, never()).markAsError(any(), anyString());
     }
 
     @ParameterizedTest

@@ -201,6 +201,9 @@ public class OpenID4VPResponseService {
             }
             return verifiablePresentations;
         }
+        if (vpTokenValue instanceof String presentation) {
+            return List.of(new VerifiablePresentation(presentation));
+        }
         throw new VerificationException("invalid_request", "Unsupported vp_token structure for credential id: " + credentialId);
     }
 
