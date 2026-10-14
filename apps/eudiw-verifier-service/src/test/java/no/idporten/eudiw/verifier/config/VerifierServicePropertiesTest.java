@@ -1,16 +1,21 @@
 package no.idporten.eudiw.verifier.config;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,6 +26,33 @@ class VerifierServicePropertiesTest {
 
     @Autowired
     private VerifierServiceProperties properties;
+
+    @Autowired
+    private Validator validator;
+
+    @Test
+    @DisplayName("When binding client schemes, then the default and each client's configured value are expected")
+    void bindsClientAuthorizationRequestSchemes() {
+        assertAll(
+                () -> assertEquals("eudi-openid4vp", properties.findClientApplication("junit").getAuthorizationRequestScheme()),
+                () -> assertEquals("eu-eaap", properties.findClientApplication("junit-custom-scheme").getAuthorizationRequestScheme()));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "\t"})
+    @DisplayName("When a client authorization request scheme is blank, then a validation error is expected")
+    void rejectsBlankAuthorizationRequestSchemes(String scheme) {
+        ClientApplication clientApplication = new ClientApplication();
+        clientApplication.setKeystoreName("junit-access");
+        clientApplication.setApiKey("not-hidden-api-key");
+        clientApplication.setAuthorizationRequestScheme(scheme);
+
+        Set<ConstraintViolation<ClientApplication>> violations = validator.validate(clientApplication);
+
+        assertEquals(1, violations.size());
+        assertEquals("authorizationRequestScheme", violations.iterator().next().getPropertyPath().toString());
+    }
 
     @Nested
     @DisplayName("testing client application lookup")
