@@ -14,6 +14,7 @@ import no.idporten.eudiw.oauth2.server.protocol.AuditData;
 import no.idporten.eudiw.oauth2.server.protocol.AuthenticatedRequest;
 import no.idporten.eudiw.oauth2.server.protocol.Challenge;
 import no.idporten.eudiw.oauth2.server.protocol.ClientAuthentication;
+import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationRequest;
 import no.idporten.eudiw.oauth2.server.protocol.TokenRequest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
@@ -65,6 +68,7 @@ public class ClientAuthenticationTest {
         OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
                 .client(ClientMetadata.builder().clientId("anotherclient").scope("openid").redirectUri("https://junit.idporten.no/").build())
                 .tokenEndpoint(URI.create("https://oauth.eidas2sandkasse.dev/token"))
+                .pushedAuthorizationRequestEndpoint(URI.create("https://oauth.eidas2sandkasse.dev/par"))
                 .cache(new SimpleOpenIDConnectCache())
                 .auditLogger(auditLogger)
                 .build();
@@ -94,6 +98,7 @@ public class ClientAuthenticationTest {
     class AttestationBasedTests {
 
         @Test
+        @DisplayName("then a valid client attestation and pop is accepted and audit logged")
         public void testValidAttestationWithX5cHeader() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
@@ -124,7 +129,7 @@ public class ClientAuthenticationTest {
         }
 
         @Test
-        @DisplayName("then the token endpoint is valid as PoP audience")
+        @DisplayName("then the token endpoint uri is valid as PoP audience for the token endpoint")
         public void testValidAttestationWithTokenEndpointAudience() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
@@ -152,6 +157,33 @@ public class ClientAuthenticationTest {
         }
 
         @Test
+        @DisplayName("then the token endpoint uri is not a valid PoP audience for the par endpoint")
+        public void testAttestationWithTokenEndpointAudienceRejectedForParRequest() throws Exception {
+            final String clientId = "eudiw-abca";
+            final ECKey clientKey = TestUtils.createECPrivateKey();
+            final Challenge challenge = new Challenge("dgsdjhagdhjaj", 120);
+            authorizationServer.getConfiguration().getCache().putChallenge(challenge);
+            SignedJWT clientAttestation = TestUtils.createClientAttestation(clientId, "w", "https://w.eidas2sandkasse.dev", clientKey);
+            SignedJWT clientAttestationPoPJwt = TestUtils.createClientAttestationPoP(
+                    clientId,
+                    challenge.challenge(),
+                    authorizationServer.getConfiguration().getTokenEndpoint().toString(),
+                    clientKey);
+            AuthenticatedRequest authenticatedRequest = new PushedAuthorizationRequest(
+                    Map.of(
+                            "OAuth-Client-Attestation", List.of(clientAttestation.serialize()),
+                            "OAuth-Client-Attestation-PoP", List.of(clientAttestationPoPJwt.serialize())),
+                    Map.of("client_id", List.of(clientId)));
+            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.authenticateClient(authenticatedRequest));
+            assertAll(
+                    () -> assertEquals(OAuth2Exception.INVALID_CLIENT, e.error()),
+                    () -> assertTrue(e.errorDescription().contains("Unknown JWT audience"))
+            );
+            verifyNoInteractions(auditLogger);
+        }
+
+        @Test
+        @DisplayName("then a client attestation missing the x5c header is rejected")
         public void testAttestationMissingX5cHeader() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
@@ -176,6 +208,7 @@ public class ClientAuthenticationTest {
         }
 
         @Test
+        @DisplayName("then a client attestation with an unknown challenge returns use attestation challenge with a fresh challenge")
         public void testAttestationWithUnknownChallengeReturnsUseAttestationChallenge() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
@@ -201,6 +234,7 @@ public class ClientAuthenticationTest {
        }
 
         @Test
+        @DisplayName("then a client attestation without a challenge returns use attestation challenge with a fresh challenge")
         public void testAttestationWithoutChallengeReturnsUseAttestationChallenge() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
@@ -225,6 +259,7 @@ public class ClientAuthenticationTest {
         }
 
         @Test
+        @DisplayName("then a client attestation with an expired challenge returns use attestation challenge with a fresh challenge")
         public void testAttestationWithExpiredChallengeReturnsUseAttestationChallenge() throws Exception {
             final String clientId = "eudiw-abca";
             final ECKey clientKey = TestUtils.createECPrivateKey();
