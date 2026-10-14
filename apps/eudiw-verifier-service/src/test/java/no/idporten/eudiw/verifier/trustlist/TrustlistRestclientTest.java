@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -34,7 +35,7 @@ public class TrustlistRestclientTest {
 
     private RestClient restClientJson;
     private MockRestServiceServer mockServerJson;
-    private RestClient restClientXml;
+    private @Qualifier("trustlist") RestClient restClientXml;
     private MockRestServiceServer mockServerXml;
 
     public static final String TRUSTLIST_MEDIA_TYPE_XML = "application/vnd.etsi.tsl+xml";

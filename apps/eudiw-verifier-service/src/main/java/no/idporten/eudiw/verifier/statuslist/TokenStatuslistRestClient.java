@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.statuslist;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -16,7 +17,7 @@ public class TokenStatuslistRestClient {
         this.tokenStatuslistConfig = tokenStatuslistConfig;
     }
 
-    @Bean
+    @Bean("tokenStatuslist")
     public RestClient restClient() {
         SimpleClientHttpRequestFactory clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         clientHttpRequestFactory.setConnectTimeout(tokenStatuslistConfig.connectTimeout());
