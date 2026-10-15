@@ -57,9 +57,13 @@ trustlists:
     "[webuild-pid]":
       url: https://trustlist.webuild.jwt
       encoding: json
+    "[launchpad-pid]":
+      url: https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json
+      encoding: json
     "[eidas2sandkasse.xtsl]":
       url: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
   pid:
+    - launchpad-pid
     - eidas2sandkasse-pid
     - webuild-pid
   attestations:

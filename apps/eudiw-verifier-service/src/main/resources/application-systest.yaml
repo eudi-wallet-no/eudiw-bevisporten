@@ -51,9 +51,13 @@ trustlists:
     "[webuild-pid]":
       url: https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml
       encoding: xml
+    "[launchpad-pid]":
+      url: https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json
+      encoding: json
     "[eidas2sandkasse.xtsl]":
       url: https://tillitsliste.eidas2sandkasse.dev/no_eidas2sandkasse_dev_tsl.xtsl
   pid:
+    - launchpad-pid
     - eidas2sandkasse-pid
     - webuild-pid
   attestations:
