@@ -19,9 +19,10 @@ import org.springframework.web.client.RestClient;
 public class OpenID4VPVerifierServiceApiClient {
 
     private final RestClient restClient;
-    public static final String VERIFIER_CLIENT_APPLICATION_ID = "idporten-login";
+    private final OpenID4VPVerifierServiceProperties verifierServiceProperties;
 
     public OpenID4VPVerifierServiceApiClient(OpenID4VPVerifierServiceProperties verifierServiceProperties) {
+        this.verifierServiceProperties = verifierServiceProperties;
         this.restClient = RestClient.builder()
                 .baseUrl(verifierServiceProperties.uri().toString())
                 .defaultHeader("X-API-KEY", verifierServiceProperties.apiKey())
@@ -35,7 +36,7 @@ public class OpenID4VPVerifierServiceApiClient {
     public StartVerificationResponse startVerification(StartVerificationRequest request) {
         try {
             return restClient.post()
-                    .uri("/api/v1/{clientApplicationId}/verify/start/", VERIFIER_CLIENT_APPLICATION_ID)
+                    .uri("/api/v1/{clientApplicationId}/verify/start/", verifierServiceProperties.clientApplicationId())
                     .body(request)
                     .retrieve()
                     .body(StartVerificationResponse.class);
@@ -52,7 +53,7 @@ public class OpenID4VPVerifierServiceApiClient {
     public VerificationStatusResponse retrieveStatus(String verifierTransactionId) {
         try {
             return restClient.get()
-                    .uri("/api/v1/{clientApplicationId}/verify/status/{verifierTransactionId}", VERIFIER_CLIENT_APPLICATION_ID, verifierTransactionId)
+                    .uri("/api/v1/{clientApplicationId}/verify/status/{verifierTransactionId}", verifierServiceProperties.clientApplicationId(), verifierTransactionId)
                     .retrieve()
                     .body(VerificationStatusResponse.class);
         } catch (HttpClientErrorException e) {
@@ -68,7 +69,7 @@ public class OpenID4VPVerifierServiceApiClient {
     public VerificationResultResponse retrieveVerifiedCredentials(String verifierTransactionId) {
         try {
             return restClient.get()
-                    .uri("/api/v1/{clientApplicationId}/verify/result/{verifierTransactionId}", VERIFIER_CLIENT_APPLICATION_ID, verifierTransactionId)
+                    .uri("/api/v1/{clientApplicationId}/verify/result/{verifierTransactionId}", verifierServiceProperties.clientApplicationId(), verifierTransactionId)
                     .retrieve()
                     .body(VerificationResultResponse.class);
         } catch (HttpClientErrorException e) {
