@@ -468,7 +468,8 @@ class OpenID4VPResponseServiceTest {
         when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
         when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
-        when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
+        when(sdJwtService.validateSdJwtTimeClaims(sdJwtResult)).thenReturn(ValidationStatus.VALID);
+        when(sdJwtService.validationStatusSdJwt(sdJwtResult, ValidationStatus.VALID)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of("given_name", "Ola"));
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult))
                 .thenReturn(new StatuslistEntry("7", URI.create("https://status.example/list")));
@@ -533,7 +534,8 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
         when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusHolderBinding(transaction, sdJwt, true)).thenReturn(ValidationStatus.VALID);
-        when(sdJwtService.validationStatusSdJwt(sdJwtResult)).thenReturn(ValidationStatus.VALID);
+        when(sdJwtService.validateSdJwtTimeClaims(sdJwtResult)).thenReturn(ValidationStatus.VALID);
+        when(sdJwtService.validationStatusSdJwt(sdJwtResult, ValidationStatus.VALID)).thenReturn(ValidationStatus.VALID);
         when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of());
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult)).thenReturn(null);
         when(sdJwtResult.getSdJwt()).thenReturn(sdJwt);
@@ -639,7 +641,8 @@ class OpenID4VPResponseServiceTest {
             when(sdJwtService.certificate(presentation)).thenReturn(presentationCertificate);
             when(sdJwtService.verifySdJwt(presentation, presentationCertificate)).thenReturn(result);
             when(sdJwtService.validationStatusHolderBinding(transaction, presentation, true)).thenReturn(ValidationStatus.VALID);
-            when(sdJwtService.validationStatusSdJwt(result)).thenReturn(status);
+            when(sdJwtService.validateSdJwtTimeClaims(result)).thenReturn(ValidationStatus.VALID);
+            when(sdJwtService.validationStatusSdJwt(result, ValidationStatus.VALID)).thenReturn(status);
             when(sdJwtService.sdJwtClaims(result)).thenReturn(Map.of("value", token));
         }
     }
