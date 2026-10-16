@@ -6,6 +6,7 @@ import id.walt.mdoc.COSECryptoProviderKeyInfo;
 import id.walt.mdoc.SimpleCOSECryptoProvider;
 import id.walt.mdoc.dataelement.*;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
+import id.walt.mdoc.devicesigned.DeviceAuth;
 import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocVerificationParams;
 import id.walt.mdoc.doc.VerificationType;
@@ -23,6 +24,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Constructor;
 import java.math.BigInteger;
 import java.net.URI;
 import java.security.AlgorithmParameters;
@@ -90,6 +92,7 @@ public class MDocService  {
         Boolean verifyDeviceSignature = null;
 
         if(Objects.nonNull(mDoc.getMSO())) {
+
             verifyDeviceSignature = verifyHolderBinding(mDoc, verificationTransaction);
         } else {
             log.info("Device key info is null, skipping device signature verification");
@@ -139,11 +142,19 @@ public class MDocService  {
         // TODO: The issue now is that we need DeviceAuthentication for the walt id method verifyDeviceSignature, but
         // the DeviceAuthentication is not directly available from the MDoc
         // Device authentication is the signed proof
-        DeviceAuthentication deviceAuthentication = mdoc.getDeviceSigned().getDeviceAuth();
-        if (deviceAuthentication == null) {
-            log.info("Device authentication is null, cannot verify holder binding");
-            return null;
-        }
+
+        DeviceAuth deviceAuth = mdoc.getDeviceSigned().getDeviceAuth();
+        DeviceAuthentication deviceAuthentication =
+                deviceAuthenticationFromDeviceAuth(deviceAuth);
+
+//        boolean ok = mdoc.verifyDeviceSignature(deviceAuthentication, cryptoProvider, keyId);
+//
+//
+//        DeviceAuthentication deviceAuthentication = mdoc.getDeviceSigned().getDeviceAuth();
+//        if (deviceAuthentication == null) {
+//            log.info("Device authentication is null, cannot verify holder binding");
+//            return null;
+//        }
 
         //challengeMatches(deviceAuthentication, verificationTransaction.getNonce(), verificationTransaction.getAudience());
         try {
@@ -210,6 +221,54 @@ public class MDocService  {
             return keyFactory.generatePublic(spec);
         } catch (Exception e) {
             throw new IllegalArgumentException("Unable to build EC public key from device key", e);
+        }
+    }
+
+    protected DeviceAuthentication deviceAuthenticationFromDeviceAuth(DeviceAuth deviceAuth) {
+        if (deviceAuth == null) {
+            return null;
+        }
+
+        // In your Walt version, the wrapped COSE object contains a DataElement list
+        // as .getData(), not a raw byte[].
+        List<?> rawList = null;
+
+        if (deviceAuth.getDeviceSignature() != null) {
+            rawList = deviceAuth.getDeviceSignature().getData();
+        } else if (deviceAuth.getDeviceMac() != null) {
+            rawList = deviceAuth.getDeviceMac().getData();
+        }
+
+        if (rawList == null || rawList.isEmpty()) {
+            return null;
+        }
+
+        List<DataElement> dataElements = new ArrayList<>();
+        for (Object o : rawList) {
+            if (o instanceof DataElement de) {
+                dataElements.add(de);
+            } else {
+                throw new IllegalArgumentException(
+                        "Expected DataElement in DeviceAuth payload, got: " + o.getClass().getName()
+                );
+            }
+        }
+
+        try {
+            Constructor<DeviceAuthentication> ctor =
+                    DeviceAuthentication.class.getDeclaredConstructor(List.class);
+            ctor.setAccessible(true);
+
+            @SuppressWarnings("unchecked")
+            DeviceAuthentication authentication =
+                    ctor.newInstance((List<?>) dataElements);
+
+            return authentication;
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Could not construct DeviceAuthentication from DeviceAuth using Walt library",
+                    e
+            );
         }
     }
 
