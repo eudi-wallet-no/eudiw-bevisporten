@@ -5,6 +5,7 @@ import com.nimbusds.jose.crypto.ECDHEncrypter;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.dataelement.StringElement;
 import id.walt.mdoc.dataretrieval.DeviceResponse;
 import id.walt.mdoc.doc.MDoc;
@@ -20,10 +21,12 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
+import no.idporten.eudiw.verifier.testdata.Certificates;
 import no.idporten.eudiw.verifier.trustlist.TrustlistFormat;
 import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,10 +39,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
+import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 
+import static no.idporten.eudiw.verifier.openid4vp.MDocServiceTest.VALID_VP_TOKEN;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -587,6 +592,29 @@ class OpenID4VPResponseServiceTest {
     void requiresCryptographicHolderBindingByDefault() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", null));
         assertTrue(transaction.getDcqlQuery().getCredentials().getFirst().getRequireCryptographicHolderBinding());
+    }
+
+    @Test
+    @DisplayName("with a bad issuer signature, then invalid request is expected")
+    void validationStatusNegativeWhenWrongIssuerSignature() {
+        Security.addProvider(new BouncyCastleProvider());
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+
+        MDocService realService = new MDocService();
+        MDocService service = spy(realService);
+
+        DeviceResponse deviceResponse = realService.deviceResponseFromVpToken(VALID_VP_TOKEN);
+        MDoc realMdoc = realService.mDocFromDeviceResponse(deviceResponse);
+        Certificates certs = new Certificates();
+        X509Certificate negativeTestCert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+ certs.webuildPidDigdirCertificate() +"-----END CERTIFICATE-----");
+
+        doReturn(negativeTestCert)
+                .when(service)
+                .extractCertificateFromMdoc(realMdoc);
+
+        ValidationStatus status = service.verifyMDoc(realMdoc, transaction);
+
+        assertEquals(ValidationStatus.INVALID, status);
     }
 
     private void preparePresentation(String format, String token, VerificationTransaction transaction, ValidationStatus status) {
