@@ -264,7 +264,7 @@ public class OpenID4VPResponseService {
         X509Certificate cert = sdJwtService.certificate(unverifiedSDJwt);
         VerificationResult<SDJwt> verificationResult = sdJwtService.verifySdJwt(unverifiedSDJwt, cert);
         ValidationStatus holderBindingStatus = sdJwtService.validationStatusHolderBinding(verificationTransaction, unverifiedSDJwt, isCryptographicHolderBindingRequired);
-        ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult);
+        ValidationStatus sdJwtStatus = sdJwtService.validationStatusSdJwt(verificationResult, sdJwtService.validateSdJwtTimeClaims(verificationResult));
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);

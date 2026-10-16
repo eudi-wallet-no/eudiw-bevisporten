@@ -84,8 +84,8 @@ class SdJwtServiceTest {
     void mapsVerifiedAndUnverifiedResultsToStatus() {
         when(verificationResult.getVerified()).thenReturn(true, false);
 
-        assertEquals(ValidationStatus.VALID, service.validationStatusSdJwt(verificationResult));
-        assertEquals(ValidationStatus.INVALID, service.validationStatusSdJwt(verificationResult));
+        assertEquals(ValidationStatus.VALID, service.validationStatusSdJwt(verificationResult, ValidationStatus.VALID));
+        assertEquals(ValidationStatus.INVALID, service.validationStatusSdJwt(verificationResult, ValidationStatus.VALID));
     }
 
     @Test
