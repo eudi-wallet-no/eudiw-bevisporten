@@ -87,6 +87,7 @@ eudiw-idporten-login:
     clients:
   openid4vp-verifier-service:
     uri: http://digital-lommebok-verifier-service-service:8080
+    client-application-id: ${VERIFIER_SERVICE_CLIENT_APPLICATION_ID:idporten-login}
     connect-timeout: 3s
     read-timeout: 3s
     api-key: ${VERIFIER_SERVICE_API_KEY}
