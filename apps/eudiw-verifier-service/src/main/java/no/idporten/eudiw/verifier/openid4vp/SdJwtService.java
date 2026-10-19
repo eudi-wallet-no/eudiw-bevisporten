@@ -162,7 +162,7 @@ public class SdJwtService {
         try {
             long epochSeconds = Long.parseLong(primitive.getContent());
             return Instant.ofEpochSecond(epochSeconds);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | java.time.DateTimeException e) {
             throw new VerificationException("invalid_request",
                     "Invalid %s claim. Expected NumericDate".formatted(claimName), e);
         }
