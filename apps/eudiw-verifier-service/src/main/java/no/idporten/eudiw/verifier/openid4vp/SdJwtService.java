@@ -116,10 +116,7 @@ public class SdJwtService {
 
         // iat is mandatory for sd jwt
         Instant iat = parseInstantClaim(payload, "iat");
-        if (iat == null) {
-            throw new VerificationException("invalid_request", "SD-JWT missing iat claim");
-        }
-        if (iat.isAfter(now)) {
+        if (iat == null && iat.isAfter(now)) {
             return INVALID;
         }
 
