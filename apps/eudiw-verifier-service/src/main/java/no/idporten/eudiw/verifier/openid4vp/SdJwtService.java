@@ -116,7 +116,7 @@ public class SdJwtService {
 
         // iat is optional for sd jwt, recommended for HAIP
         Instant iat = parseInstantClaim(payload, "iat");
-        if (iat == null && iat.isAfter(now)) {
+        if (iat != null && iat.isAfter(now)) {
             return INVALID;
         }
 

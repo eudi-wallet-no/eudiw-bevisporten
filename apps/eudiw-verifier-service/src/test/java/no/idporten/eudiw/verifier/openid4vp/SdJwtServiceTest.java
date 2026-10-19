@@ -241,26 +241,6 @@ class SdJwtServiceTest {
     }
 
     @Test
-    @DisplayName("without iat, then exception is thrown")
-    void throwsWhenIatIsNotPresent() {
-        long now = Instant.now().getEpochSecond();
-
-        SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of(
-                "nbf", now - 30,
-                "exp", now + 300
-        )));
-
-        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
-        VerificationException exception =
-                assertThrows(VerificationException.class,
-                        () -> service.validateSdJwtTimeClaims(verificationResult));
-        assertThrows(VerificationException.class, () -> service.validateSdJwtTimeClaims(verificationResult));
-        assertEquals("SD-JWT missing iat claim", exception.getErrorDescription());
-    }
-
-
-
-    @Test
     @DisplayName("with iat in the future, then invalid is expected")
     void rejectsIssuedAtInFuture() {
         long now = Instant.now().getEpochSecond();
