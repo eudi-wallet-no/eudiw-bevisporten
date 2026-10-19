@@ -113,23 +113,23 @@ public class SdJwtService {
         return claims;
     }
 
-    public ValidationStatus validateSdJwtTimeClaims(SDJwt kbJwt) {
+    public ValidationStatus validateSdJwtTimeClaims(SDJwt sdJwt) {
         Instant now = Instant.now(Clock.systemUTC());
 
-        // iat is optional for key binding jwt
-        Instant iat = parseInstantClaim(kbJwt.getFullPayload(), "iat");
+        // iat is optional for SD-JWT/key binding jwt
+        Instant iat = parseInstantClaim(sdJwt.getFullPayload(), "iat");
         if (iat != null && iat.isAfter(now)) {
             return INVALID;
         }
 
-        // nbf is optional for key binding jwt
-        Instant nbf = parseInstantClaim(kbJwt.getFullPayload(), "nbf");
+        // nbf is optional for SD-JWT/key binding jwt
+        Instant nbf = parseInstantClaim(sdJwt.getFullPayload(), "nbf");
         if (nbf != null && nbf.isAfter(now)) {
             return INVALID;
         }
 
-        // exp is optional for key binding jwt
-        Instant exp = parseInstantClaim(kbJwt.getFullPayload(), "exp");
+        // exp is optional for SD-JWT/key binding jwt
+        Instant exp = parseInstantClaim(sdJwt.getFullPayload(), "exp");
         if (exp!= null && !exp.isAfter(now)) {
             return INVALID;
         }
