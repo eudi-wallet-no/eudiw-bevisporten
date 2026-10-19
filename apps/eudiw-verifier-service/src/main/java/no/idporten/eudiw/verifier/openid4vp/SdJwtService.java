@@ -10,6 +10,10 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.util.JSONArrayUtils;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.*;
+import kotlinx.serialization.json.JsonElement;
+import kotlinx.serialization.json.JsonNull;
+import kotlinx.serialization.json.JsonObject;
+import kotlinx.serialization.json.JsonPrimitive;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -24,6 +28,9 @@ import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
+import java.time.Clock;
+import java.time.DateTimeException;
+import java.time.Instant;
 import java.util.*;
 
 import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*;
@@ -56,8 +63,8 @@ public class SdJwtService {
         return verificationResult;
     }
 
-    public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult) {
-        if (!verificationResult.getVerified()) {
+    public ValidationStatus validationStatusSdJwt(VerificationResult<SDJwt> verificationResult, ValidationStatus sdJwtTimeChecksStatus) {
+        if (!verificationResult.getVerified() || sdJwtTimeChecksStatus != VALID) {
             return INVALID;
         } else {
             return VALID;
@@ -101,6 +108,61 @@ public class SdJwtService {
             throw new VerificationException("invalid_request", "Failed to parse disclosure for claim=%s".formatted(parsedDisclosure.get(1)));
         }
         return claims;
+    }
+
+    public ValidationStatus validateSdJwtTimeClaims(VerificationResult<SDJwt> verificationResult) {
+        JsonObject payload = verificationResult.getSdJwt().getFullPayload();
+        Instant now = Instant.now(Clock.systemUTC());
+
+        // iat is optional for sd jwt, recommended for HAIP
+        Instant iat = parseInstantClaim(payload, "iat");
+        if (iat != null && iat.isAfter(now)) {
+            return INVALID;
+        }
+
+        // nbf is optional for sd jwt
+        Instant nbf = parseInstantClaim(payload, "nbf");
+        if (nbf != null && nbf.isAfter(now)) {
+            return INVALID;
+        }
+
+        // exp is optional for sd jwt, recommended for HAIP
+        Instant exp = parseInstantClaim(payload, "exp");
+        if (exp!= null && !exp.isAfter(now)) {
+            return INVALID;
+        }
+
+        return ValidationStatus.VALID;
+    }
+
+    private Instant parseInstantClaim(JsonObject payload, String claimName) {
+        JsonElement element = payload.get(claimName);
+        if (element == null || element == JsonNull.INSTANCE) {
+            return null;
+        }
+
+        if (!(element instanceof JsonPrimitive primitive)) {
+            throw new VerificationException("invalid_request",
+                    "Invalid %s claim. Expected primitive value".formatted(claimName));
+        }
+
+        if (primitive.isString()) {
+            try {
+                return Instant.parse(primitive.getContent());
+            } catch (DateTimeException e) {
+                throw new VerificationException("invalid_request",
+                        "Invalid %s claim. Expected NumericDate or ISO-8601 UTC".formatted(claimName), e);
+            }
+        }
+
+        // Number is represented as text in kotlinx JsonPrimitive
+        try {
+            long epochSeconds = Long.parseLong(primitive.getContent());
+            return Instant.ofEpochSecond(epochSeconds);
+        } catch (NumberFormatException | DateTimeException | ArithmeticException e) {
+            throw new VerificationException("invalid_request",
+                    "Invalid %s claim. Expected NumericDate within valid Instant range".formatted(claimName), e);
+        }
     }
 
     protected StatuslistEntry extractStatuslistUriAndIdx(VerificationResult<SDJwt> sdjwt) {
