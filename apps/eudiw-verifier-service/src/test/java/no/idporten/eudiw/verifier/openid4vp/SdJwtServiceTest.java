@@ -222,7 +222,27 @@ class SdJwtServiceTest {
     }
 
     @Test
-    @DisplayName("with iat in the future, then invalid request is expected")
+    @DisplayName("without iat, then exception is thrown")
+    void throwsWhenIatIsNotPresent() {
+        long now = Instant.now().getEpochSecond();
+
+        SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of(
+                "nbf", now - 30,
+                "exp", now + 300
+        )));
+
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+        VerificationException exception =
+                assertThrows(VerificationException.class,
+                        () -> service.validateSdJwtTimeClaims(verificationResult));
+        assertThrows(VerificationException.class, () -> service.validateSdJwtTimeClaims(verificationResult));
+        assertEquals("SD-JWT missing iat claim", exception.getErrorDescription());
+    }
+
+
+
+    @Test
+    @DisplayName("with iat in the future, then invalid is expected")
     void rejectsIssuedAtInFuture() {
         long now = Instant.now().getEpochSecond();
 
@@ -233,16 +253,11 @@ class SdJwtServiceTest {
         )));
 
         when(verificationResult.getSdJwt()).thenReturn(sdJwt);
-
-        VerificationException exception =
-                assertThrows(VerificationException.class,
-                        () -> service.validateSdJwtTimeClaims(verificationResult));
-
-        assertEquals("SD-JWT issued in the future (iat)", exception.getErrorDescription());
+        assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
     }
 
     @Test
-    @DisplayName("with nbf in the future, then invalid request is expected")
+    @DisplayName("with nbf in the future, then invalid is expected")
     void rejectsNotBeforeInFuture() {
         long now = Instant.now().getEpochSecond();
 
@@ -254,15 +269,11 @@ class SdJwtServiceTest {
 
         when(verificationResult.getSdJwt()).thenReturn(sdJwt);
 
-        VerificationException exception =
-                assertThrows(VerificationException.class,
-                        () -> service.validateSdJwtTimeClaims(verificationResult));
-
-        assertEquals("SD-JWT not valid yet (nbf)", exception.getErrorDescription());
+        assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
     }
 
     @Test
-    @DisplayName("with exp in the past, then invalid request is expected")
+    @DisplayName("with exp in the past, then invalid is expected")
     void rejectsExpiredToken() {
         long now = Instant.now().getEpochSecond();
 
@@ -273,31 +284,7 @@ class SdJwtServiceTest {
         )));
 
         when(verificationResult.getSdJwt()).thenReturn(sdJwt);
-
-        VerificationException exception =
-                assertThrows(VerificationException.class,
-                        () -> service.validateSdJwtTimeClaims(verificationResult));
-
-        assertEquals("SD-JWT expired (exp)", exception.getErrorDescription());
-    }
-
-    @Test
-    @DisplayName("without exp claim, then invalid request is expected")
-    void rejectsMissingExpClaim() {
-        long now = Instant.now().getEpochSecond();
-
-        SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of(
-                "iat", now - 60,
-                "nbf", now - 30
-        )));
-
-        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
-
-        VerificationException exception =
-                assertThrows(VerificationException.class,
-                        () -> service.validateSdJwtTimeClaims(verificationResult));
-
-        assertEquals("SD-JWT missing exp claim", exception.getErrorDescription());
+        assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
     }
 
     private static X509Certificate certificate() {

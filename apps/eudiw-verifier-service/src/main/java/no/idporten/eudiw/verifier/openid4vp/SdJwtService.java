@@ -114,22 +114,25 @@ public class SdJwtService {
         JsonObject payload = verificationResult.getSdJwt().getFullPayload();
         Instant now = Instant.now(Clock.systemUTC());
 
+        // iat is mandatory for sd jwt
         Instant iat = parseInstantClaim(payload, "iat");
-        if (iat != null && iat.isAfter(now)) {
-            throw new VerificationException("invalid_request", "SD-JWT issued in the future (iat)");
+        if (iat == null) {
+            throw new VerificationException("invalid_request", "SD-JWT missing iat claim");
+        }
+        if (iat.isAfter(now)) {
+            return INVALID;
         }
 
+        // nbf is optional for sd jwt
         Instant nbf = parseInstantClaim(payload, "nbf");
         if (nbf != null && nbf.isAfter(now)) {
-            throw new VerificationException("invalid_request", "SD-JWT not valid yet (nbf)");
+            return INVALID;
         }
 
+        // exp is optional for sd jwt, recommended for HAIP
         Instant exp = parseInstantClaim(payload, "exp");
-        if (exp == null) {
-            throw new VerificationException("invalid_request", "SD-JWT missing exp claim");
-        }
-        if (!exp.isAfter(now)) {
-            throw new VerificationException("invalid_request", "SD-JWT expired (exp)");
+        if (exp!= null && !exp.isAfter(now)) {
+            return INVALID;
         }
 
         return ValidationStatus.VALID;
