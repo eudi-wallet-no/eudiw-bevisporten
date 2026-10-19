@@ -29,8 +29,8 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.time.Clock;
+import java.time.DateTimeException;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*;
@@ -152,7 +152,7 @@ public class SdJwtService {
         if (primitive.isString()) {
             try {
                 return Instant.parse(primitive.getContent());
-            } catch (DateTimeParseException e) {
+            } catch (DateTimeException e) {
                 throw new VerificationException("invalid_request",
                         "Invalid %s claim. Expected NumericDate or ISO-8601 UTC".formatted(claimName), e);
             }
@@ -162,9 +162,9 @@ public class SdJwtService {
         try {
             long epochSeconds = Long.parseLong(primitive.getContent());
             return Instant.ofEpochSecond(epochSeconds);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | DateTimeException | ArithmeticException e) {
             throw new VerificationException("invalid_request",
-                    "Invalid %s claim. Expected NumericDate".formatted(claimName), e);
+                    "Invalid %s claim. Expected NumericDate within valid Instant range".formatted(claimName), e);
         }
     }
 

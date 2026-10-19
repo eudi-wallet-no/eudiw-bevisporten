@@ -222,6 +222,25 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with out-of-range timestamp, then invalid request is expected")
+    void rejectsOutOfRangeTimestamp() {
+        SDJwt sdJwt = service.sdJwtFromVpToken(jwt(Map.of(
+                "iat", 1,
+                "nbf", 1,
+                "exp", Long.MAX_VALUE
+        )));
+
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+
+        VerificationException exception =
+                assertThrows(VerificationException.class,
+                        () -> service.validateSdJwtTimeClaims(verificationResult));
+
+        assertEquals("Invalid exp claim. Expected NumericDate within valid Instant range",
+                exception.getErrorDescription());
+    }
+
+    @Test
     @DisplayName("without iat, then exception is thrown")
     void throwsWhenIatIsNotPresent() {
         long now = Instant.now().getEpochSecond();
