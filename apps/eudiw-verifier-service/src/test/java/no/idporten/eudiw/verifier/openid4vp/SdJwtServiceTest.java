@@ -6,6 +6,7 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
+import kotlinx.serialization.json.*;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -283,6 +284,52 @@ class SdJwtServiceTest {
         )));
 
         when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+        assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
+    }
+
+
+    @Test
+    @DisplayName("with KB JWT present and valid time claims, then status is valid")
+    void acceptsValidSdJwtTimeClaimsWhenKbJwtIsPresent() {
+        long now = Instant.now().getEpochSecond();
+
+        SDJwt sdJwt = mock(SDJwt.class);
+
+        String payloadJson = """
+        {
+          "iat": %d,
+          "nbf": %d,
+          "exp": %d
+        }
+        """.formatted(now - 60, now - 30, now + 300);
+
+        when(sdJwt.getFullPayload())
+                .thenReturn((JsonObject) Json.Default.parseToJsonElement(payloadJson));
+
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+
+        assertEquals(ValidationStatus.VALID, service.validateSdJwtTimeClaims(verificationResult));
+    }
+
+    @Test
+    @DisplayName("with KB JWT present and expired exp, then status is invalid")
+    void rejectsExpiredSdJwtWhenKbJwtIsPresent() {
+        long now = Instant.now().getEpochSecond();
+
+        SDJwt sdJwt = mock(SDJwt.class);
+
+        String payloadJson = """
+        {
+          "iat": %d,
+          "nbf": %d,
+          "exp": %d
+        }
+        """.formatted(now - 600, now - 300, now - 10);
+
+        when(sdJwt.getFullPayload())
+                .thenReturn((JsonObject) Json.Default.parseToJsonElement(payloadJson));
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+
         assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
     }
 

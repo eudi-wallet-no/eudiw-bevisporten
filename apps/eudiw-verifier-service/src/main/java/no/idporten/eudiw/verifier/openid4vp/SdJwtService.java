@@ -19,6 +19,8 @@ import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -37,6 +39,7 @@ import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*
 
 @Service
 public class SdJwtService {
+    private static final Logger log = LogManager.getLogger(SdJwtService.class);
     private final ObjectMapper objectMapper;
 
     public SdJwtService(ObjectMapper objectMapper) {
@@ -110,29 +113,48 @@ public class SdJwtService {
         return claims;
     }
 
-    public ValidationStatus validateSdJwtTimeClaims(VerificationResult<SDJwt> verificationResult) {
-        JsonObject payload = verificationResult.getSdJwt().getFullPayload();
+    public ValidationStatus validateSdJwtTimeClaims(SDJwt kbJwt) {
         Instant now = Instant.now(Clock.systemUTC());
 
-        // iat is optional for sd jwt, recommended for HAIP
-        Instant iat = parseInstantClaim(payload, "iat");
+        // iat is optional for key binding jwt
+        Instant iat = parseInstantClaim(kbJwt.getFullPayload(), "iat");
         if (iat != null && iat.isAfter(now)) {
             return INVALID;
         }
 
-        // nbf is optional for sd jwt
-        Instant nbf = parseInstantClaim(payload, "nbf");
+        // nbf is optional for key binding jwt
+        Instant nbf = parseInstantClaim(kbJwt.getFullPayload(), "nbf");
         if (nbf != null && nbf.isAfter(now)) {
             return INVALID;
         }
 
-        // exp is optional for sd jwt, recommended for HAIP
-        Instant exp = parseInstantClaim(payload, "exp");
+        // exp is optional for key binding jwt
+        Instant exp = parseInstantClaim(kbJwt.getFullPayload(), "exp");
         if (exp!= null && !exp.isAfter(now)) {
             return INVALID;
         }
 
         return ValidationStatus.VALID;
+
+    }
+
+    public ValidationStatus validateSdJwtTimeClaims(VerificationResult<SDJwt> verificationResult) {
+        ValidationStatus kbJwtTimeClaimsStatus;
+        if (containsKBJwt(verificationResult.getSdJwt())) {
+            SDJwt kbJwt = verificationResult.getSdJwt().getKeyBindingJwt();
+            kbJwtTimeClaimsStatus = validateSdJwtTimeClaims(kbJwt);
+            if (kbJwtTimeClaimsStatus != VALID) {
+                log.info("Key binding JWT time claims validation failed");
+                return INVALID;
+            }
+
+        }
+       ValidationStatus sdJwtTimeClaimsStatus = validateSdJwtTimeClaims(verificationResult.getSdJwt());
+        if (sdJwtTimeClaimsStatus != VALID) {
+            log.info("SD JWT time claims validation failed");
+            return INVALID;
+        }
+        return VALID;
     }
 
     private Instant parseInstantClaim(JsonObject payload, String claimName) {
