@@ -114,7 +114,7 @@ public class SdJwtService {
         JsonObject payload = verificationResult.getSdJwt().getFullPayload();
         Instant now = Instant.now(Clock.systemUTC());
 
-        // iat is mandatory for sd jwt
+        // iat is optional for sd jwt, recommended for HAIP
         Instant iat = parseInstantClaim(payload, "iat");
         if (iat == null && iat.isAfter(now)) {
             return INVALID;
