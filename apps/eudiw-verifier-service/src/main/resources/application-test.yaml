@@ -91,8 +91,8 @@ trustlists:
       url: https://tl-api.dev.idunion.info/api/v1/xPnOSuTc/etsi/tl.xml
       encoding: xml
     "[launchpad-pid]":
-      url: https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json
-      encoding: json
+      url: ${TRUSTLIST_PID_LAUNCHPAD_URL:https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json}
+      encoding: ${TRUSTLIST_PID_LAUNCHPAD_ENCODING:json}
     "[eidas2sandkasse.xtsl]":
       url: https://tillitsliste.test.eidas2sandkasse.net/no_eidas2sandkasse_test_tsl.xtsl
   pid:
