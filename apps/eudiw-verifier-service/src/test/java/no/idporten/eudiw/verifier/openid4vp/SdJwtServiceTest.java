@@ -4,6 +4,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.X509CertUtils;
+import id.walt.sdjwt.KeyBindingJwt;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
 import kotlinx.serialization.json.*;
@@ -328,6 +329,60 @@ class SdJwtServiceTest {
 
         when(sdJwt.getFullPayload())
                 .thenReturn((JsonObject) Json.Default.parseToJsonElement(payloadJson));
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+
+        assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
+    }
+
+    @Test
+    @DisplayName("with valid issuer token and expired KB JWT, then status is invalid")
+    void rejectsExpiredKbJwtWhenIssuerTokenIsValid() {
+        long now = Instant.now().getEpochSecond();
+
+        SDJwt sdJwt = mock(SDJwt.class);
+        KeyBindingJwt kbJwt = mock(KeyBindingJwt.class);
+
+        when(sdJwt.getKeyBindingJwt()).thenReturn(kbJwt);
+
+        when(kbJwt.getFullPayload()).thenReturn((JsonObject) Json.Default.parseToJsonElement("""
+        {
+          "iat": %d,
+          "nbf": %d,
+          "exp": %d
+        }
+        """.formatted(now - 600, now - 300, now - 10)));
+
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+
+        assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));
+    }
+
+    @Test
+    @DisplayName("with expired issuer token and valid KB JWT, then status is invalid")
+    void rejectsExpiredIssuerTokenWhenKbJwtIsValid() {
+        long now = Instant.now().getEpochSecond();
+
+        SDJwt sdJwt = mock(SDJwt.class);
+        KeyBindingJwt kbJwt = mock(KeyBindingJwt.class);
+
+        when(sdJwt.getKeyBindingJwt()).thenReturn(kbJwt);
+
+        when(sdJwt.getFullPayload()).thenReturn((JsonObject) Json.Default.parseToJsonElement("""
+    {
+      "iat": %d,
+      "nbf": %d,
+      "exp": %d
+    }
+    """.formatted(now - 600, now - 300, now - 10)));
+
+        when(kbJwt.getFullPayload()).thenReturn((JsonObject) Json.Default.parseToJsonElement("""
+    {
+      "iat": %d,
+      "nbf": %d,
+      "exp": %d
+    }
+    """.formatted(now - 60, now - 30, now + 300)));
+
         when(verificationResult.getSdJwt()).thenReturn(sdJwt);
 
         assertEquals(ValidationStatus.INVALID, service.validateSdJwtTimeClaims(verificationResult));

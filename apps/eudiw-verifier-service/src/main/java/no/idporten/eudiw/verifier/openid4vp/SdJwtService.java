@@ -113,23 +113,23 @@ public class SdJwtService {
         return claims;
     }
 
-    public ValidationStatus validateSdJwtTimeClaims(SDJwt sdJwt) {
+    public ValidationStatus validateSdJwtTimeClaims(JsonObject sdJwtPayload) {
         Instant now = Instant.now(Clock.systemUTC());
 
         // iat is optional for SD-JWT/key binding jwt
-        Instant iat = parseInstantClaim(sdJwt.getFullPayload(), "iat");
+        Instant iat = parseInstantClaim(sdJwtPayload, "iat");
         if (iat != null && iat.isAfter(now)) {
             return INVALID;
         }
 
         // nbf is optional for SD-JWT/key binding jwt
-        Instant nbf = parseInstantClaim(sdJwt.getFullPayload(), "nbf");
+        Instant nbf = parseInstantClaim(sdJwtPayload, "nbf");
         if (nbf != null && nbf.isAfter(now)) {
             return INVALID;
         }
 
         // exp is optional for SD-JWT/key binding jwt
-        Instant exp = parseInstantClaim(sdJwt.getFullPayload(), "exp");
+        Instant exp = parseInstantClaim(sdJwtPayload, "exp");
         if (exp!= null && !exp.isAfter(now)) {
             return INVALID;
         }
@@ -142,14 +142,14 @@ public class SdJwtService {
         ValidationStatus kbJwtTimeClaimsStatus;
         if (containsKBJwt(verificationResult.getSdJwt())) {
             SDJwt kbJwt = verificationResult.getSdJwt().getKeyBindingJwt();
-            kbJwtTimeClaimsStatus = validateSdJwtTimeClaims(kbJwt);
+            kbJwtTimeClaimsStatus = validateSdJwtTimeClaims(kbJwt.getFullPayload());
             if (kbJwtTimeClaimsStatus != VALID) {
                 log.info("Key binding JWT time claims validation failed");
                 return INVALID;
             }
 
         }
-       ValidationStatus sdJwtTimeClaimsStatus = validateSdJwtTimeClaims(verificationResult.getSdJwt());
+       ValidationStatus sdJwtTimeClaimsStatus = validateSdJwtTimeClaims(verificationResult.getSdJwt().getFullPayload());
         if (sdJwtTimeClaimsStatus != VALID) {
             log.info("SD JWT time claims validation failed");
             return INVALID;
