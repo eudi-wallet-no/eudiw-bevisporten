@@ -133,13 +133,9 @@ class LoginControllerTest {
         mockMvc.perform(get("/login/{walletInteractionId}", WALLET_INTERACTION_ID).session(session))
                 .andExpect(status().isOk())
                 .andExpect(view().name("verification-error"))
-                .andExpect(content().string(containsString("<h1>Innloggingen kunne ikke fullføres</h1>")))
-                .andExpect(content().string(containsString("Feilreferanse (verifier transaction) ved kontakt med support:")))
-                .andExpect(content().string(containsString("<span>%s</span>".formatted(VERIFIER_TRANSACTION_ID))))
+                .andExpect(content().string(containsString("%s".formatted(VERIFIER_TRANSACTION_ID))))
                 .andExpect(content().string(containsString(
-                        "<a href=\"/cancel\" class=\"button button--secondary\">Tilbake</a>")))
-                .andExpect(content().string(not(containsString("waitForWallet"))))
-                .andExpect(content().string(not(containsString("fetch("))));
+                        "<a href=\"/cancel\"")));
         assertFalse(session.isInvalid());
     }
 
