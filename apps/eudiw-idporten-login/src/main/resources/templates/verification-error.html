@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      lang="nn">
+
+<head th:replace="~{fragments/header :: head}"></head>
+<body>
+<header th:replace="~{fragments/toppanel :: header}">...</header>
+<main>
+    <div class="box" id="main-content">
+        <div class="box__body">
+            <div class="notification">
+                <h1 th:text="#{verification_error_title}"></h1>
+                <p th:text="#{verification_error_text}"></p>
+                <p>
+                    <span th:text="#{verification_error_reference}"></span>
+                    <span th:text="${verifierTransactionId}"></span>
+                </p>
+            </div>
+            <div class="btn-group">
+                <a th:href="@{/cancel}" class="button button--secondary"
+                   th:text="#{verification_error_back}"></a>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/footer :: footer}">...</footer>
+</body>
+</html>
