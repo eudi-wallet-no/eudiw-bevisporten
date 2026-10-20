@@ -38,6 +38,19 @@ class VerifierServicePropertiesTest {
                 () -> assertEquals("eu-eaap", properties.findClientApplication("junit-custom-scheme").getAuthorizationRequestScheme()));
     }
 
+    @Test
+    @DisplayName("When binding verifier info properties, then launchpad values and empty defaults are expected")
+    void bindsVerifierInfoProperties() {
+        assertAll(
+                () -> assertEquals("junit-registrar-dataset", properties.findClientApplication("junit-launchpad").getRegistrarDataset()),
+                () -> assertEquals("junit-wrprc", properties.findClientApplication("junit-launchpad").getWalletRelyingPartyRegistrationCertificate()),
+                () -> assertEquals("junit-registrar-dataset", properties.findClientApplication("junit-single-attestation").getRegistrarDataset()),
+                () -> assertEquals("", properties.findClientApplication("junit-single-attestation").getWalletRelyingPartyRegistrationCertificate()),
+                () -> assertNull(properties.findClientApplication("junit").getRegistrarDataset()),
+                () -> assertNull(properties.findClientApplication("junit").getWalletRelyingPartyRegistrationCertificate())
+        );
+    }
+
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t"})
@@ -153,4 +166,5 @@ class VerifierServicePropertiesTest {
             );
         }
     }
+
 }

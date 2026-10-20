@@ -11,6 +11,16 @@ verifier-service:
       keystore-name: junit-access
       api-key: not-hidden-api-key
       authorization-request-scheme: eu-eaap
+    junit-launchpad:
+      keystore-name: junit-access
+      api-key: not-hidden-api-key
+      registrar-dataset: ${JUNIT_LAUNCHPAD_REGISTRAR_DATASET:junit-registrar-dataset}
+      wallet-relying-party-registration-certificate: ${JUNIT_LAUNCHPAD_WRPRC:junit-wrprc}
+    junit-single-attestation:
+      keystore-name: junit-access
+      api-key: not-hidden-api-key
+      registrar-dataset: ${JUNIT_SINGLE_ATTESTATION_REGISTRAR_DATASET:junit-registrar-dataset}
+      wallet-relying-party-registration-certificate: ${JUNIT_SINGLE_ATTESTATION_WRPRC:}
     junit-disabled:
       keystore-name: junit-access
       disabled: true
