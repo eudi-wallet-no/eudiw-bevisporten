@@ -89,12 +89,9 @@ public class LoginController {
             VerificationStatus verificationStatus = openId4VpVerificationService.retrieveVerificationStatus(walletInteraction);
             if (verificationStatus == VerificationStatus.ERROR) {
                 logger.warn("Verification failed for verifier transaction {}", walletInteraction.getVerifierTransactionId());
-                String redirect = authorizationErrorResponse(
-                        pushedAuthorizationRequest,
-                        "Verification with EU Digital Identity Wallet failed");
+                model.addAttribute("verifierTransactionId", walletInteraction.getVerifierTransactionId());
                 walletInteractionService.removeWalletInteraction(walletInteraction.getId());
-                session.invalidate();
-                return redirect;
+                return "verification-error";
             }
             Authorization authorization = openId4VpVerificationService.completeVerification(OpenID4VPVerificationHandler.forAcrValue(AcrValue.fromValue(pushedAuthorizationRequest.getResolvedAcrValue())), walletInteraction);
             AuthorizationResponse authorizationResponse = openIDConnectServer.authorize(pushedAuthorizationRequest, authorization);

@@ -5,53 +5,70 @@ import no.idporten.eudiw.login.openid4vp.verifier.model.VerificationStatus;
 import no.idporten.eudiw.login.openid4vp.wallet.WalletInteraction;
 import no.idporten.eudiw.login.openid4vp.wallet.WalletInteractionService;
 import no.idporten.sdk.oidcserver.OpenIDConnectIntegration;
+import no.idporten.sdk.oidcserver.protocol.Authorization;
 import no.idporten.sdk.oidcserver.protocol.AuthorizationResponse;
 import no.idporten.sdk.oidcserver.protocol.PushedAuthorizationRequest;
 import no.idporten.sdk.oidcserver.protocol.RedirectedResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.ui.ExtendedModelMap;
 
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @DisplayName("When handling the wallet login flow")
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(LoginController.class)
 class LoginControllerTest {
 
     private static final String WALLET_INTERACTION_ID = "wallet-interaction-id";
     private static final String VERIFIER_TRANSACTION_ID = "verifier-transaction-id";
 
-    @Mock
+    @MockitoBean
     private OpenIDConnectIntegration openIDConnectServer;
-    @Mock
+    @MockitoBean
     private OpenID4VPVerificationService verificationService;
-    @Mock
+    @MockitoBean
     private WalletInteractionService walletInteractionService;
-    @Mock
     private PushedAuthorizationRequest pushedAuthorizationRequest;
-    @Mock
     private AuthorizationResponse authorizationResponse;
 
+    @Autowired
     private LoginController controller;
+    @Autowired
+    private MockMvc mockMvc;
     private WalletInteraction walletInteraction;
     private MockHttpSession session;
 
     @BeforeEach
     void setUp() {
-        controller = new LoginController(openIDConnectServer, verificationService, walletInteractionService);
+        pushedAuthorizationRequest = mock(PushedAuthorizationRequest.class);
+        authorizationResponse = mock(AuthorizationResponse.class);
         walletInteraction = new WalletInteraction(WALLET_INTERACTION_ID);
         walletInteraction.setVerifierTransactionId(VERIFIER_TRANSACTION_ID);
         session = new MockHttpSession();
@@ -81,33 +98,95 @@ class LoginControllerTest {
         assertEquals(202, controller.poll(WALLET_INTERACTION_ID, session).getStatusCode().value());
     }
 
-    @DisplayName("When login receives ERROR, then an access denied authorization response is expected")
+    @DisplayName("When login receives ERROR, then an error page is returned")
     @Test
-    void errorStatusReturnsAuthorizationError() throws Exception {
+    void errorStatusDisplaysErrorPage() throws Exception {
+        when(verificationService.retrieveVerificationStatus(walletInteraction))
+                .thenReturn(VerificationStatus.ERROR);
+
+        ExtendedModelMap model = new ExtendedModelMap();
+        String result = controller.login(
+                WALLET_INTERACTION_ID,
+                model,
+                session);
+
+        assertAll(
+                () -> assertEquals("verification-error", result),
+                () -> assertEquals(VERIFIER_TRANSACTION_ID, model.getAttribute("verifierTransactionId")),
+                () -> assertFalse(session.isInvalid()),
+                () -> assertSame(pushedAuthorizationRequest,
+                        session.getAttribute(PushedAuthorizationRequest.class.getName())),
+                () -> assertEquals(WALLET_INTERACTION_ID, session.getAttribute("WALLET_INTERACTION_ID")));
+        verifyNoInteractions(openIDConnectServer);
+        verify(verificationService, never()).completeVerification(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any());
+        verify(walletInteractionService).removeWalletInteraction(WALLET_INTERACTION_ID);
+    }
+
+    @DisplayName("When verification fails, then a reference and back link without polling are expected")
+    @Test
+    void errorPageDisplaysReferenceAndLinksToCancelWithoutPolling() throws Exception {
+        when(verificationService.retrieveVerificationStatus(walletInteraction))
+                .thenReturn(VerificationStatus.ERROR);
+
+        mockMvc.perform(get("/login/{walletInteractionId}", WALLET_INTERACTION_ID).session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("verification-error"))
+                .andExpect(content().string(containsString("%s".formatted(VERIFIER_TRANSACTION_ID))))
+                .andExpect(content().string(containsString(
+                        "<a href=\"/cancel\"")));
+        assertFalse(session.isInvalid());
+    }
+
+    @DisplayName("When cancelling after ERROR, then the existing cancellation response and invalidated session are expected")
+    @Test
+    void cancelAfterErrorReturnsAuthorizationError() throws Exception {
         when(verificationService.retrieveVerificationStatus(walletInteraction))
                 .thenReturn(VerificationStatus.ERROR);
         when(openIDConnectServer.errorResponse(
                 pushedAuthorizationRequest,
                 "access_denied",
-                "Verification with EU Digital Identity Wallet failed"))
+                "User cancelled authentication with EU Digital Identity Wallet"))
                 .thenReturn(authorizationResponse);
         when(openIDConnectServer.createClientResponse(authorizationResponse))
                 .thenReturn(new RedirectedResponse(
-                        "https://client.example.com/callback",
+                        "https://client.eidas2sandkasse.dev/callback",
                         Map.of("error", "access_denied", "state", "client-state")));
 
-        String result = controller.login(
-                WALLET_INTERACTION_ID,
-                new ExtendedModelMap(),
-                session);
+        assertEquals("verification-error",
+                controller.login(WALLET_INTERACTION_ID, new ExtendedModelMap(), session));
+        String result = controller.cancel(session);
 
-        assertTrue(result.startsWith("redirect:https://client.example.com/callback?"));
-        assertTrue(result.contains("error=access_denied"));
-        assertTrue(result.contains("state=client-state"));
-        verify(verificationService, never()).completeVerification(
-                org.mockito.ArgumentMatchers.any(),
-                org.mockito.ArgumentMatchers.any());
+        assertAll(
+                () -> assertTrue(result.startsWith("redirect:https://client.eidas2sandkasse.dev/callback?")),
+                () -> assertTrue(result.contains("error=access_denied")),
+                () -> assertTrue(result.contains("state=client-state")),
+                () -> assertTrue(session.isInvalid()));
+    }
+
+    @DisplayName("When login receives AVAILABLE, then a successful redirect and session cleanup are expected")
+    @Test
+    void availableStatusCompletesLogin() throws Exception {
+        Authorization authorization = mock(Authorization.class);
+        when(verificationService.retrieveVerificationStatus(walletInteraction))
+                .thenReturn(VerificationStatus.AVAILABLE);
+        when(pushedAuthorizationRequest.getResolvedAcrValue()).thenReturn("eidas-loa-high");
+        when(verificationService.completeVerification(any(), eq(walletInteraction))).thenReturn(authorization);
+        when(openIDConnectServer.authorize(pushedAuthorizationRequest, authorization))
+                .thenReturn(authorizationResponse);
+        when(openIDConnectServer.createClientResponse(authorizationResponse))
+                .thenReturn(new RedirectedResponse(
+                        "https://client.eidas2sandkasse.dev/callback",
+                        Map.of("code", "authorization-code", "state", "client-state")));
+
+        String result = controller.login(WALLET_INTERACTION_ID, new ExtendedModelMap(), session);
+
+        assertAll(
+                () -> assertTrue(result.startsWith("redirect:https://client.eidas2sandkasse.dev/callback?")),
+                () -> assertTrue(result.contains("code=authorization-code")),
+                () -> assertTrue(result.contains("state=client-state")),
+                () -> assertTrue(session.isInvalid()));
         verify(walletInteractionService).removeWalletInteraction(WALLET_INTERACTION_ID);
-        assertTrue(session.isInvalid());
     }
 }
