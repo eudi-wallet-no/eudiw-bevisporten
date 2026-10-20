@@ -194,7 +194,82 @@ class OpenID4VPRequestServiceTest {
                 () -> assertEquals(request.getJWTClaimsSet().toJSONObject(), storedTransaction.getRequest()),
                 () -> assertNotNull(storedTransaction.getState()),
                 () -> assertNotNull(storedTransaction.getEncryptionKey()),
+                () -> assertFalse(request.getJWTClaimsSet().toJSONObject().containsKey("verifier_info")),
                 () -> assertNull(request.getJWTClaimsSet().getClaim("dcql_query")));
+    }
+
+    @Test
+    @DisplayName("When only one verifier info attestation is configured, then only that JSON object is included")
+    void includesOneConfiguredVerifierInfoAttestation() throws Exception {
+        clientApplication.setRegistrarDataset("""
+                {"format":"registrar_dataset","data":{"name":"Test Registrar"}}
+                """);
+        clientApplication.setWalletRelyingPartyRegistrationCertificate(" ");
+        configureExistingTransaction();
+
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(
+                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+        List<?> verifierInfo = (List<?>) request.getJWTClaimsSet().getClaim("verifier_info");
+
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertEquals(1, verifierInfo.size()),
+                () -> assertEquals(Map.of(
+                        "format", "registrar_dataset",
+                        "data", Map.of("name", "Test Registrar")
+                ), verifierInfo.getFirst())
+        );
+    }
+
+    @Test
+    @DisplayName("When both verifier info attestations are configured, then both JSON objects are included in order")
+    void includesBothConfiguredVerifierInfoAttestations() throws Exception {
+        clientApplication.setRegistrarDataset("""
+                {"format":"registrar_dataset","data":{"name":"Test Registrar"}}
+                """);
+        clientApplication.setWalletRelyingPartyRegistrationCertificate("""
+                {"format":"jwt","data":"eyJhbGciOiJFUzI1NiJ9.payload.signature"}
+                """);
+        configureExistingTransaction();
+
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(
+                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+        List<?> verifierInfo = (List<?>) request.getJWTClaimsSet().getClaim("verifier_info");
+
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertEquals(2, verifierInfo.size()),
+                () -> assertEquals(Map.of(
+                        "format", "registrar_dataset",
+                        "data", Map.of("name", "Test Registrar")
+                ), verifierInfo.get(0)),
+                () -> assertEquals(Map.of(
+                        "format", "jwt",
+                        "data", "eyJhbGciOiJFUzI1NiJ9.payload.signature"
+                ), verifierInfo.get(1))
+        );
+    }
+
+    @Test
+    @DisplayName("When a configured verifier info attestation is not valid JSON, then a server error is expected")
+    void rejectsMalformedVerifierInfoAttestation() throws Exception {
+        clientApplication.setRegistrarDataset("not-json");
+        VerificationTransaction transaction = new VerificationTransaction();
+        transaction.setClientApplication(clientApplication);
+        transaction.setEncryptionKey(new ECKeyGenerator(Curve.P_256).generate());
+        when(cacheService.retrieveAuthorizationRequest(clientApplication, REQUEST_ID))
+                .thenReturn(TRANSACTION_ID);
+        when(verificationTransactionService.getVerificationTransaction(clientApplication, TRANSACTION_ID))
+                .thenReturn(transaction);
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+
+        assertAll(
+                () -> assertEquals("server_error", exception.getError()),
+                () -> assertEquals("Failed to parse configured verifier info attestation", exception.getErrorDescription())
+        );
     }
 
     private @NonNull ECDSAVerifier getEcdsaVerifier(KeyProvider keyProvider1) throws JOSEException {
