@@ -358,6 +358,35 @@ class SdJwtServiceTest {
     }
 
     @Test
+    @DisplayName("with valid issuer token and valid KB JWT, then status is valid")
+    void acceptsValidKbJwtWhenIssuerTokenIsValid() {
+        long now = Instant.now().getEpochSecond();
+
+        SDJwt sdJwt = mock(SDJwt.class);
+        KeyBindingJwt kbJwt = mock(KeyBindingJwt.class);
+
+        when(sdJwt.getKeyBindingJwt()).thenReturn(kbJwt);
+
+        when(sdJwt.getFullPayload()).thenReturn(service.sdJwtFromVpToken(jwt(Map.of(
+                "iat", now - 600,
+                "nbf", now - 300,
+                "exp", now + 100
+        ))).getFullPayload());
+
+        when(kbJwt.getFullPayload()).thenReturn((JsonObject) Json.Default.parseToJsonElement("""
+        {
+          "iat": %d,
+          "nbf": %d,
+          "exp": %d
+        }
+        """.formatted(now - 600, now - 300, now + 100)));
+
+        when(verificationResult.getSdJwt()).thenReturn(sdJwt);
+
+        assertEquals(ValidationStatus.VALID, service.validateSdJwtTimeClaims(verificationResult));
+    }
+
+    @Test
     @DisplayName("with expired issuer token and valid KB JWT, then status is invalid")
     void rejectsExpiredIssuerTokenWhenKbJwtIsValid() {
         long now = Instant.now().getEpochSecond();
