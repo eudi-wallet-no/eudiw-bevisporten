@@ -144,14 +144,14 @@ public class SdJwtService {
             SDJwt kbJwt = verificationResult.getSdJwt().getKeyBindingJwt();
             kbJwtTimeClaimsStatus = validateSdJwtTimeClaims(kbJwt.getFullPayload());
             if (kbJwtTimeClaimsStatus != VALID) {
-                log.info("Key binding JWT time claims validation failed");
+                log.warn("Key binding JWT time claims validation failed");
                 return INVALID;
             }
 
         }
        ValidationStatus sdJwtTimeClaimsStatus = validateSdJwtTimeClaims(verificationResult.getSdJwt().getFullPayload());
         if (sdJwtTimeClaimsStatus != VALID) {
-            log.info("SD JWT time claims validation failed");
+            log.warn("SD JWT time claims validation failed");
             return INVALID;
         }
         return VALID;
