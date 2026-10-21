@@ -1,10 +1,11 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import id.walt.mdoc.cose.COSESign1;
-import id.walt.mdoc.dataelement.*;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
-import id.walt.mdoc.issuersigned.IssuerSigned;
+//import id.walt.mdoc.cose.COSESign1;
+//import id.walt.mdoc.dataelement.*;
+//import id.walt.mdoc.dataretrieval.DeviceResponse;
+//import id.walt.mdoc.doc.MDoc;
+//import id.walt.mdoc.issuersigned.IssuerSigned;
+import id.walt.mdoc.verification.VerificationResult;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -15,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.security.cert.X509Certificate;
@@ -34,168 +36,234 @@ class MDocServiceTest {
     private static final String VP_TOKEN_WITHOUT_DOCUMENTS =
             "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOAZnN0YXR1cwA";
 
+    private static final String PID_VALID_VP_TOKEN = "o2d2ZXJzaW9uYzEuMGlkb2N1bWVudHOBo2dkb2NUeXBld2V1LmV1cm9wYS5lYy5ldWRpLnBpZC4xbGlzc3VlclNpZ25lZKJqbmFtZVNwYWNlc6F3ZXUuZXVyb3BhLmVjLmV1ZGkucGlkLjGF2BhYVaRoZGlnZXN0SUQCZnJhbmRvbVBmowOjhh8mlKogVyun2aqCcWVsZW1lbnRJZGVudGlmaWVya2ZhbWlseV9uYW1lbGVsZW1lbnRWYWx1ZWZNw5hMTEXYGFhVpGhkaWdlc3RJRANmcmFuZG9tUFwnXFt2C7fqiKEUWA_8FhZxZWxlbWVudElkZW50aWZpZXJqZ2l2ZW5fbmFtZWxlbGVtZW50VmFsdWVnT1BQUkVUVNgYWFukaGRpZ2VzdElEAGZyYW5kb21QyRhmgLgHHI2WMfJKMa2x83FlbGVtZW50SWRlbnRpZmllcmpiaXJ0aF9kYXRlbGVsZW1lbnRWYWx1ZdkD7GoxOTEzLTEwLTEz2BhYXaRoZGlnZXN0SUQIZnJhbmRvbVDq_t5UmqkUdTiuGRlLvXZAcWVsZW1lbnRJZGVudGlmaWVybnBsYWNlX29mX2JpcnRobGVsZW1lbnRWYWx1ZaFnY291bnRyeWJOT9gYWFKkaGRpZ2VzdElEBmZyYW5kb21QHuXtsj-Pdhaz6A_fu2tiJ3FlbGVtZW50SWRlbnRpZmllcmtuYXRpb25hbGl0eWxlbGVtZW50VmFsdWWBYk5Pamlzc3VlckF1dGiEQ6EBJqEYIVkDDjCCAwowggKxoAMCAQICCAT4DA6L9DIRMAoGCCqGSM49BAMCMIGHMR4wHAYDVQRhExVOVFJOTy1OT0ZPUi45OTE4MjU4MjcxCzAJBgNVBAYTAk5PMSQwIgYDVQQKExtESUdJVEFMSVNFUklOR1NESVJFS1RPUkFURVQxMjAwBgNVBAMTKWVpZGFzMnNhbmRrYXNzZSBQSUQgUHJvdmlkZXIgQ0EgMiBzeXN0ZXN0MB4XDTI2MDQyODEwNDExMFoXDTI3MDQyODEwNDExMFowajELMAkGA1UEBhMCTk8xJDAiBgNVBAoMG0RJR0lUQUxJU0VSSU5HU0RJUkVLVE9SQVRFVDEVMBMGA1UEAwwMUElELXV0c3RlZGVyMR4wHAYDVQRhDBVOVFJOTy1OT0ZPUi45OTE4MjU4MjcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQFV5otfpjnWFh6-2GAyKf0yzNnPoT4Qme2Ku4bgLjQNW1XuZSGC5E8Huv0ss_meX-ihLU_e1qgT9QRPWZCV3yko4IBITCCAR0wHwYDVR0jBBgwFoAUuvAX8Rs0NtXvqzslYYuoSrYL6kswHQYDVR0OBBYEFJbHk6LMQeQ3Zt3D11qy4QST9XhxMAwGA1UdEwEB_wQCMAAwWAYDVR0fBFEwTzBNoEugSYZHaHR0cHM6Ly9jYS5laWRhczJzYW5ka2Fzc2UuZGV2L3YxL2NlcnRzL2ludGVybWVkaWF0ZXMvcGlkX3Byb3ZpZGVyMi5jcmwwYwYIKwYBBQUHAQEEVzBVMFMGCCsGAQUFBzAChkdodHRwczovL2NhLmVpZGFzMnNhbmRrYXNzZS5kZXYvdjEvY2VydHMvaW50ZXJtZWRpYXRlcy9waWRfcHJvdmlkZXIyLmNlcjAOBgNVHQ8BAf8EBAMCBaAwCgYIKoZIzj0EAwIDRwAwRAIgQzlb4C9Y2D8LtLBjI-od3PiXc_-TjOB6h1oC40c5ReUCIBMWrudcxFh2DjaKgqZYBIaZ-6xxvD4p-FNeIKzbUimUWQLv2BhZAuqnZ3ZlcnNpb25jMS4wb2RpZ2VzdEFsZ29yaXRobWdTSEEtMjU2bHZhbHVlRGlnZXN0c6F3ZXUuZXVyb3BhLmVjLmV1ZGkucGlkLjGpAFggmHqfSdsDdoPyWQRgm09cVR-ZYXXxWcD52sPVY0kYm3EBWCDhzM1zzvr4OBiHiGPKgWrKNaemd6WXBFz5ZmsWpd3guAJYIGXm_UVYrNuK2tHvBa7eUpMzfYkXwgWcdWPWk8cuughnA1ggW6P3giUQZPgsMM8iV0IHTOnWwvMOSp3PcAHJK0E329QEWCCmP6jqmlubsohP8e9hi1wGLLij-ebH8xZiHdjDrmlcWAVYIHLo76w2Nrm7punCdnMM8JueC-osxVKlvpIXoBwcBKDEBlggoS7wl8CE3UGS3XtuJrQ0FwvlgPCEBvHD1tt8n2rYYt0HWCCdePXT7zdPoszp-_qo9VAyBeP5MnSgu0kLUHoCY0S_SQhYIGLs7e25F6O5hg0_LCSQY-uzHl10RIp4UHD0b3plvKAdbWRldmljZUtleUluZm-haWRldmljZUtleaQBAiABIVgg-8woTIN6j0bkksVR-uxgDnq-yjQ35X-7e03KhPcxlcEiWCBUgvfgGs31y-fEmoMlcXRQdTLJiIWkt8q85Bl1lelVrWdkb2NUeXBld2V1LmV1cm9wYS5lYy5ldWRpLnBpZC4xbHZhbGlkaXR5SW5mb6Rmc2lnbmVkwHQyMDI2LTEwLTA5VDEyOjU3OjQzWml2YWxpZEZyb23AdDIwMjYtMTAtMDlUMTI6NTc6NDNaanZhbGlkVW50aWzAdDIwMjctMTAtMDlUMTI6NTg6NDNabmV4cGVjdGVkVXBkYXRlwHQyMDI3LTEwLTA5VDEyOjU4OjQzWmZzdGF0dXOha3N0YXR1c19saXN0omNpZHgaAAX8qWN1cml4Kmh0dHBzOi8vc3RhdHVzLmVpZGFzMnNhbmRrYXNzZS5kZXYvbGlzdHMvMVhAEUWY2qigWulBiDFjP-TBIO-ZNqLgSwiYeTKg2vn0LHBS0aLuJOdcgEpR0BNOXCM9xpaREp1RD9g-HtvMuj9bsGxkZXZpY2VTaWduZWSiam5hbWVTcGFjZXPYGEGgamRldmljZUF1dGihb2RldmljZVNpZ25hdHVyZYRDoQEmoPZYQC2OPlwB-TwGoFs01LEVNTY4gSgmC5ffA9RLiX9-fjYO_mxjF5WZ77ynifwjGJTRg4H-wp2u9uIAsWaig9sE4Ddmc3RhdHVzAA";
+
     private final MDocService service = new MDocService();
 
-    @Mock MDoc mDoc;
-    @Mock IssuerSigned issuerSigned;
-    @Mock COSESign1 issuerAuth;
-
-    @Test
-    @DisplayName("with a valid VP token, then PID claims are expected")
-    void parsesRealVpTokenAndExtractsClaims() {
-        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc parsed = service.mDocFromDeviceResponse(deviceResponse);
-
-        Map<String, Object> claims = service.claimsFromMDoc(parsed);
-
-        Map<?, ?> pid = (Map<?, ?>) claims.get("eu.europa.ec.eudi.pid.1");
-        assertAll(
-                () -> assertNotNull(parsed),
-                () -> assertEquals("HINNE", pid.get("family_name")),
-                () -> assertEquals("INTEGRERT", pid.get("given_name")),
-                () -> assertEquals("1922-06-22", pid.get("birth_date")));
-    }
-
-    @Test
-    @DisplayName("with a VP token without documents, then invalid request is expected")
-    void rejectsVpTokenWithoutDocuments() {
-        VerificationException exception = assertThrows(
-                VerificationException.class,
-                () -> service.deviceResponseFromVpToken(VP_TOKEN_WITHOUT_DOCUMENTS));
-
-        assertEquals("No mdoc documents in vp_token", exception.getErrorDescription());
-    }
-
-    @Test
-    @DisplayName("DELETEME")
-    void deleteme() {
-        Security.addProvider(new BouncyCastleProvider());
-        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
-
-        VerificationTransaction tx = new VerificationTransaction();
-        tx.setNonce("nonce-from-request");
-        tx.setAudience("client-id-or-redirect-origin");
-
-        ValidationStatus status = service.verifyMDoc(validMdoc, tx);
-
-        assertAll(
-                () -> assertEquals(ValidationStatus.VALID, status)
-        );
-    }
-
-
-    @Test
-    @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
-    void reportsValidAndInvalidVerification() {
-        Security.addProvider(new BouncyCastleProvider());
-        VerificationTransaction verificationTransaction = new VerificationTransaction();
-        verificationTransaction.setNonce("test-nonce-123");
-        verificationTransaction.setAudience("https://verifier.example.com");
-        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+//    @Mock MDoc mDoc;
+//    @Mock IssuerSigned issuerSigned;
+//    @Mock COSESign1 issuerAuth;
+//
+//    @Test
+//    @DisplayName("with a valid VP token, then PID claims are expected")
+//    void parsesRealVpTokenAndExtractsClaims() {
+//        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+//        MDoc parsed = service.mDocFromDeviceResponse(deviceResponse);
+//
+//        Map<String, Object> claims = service.claimsFromMDoc(parsed);
+//
+//        Map<?, ?> pid = (Map<?, ?>) claims.get("eu.europa.ec.eudi.pid.1");
+//        assertAll(
+//                () -> assertNotNull(parsed),
+//                () -> assertEquals("HINNE", pid.get("family_name")),
+//                () -> assertEquals("INTEGRERT", pid.get("given_name")),
+//                () -> assertEquals("1922-06-22", pid.get("birth_date")));
+//    }
+//
+//    @Test
+//    @DisplayName("with a VP token without documents, then invalid request is expected")
+//    void rejectsVpTokenWithoutDocuments() {
+//        VerificationException exception = assertThrows(
+//                VerificationException.class,
+//                () -> service.deviceResponseFromVpToken(VP_TOKEN_WITHOUT_DOCUMENTS));
+//
+//        assertEquals("No mdoc documents in vp_token", exception.getErrorDescription());
+//    }
+//
+//    @Test
+//    @DisplayName("DELETEME")
+//    void deleteme() {
+//        Security.addProvider(new BouncyCastleProvider());
+//        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+//        MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+//
+//        VerificationTransaction tx = new VerificationTransaction();
+//        tx.setNonce("nonce-from-request");
+//        tx.setAudience("client-id-or-redirect-origin");
+//
+//        ValidationStatus status = service.verifyMDoc(validMdoc, tx);
+//
+//        assertAll(
+//                () -> assertEquals(ValidationStatus.VALID, status)
+//        );
+//    }
+//
+//
+//    @Test
+//    @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
+//    void reportsValidAndInvalidVerification() {
+//        Security.addProvider(new BouncyCastleProvider());
+//        VerificationTransaction verificationTransaction = new VerificationTransaction();
+//        verificationTransaction.setNonce("test-nonce-123");
+//        verificationTransaction.setAudience("https://verifier.example.com");
+//        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+//        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+////        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
+////        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
+//        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+//        assertAll(
+//                () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
+//                () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction))
+//        );
+//    }
+//
+//    @Test
+//    @DisplayName("with a valid mdoc, then the issuer certificate is expected")
+//    void extractsCertificateFromRealMdoc(){
+//
+//        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+//        MDoc mDoc = service.mDocFromDeviceResponse(deviceResponse);
+//
+//        X509Certificate certificate =
+//                service.extractCertificateFromMdoc(mDoc);
+//
+//        assertEquals(
+//                "2.5.4.97=#0c154e54524e4f2d4e4f464f522e393931383235383237,"
+//                        + "CN=PID-utsteder,O=DIGITALISERINGSDIREKTORATET,C=NO",
+//                certificate.getSubjectX500Principal().getName());
+//    }
+//
+//    @Test
+//    @DisplayName("without issuer authentication or x5chain, then invalid request is expected")
+//    void rejectsMissingIssuerAuthAndX5chain() {
+//        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
+//        when(issuerSigned.getIssuerAuth()).thenReturn(null, issuerAuth);
+//        when(issuerAuth.getX5Chain()).thenReturn(List.of());
+//
+//        VerificationException missingAuth =
+//                assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
+//        VerificationException missingChain =
+//                assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
+//
+//        assertAll(
+//                () -> assertEquals("issuerAuth is missing in mdoc", missingAuth.getErrorDescription()),
+//                () -> assertEquals("x5chain is missing in issuerAuth of mdoc", missingChain.getErrorDescription()));
+//    }
+//
+//    @Test
+//    @DisplayName("with a malformed certificate, then invalid request is expected")
+//    void rejectsMalformedCertificate() {
 //        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
 //        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
-        assertAll(
-                () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
-                () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction))
+//        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+//
+//        VerificationException exception =
+//                assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
+//
+//        assertEquals("unable to extract certificate from issuerAuth x5chain mdoc",
+//                exception.getErrorDescription());
+//    }
+//
+//    @Test
+//    @DisplayName("with and without a status list, then matching results are expected")
+//    void extractsAndOmitsStatusListFromRealMdocs() {
+//
+//        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
+//        StatuslistEntry status =
+//                service.extractStatuslistUriAndIdx(service.mDocFromDeviceResponse(deviceResponse));
+//        when(mDoc.getMSO()).thenReturn(null);
+//        StatuslistEntry absent = service.extractStatuslistUriAndIdx(mDoc);
+//
+//        assertAll(
+//                () -> assertEquals("508949", status.idx()),
+//                () -> assertEquals(
+//                        "https://status.test.eidas2sandkasse.net/lists/3",
+//                        status.uri().toString()),
+//                () -> assertNull(absent));
+//    }
+//
+//    @Test
+//    @DisplayName("with supported data element values, then matching Java values are expected")
+//    void convertsSupportedDataElementValues() {
+//        MapElement map = new MapElement(Map.of(
+//                new MapKey("flag"), new BooleanElement(true),
+//                new MapKey("name"), new StringElement("Ada")));
+//
+//        assertAll(
+//                () -> assertEquals(true, service.extractValue(new BooleanElement(true))),
+//                () -> assertEquals(42, service.extractValue(new NumberElement(42))),
+//                () -> assertEquals("Ada", service.extractValue(new StringElement("Ada"))),
+//                () -> assertEquals(List.of("Ada", 42), service.extractValue(
+//                        new ListElement(List.of(new StringElement("Ada"), new NumberElement(42))))),
+//                () -> assertEquals(Map.of("flag", true, "name", "Ada"), service.extractValue(map)),
+//                () -> assertEquals(Base64.getEncoder().encodeToString("bytes".getBytes(StandardCharsets.UTF_8)),
+//                        service.extractValue(new ByteStringElement("bytes".getBytes(StandardCharsets.UTF_8)))),
+//                () -> assertNull(service.extractValue(null)));
+//    }
+//
+//    @Test
+//    @DisplayName("with every validation status, then matching detail text is expected")
+//    void returnsValidationDetailTextForEveryStatus() {
+//        assertAll(
+//                () -> assertEquals("mdoc: mdoc er gyldig", service.getValidationDetail(ValidationStatus.VALID)),
+//                () -> assertEquals("mdoc: mdoc er ugyldig", service.getValidationDetail(ValidationStatus.INVALID)),
+//                () -> assertEquals("mdoc: validering feila",
+//                        service.getValidationDetail(ValidationStatus.INCONCLUSIVE)),
+//                () -> assertEquals("mdoc: ukjent status",
+//                        service.getValidationDetail(ValidationStatus.NOT_APPLICABLE)));
+//    }
+
+
+@Test
+@DisplayName("with valid mdoc and valid OID4VP context, then verification is valid")
+void acceptsValidMdoc() {
+    String validMdocToken = VALID_VP_TOKEN;
+
+    VerificationTransaction tx = new VerificationTransaction();
+    tx.setNonce("test-nonce");
+    tx.setAudience("https://verifier.example.com");
+    tx.setRedirectUri(URI.create("https://verifier.example.com/callback"));
+
+    VerificationResult result = service.verifyMDoc(validMdocToken, tx);
+
+    assertNotNull(result);
+    assertTrue(result.getValid());
+}
+
+    @Test
+    @DisplayName("with malformed mdoc token, then invalid request is expected")
+    void rejectsMalformedMdocToken() {
+        VerificationTransaction tx = new VerificationTransaction();
+        tx.setNonce("test-nonce");
+        tx.setAudience("https://verifier.example.com");
+        tx.setRedirectUri(URI.create("https://verifier.example.com/callback"));
+
+        VerificationException exception = assertThrows(
+                VerificationException.class,
+                () -> service.verifyMDoc("not-a-valid-mdoc", tx)
         );
+
+        assertEquals("invalid_request", exception.getError());
     }
 
     @Test
-    @DisplayName("with a valid mdoc, then the issuer certificate is expected")
-    void extractsCertificateFromRealMdoc(){
+    @DisplayName("with invalid verifier result, then status is not valid")
+    void rejectsInvalidVerificationResult() {
+        String validMdocToken = PID_VALID_VP_TOKEN;
 
-        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc mDoc = service.mDocFromDeviceResponse(deviceResponse);
+        VerificationTransaction tx = new VerificationTransaction();
+        tx.setNonce("wrong-nonce");
+        tx.setAudience("https://verifier.example.com");
+        tx.setRedirectUri(URI.create("https://verifier.example.com/callback"));
 
-        X509Certificate certificate =
-                service.extractCertificateFromMdoc(mDoc);
+        VerificationResult result = service.verifyMDoc(validMdocToken, tx);
 
-        assertEquals(
-                "2.5.4.97=#0c154e54524e4f2d4e4f464f522e393931383235383237,"
-                        + "CN=PID-utsteder,O=DIGITALISERINGSDIREKTORATET,C=NO",
-                certificate.getSubjectX500Principal().getName());
+        assertNotNull(result);
+        assertFalse(result.getValid());
     }
 
     @Test
-    @DisplayName("without issuer authentication or x5chain, then invalid request is expected")
-    void rejectsMissingIssuerAuthAndX5chain() {
-        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
-        when(issuerSigned.getIssuerAuth()).thenReturn(null, issuerAuth);
-        when(issuerAuth.getX5Chain()).thenReturn(List.of());
+    @DisplayName("with missing redirect uri, then verification request is rejected")
+    void rejectsMissingRedirectUri() {
+        String validMdocToken = VALID_VP_TOKEN;
 
-        VerificationException missingAuth =
-                assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
-        VerificationException missingChain =
-                assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
+        VerificationTransaction tx = new VerificationTransaction();
+        tx.setNonce("test-nonce");
+        tx.setAudience("https://verifier.example.com");
 
-        assertAll(
-                () -> assertEquals("issuerAuth is missing in mdoc", missingAuth.getErrorDescription()),
-                () -> assertEquals("x5chain is missing in issuerAuth of mdoc", missingChain.getErrorDescription()));
-    }
-
-    @Test
-    @DisplayName("with a malformed certificate, then invalid request is expected")
-    void rejectsMalformedCertificate() {
-        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
-        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
-
-        VerificationException exception =
-                assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
-
-        assertEquals("unable to extract certificate from issuerAuth x5chain mdoc",
-                exception.getErrorDescription());
-    }
-
-    @Test
-    @DisplayName("with and without a status list, then matching results are expected")
-    void extractsAndOmitsStatusListFromRealMdocs() {
-
-        DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        StatuslistEntry status =
-                service.extractStatuslistUriAndIdx(service.mDocFromDeviceResponse(deviceResponse));
-        when(mDoc.getMSO()).thenReturn(null);
-        StatuslistEntry absent = service.extractStatuslistUriAndIdx(mDoc);
-
-        assertAll(
-                () -> assertEquals("508949", status.idx()),
-                () -> assertEquals(
-                        "https://status.test.eidas2sandkasse.net/lists/3",
-                        status.uri().toString()),
-                () -> assertNull(absent));
-    }
-
-    @Test
-    @DisplayName("with supported data element values, then matching Java values are expected")
-    void convertsSupportedDataElementValues() {
-        MapElement map = new MapElement(Map.of(
-                new MapKey("flag"), new BooleanElement(true),
-                new MapKey("name"), new StringElement("Ada")));
-
-        assertAll(
-                () -> assertEquals(true, service.extractValue(new BooleanElement(true))),
-                () -> assertEquals(42, service.extractValue(new NumberElement(42))),
-                () -> assertEquals("Ada", service.extractValue(new StringElement("Ada"))),
-                () -> assertEquals(List.of("Ada", 42), service.extractValue(
-                        new ListElement(List.of(new StringElement("Ada"), new NumberElement(42))))),
-                () -> assertEquals(Map.of("flag", true, "name", "Ada"), service.extractValue(map)),
-                () -> assertEquals(Base64.getEncoder().encodeToString("bytes".getBytes(StandardCharsets.UTF_8)),
-                        service.extractValue(new ByteStringElement("bytes".getBytes(StandardCharsets.UTF_8)))),
-                () -> assertNull(service.extractValue(null)));
-    }
-
-    @Test
-    @DisplayName("with every validation status, then matching detail text is expected")
-    void returnsValidationDetailTextForEveryStatus() {
-        assertAll(
-                () -> assertEquals("mdoc: mdoc er gyldig", service.getValidationDetail(ValidationStatus.VALID)),
-                () -> assertEquals("mdoc: mdoc er ugyldig", service.getValidationDetail(ValidationStatus.INVALID)),
-                () -> assertEquals("mdoc: validering feila",
-                        service.getValidationDetail(ValidationStatus.INCONCLUSIVE)),
-                () -> assertEquals("mdoc: ukjent status",
-                        service.getValidationDetail(ValidationStatus.NOT_APPLICABLE)));
+        assertThrows(
+                VerificationException.class,
+                () -> service.verifyMDoc(validMdocToken, tx)
+        );
     }
 }

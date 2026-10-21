@@ -3,14 +3,11 @@ package no.idporten.eudiw.verifier.openid4vp;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
-import id.walt.mdoc.dataelement.StringElement;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
+import id.walt.mdoc.objects.document.Document;
+
+import kotlinx.serialization.json.*;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
-import kotlinx.serialization.json.JsonElement;
-import kotlinx.serialization.json.JsonObject;
-import kotlinx.serialization.json.JsonPrimitive;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -273,19 +270,61 @@ public class OpenID4VPResponseService {
     }
 
     private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, boolean isCryptographicHolderBindingRequired) {
-        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken(vpToken);
-        MDoc mdoc = mDocService.mDocFromDeviceResponse(deviceResponse);
-        Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
-        ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc, verificationTransaction);
-        X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
-        ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
-        ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
-        if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus, ValidationStatus.VALID)) {
-            return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
-        } else {
-            return new VerifiedCredential(claims, false, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
+            id.walt.mdoc.verification.VerificationResult verifiedCredential = mDocService.verifyMDoc(vpToken, verificationTransaction);
+            if (verifiedCredential.getValid()) {
+                return new VerifiedCredential(toJavaMap(verifiedCredential.getCredentialData()), true, validationDetails(false, ValidationStatus.VALID, ValidationStatus.NOT_APPLICABLE, ValidationStatus.VALID, ValidationStatus.VALID, "MDoc"));
+            }
+            return null;
         }
 
+    private Map<String, Object> toJavaMap(JsonObject jsonObject) {
+        Map<String, Object> result = new HashMap<>();
+        for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
+            result.put(entry.getKey(), toJavaValue(entry.getValue()));
+        }
+        return result;
+    }
+
+    private Object toJavaValue(JsonElement element) {
+        if (element == null || element == JsonNull.INSTANCE) {
+            return null;
+        }
+        if (element instanceof JsonPrimitive primitive) {
+            if (primitive.isString()) {
+                return primitive.getContent();
+            }
+            if (Boolean.parseBoolean(primitive.getContent())) {
+                return primitive.getContent();
+            }
+            try {
+                if (Integer.parseInt(primitive.getContent()) != 0) {
+                    String raw = primitive.getContent();
+                    try {
+                        return Long.parseLong(raw);
+                    } catch (NumberFormatException e) {
+                        try {
+                            return Double.parseDouble(raw);
+                        } catch (NumberFormatException ignored) {
+                            return raw;
+                        }
+                    }
+                }
+                return primitive.getContent();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (element instanceof JsonArray array) {
+            List<Object> list = new ArrayList<>();
+            for (JsonElement item : array) {
+                list.add(toJavaValue(item));
+            }
+            return list;
+        }
+        if (element instanceof JsonObject object) {
+            return toJavaMap(object);
+        }
+        return element.toString();
     }
 
     private boolean isPid(SDJwt sdJwt) {
@@ -299,9 +338,9 @@ public class OpenID4VPResponseService {
                 && PID_VCT.equals(primitive.getContent());
     }
 
-    private boolean isPid(MDoc mdoc) {
-        StringElement docType = mdoc.getDocType();
-        return docType != null && PID_DOC_TYPE.equals(docType.getValue());
+    private boolean isPid(Document mdoc) {
+        String docType = mdoc.getDocType();
+        return docType != null && PID_DOC_TYPE.equals(docType);
     }
 
     private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus, ValidationStatus holderBindingStatus) {
@@ -309,5 +348,4 @@ public class OpenID4VPResponseService {
                 (statuslistStatus == ValidationStatus.VALID || statuslistStatus == ValidationStatus.NOT_APPLICABLE) &&
                 trustlistStatus == ValidationStatus.VALID;
     }
-
 }

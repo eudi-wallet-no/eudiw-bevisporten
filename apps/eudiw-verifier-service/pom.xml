@@ -100,10 +100,25 @@
             <artifactId>javase</artifactId>
             <version>${zxing.javase.version}</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>id.walt.mdoc-credentials</groupId>-->
+<!--            <artifactId>waltid-mdoc-credentials-jvm</artifactId>-->
+<!--            <version>${waltid-mdoc-credentials-jvm.version}</version>-->
+<!--        </dependency>-->
         <dependency>
-            <groupId>id.walt.mdoc-credentials</groupId>
-            <artifactId>waltid-mdoc-credentials-jvm</artifactId>
-            <version>${waltid-mdoc-credentials-jvm.version}</version>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-digital-credentials</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-mdoc-credentials2-jvm</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-mdoc-reader-trust-jvm</artifactId>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>id.walt.sdjwt</groupId>
