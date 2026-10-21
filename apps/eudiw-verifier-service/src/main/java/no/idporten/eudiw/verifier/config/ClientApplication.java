@@ -18,4 +18,6 @@ public class ClientApplication implements Serializable {
     private boolean disabled = false;
     @NotBlank
     private transient String apiKey;
+    private String registrarDataset;
+    private String walletRelyingPartyRegistrationCertificate;
 }

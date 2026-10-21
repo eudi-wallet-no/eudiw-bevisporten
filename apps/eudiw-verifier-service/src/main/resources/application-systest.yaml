@@ -27,10 +27,14 @@ verifier-service:
       keystore-name: idporten-login-launchpad-access
       api-key: ${IDPORTEN_LOGIN_LAUNCHPAD_API_KEY:}
       authorization-request-scheme: eu-eaap
+      registrar-dataset: ${IDPORTEN_LOGIN_LAUNCHPAD_REGISTRAR_DATASET:}
+      wallet-relying-party-registration-certificate: ${IDPORTEN_LOGIN_LAUNCHPAD_WALLET_RELYING_PARTY_REGISTRATION_CERTIFICATE:}
     bevisgenerator-launchpad:
       keystore-name: bevisgenerator-launchpad-access
       api-key: ${BEVISGENERATOR_LAUNCHPAD_API_KEY:}
       authorization-request-scheme: eu-eaap
+      registrar-dataset: ${BEVISGENERATOR_LAUNCHPAD_REGISTRAR_DATASET:}
+      wallet-relying-party-registration-certificate: ${BEVISGENERATOR_LAUNCHPAD_WALLET_RELYING_PARTY_REGISTRATION_CERTIFICATE:}
 
 
 idporten-key-manager:

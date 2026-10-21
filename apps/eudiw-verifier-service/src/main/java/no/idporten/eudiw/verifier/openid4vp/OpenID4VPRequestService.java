@@ -12,6 +12,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jose.util.JSONObjectUtils;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -28,11 +29,13 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.net.URI;
+import java.text.ParseException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
@@ -164,6 +167,10 @@ public class OpenID4VPRequestService {
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
                 .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
                 .expirationTime(new Date(Clock.systemUTC().millis() + 120000));
+        JSONArray verifierInfo = makeVerifierInfo(clientApplication);
+        if (!verifierInfo.isEmpty()) {
+            builder.claim("verifier_info", verifierInfo);
+        }
         JWTClaimsSet claims = builder.build();
         final JWSHeader jwtHeader;
         final JWSSigner signer;
@@ -177,10 +184,36 @@ public class OpenID4VPRequestService {
         return signedJWT;
     }
 
+    private JSONArray makeVerifierInfo(ClientApplication clientApplication) {
+        JSONArray verifierInfo = new JSONArray();
+        addVerifierInfoAttestation(verifierInfo, clientApplication.getRegistrarDataset());
+        addVerifierInfoAttestation(verifierInfo, clientApplication.getWalletRelyingPartyRegistrationCertificate());
+        return verifierInfo;
+    }
+
+    private void addVerifierInfoAttestation(JSONArray verifierInfo, String attestationJson) {
+        if (!StringUtils.hasText(attestationJson)) {
+            return;
+        }
+        Map<String, Object> attestation;
+        try {
+            attestation = JSONObjectUtils.parse(attestationJson);
+        } catch (ParseException e) {
+            throw new VerificationException("server_error", "Failed to parse configured verifier info attestation", e);
+        }
+        Object format = attestation.get("format");
+        Object data = attestation.get("data");
+        if (!(format instanceof String formatValue)
+                || formatValue.isBlank()
+                || !(data instanceof Map<?, ?> || data instanceof String)) {
+            throw new VerificationException("server_error", "Invalid configured verifier info attestation");
+        }
+        verifierInfo.add(attestation);
+    }
+
     private Map<String, Object> convertDcqlQuery(DcqlQuery dcqlQuery) {
         return jsonMapper.convertValue(dcqlQuery, new HashMap<String, Object>().getClass());
     }
-
 
     private JSONObject makeVpFormatsSupported() {
         JSONObject mdoc = new JSONObject();
