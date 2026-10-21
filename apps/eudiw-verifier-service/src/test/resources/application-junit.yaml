@@ -52,3 +52,5 @@ trustlists:
     - webuild-pid
   attestations:
     - eidas2sandkasse.xtsl
+sd-jwt:
+  clock-skew: 30s

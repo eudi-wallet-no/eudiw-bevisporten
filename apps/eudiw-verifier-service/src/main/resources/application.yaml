@@ -42,6 +42,9 @@ status-list:
   connectTimeout: 3s
   clock-skew: 60s
 
+sd-jwt:
+  clock-skew: 30s
+
 ---
 spring:
   config:
