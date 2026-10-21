@@ -119,18 +119,21 @@ public class SdJwtService {
         // iat is optional for SD-JWT/key binding jwt
         Instant iat = parseInstantClaim(sdJwtPayload, "iat");
         if (iat != null && iat.isAfter(now)) {
+            log.warn("SD-JWT iat claim is in the future: {}", iat);
             return INVALID;
         }
 
         // nbf is optional for SD-JWT/key binding jwt
         Instant nbf = parseInstantClaim(sdJwtPayload, "nbf");
         if (nbf != null && nbf.isAfter(now)) {
+            log.warn("SD-JWT nbf claim is in the future: {}", nbf);
             return INVALID;
         }
 
         // exp is optional for SD-JWT/key binding jwt
         Instant exp = parseInstantClaim(sdJwtPayload, "exp");
         if (exp!= null && !exp.isAfter(now)) {
+            log.warn("SD-JWT exp claim is in the past: {}", exp);
             return INVALID;
         }
 
@@ -160,10 +163,12 @@ public class SdJwtService {
     private Instant parseInstantClaim(JsonObject payload, String claimName) {
         JsonElement element = payload.get(claimName);
         if (element == null || element == JsonNull.INSTANCE) {
+            log.info("SD-JWT instant claim {} is not present or null", claimName);
             return null;
         }
 
         if (!(element instanceof JsonPrimitive primitive)) {
+            log.warn("SD-JWT instant claim {} is not a primitive value", claimName);
             throw new VerificationException("invalid_request",
                     "Invalid %s claim. Expected primitive value".formatted(claimName));
         }
@@ -172,6 +177,7 @@ public class SdJwtService {
             try {
                 return Instant.parse(primitive.getContent());
             } catch (DateTimeException e) {
+                log.warn("SD-JWT instant claim {} is not a valid string", claimName, e);
                 throw new VerificationException("invalid_request",
                         "Invalid %s claim. Expected NumericDate or ISO-8601 UTC".formatted(claimName), e);
             }
