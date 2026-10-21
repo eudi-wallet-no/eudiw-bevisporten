@@ -17,7 +17,6 @@ credential-issuer-server:
   features:
     revocation-v2-rich-result:
       enabled: true
-  key-attestations-required: true
   credential-issuer: https://utsteder.eidas2sandkasse.dev
   authorization-servers:
     - id: auth-eidas2sandkasse
