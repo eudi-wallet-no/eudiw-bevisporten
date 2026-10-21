@@ -32,6 +32,7 @@ import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.DateTimeException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -41,6 +42,7 @@ import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*
 public class SdJwtService {
     private static final Logger log = LogManager.getLogger(SdJwtService.class);
     private final ObjectMapper objectMapper;
+    private static final Duration CLOCK_SKEW = Duration.ofSeconds(30);
 
     public SdJwtService(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -115,26 +117,26 @@ public class SdJwtService {
 
     public ValidationStatus validateSdJwtTimeClaims(JsonObject sdJwtPayload) {
         Instant now = Instant.now(Clock.systemUTC());
-        log.info("Validating SD-JWT time claims against current time: {}", now);
+        log.info("Validating SD-JWT time claims against current time: {} (skew={}s)", now, CLOCK_SKEW.getSeconds());
 
         // iat is optional for SD-JWT/key binding jwt
         Instant iat = parseInstantClaim(sdJwtPayload, "iat");
-        if (iat != null && iat.isAfter(now)) {
-            log.warn("SD-JWT iat claim is in the future: {}", iat);
+        if (iat != null && iat.isAfter(now.plus(CLOCK_SKEW))) {
+            log.warn("SD-JWT iat claim is too far in the future: {} (now={}, skew={})", iat, now, CLOCK_SKEW);
             return INVALID;
         }
 
         // nbf is optional for SD-JWT/key binding jwt
         Instant nbf = parseInstantClaim(sdJwtPayload, "nbf");
-        if (nbf != null && nbf.isAfter(now)) {
-            log.warn("SD-JWT nbf claim is in the future: {}", nbf);
+        if (nbf != null && nbf.isAfter(now.plus(CLOCK_SKEW))) {
+            log.warn("SD-JWT nbf claim is too far in the future: {} (now={}, skew={})", nbf, now, CLOCK_SKEW);
             return INVALID;
         }
 
         // exp is optional for SD-JWT/key binding jwt
         Instant exp = parseInstantClaim(sdJwtPayload, "exp");
-        if (exp!= null && !exp.isAfter(now)) {
-            log.warn("SD-JWT exp claim is in the past: {}", exp);
+        if (exp != null && !exp.isAfter(now.minus(CLOCK_SKEW))) {
+            log.warn("SD-JWT exp claim is too far in the past: {} (now={}, skew={})", exp, now, CLOCK_SKEW);
             return INVALID;
         }
 
