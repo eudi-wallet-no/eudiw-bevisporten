@@ -115,6 +115,7 @@ public class SdJwtService {
 
     public ValidationStatus validateSdJwtTimeClaims(JsonObject sdJwtPayload) {
         Instant now = Instant.now(Clock.systemUTC());
+        log.info("Validating SD-JWT time claims against current time: {}", now);
 
         // iat is optional for SD-JWT/key binding jwt
         Instant iat = parseInstantClaim(sdJwtPayload, "iat");
