@@ -199,6 +199,23 @@ class OpenID4VPRequestServiceTest {
     }
 
     @Test
+    @DisplayName("When signing an authorization request, then the protected header contains the same iat as the payload")
+    void includesIssuedAtInProtectedHeader() throws Exception {
+        configureExistingTransaction();
+
+        SignedJWT request = SignedJWT.parse(service.retrieveAuthorizationRequest(
+                clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
+        Object headerIssuedAt = request.getHeader().getCustomParam("iat");
+
+        assertAll(
+                () -> assertTrue(request.verify(getEcdsaVerifier(keyProvider))),
+                () -> assertInstanceOf(Long.class, headerIssuedAt),
+                () -> assertEquals(request.getJWTClaimsSet().getIssueTime().getTime() / 1000, headerIssuedAt),
+                () -> assertEquals(120_000, request.getJWTClaimsSet().getExpirationTime().getTime()
+                        - request.getJWTClaimsSet().getIssueTime().getTime()));
+    }
+
+    @Test
     @DisplayName("When only one verifier info attestation is configured, then only that JSON object is included")
     void includesOneConfiguredVerifierInfoAttestation() throws Exception {
         clientApplication.setRegistrarDataset("""
