@@ -41,6 +41,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateEncodingException;
 import java.security.interfaces.ECPrivateKey;
 import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -151,7 +153,7 @@ public class OpenID4VPRequestService {
         verificationTransaction.setAudience(makeClientId(verificationTransaction.getClientApplication()));
         Nonce nonce = new Nonce();
         verificationTransaction.setNonce(nonce.getValue());
-
+        Instant issuedAt = Clock.systemUTC().instant().truncatedTo(ChronoUnit.SECONDS); // Same iat in header and payload
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .audience("https://self-issued.me/v2")
@@ -165,8 +167,8 @@ public class OpenID4VPRequestService {
                 .claim("dcql_query", convertDcqlQuery(verificationTransaction.getDcqlQuery()))
                 .claim("client_metadata", makeClientMetadata(verificationTransaction.getEncryptionKey()))
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
-                .issueTime(new Date(Clock.systemUTC().millis())) // Use UTC time!
-                .expirationTime(new Date(Clock.systemUTC().millis() + 120000));
+                .issueTime(Date.from(issuedAt)) // Use UTC time!
+                .expirationTime(Date.from(issuedAt.plusSeconds(120)));
         JSONArray verifierInfo = makeVerifierInfo(clientApplication);
         if (!verifierInfo.isEmpty()) {
             builder.claim("verifier_info", verifierInfo);
@@ -177,6 +179,7 @@ public class OpenID4VPRequestService {
         jwtHeader = new JWSHeader.Builder(ECUtils.jwsAlgorithmFromKey(keyProvider.publicKey()))
                 .x509CertChain(certChain)
                 .type(new JOSEObjectType("oauth-authz-req+jwt"))
+                .customParam("iat", issuedAt.getEpochSecond())
                 .build();
         signer = new ECDSASigner((ECPrivateKey) keyProvider.privateKey());
         SignedJWT signedJWT = new SignedJWT(jwtHeader, claims);
