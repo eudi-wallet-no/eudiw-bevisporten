@@ -43,7 +43,7 @@ status-list:
   clock-skew: 60s
 
 sd-jwt:
-  clock-skew: 30s
+  clock-skew: 60s
 
 ---
 spring:

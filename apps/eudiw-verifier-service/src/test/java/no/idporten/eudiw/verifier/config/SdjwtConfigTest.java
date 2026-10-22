@@ -21,6 +21,6 @@ public class SdjwtConfigTest {
         assertAll(
                 () -> assertNotNull(sdjwtConfig),
                 () -> assertNotNull(sdjwtConfig.clockSkew()),
-                () -> assertEquals(java.time.Duration.ofSeconds(30), sdjwtConfig.clockSkew()));
+                () -> assertEquals(java.time.Duration.ofSeconds(60), sdjwtConfig.clockSkew()));
     }
 }

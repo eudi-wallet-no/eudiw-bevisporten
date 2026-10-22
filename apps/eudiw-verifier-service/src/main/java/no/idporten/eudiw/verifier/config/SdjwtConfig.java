@@ -7,7 +7,7 @@ import java.time.Duration;
 
 @ConfigurationProperties(prefix = "sd-jwt")
 public record SdjwtConfig(
-        @DefaultValue("30s") Duration clockSkew
+        @DefaultValue("60s") Duration clockSkew
 ) {
 }
 

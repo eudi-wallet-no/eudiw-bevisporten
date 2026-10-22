@@ -53,4 +53,4 @@ trustlists:
   attestations:
     - eidas2sandkasse.xtsl
 sd-jwt:
-  clock-skew: 30s
+  clock-skew: 60s
