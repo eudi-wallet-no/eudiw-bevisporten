@@ -7,6 +7,8 @@ import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+
 @Service
 public class AuditService {
 
@@ -20,6 +22,8 @@ public class AuditService {
     protected static final String CLIENT_APPLICATION_ID = "client_application_id";
     protected static final String DCQL_QUERY = "dcql_query";
     protected static final String REDIRECT_URI = "redirect_uri";
+    protected static final String AUTHORIZATION_REQUEST = "authorization_request";
+    protected static final String AUTHORIZATION_REQUEST_QR_CODE = "authorization_request_qr_code";
 
     public AuditService(AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
@@ -37,5 +41,19 @@ public class AuditService {
                 .build();
 
         auditLogger.log(auditEntry);
+    }
+
+    public void auditResponseStartVerificationRequest(ClientApplication clientApplication, String verifierTransactionId, String requestId, URI authorizationRequest, URI authorizationRequestQRCode) {
+
+        AuditEntry auditEntry = AuditEntry.builder()
+                .auditId(AuditID.START_VERIFICATION_RESPONSE.auditIdentifier())
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(REQUEST_ID, requestId)
+                .attribute(AUTHORIZATION_REQUEST, authorizationRequest.toString())
+                .attribute(AUTHORIZATION_REQUEST_QR_CODE, authorizationRequestQRCode.toString())
+                .build();
+        auditLogger.log(auditEntry);
+
     }
 }
