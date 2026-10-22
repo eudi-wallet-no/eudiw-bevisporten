@@ -45,6 +45,18 @@ status-list:
 sd-jwt:
   clock-skew: 60s
 
+# Digdir standard logging
+digdir:
+  audit:
+    application-name: ${spring.application.name}
+    application-environment: ${spring.application.environment}
+    filters:
+      admin-header: false
+      bearer-token: false
+      ip-address: true
+    prometheus:
+      counter: true
+
 ---
 spring:
   config:
