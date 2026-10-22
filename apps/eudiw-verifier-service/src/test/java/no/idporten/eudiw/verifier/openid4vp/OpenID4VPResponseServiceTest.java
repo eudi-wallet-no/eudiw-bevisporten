@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonObject;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -527,10 +529,12 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("with a non-PID mdoc credential, then the default trustlist is used")
     void routesNonPidMdocToDefaultTrustlist() throws Exception {
         VerificationTransaction transaction = transaction(query("attestation", "mso_mdoc", false));
+        String docType = "no.eidas2sandkasse.dev.attestation.1";
+        transaction.getDcqlQuery().getCredentials().getFirst().getMeta().setDoctypeValue(docType);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement("eu.example.attestation.1"));
+        when(mDoc.getDocType()).thenReturn(new StringElement(docType));
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
         when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
@@ -543,6 +547,53 @@ class OpenID4VPResponseServiceTest {
 
         assertTrue(persistedCredential("attestation").valid());
         verify(trustlistService).checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {
+            " ",
+            "eu.europa.ec.eudi.pid.2",
+            "EU.EUROPA.EC.EUDI.PID.1",
+            "eu.europa.ec.eudi.pid.1.extra"
+    })
+    @DisplayName("When a returned mdoc has no matching document type, then invalid request and error status are expected")
+    void rejectsMdocWithUnexpectedDoctype(String docType) throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        prepareMdocForTypeValidation("mdoc-token", transaction, docType);
+
+        assertMdocTypeFailure("pid", "Returned doctype does not match meta.doctype_value for credential id: pid");
+    }
+
+    @Test
+    @DisplayName("When an mdoc matches another query but not its response id, then rejection is expected")
+    void rejectsMdocReturnedUnderWrongId() throws Exception {
+        DcqlCredentialQuery pidQuery = query("pid", "mso_mdoc", false).getCredentials().getFirst();
+        DcqlCredentialQuery attestationQuery = query("attestation", "mso_mdoc", false).getCredentials().getFirst();
+        String attestationDocType = "no.eidas2sandkasse.dev.attestation.1";
+        attestationQuery.getMeta().setDoctypeValue(attestationDocType);
+        VerificationTransaction transaction = transaction(dcql(List.of(pidQuery, attestationQuery)));
+        prepareMdocForTypeValidation("mdoc-token", transaction, attestationDocType);
+
+        assertMdocTypeFailure("pid", "Returned doctype does not match meta.doctype_value for credential id: pid");
+    }
+
+    @Test
+    @DisplayName("When one of multiple mdoc presentations has the wrong type, then rejection without persistence is expected")
+    void rejectsWrongTypeInMultipleMdocPresentations() throws Exception {
+        DcqlQuery dcqlQuery = query("pid", "mso_mdoc", false);
+        dcqlQuery.getCredentials().getFirst().setMultiple(true);
+        VerificationTransaction transaction = transaction(dcqlQuery);
+        preparePresentation("mso_mdoc", "first", transaction, ValidationStatus.VALID);
+        prepareMdocForTypeValidation("second", transaction, "no.eidas2sandkasse.dev.attestation.1");
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID,
+                        encrypted(validPayload(Map.of("pid", List.of("first", "second"))))));
+
+        assertEquals("Returned doctype does not match meta.doctype_value for credential id: pid", exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
     }
 
     @ParameterizedTest
@@ -699,6 +750,30 @@ class OpenID4VPResponseServiceTest {
         }
     }
 
+    private void prepareMdocForTypeValidation(String token, VerificationTransaction transaction, String docType) {
+        DeviceResponse deviceResponse = mock(DeviceResponse.class);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        when(mDocService.deviceResponseFromVpToken(token)).thenReturn(deviceResponse);
+        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
+        when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
+        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
+        if (docType != null) {
+            when(mDoc.getDocType()).thenReturn(new StringElement(docType));
+        }
+    }
+
+    private void assertMdocTypeFailure(String credentialId, String message) throws Exception {
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID,
+                        encrypted(validPayload(Map.of(credentialId, List.of("mdoc-token"))))));
+
+        assertEquals(message, exception.getErrorDescription());
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
+        verify(mDocService, never()).extractCertificateFromMdoc(any());
+        verifyNoInteractions(trustlistService, tokenStatuslistService, sdJwtService);
+    }
+
     private void assertVpTokenFailure(Map<?, ?> vpToken, String message) throws Exception {
         reset(verificationService);
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
@@ -729,6 +804,11 @@ class OpenID4VPResponseServiceTest {
         credential.setId(id);
         credential.setFormat(format);
         credential.setRequireCryptographicHolderBinding(requireCryptographicHolderBinding);
+        if ("mso_mdoc".equals(format)) {
+            DcqlCredentialMeta meta = new DcqlCredentialMeta();
+            meta.setDoctypeValue(PID_DOC_TYPE);
+            credential.setMeta(meta);
+        }
         return dcql(List.of(credential));
     }
 
