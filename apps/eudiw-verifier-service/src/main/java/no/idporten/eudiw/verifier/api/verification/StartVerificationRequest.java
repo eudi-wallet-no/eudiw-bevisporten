@@ -11,22 +11,7 @@ import java.net.URI;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record StartVerificationRequest(
 
-        @Schema(description= "dcql query.", example= "{\n" +
-                "  \"credentials\" : [ {\n" +
-                "    \"meta\" : {\n" +
-                "      \"vct_values\" : [ \"no:kontaktregisteret:kontaktinformasjon:1\" ]\n" +
-                "    },\n" +
-                "    \"format\" : \"dc+sd-jwt\",\n" +
-                "    \"claims\" : [ {\n" +
-                "      \"path\" : [ \"personidentifikator\" ]\n" +
-                "    }, {\n" +
-                "      \"path\" : [ \"epostadresse\" ]\n" +
-                "    }, {\n" +
-                "      \"path\" : [ \"mobiltelefonnummer\" ]\n" +
-                "    } ],\n" +
-                "    \"id\" : \"kontaktregisteret\"\n" +
-                "  } ]\n" +
-                "}")
+        @Schema(description= "dcql query.", example= ApiDocProperties.PID_MDOC_EXAMPLE)
         @JsonProperty("dcql_query")
         DcqlQuery dcqlQuery,
 
