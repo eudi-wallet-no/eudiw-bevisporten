@@ -13,6 +13,14 @@ public class AuditService {
     @Qualifier("auditLogger")
     private final AuditLogger auditLogger;
 
+    // Attributes for audit logging
+
+    protected static final String VERIFIER_TRANSACTION_ID = "verifier_transaction_id";
+    protected static final String REQUEST_ID = "request_id";
+    protected static final String CLIENT_APPLICATION_ID = "client_application_id";
+    protected static final String DCQL_QUERY = "dcql_query";
+    protected static final String REDIRECT_URI = "redirect_uri";
+
     public AuditService(AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
     }
@@ -21,11 +29,11 @@ public class AuditService {
 
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.START_VERIFICATION_REQUEST.auditIdentifier())
-                .attribute("verifier_transaction_id", verifierTransactionId)
-                .attribute("request_id", requestId)
-                .attribute("client_application_id", clientApplication.getId())
-                .attribute("dcql_query", startVerificationRequest.dcqlQuery())
-                .attribute("redirect_uri", startVerificationRequest.redirectUri().toString())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(REQUEST_ID, requestId)
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(DCQL_QUERY, startVerificationRequest.dcqlQuery())
+                .attribute(REDIRECT_URI, startVerificationRequest.redirectUri().toString())
                 .build();
 
         auditLogger.log(auditEntry);
