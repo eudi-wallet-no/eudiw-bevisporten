@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationStatusResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,11 +38,14 @@ class VerificationServiceTest {
     @Mock
     private VerificationTransactionService verificationTransactionService;
 
+    @Mock
+    private AuditService auditService;
+
     private VerificationService verificationService;
 
     @BeforeEach
     void setUp() {
-        verificationService = new VerificationService(openID4VPRequestService, verificationTransactionService);
+        verificationService = new VerificationService(openID4VPRequestService, verificationTransactionService, auditService);
     }
 
     @Test
@@ -77,6 +81,7 @@ class VerificationServiceTest {
                 response.verifierTransactionId(),
                 clientApplication,
                 true);
+        verify(auditService).auditStartVerificationRequest(request, clientApplication, response.verifierTransactionId(), "request-id");
     }
 
     @Test
