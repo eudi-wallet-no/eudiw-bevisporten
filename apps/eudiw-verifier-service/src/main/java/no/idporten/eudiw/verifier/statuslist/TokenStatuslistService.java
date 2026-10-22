@@ -7,7 +7,6 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
-import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
@@ -17,12 +16,17 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
@@ -43,12 +47,14 @@ import java.util.Set;
 public class TokenStatuslistService {
     private final RestClient restClient;
     private final TokenStatuslistConfig tokenStatuslistConfig;
+    private final StatusListCwtValidator statusListCwtValidator;
 
     private static final Logger log = LoggerFactory.getLogger(TokenStatuslistService.class);
 
     public TokenStatuslistService(@Qualifier("tokenStatuslist") RestClient restClient, TokenStatuslistConfig tokenStatuslistConfig) {
         this.restClient = restClient;
         this.tokenStatuslistConfig = tokenStatuslistConfig;
+        this.statusListCwtValidator = new StatusListCwtValidator(tokenStatuslistConfig.clockSkew());
     }
 
     public ValidationStatus checkStatus(URI uri, int idx, String statusListJwt, Instant now) {
@@ -58,6 +64,13 @@ public class TokenStatuslistService {
         StatusListJwtValidator statusListJwtValidator = new StatusListJwtValidator(Set.of(JWSAlgorithm.ES256, JWSAlgorithm.RS256), tokenStatuslistConfig.clockSkew());
         JWSVerifier jwsVerifier = statusListJwsVerifier(statusListJwt);
         return convertIntStatusToEnum(statusListJwtValidator.validateAndResolveStatus(uri, idx, statusListJwt, now, jwsVerifier));
+    }
+
+    public ValidationStatus checkStatus(URI uri, int idx, byte[] statusListCwt, Instant now) {
+        if (uri == null || !StringUtils.hasText(uri.toString())) {
+            return ValidationStatus.INVALID;
+        }
+        return convertIntStatusToEnum(statusListCwtValidator.validateAndResolveStatus(uri, idx, statusListCwt, now));
     }
 
     private JWSVerifier statusListJwsVerifier(String statusListJwt) {
@@ -103,47 +116,73 @@ public class TokenStatuslistService {
         }
     }
 
-    public JWT requestStatusList(URI url) {
-        String jwt;
-        if (url != null) {
-            try {
-                jwt = restClient.get()
-                        .uri(url)
-                        .retrieve()
-                        .body(String.class);
-            } catch (ResourceAccessException e) {
-                throw new IOConnectionException("Could not verify status", "Error in connection with with status api " + e.getMessage(), e);
-            } catch (Exception e) {
-                throw new StatusCommunicationException("Could not verify status", "Error in communication with status api " + e.getMessage(), e);
-            }
-        } else {
-            throw new VerificationException("Invalid response", "Statuslist url is null for url " + url);
-        }
-        if (jwt != null) {
-            try {
-                return SignedJWT.parse(jwt);
-            } catch (ParseException e) {
-                throw new VerificationException("Invalid response", "Signed statuslist JWT cannot be parsed " + url + " " + e.getMessage());
-            }
-        } else {
-            throw new VerificationException("Invalid response", "Response body from statusAPI is null for url  " + url + " JWT is null");
-        }
-    }
-
-    public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx) {
+    public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx, StatusListTokenFormat preferredFormat) {
         ValidationStatus status;
         try {
-            status = checkStatus(
-                    uri,
-                    idx,
-                    requestStatusList(uri).getParsedString(),
-                    Instant.now());
+            if (uri == null || preferredFormat == null) {
+                throw new VerificationException("invalid_request", "Status list URI and preferred format are required");
+            }
+            StatusListResponse response = requestStatusList(uri, preferredFormat);
+            if (response.body() == null || response.body().length == 0) {
+                throw new VerificationException("Invalid response", "Response body from status API is empty for url %s".formatted(uri));
+            }
+            if (response.contentType() == null) {
+                throw new VerificationException("Invalid response", "Content-Type is missing from status API response for url %s".formatted(uri));
+            }
+            if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
+                return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
+            }
+            if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
+                return checkStatus(uri, idx, response.body(), Instant.now());
+            }
+            throw new VerificationException("Invalid response", "Unsupported status list Content-Type %s".formatted(response.contentType()));
         } catch (StatusCommunicationException | IOConnectionException e) {
             // TODO: create and update metrics for IOConnectionException.
             log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
             status = ValidationStatus.INCONCLUSIVE;
         }
         return status;
+    }
+
+    private boolean hasContentType(MediaType contentType, StatusListTokenFormat format) {
+        return contentType.getType().equalsIgnoreCase(format.mediaType().getType())
+                && contentType.getSubtype().equalsIgnoreCase(format.mediaType().getSubtype());
+    }
+
+    private StatusListResponse requestStatusList(URI uri, StatusListTokenFormat preferredFormat) {
+        if (uri == null) {
+            throw new VerificationException("Invalid response", "Statuslist url is null");
+        }
+        StatusListTokenFormat[] formats = {preferredFormat, preferredFormat.fallback()};
+        for (int index = 0; index < formats.length; index++) {
+            try {
+                ResponseEntity<byte[]> response = restClient.get()
+                        .uri(uri)
+                        .accept(formats[index].mediaType())
+                        .retrieve()
+                        .toEntity(byte[].class);
+                return new StatusListResponse(response.getHeaders().getContentType(), response.getBody());
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode() == HttpStatus.NOT_ACCEPTABLE && index < formats.length - 1) {
+                    continue;
+                }
+                throw new StatusCommunicationException(
+                        "Could not verify status",
+                        "Status API returned HTTP %s for %s".formatted(e.getStatusCode(), uri),
+                        e);
+            } catch (ResourceAccessException e) {
+                throw new IOConnectionException("Could not verify status", "Error in connection with status API " + e.getMessage(), e);
+            } catch (Exception e) {
+                throw new StatusCommunicationException("Could not verify status", "Error in communication with status API " + e.getMessage(), e);
+            }
+        }
+        throw new StatusCommunicationException(
+                "Could not verify status",
+                "No supported status list format was returned for " + uri,
+                new IllegalStateException("Both requested status-list formats were rejected"));
+    }
+
+    private record StatusListResponse(MediaType contentType, byte[] body) {
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {

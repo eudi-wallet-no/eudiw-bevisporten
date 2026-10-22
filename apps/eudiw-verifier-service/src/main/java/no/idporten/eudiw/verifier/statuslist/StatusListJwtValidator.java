@@ -5,9 +5,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.verifier.VerificationException;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
 import java.time.Duration;
@@ -15,18 +12,16 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
-import java.util.zip.InflaterInputStream;
 
 /**
  * I henhold til
- * <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-status-list/20/">Token Status List V20</a>
+ * <a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-status-list/21/">Token Status List V21</a>
  */
 public class StatusListJwtValidator {
 
     private static final String STATUS_LIST_JWT_TYP = "statuslist+jwt";
     private static final Set<Integer> ALLOWED_BITS = Set.of(1, 2, 4, 8);
     private static final String ERROR_CODE = "invalid_request";
-    private static final int MAX_DECOMPRESSED_BYTES = 1_000_000;
 
     private final Set<JWSAlgorithm> allowedAlgorithms;
     private final Duration clockSkew;
@@ -91,8 +86,13 @@ public class StatusListJwtValidator {
 
         int bits = extractBits(statusList.get("bits"));
         String lst = extractLst(statusList.get("lst"));
-        byte[] statuses = decodeAndDecompress(lst, idx, bits);
-        return statusAt(idx, bits, statuses);
+        byte[] compressed;
+        try {
+            compressed = Base64.getUrlDecoder().decode(lst);
+        } catch (IllegalArgumentException e) {
+            throw new VerificationException(ERROR_CODE, "status_list.lst is not valid base64url");
+        }
+        return StatusListDecoder.resolveStatus(idx, bits, compressed);
     }
 
     private SignedJWT parseJwt(String statusListJwt) {
@@ -153,53 +153,5 @@ public class StatusListJwtValidator {
             throw new VerificationException(ERROR_CODE, "status_list.lst must be a non-empty base64url string");
         }
         return lst;
-    }
-
-    private byte[] decodeAndDecompress(String lst, int idx, int bits) {
-        final byte[] compressed;
-        try {
-            compressed = Base64.getUrlDecoder().decode(lst);
-        } catch (IllegalArgumentException e) {
-            throw new VerificationException(ERROR_CODE, "status_list.lst is not valid base64url");
-        }
-
-        long requiredBytesLong = ((long) Math.max(idx, 0) * bits) / 8L + 1L;
-        if (requiredBytesLong > MAX_DECOMPRESSED_BYTES) {
-            throw new VerificationException(ERROR_CODE, "status_list.idx exceeds maximum supported range");
-        }
-        int requiredBytes = (int) requiredBytesLong;
-
-        try (InflaterInputStream input = new InflaterInputStream(new ByteArrayInputStream(compressed));
-             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[4096];
-            while (output.size() < requiredBytes) {
-                int maxRead = Math.min(buffer.length, requiredBytes - output.size());
-                int read = input.read(buffer, 0, maxRead);
-                if (read < 0) {
-                    break;
-                }
-                output.write(buffer, 0, read);
-            }
-            return output.toByteArray();
-        } catch (IOException e) {
-            throw new VerificationException(ERROR_CODE, "status_list.lst is not a valid zlib stream");
-        }
-    }
-
-    private int statusAt(int idx, int bits, byte[] statuses) {
-        if (idx < 0) {
-            throw new VerificationException(ERROR_CODE, "status_list.idx must be non-negative");
-        }
-
-        int maxEntries = statuses.length * 8 / bits;
-        if (idx >= maxEntries) {
-            throw new VerificationException(ERROR_CODE, "status_list.idx is out of bounds");
-        }
-
-        int bitOffset = idx * bits;
-        int byteIndex = bitOffset / 8;
-        int bitShift = bitOffset % 8;
-        int mask = (1 << bits) - 1;
-        return (statuses[byteIndex] >> bitShift) & mask;
     }
 }

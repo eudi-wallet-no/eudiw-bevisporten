@@ -8,12 +8,22 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.upokecenter.cbor.CBORObject;
+import org.cose.java.AlgorithmID;
+import org.cose.java.Attribute;
+import org.cose.java.OneKey;
+import org.cose.java.Sign1Message;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyFactory;
+import java.security.Security;
 import java.security.interfaces.RSAPrivateKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.io.ByteArrayInputStream;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Date;
@@ -22,6 +32,10 @@ import java.util.Map;
 import java.util.zip.DeflaterOutputStream;
 
 public class StatusListTestUtil {
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     public static final byte[] HMAC_SECRET = "12345678901234567890123456789012".getBytes();
 
@@ -70,6 +84,27 @@ public class StatusListTestUtil {
         return jwt.serialize();
     }
 
+    public static byte[] createSignedStatusListCwtWithRsa(URI uri, Instant now, int bits, byte[] statuses) throws Exception {
+        CBORObject statusList = CBORObject.NewMap();
+        statusList.set("bits", CBORObject.FromObject(bits));
+        statusList.set("lst", CBORObject.FromObject(
+                java.util.Base64.getUrlDecoder().decode(base64UrlDeflated(statuses))));
+
+        CBORObject claims = CBORObject.NewMap();
+        claims.set(2, CBORObject.FromObject(uri.toString()));
+        claims.set(4, CBORObject.FromObject(now.plusSeconds(300).getEpochSecond()));
+        claims.set(6, CBORObject.FromObject(now.minusSeconds(30).getEpochSecond()));
+        claims.set(STATUS_LIST_CLAIM, statusList);
+
+        Sign1Message cwt = new Sign1Message();
+        cwt.SetContent(claims.EncodeToBytes());
+        cwt.addAttribute(CBORObject.FromObject(1), AlgorithmID.RSA_PSS_256.AsCBOR(), Attribute.PROTECTED);
+        cwt.addAttribute(CBORObject.FromObject(16), CBORObject.FromObject("application/statuslist+cwt"), Attribute.PROTECTED);
+        cwt.addAttribute(CBORObject.FromObject(33), CBORObject.FromObject(java.util.Base64.getDecoder().decode(CERT_DER_BASE64)), Attribute.UNPROTECTED);
+        cwt.sign(new OneKey(loadRsaCertificate().getPublicKey(), loadRsaPrivateKey()));
+        return cwt.EncodeToBytes();
+    }
+
     public static String base64UrlDeflated(byte[] bytes) throws IOException {
         ByteArrayOutputStream compressed = new ByteArrayOutputStream();
         try (DeflaterOutputStream deflater = new DeflaterOutputStream(compressed)) {
@@ -83,6 +118,12 @@ public class StatusListTestUtil {
         return (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
     }
 
+    private static X509Certificate loadRsaCertificate() throws Exception {
+        return (X509Certificate) CertificateFactory.getInstance("X.509")
+                .generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(CERT_DER_BASE64)));
+    }
+
+    private static final int STATUS_LIST_CLAIM = 65533;
     private StatusListTestUtil() {
     }
 }
