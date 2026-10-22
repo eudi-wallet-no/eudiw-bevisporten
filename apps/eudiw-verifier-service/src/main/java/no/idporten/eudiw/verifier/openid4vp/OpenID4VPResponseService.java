@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonPrimitive;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
+import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
@@ -33,13 +34,14 @@ import org.springframework.util.CollectionUtils;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Component
 public class OpenID4VPResponseService {
 
     private static final Logger log = LoggerFactory.getLogger(OpenID4VPResponseService.class);
     private static final String PID_DOC_TYPE = "eu.europa.ec.eudi.pid.1";
-    private static final String PID_VCT = "urn:eudi:pid:1";
+    private static final Pattern PID_VCT_PATTERN = Pattern.compile("urn:eudi:pid:(?:[a-z]{2}:)?[0-9]+", Pattern.CASE_INSENSITIVE);
 
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
@@ -104,7 +106,6 @@ public class OpenID4VPResponseService {
         Map<String, List<VerifiedCredential>> allCredentials = new LinkedHashMap<>();
         for (DcqlCredentialQuery credentialQuery : requestedCredentials) {
             String credentialId = credentialQuery.getId();
-            boolean isCryptographicHolderBindingRequired = credentialQuery.getRequireCryptographicHolderBinding();
             List<VerifiablePresentation> verifiablePresentations = vpToken.getVerifiablePresentation(credentialId);
             if (verifiablePresentations.isEmpty()) {
                 allCredentials.put(credentialId, List.of(new VerifiedCredential(Map.of(), false, List.of())));
@@ -118,9 +119,9 @@ public class OpenID4VPResponseService {
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
                 VerifiedCredential verifiedCredential;
                 if ("dc+sd-jwt".equals(format)) {
-                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction, isCryptographicHolderBindingRequired);
+                    verifiedCredential = sdJwtVerifiedCredential(verifiablePresentation.value(), verificationTransaction, credentialQuery.getRequireCryptographicHolderBinding());
                 } else if ("mso_mdoc".equals(format)) {
-                    verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction);
+                    verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction, credentialQuery);
                 } else {
                     throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
                 }
@@ -279,11 +280,12 @@ public class OpenID4VPResponseService {
         }
     }
 
-    private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction) {
+    private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, DcqlCredentialQuery credentialQuery) {
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken(vpToken);
         MDoc mdoc = mDocService.mDocFromDeviceResponse(deviceResponse);
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
         ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc, verificationTransaction);
+        validateRequestedCredentialType(mdoc, credentialQuery);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
         ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
@@ -295,6 +297,19 @@ public class OpenID4VPResponseService {
 
     }
 
+    private void validateRequestedCredentialType(MDoc mdoc, DcqlCredentialQuery credentialQuery) {
+        DcqlCredentialMeta meta = credentialQuery.getMeta();
+        if (meta == null || !StringUtils.hasText(meta.getDoctypeValue())) {
+            throw new VerificationException("invalid_request",
+                    "Missing or invalid meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
+        }
+        StringElement docType = mdoc.getDocType();
+        if (docType == null || !meta.getDoctypeValue().equals(docType.getValue())) {
+            throw new VerificationException("invalid_request",
+                    "Returned doctype does not match meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
+        }
+    }
+
     private boolean isPid(SDJwt sdJwt) {
         JsonObject payload = sdJwt.getFullPayload();
         if (payload == null) {
@@ -303,7 +318,7 @@ public class OpenID4VPResponseService {
         JsonElement vct = payload.get("vct");
         return vct instanceof JsonPrimitive primitive
                 && primitive.isString()
-                && PID_VCT.equals(primitive.getContent());
+                && PID_VCT_PATTERN.matcher(primitive.getContent()).matches();
     }
 
     private boolean isPid(MDoc mdoc) {

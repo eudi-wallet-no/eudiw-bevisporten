@@ -19,7 +19,4 @@ public class DcqlCredentialMeta implements Serializable {
     @JsonProperty("doctype_value")
     private String doctypeValue;
 
-    @JsonProperty("doctype_values")
-    private List<String> doctypeValues;
-
 }
