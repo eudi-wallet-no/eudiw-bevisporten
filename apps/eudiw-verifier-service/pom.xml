@@ -20,6 +20,7 @@
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.6</idporten-access-log.version>
+        <idporten-log-audit.version>4.0.6</idporten-log-audit.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>1.0.0</waltid-mdoc-credentials-jvm.version>
         <waltid-sdjwt-jvm.version>1.0.0</waltid-sdjwt-jvm.version>
@@ -64,6 +65,11 @@
             <groupId>no.idporten.logging</groupId>
             <artifactId>idporten-access-log-spring-boot-4-starter</artifactId>
             <version>${idporten-access-log.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>no.idporten.logging</groupId>
+            <artifactId>idporten-log-audit-spring-boot-4-starter</artifactId>
+            <version>${idporten-log-audit.version}</version>
         </dependency>
 
         <dependency>
