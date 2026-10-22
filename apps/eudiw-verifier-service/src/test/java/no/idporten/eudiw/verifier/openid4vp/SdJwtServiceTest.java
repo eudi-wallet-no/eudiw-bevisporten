@@ -9,6 +9,7 @@ import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
 import kotlinx.serialization.json.*;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.config.SdjwtConfig;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.testdata.Certificates;
@@ -40,12 +41,13 @@ class SdJwtServiceTest {
     @Mock VerificationResult<SDJwt> verificationResult;
     @Mock SDJwt mockedSdJwt;
     @Mock VerificationTransaction verificationTransaction;
+    @Mock SdjwtConfig sdjwtConfig;
 
     private SdJwtService service;
 
     @BeforeEach
     void setUp() {
-        service = new SdJwtService(JsonMapper.builder().build());
+        service = new SdJwtService(JsonMapper.builder().build(), sdjwtConfig);
     }
 
     @Test

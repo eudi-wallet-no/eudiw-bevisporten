@@ -15,6 +15,7 @@ import kotlinx.serialization.json.JsonNull;
 import kotlinx.serialization.json.JsonObject;
 import kotlinx.serialization.json.JsonPrimitive;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.config.SdjwtConfig;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatusSdJwt;
@@ -32,6 +33,7 @@ import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.time.Clock;
 import java.time.DateTimeException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -41,9 +43,11 @@ import static no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus.*
 public class SdJwtService {
     private static final Logger log = LogManager.getLogger(SdJwtService.class);
     private final ObjectMapper objectMapper;
+    private final SdjwtConfig sdjwtConfig;
 
-    public SdJwtService(ObjectMapper objectMapper) {
+    public SdJwtService(ObjectMapper objectMapper, SdjwtConfig sdjwtConfig) {
         this.objectMapper = objectMapper;
+        this.sdjwtConfig = sdjwtConfig;
     }
 
 
@@ -115,25 +119,28 @@ public class SdJwtService {
 
     public ValidationStatus validateSdJwtTimeClaims(JsonObject sdJwtPayload) {
         Instant now = Instant.now(Clock.systemUTC());
-
+        String logMessage = "SD-JWT %s claim is either late or early: %s (now=%s, skew=%s)";
         // iat is optional for SD-JWT/key binding jwt
         Instant iat = parseInstantClaim(sdJwtPayload, "iat");
-        if (iat != null && iat.isAfter(now)) {
+        if (iat != null && iat.isAfter(now.plus(sdjwtConfig.clockSkew()))) {
+            log.warn(logMessage.formatted("iat", iat, now, sdjwtConfig.clockSkew()));
             return INVALID;
         }
 
         // nbf is optional for SD-JWT/key binding jwt
         Instant nbf = parseInstantClaim(sdJwtPayload, "nbf");
-        if (nbf != null && nbf.isAfter(now)) {
+        if (nbf != null && nbf.isAfter(now.plus(sdjwtConfig.clockSkew()))) {
+            log.warn(logMessage.formatted("nbf", nbf, now, sdjwtConfig.clockSkew()));
             return INVALID;
         }
 
         // exp is optional for SD-JWT/key binding jwt
         Instant exp = parseInstantClaim(sdJwtPayload, "exp");
-        if (exp!= null && !exp.isAfter(now)) {
+        if (exp != null && !exp.isAfter(now.minus(sdjwtConfig.clockSkew()))) {
+            log.warn(logMessage.formatted("exp", exp, now, sdjwtConfig.clockSkew()));
             return INVALID;
         }
-
+        log.info("Validating SD-JWT time claims against current time: {} (skew={}s)", now, sdjwtConfig.clockSkew().getSeconds());
         return ValidationStatus.VALID;
 
     }
@@ -162,12 +169,10 @@ public class SdJwtService {
         if (element == null || element == JsonNull.INSTANCE) {
             return null;
         }
-
         if (!(element instanceof JsonPrimitive primitive)) {
             throw new VerificationException("invalid_request",
                     "Invalid %s claim. Expected primitive value".formatted(claimName));
         }
-
         if (primitive.isString()) {
             try {
                 return Instant.parse(primitive.getContent());
