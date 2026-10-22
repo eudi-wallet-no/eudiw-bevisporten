@@ -119,29 +119,28 @@ public class SdJwtService {
 
     public ValidationStatus validateSdJwtTimeClaims(JsonObject sdJwtPayload) {
         Instant now = Instant.now(Clock.systemUTC());
-        log.info("Validating SD-JWT time claims against current time: {} (skew={}s)", now, sdjwtConfig.clockSkew().getSeconds());
-
+        String logMessage = "SD-JWT %s claim is either late or early: %s (now=%s, skew=%s)";
         // iat is optional for SD-JWT/key binding jwt
         Instant iat = parseInstantClaim(sdJwtPayload, "iat");
         if (iat != null && iat.isAfter(now.plus(sdjwtConfig.clockSkew()))) {
-            log.warn("SD-JWT iat claim is too far in the future: {} (now={}, skew={})", iat, now, sdjwtConfig.clockSkew());
+            log.warn(logMessage.formatted("iat", iat, now, sdjwtConfig.clockSkew()));
             return INVALID;
         }
 
         // nbf is optional for SD-JWT/key binding jwt
         Instant nbf = parseInstantClaim(sdJwtPayload, "nbf");
         if (nbf != null && nbf.isAfter(now.plus(sdjwtConfig.clockSkew()))) {
-            log.warn("SD-JWT nbf claim is too far in the future: {} (now={}, skew={})", nbf, now, sdjwtConfig.clockSkew());
+            log.warn(logMessage.formatted("nbf", nbf, now, sdjwtConfig.clockSkew()));
             return INVALID;
         }
 
         // exp is optional for SD-JWT/key binding jwt
         Instant exp = parseInstantClaim(sdJwtPayload, "exp");
         if (exp != null && !exp.isAfter(now.minus(sdjwtConfig.clockSkew()))) {
-            log.warn("SD-JWT exp claim is too far in the past: {} (now={}, skew={})", exp, now, sdjwtConfig.clockSkew());
+            log.warn(logMessage.formatted("exp", exp, now, sdjwtConfig.clockSkew()));
             return INVALID;
         }
-
+        log.info("Validating SD-JWT time claims against current time: {} (skew={}s)", now, sdjwtConfig.clockSkew().getSeconds());
         return ValidationStatus.VALID;
 
     }
@@ -168,21 +167,16 @@ public class SdJwtService {
     private Instant parseInstantClaim(JsonObject payload, String claimName) {
         JsonElement element = payload.get(claimName);
         if (element == null || element == JsonNull.INSTANCE) {
-            log.info("SD-JWT instant claim {} is not present or null", claimName);
             return null;
         }
-
         if (!(element instanceof JsonPrimitive primitive)) {
-            log.warn("SD-JWT instant claim {} is not a primitive value", claimName);
             throw new VerificationException("invalid_request",
                     "Invalid %s claim. Expected primitive value".formatted(claimName));
         }
-
         if (primitive.isString()) {
             try {
                 return Instant.parse(primitive.getContent());
             } catch (DateTimeException e) {
-                log.warn("SD-JWT instant claim {} is not a valid string", claimName, e);
                 throw new VerificationException("invalid_request",
                         "Invalid %s claim. Expected NumericDate or ISO-8601 UTC".formatted(claimName), e);
             }

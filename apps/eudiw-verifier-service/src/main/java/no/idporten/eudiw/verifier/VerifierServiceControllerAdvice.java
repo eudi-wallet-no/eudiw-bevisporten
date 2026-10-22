@@ -15,7 +15,12 @@ public class VerifierServiceControllerAdvice {
 
     @ExceptionHandler(VerificationException.class)
     public ResponseEntity<ErrorResponse> handleException(VerificationException e) {
-        log.warn("Verification transaction failed", e);
+
+        if(e.getErrorDescription() != null) {
+            log.error("Verification transaction failed with error: {} and description: {}", e.getError(), e.getErrorDescription(), e);
+        } else {
+            log.warn("Verification transaction failed", e);
+        }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(e.getError(), e.getErrorDescription()));
     }
 
