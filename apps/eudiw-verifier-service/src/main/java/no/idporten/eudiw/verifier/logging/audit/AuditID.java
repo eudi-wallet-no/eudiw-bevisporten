@@ -4,7 +4,7 @@ import no.idporten.logging.audit.AuditIdentifier;
 
 public enum AuditID {
 
-    ;
+    START_VERIFICATION_REQUEST("START-VERIFICATION-REQUEST");
 
     private static final String AUDIT_ID_FORMAT = "DL-VERIFIER-SERVICE-%s";
 
