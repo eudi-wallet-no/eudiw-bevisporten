@@ -33,13 +33,14 @@ import org.springframework.util.CollectionUtils;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 @Component
 public class OpenID4VPResponseService {
 
     private static final Logger log = LoggerFactory.getLogger(OpenID4VPResponseService.class);
     private static final String PID_DOC_TYPE = "eu.europa.ec.eudi.pid.1";
-    private static final String PID_VCT = "urn:eudi:pid:1";
+    private static final Pattern PID_VCT_PATTERN = Pattern.compile("urn:eudi:pid:(?:[a-z]{2}:)?[0-9]+", Pattern.CASE_INSENSITIVE);
 
     private final VerificationTransactionService verificationTransactionService;
     private final TokenStatuslistService tokenStatuslistService;
@@ -303,7 +304,7 @@ public class OpenID4VPResponseService {
         JsonElement vct = payload.get("vct");
         return vct instanceof JsonPrimitive primitive
                 && primitive.isString()
-                && PID_VCT.equals(primitive.getContent());
+                && PID_VCT_PATTERN.matcher(primitive.getContent()).matches();
     }
 
     private boolean isPid(MDoc mdoc) {

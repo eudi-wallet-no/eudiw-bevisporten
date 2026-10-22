@@ -493,6 +493,27 @@ class OpenID4VPResponseServiceTest {
         verifyNoInteractions(mDocService);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "urn:eudi:pid:1",
+            "urn:eudi:pid:2",
+            "urn:eudi:pid:de:1",
+            "urn:eudi:pid:hu:1"
+    })
+    @DisplayName("with a supported PID VCT variant including national variants, then the PID trustlists are used")
+    void routesPidVctVariantsToPidTrustlists(String vct) throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        preparePresentation("dc+sd-jwt", "sd-token", transaction, ValidationStatus.VALID, vct);
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("pid", List.of("sd-token")))));
+
+        assertTrue(persistedCredential("pid").valid());
+        verify(trustlistService)
+                .checkIfCertificateFromJwsHeaderIsOnTrustlist(any(X509Certificate.class), eq(PID_TRUSTLISTS));
+    }
+
     @Test
     @DisplayName("with a valid status list entry, then a valid credential is expected")
     void statusListValidProducesValidCredential() throws Exception {
@@ -524,13 +545,17 @@ class OpenID4VPResponseServiceTest {
         verify(trustlistService).checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS);
     }
 
-    @Test
-    @DisplayName("with a non-PID SD-JWT credential, then the attestation trustlists are used")
-    void routesNonPidSdJwtToAttestationTrustlists() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "urn:example:attestation:1",
+            "urn:sonmething:random:3"
+    })
+    @DisplayName("with a non-PID SD-JWT VCT, then the attestation trustlists are used")
+    void routesNonPidSdJwtToAttestationTrustlists(String vct) throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
-        when(sdJwt.getFullPayload()).thenReturn(payloadWithVct("urn:example:attestation:1"));
+        when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(vct));
         when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
         when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
         when(sdJwtService.validationStatusHolderBinding(transaction, sdJwt, true)).thenReturn(ValidationStatus.VALID);
@@ -620,6 +645,10 @@ class OpenID4VPResponseServiceTest {
     }
 
     private void preparePresentation(String format, String token, VerificationTransaction transaction, ValidationStatus status) {
+        preparePresentation(format, token, transaction, status, PID_VCT);
+    }
+
+    private void preparePresentation(String format, String token, VerificationTransaction transaction, ValidationStatus status, String vct) {
         X509Certificate presentationCertificate = mock(X509Certificate.class);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(presentationCertificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
@@ -637,7 +666,7 @@ class OpenID4VPResponseServiceTest {
             VerificationResult<SDJwt> result = mock();
             when(result.getSdJwt()).thenReturn(presentation);
             when(sdJwtService.sdJwtFromVpToken(token)).thenReturn(presentation);
-            when(presentation.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
+            when(presentation.getFullPayload()).thenReturn(payloadWithVct(vct));
             when(sdJwtService.certificate(presentation)).thenReturn(presentationCertificate);
             when(sdJwtService.verifySdJwt(presentation, presentationCertificate)).thenReturn(result);
             when(sdJwtService.validationStatusHolderBinding(transaction, presentation, true)).thenReturn(ValidationStatus.VALID);
