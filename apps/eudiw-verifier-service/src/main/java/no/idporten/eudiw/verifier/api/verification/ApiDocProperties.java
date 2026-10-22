@@ -5,22 +5,6 @@ public class ApiDocProperties {
     public final static String API_TAG = "eudiw-verifier-service-v1";
     public final static String API_DESCRIPTION = "Verifier Service API";
 
-    public final static String KONTAKTINFORMASJON_EXAMPLE = "{\n" +
-            "  \"credentials\" : [ {\n" +
-            "    \"meta\" : {\n" +
-            "      \"vct_values\" : [ \"no:kontaktregisteret:kontaktinformasjon:1\" ]\n" +
-            "    },\n" +
-            "    \"format\" : \"dc+sd-jwt\",\n" +
-            "    \"claims\" : [ {\n" +
-            "      \"path\" : [ \"personidentifikator\" ]\n" +
-            "    }, {\n" +
-            "      \"path\" : [ \"epostadresse\" ]\n" +
-            "    }, {\n" +
-            "      \"path\" : [ \"mobiltelefonnummer\" ]\n" +
-            "    } ],\n" +
-            "    \"id\" : \"kontaktregisteret\"\n" +
-            "  } ]\n" +
-            "}";
     public final static String PID_MDOC_EXAMPLE = "{\n" +
             "  \"credentials\" : [ {\n" +
             "    \"meta\" : {\n" +
