@@ -2,7 +2,9 @@ package no.idporten.eudiw.verifier.logging.audit;
 
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
+import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.VerificationTransaction;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +27,10 @@ public class AuditService {
     protected static final String REDIRECT_URI = "redirect_uri";
     protected static final String AUTHORIZATION_REQUEST = "authorization_request";
     protected static final String AUTHORIZATION_REQUEST_QR_CODE = "authorization_request_qr_code";
+    protected static final String AUTHORIZATION_RESPONSE = "authorization_response";
+    protected static final String CREDENTIALS = "credentials";
+    protected static final String VERIFICATION_STATUS = "status";
+    protected static final String AUDIENCE = "audience";
 
     public AuditService(AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
@@ -56,5 +62,30 @@ public class AuditService {
                 .build();
         auditLogger.log(auditEntry);
 
+    }
+
+    public void auditFetchVerificationDataRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication) {
+        AuditEntry auditEntry = AuditEntry.builder()
+                .auditId(AuditID.FETCH_VERIFICATION_DATA_REQUEST.auditIdentifier())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(AUDIENCE, verificationTransaction.getAudience())
+                .attribute(DCQL_QUERY, verificationTransaction.getDcqlQuery())
+                .attribute(REDIRECT_URI, verificationTransaction.getRedirectUri().toString())
+                .attribute(VERIFICATION_STATUS, verificationTransaction.getStatus())
+                .build();
+        auditLogger.log(auditEntry);
+    }
+
+    public void auditFetchVerificationDataResponse(VerificationResultResponse verificationResultResponse, String verifierTransactionId, ClientApplication clientApplication) {
+        AuditEntry auditEntry = AuditEntry.builder()
+                .auditId(AuditID.FETCH_VERIFICATION_DATA_RESPONSE.auditIdentifier())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(CREDENTIALS, verificationResultResponse.credentials())
+                .attribute(AUTHORIZATION_REQUEST, verificationResultResponse.authorizationRequest())
+                .attribute(AUTHORIZATION_RESPONSE, verificationResultResponse.authorizationResponse())
+                .build();
+        auditLogger.log(auditEntry);
     }
 }

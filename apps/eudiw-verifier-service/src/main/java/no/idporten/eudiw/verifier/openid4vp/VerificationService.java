@@ -50,6 +50,7 @@ public class VerificationService {
 
     public VerificationResultResponse retrieveVerificationData(String verifierTransactionId, ClientApplication clientApplication) {
         VerificationTransaction verificationTransaction = verificationTransactionService.retrieveVerifiedCredentials(clientApplication, verifierTransactionId);
+        auditService.auditFetchVerificationDataRequest(verificationTransaction, verifierTransactionId, clientApplication);
         if (verificationTransaction.getResponse() == null) { // TODO remove response object from verificationTransaction? what do we need here?
             HashMap<String, Object> response = new HashMap<>();
             response.put("response_uri", verificationTransaction.getRedirectUri().toString());
@@ -57,7 +58,9 @@ public class VerificationService {
             response.put("dcql_query", verificationTransaction.getDcqlQuery());
             verificationTransaction.setResponse(response);
         }
-        return new VerificationResultResponse(verifierTransactionId, verificationTransaction.getVerifiedCredentials().credentials(), verificationTransaction.getRequest(), verificationTransaction.getResponse());
+        VerificationResultResponse response = new VerificationResultResponse(verifierTransactionId, verificationTransaction.getVerifiedCredentials().credentials(), verificationTransaction.getRequest(), verificationTransaction.getResponse());
+        auditService.auditFetchVerificationDataResponse(response, verifierTransactionId, clientApplication);
+        return response;
     }
 
 }
