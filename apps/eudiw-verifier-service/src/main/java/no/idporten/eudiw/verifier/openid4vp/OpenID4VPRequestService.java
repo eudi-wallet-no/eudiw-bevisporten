@@ -25,6 +25,7 @@ import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
+import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.lib.keystore.KeyProvider;
 import no.idporten.lib.keystore.KeystoreManager;
@@ -53,12 +54,14 @@ public class OpenID4VPRequestService {
     private final VerificationTransactionService verificationTransactionService;
     private final JsonMapper jsonMapper;
     private final CacheService cacheService;
+    private final AuditService auditService;
 
-    public OpenID4VPRequestService(VerifierServiceProperties verifierServiceProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper, CacheService cacheService) {
+    public OpenID4VPRequestService(VerifierServiceProperties verifierServiceProperties, KeystoreManager keystoreManager, VerificationTransactionService verificationTransactionService, JsonMapper jsonMapper, CacheService cacheService, AuditService auditService) {
         this.verifierServiceProperties = verifierServiceProperties;
         this.keystoreManager = keystoreManager;
         this.verificationTransactionService = verificationTransactionService;
         this.jsonMapper = jsonMapper;
+        this.auditService = auditService;
         this.cacheService = cacheService;
     }
 
@@ -117,6 +120,7 @@ public class OpenID4VPRequestService {
         if (verificationTransactionId == null) {
             throw new VerificationException("invalid_request", "Unknown authorization request");
         }
+        auditService.auditFetchAuthzRequest(verificationTransactionId, clientApplication, requestId, flow);
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verificationTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction");
@@ -129,6 +133,7 @@ public class OpenID4VPRequestService {
         JWT authorizationRequest = makeRequestJwt(verificationTransaction, clientApplication, verificationTransactionId);
         verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
         cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
+        auditService.auditFetchAuthzResponse(verificationTransaction, verificationTransactionId, clientApplication, requestId);
         return authorizationRequest.serialize();
     }
 

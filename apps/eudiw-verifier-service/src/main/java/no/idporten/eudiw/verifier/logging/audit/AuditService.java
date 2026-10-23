@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.logging.audit;
 
+import com.nimbusds.jwt.JWT;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
@@ -89,12 +90,13 @@ public class AuditService {
         auditLogger.log(auditEntry);
     }
 
-    public void auditFetchAuthzRequest(String verifierTransactionId, ClientApplication clientApplication, String requestId) {
+    public void auditFetchAuthzRequest(String verifierTransactionId, ClientApplication clientApplication, String requestId, String flow) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.FETCH_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(REQUEST_ID, requestId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(FLOW, flow)
                 .build();
         auditLogger.log(auditEntry);
 
@@ -107,17 +109,8 @@ public class AuditService {
                 .attribute(REQUEST_ID, requestId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(FLOW, verificationTransaction.getFlow())
-
                 .build();
         auditLogger.log(auditEntry);
     }
-
-    /**
-     *
-     *  verificationTransaction.setFlow(flow);
-     *         JWT authorizationRequest = makeRequestJwt(verificationTransaction, clientApplication, verificationTransactionId);
-     *         verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
-     *         cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
-     */
 
 }
