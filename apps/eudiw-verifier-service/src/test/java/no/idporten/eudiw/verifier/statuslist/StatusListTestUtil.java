@@ -8,11 +8,15 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.upokecenter.cbor.CBORObject;
+import id.walt.mdoc.COSECryptoProviderKeyInfo;
+import id.walt.mdoc.SimpleCOSECryptoProvider;
+import id.walt.mdoc.cose.COSESign1;
+import id.walt.mdoc.dataelement.ByteStringElement;
+import id.walt.mdoc.dataelement.MapElement;
+import id.walt.mdoc.dataelement.MapKey;
+import id.walt.mdoc.dataelement.NumberElement;
+import id.walt.mdoc.dataelement.StringElement;
 import org.cose.java.AlgorithmID;
-import org.cose.java.Attribute;
-import org.cose.java.OneKey;
-import org.cose.java.Sign1Message;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -85,24 +89,34 @@ public class StatusListTestUtil {
     }
 
     public static byte[] createSignedStatusListCwtWithRsa(URI uri, Instant now, int bits, byte[] statuses) throws Exception {
-        CBORObject statusList = CBORObject.NewMap();
-        statusList.set("bits", CBORObject.FromObject(bits));
-        statusList.set("lst", CBORObject.FromObject(
-                java.util.Base64.getUrlDecoder().decode(base64UrlDeflated(statuses))));
+        MapElement statusList = new MapElement(Map.of(
+                new MapKey("bits"), new NumberElement(bits),
+                new MapKey("lst"), new ByteStringElement(
+                        java.util.Base64.getUrlDecoder().decode(base64UrlDeflated(statuses)))));
 
-        CBORObject claims = CBORObject.NewMap();
-        claims.set(2, CBORObject.FromObject(uri.toString()));
-        claims.set(4, CBORObject.FromObject(now.plusSeconds(300).getEpochSecond()));
-        claims.set(6, CBORObject.FromObject(now.minusSeconds(30).getEpochSecond()));
-        claims.set(STATUS_LIST_CLAIM, statusList);
+        MapElement claims = new MapElement(Map.of(
+                new MapKey(2), new StringElement(uri.toString()),
+                new MapKey(4), new NumberElement(now.plusSeconds(300).getEpochSecond()),
+                new MapKey(6), new NumberElement(now.minusSeconds(30).getEpochSecond()),
+                new MapKey(STATUS_LIST_CLAIM), statusList));
 
-        Sign1Message cwt = new Sign1Message();
-        cwt.SetContent(claims.EncodeToBytes());
-        cwt.addAttribute(CBORObject.FromObject(1), AlgorithmID.RSA_PSS_256.AsCBOR(), Attribute.PROTECTED);
-        cwt.addAttribute(CBORObject.FromObject(16), CBORObject.FromObject("application/statuslist+cwt"), Attribute.PROTECTED);
-        cwt.addAttribute(CBORObject.FromObject(33), CBORObject.FromObject(java.util.Base64.getDecoder().decode(CERT_DER_BASE64)), Attribute.UNPROTECTED);
-        cwt.sign(new OneKey(loadRsaCertificate().getPublicKey(), loadRsaPrivateKey()));
-        return cwt.EncodeToBytes();
+        String keyId = "status-list";
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(
+                keyId,
+                AlgorithmID.RSA_PSS_256,
+                loadRsaCertificate().getPublicKey(),
+                loadRsaPrivateKey(),
+                List.of(loadRsaCertificate()),
+                List.of());
+        MapElement protectedHeaders = new MapElement(Map.of(
+                new MapKey(16), new StringElement("application/statuslist+cwt")));
+        COSESign1 coseSign1 = new SimpleCOSECryptoProvider(List.of(keyInfo))
+                .sign1(claims.toCBOR(), protectedHeaders, null, keyId);
+        byte[] encodedCoseSign1 = coseSign1.toCBOR();
+        byte[] encodedCwt = new byte[encodedCoseSign1.length + 1];
+        encodedCwt[0] = (byte) 0xD2; // CBOR tag 18 identifies COSE_Sign1.
+        System.arraycopy(encodedCoseSign1, 0, encodedCwt, 1, encodedCoseSign1.length);
+        return encodedCwt;
     }
 
     public static String base64UrlDeflated(byte[] bytes) throws IOException {

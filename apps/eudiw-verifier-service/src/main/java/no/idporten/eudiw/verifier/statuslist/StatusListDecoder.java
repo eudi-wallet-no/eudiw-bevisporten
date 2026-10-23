@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.VerificationException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.Set;
 import java.util.zip.InflaterInputStream;
 
@@ -12,6 +13,12 @@ final class StatusListDecoder {
     private static final String ERROR_CODE = "invalid_request";
     private static final Set<Integer> ALLOWED_BITS = Set.of(1, 2, 4, 8);
     private static final int MAX_DECOMPRESSED_BYTES = 1_000_000;
+
+    static int resolveStatus(int idx, Object bitsClaim, Object lstClaim) {
+        int bits = parseBits(bitsClaim);
+        byte[] compressed = parseListData(lstClaim);
+        return resolveStatus(idx, bits, compressed);
+    }
 
     static int resolveStatus(int idx, int bits, byte[] compressed) {
         if (!ALLOWED_BITS.contains(bits)) {
@@ -54,6 +61,33 @@ final class StatusListDecoder {
         int bitShift = bitOffset % 8;
         int mask = (1 << bits) - 1;
         return (statuses[byteIndex] >> bitShift) & mask;
+    }
+
+    private static int parseBits(Object bitsClaim) {
+        if (!(bitsClaim instanceof Byte || bitsClaim instanceof Short
+                || bitsClaim instanceof Integer || bitsClaim instanceof Long)) {
+            throw new VerificationException(ERROR_CODE, "status_list.bits must be an integer");
+        }
+        long bits = ((Number) bitsClaim).longValue();
+        if (bits < Integer.MIN_VALUE || bits > Integer.MAX_VALUE) {
+            throw new VerificationException(ERROR_CODE, "status_list.bits must be an integer");
+        }
+        return (int) bits;
+    }
+
+    private static byte[] parseListData(Object lstClaim) {
+        if (lstClaim instanceof byte[] bytes) {
+            return bytes;
+        }
+        if (!(lstClaim instanceof String encoded) || encoded.isBlank()) {
+            throw new VerificationException(ERROR_CODE,
+                    "status_list.lst must be a non-empty base64url string or CBOR byte string");
+        }
+        try {
+            return Base64.getUrlDecoder().decode(encoded);
+        } catch (IllegalArgumentException e) {
+            throw new VerificationException(ERROR_CODE, "status_list.lst is not valid base64url");
+        }
     }
 
     private StatusListDecoder() {

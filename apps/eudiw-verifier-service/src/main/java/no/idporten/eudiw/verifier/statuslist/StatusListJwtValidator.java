@@ -9,7 +9,6 @@ import java.net.URI;
 import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,7 +19,6 @@ import java.util.Set;
 public class StatusListJwtValidator {
 
     private static final String STATUS_LIST_JWT_TYP = "statuslist+jwt";
-    private static final Set<Integer> ALLOWED_BITS = Set.of(1, 2, 4, 8);
     private static final String ERROR_CODE = "invalid_request";
 
     private final Set<JWSAlgorithm> allowedAlgorithms;
@@ -84,15 +82,7 @@ public class StatusListJwtValidator {
             throw new VerificationException(ERROR_CODE, "Status list JWT is missing required status_list claim");
         }
 
-        int bits = extractBits(statusList.get("bits"));
-        String lst = extractLst(statusList.get("lst"));
-        byte[] compressed;
-        try {
-            compressed = Base64.getUrlDecoder().decode(lst);
-        } catch (IllegalArgumentException e) {
-            throw new VerificationException(ERROR_CODE, "status_list.lst is not valid base64url");
-        }
-        return StatusListDecoder.resolveStatus(idx, bits, compressed);
+        return StatusListDecoder.resolveStatus(idx, statusList.get("bits"), statusList.get("lst"));
     }
 
     private SignedJWT parseJwt(String statusListJwt) {
@@ -133,25 +123,4 @@ public class StatusListJwtValidator {
         }
     }
 
-    private int extractBits(Object bitsClaim) {
-        final int bits;
-        if (bitsClaim instanceof Integer intBits) {
-            bits = intBits;
-        } else if (bitsClaim instanceof Long longBits && longBits <= Integer.MAX_VALUE && longBits >= Integer.MIN_VALUE) {
-            bits = longBits.intValue();
-        } else {
-            throw new VerificationException(ERROR_CODE, "status_list.bits must be an integer");
-        }
-        if (!ALLOWED_BITS.contains(bits)) {
-            throw new VerificationException(ERROR_CODE, "status_list.bits must be one of 1, 2, 4, 8");
-        }
-        return bits;
-    }
-
-    private String extractLst(Object lstClaim) {
-        if (!(lstClaim instanceof String lst) || lst.isBlank()) {
-            throw new VerificationException(ERROR_CODE, "status_list.lst must be a non-empty base64url string");
-        }
-        return lst;
-    }
 }
