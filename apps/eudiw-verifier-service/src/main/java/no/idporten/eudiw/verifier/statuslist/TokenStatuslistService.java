@@ -156,15 +156,17 @@ public class TokenStatuslistService {
         StatusListTokenFormat[] formats = {preferredFormat, preferredFormat.fallback()};
         for (int index = 0; index < formats.length; index++) {
             try {
-                log.info("Requesting status list from {} with media type {}", uri, formats[index].mediaType());
+
                 ResponseEntity<byte[]> response = restClient.get()
                         .uri(uri)
                         .accept(formats[index].mediaType())
                         .retrieve()
                         .toEntity(byte[].class);
+                log.info("Status list {} supports format {}. Response: {}.", uri, formats[index].mediaType(), response.getStatusCode());
                 return new StatusListResponse(response.getHeaders().getContentType(), response.getBody());
             } catch (HttpClientErrorException e) {
                 if (e.getStatusCode() == HttpStatus.NOT_ACCEPTABLE && index < formats.length - 1) {
+                    log.warn("Status list {} does not support format {}.", uri, formats[index].mediaType());
                     continue;
                 }
                 throw new StatusCommunicationException(
