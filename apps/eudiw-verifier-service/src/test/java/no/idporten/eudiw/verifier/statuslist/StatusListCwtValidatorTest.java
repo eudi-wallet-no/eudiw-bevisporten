@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HexFormat;
 
+import static java.time.temporal.ChronoUnit.NANOS;
 import static no.idporten.eudiw.verifier.statuslist.StatusListTestUtil.createSignedStatusListCwtWithRsa;
 import static no.idporten.eudiw.verifier.statuslist.StatusListCwtValidator.CWT_ISSUED_AT_CLAIM;
 import static no.idporten.eudiw.verifier.statuslist.StatusListCwtValidator.CWT_STATUS_LIST_CLAIM;
@@ -27,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @DisplayName("When validating and resolving status from status list CWT")
 class StatusListCwtValidatorTest {
+    private static final Duration CLOCK_SKEW = Duration.ofSeconds(60);
+    private static final Instant FIXED_NOW = Instant.parse("2026-01-01T00:00:00Z");
+    private static final URI STATUS_LIST_URI = URI.create("https://status.example/list/1");
 
     private static final String RFC_CWT_STATUS_LIST_HEX = """
             d2845820a2012610781a6170706c69636174696f6e2f7374617475736c6973742b63
@@ -88,6 +92,76 @@ class StatusListCwtValidatorTest {
         int status = validator.validateAndResolveStatus(expectedUri, 1, cwt, now);
 
         assertEquals(1, status);
+    }
+
+    @Test
+    @DisplayName("and time is just before expiration plus clock skew then status should be resolved")
+    void validateAndResolveStatusAcceptsCwtJustBeforeExpirationBoundary() throws Exception {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        Instant expirationTime = FIXED_NOW.plusSeconds(300);
+        byte[] cwt = createSignedStatusListCwtWithRsa(
+                STATUS_LIST_URI, FIXED_NOW.minusSeconds(30), expirationTime, 1, new byte[]{0});
+
+        int status = validator.validateAndResolveStatus(
+                STATUS_LIST_URI, 0, cwt, expirationTime.plus(CLOCK_SKEW).minus(1, NANOS));
+
+        assertEquals(0, status);
+    }
+
+    @Test
+    @DisplayName("and time is at expiration plus clock skew then verification exception should be thrown")
+    void validateAndResolveStatusRejectsCwtAtExpirationBoundary() throws Exception {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        Instant expirationTime = FIXED_NOW.plusSeconds(300);
+        byte[] cwt = createSignedStatusListCwtWithRsa(
+                STATUS_LIST_URI, FIXED_NOW.minusSeconds(30), expirationTime, 1, new byte[]{0});
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> validator.validateAndResolveStatus(
+                        STATUS_LIST_URI, 0, cwt, expirationTime.plus(CLOCK_SKEW)));
+
+        assertEquals("Status list CWT is expired", exception.getErrorDescription());
+    }
+
+    @Test
+    @DisplayName("and time is after expiration plus clock skew then verification exception should be thrown")
+    void validateAndResolveStatusRejectsCwtAfterExpirationBoundary() throws Exception {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        Instant expirationTime = FIXED_NOW.plusSeconds(300);
+        byte[] cwt = createSignedStatusListCwtWithRsa(
+                STATUS_LIST_URI, FIXED_NOW.minusSeconds(30), expirationTime, 1, new byte[]{0});
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> validator.validateAndResolveStatus(
+                        STATUS_LIST_URI, 0, cwt, expirationTime.plus(CLOCK_SKEW).plusNanos(1)));
+
+        assertEquals("Status list CWT is expired", exception.getErrorDescription());
+    }
+
+    @Test
+    @DisplayName("and issued-at equals now plus clock skew then status should be resolved")
+    void validateAndResolveStatusAcceptsCwtIssuedAtClockSkewBoundary() throws Exception {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        byte[] cwt = createSignedStatusListCwtWithRsa(
+                STATUS_LIST_URI, FIXED_NOW.plus(CLOCK_SKEW), FIXED_NOW.plusSeconds(300), 1, new byte[]{0});
+
+        int status = validator.validateAndResolveStatus(STATUS_LIST_URI, 0, cwt, FIXED_NOW);
+
+        assertEquals(0, status);
+    }
+
+    @Test
+    @DisplayName("and issued-at is beyond now plus clock skew then verification exception should be thrown")
+    void validateAndResolveStatusRejectsCwtIssuedAfterClockSkewBoundary() throws Exception {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        byte[] cwt = createSignedStatusListCwtWithRsa(
+                STATUS_LIST_URI, FIXED_NOW.plus(CLOCK_SKEW).plusSeconds(1), FIXED_NOW.plusSeconds(300),
+                1, new byte[]{0});
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> validator.validateAndResolveStatus(STATUS_LIST_URI, 0, cwt, FIXED_NOW));
+
+        assertEquals("Status list CWT iat is in the future", exception.getErrorDescription());
     }
 
     @Test

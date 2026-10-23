@@ -89,6 +89,12 @@ public class StatusListTestUtil {
     }
 
     public static byte[] createSignedStatusListCwtWithRsa(URI uri, Instant now, int bits, byte[] statuses) throws Exception {
+        return createSignedStatusListCwtWithRsa(
+                uri, now.minusSeconds(30), now.plusSeconds(300), bits, statuses);
+    }
+
+    public static byte[] createSignedStatusListCwtWithRsa(
+            URI uri, Instant issuedAt, Instant expirationTime, int bits, byte[] statuses) throws Exception {
         MapElement statusList = new MapElement(Map.of(
                 new MapKey("bits"), new NumberElement(bits),
                 new MapKey("lst"), new ByteStringElement(
@@ -96,8 +102,8 @@ public class StatusListTestUtil {
 
         MapElement claims = new MapElement(Map.of(
                 new MapKey(2), new StringElement(uri.toString()),
-                new MapKey(4), new NumberElement(now.plusSeconds(300).getEpochSecond()),
-                new MapKey(6), new NumberElement(now.minusSeconds(30).getEpochSecond()),
+                new MapKey(4), new NumberElement(expirationTime.getEpochSecond()),
+                new MapKey(6), new NumberElement(issuedAt.getEpochSecond()),
                 new MapKey(STATUS_LIST_CLAIM), statusList));
 
         String keyId = "status-list";
