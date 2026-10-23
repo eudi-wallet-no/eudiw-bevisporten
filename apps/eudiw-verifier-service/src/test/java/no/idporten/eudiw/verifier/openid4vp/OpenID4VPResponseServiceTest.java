@@ -20,6 +20,7 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
+import no.idporten.eudiw.verifier.statuslist.StatusListTokenFormat;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
 import no.idporten.eudiw.verifier.testdata.Certificates;
@@ -476,7 +477,8 @@ class OpenID4VPResponseServiceTest {
         when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult))
                 .thenReturn(new StatuslistEntry("7", URI.create("https://status.example/list")));
         when(sdJwtResult.getSdJwt()).thenReturn(sdJwt);
-        when(tokenStatuslistService.lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7))
+        when(tokenStatuslistService.lookupStatusFromStatuslist(
+                URI.create("https://status.example/list"), 7, StatusListTokenFormat.JWT))
                 .thenReturn(ValidationStatus.INVALID);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
@@ -491,7 +493,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertNull(credential.validationDetails()));
         verify(sdJwtService).verifySdJwt(sdJwt, certificate);
         verify(tokenStatuslistService)
-                .lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7);
+                .lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7, StatusListTokenFormat.JWT);
         verifyNoInteractions(mDocService);
     }
 
@@ -635,7 +637,7 @@ class OpenID4VPResponseServiceTest {
                     () -> service.receiveResponse(client, TRANSACTION_ID,
                             encrypted(validPayload(Map.of("pid", List.of("mdoc-token"))))));
             assertEquals("Invalid status list idx in vp_token", exception.getErrorDescription());
-            verify(tokenStatuslistService, never()).lookupStatusFromStatuslist(any(), anyInt());
+            verify(tokenStatuslistService, never()).lookupStatusFromStatuslist(any(), anyInt(), any());
         }
     }
 
@@ -648,7 +650,7 @@ class OpenID4VPResponseServiceTest {
             service.receiveResponse(client, TRANSACTION_ID,
                     encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
             verify(tokenStatuslistService)
-                    .lookupStatusFromStatuslist(URI.create("https://status.example/list"), idx);
+                    .lookupStatusFromStatuslist(URI.create("https://status.example/list"), idx, StatusListTokenFormat.CWT);
         }
     }
 
@@ -743,7 +745,7 @@ class OpenID4VPResponseServiceTest {
         if (idx.matches("-?\\d{1,10}")) {
             try {
                 when(tokenStatuslistService.lookupStatusFromStatuslist(
-                        URI.create("https://status.example/list"), Integer.parseInt(idx))).thenReturn(status);
+                        URI.create("https://status.example/list"), Integer.parseInt(idx), StatusListTokenFormat.CWT)).thenReturn(status);
             } catch (NumberFormatException ignored) {
                 // The service under test rejects values outside the integer range.
             }

@@ -19,6 +19,7 @@ import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
+import no.idporten.eudiw.verifier.statuslist.StatusListTokenFormat;
 import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
@@ -241,7 +242,7 @@ public class OpenID4VPResponseService {
         return trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, trustlists);
     }
 
-    private ValidationStatus checkStatuslist(StatuslistEntry statuslistEntry) {
+    private ValidationStatus checkStatuslist(StatuslistEntry statuslistEntry, StatusListTokenFormat preferredFormat) {
         ValidationStatus status;
         if (statuslistEntry != null) {
             int index;
@@ -253,7 +254,7 @@ public class OpenID4VPResponseService {
             if (index < 0) {
                 throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
             }
-            status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index);
+            status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index, preferredFormat);
         } else {
             status = ValidationStatus.NOT_APPLICABLE; // Still valid, but no status in the proof.
         }
@@ -269,7 +270,7 @@ public class OpenID4VPResponseService {
         Map<String, Object> claims = sdJwtService.sdJwtClaims(verificationResult);
 
         StatuslistEntry statuslistRecord = sdJwtService.extractStatuslistUriAndIdx(verificationResult);
-        ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord);
+        ValidationStatus statuslistStatus = checkStatuslist(statuslistRecord, StatusListTokenFormat.JWT);
         SDJwt verifiedSdJwt = verificationResult.getSdJwt();
         ValidationStatus trustlistStatus = checkTrustlist(sdJwtService.certificate(verifiedSdJwt), isPid(verifiedSdJwt));
         if (validateStatus(sdJwtStatus, statuslistStatus, trustlistStatus, holderBindingStatus)) {
@@ -288,7 +289,9 @@ public class OpenID4VPResponseService {
         validateRequestedCredentialType(mdoc, credentialQuery);
         X509Certificate certificate = mDocService.extractCertificateFromMdoc(mdoc);
         ValidationStatus trustlistStatus = checkTrustlist(certificate, isPid(mdoc));
-        ValidationStatus statuslistStatus = checkStatuslist(mDocService.extractStatuslistUriAndIdx(mdoc));
+        ValidationStatus statuslistStatus = checkStatuslist(
+                mDocService.extractStatuslistUriAndIdx(mdoc),
+                StatusListTokenFormat.CWT);
         if(validateStatus(mdocStatus, statuslistStatus, trustlistStatus, ValidationStatus.VALID)) {
             return new VerifiedCredential(claims, true, validationDetails(verificationTransaction.isIncludeValidationDetails(),trustlistStatus, statuslistStatus, mdocStatus, ValidationStatus.NOT_APPLICABLE, "MDoc"));
         } else {

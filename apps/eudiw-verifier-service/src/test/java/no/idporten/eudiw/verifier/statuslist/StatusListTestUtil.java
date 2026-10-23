@@ -8,12 +8,26 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import id.walt.mdoc.COSECryptoProviderKeyInfo;
+import id.walt.mdoc.SimpleCOSECryptoProvider;
+import id.walt.mdoc.cose.COSESign1;
+import id.walt.mdoc.dataelement.ByteStringElement;
+import id.walt.mdoc.dataelement.MapElement;
+import id.walt.mdoc.dataelement.MapKey;
+import id.walt.mdoc.dataelement.NumberElement;
+import id.walt.mdoc.dataelement.StringElement;
+import org.cose.java.AlgorithmID;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyFactory;
+import java.security.Security;
 import java.security.interfaces.RSAPrivateKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.io.ByteArrayInputStream;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.util.Date;
@@ -22,6 +36,10 @@ import java.util.Map;
 import java.util.zip.DeflaterOutputStream;
 
 public class StatusListTestUtil {
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     public static final byte[] HMAC_SECRET = "12345678901234567890123456789012".getBytes();
 
@@ -70,6 +88,43 @@ public class StatusListTestUtil {
         return jwt.serialize();
     }
 
+    public static byte[] createSignedStatusListCwtWithRsa(URI uri, Instant now, int bits, byte[] statuses) throws Exception {
+        return createSignedStatusListCwtWithRsa(
+                uri, now.minusSeconds(30), now.plusSeconds(300), bits, statuses);
+    }
+
+    public static byte[] createSignedStatusListCwtWithRsa(
+            URI uri, Instant issuedAt, Instant expirationTime, int bits, byte[] statuses) throws Exception {
+        MapElement statusList = new MapElement(Map.of(
+                new MapKey("bits"), new NumberElement(bits),
+                new MapKey("lst"), new ByteStringElement(
+                        java.util.Base64.getUrlDecoder().decode(base64UrlDeflated(statuses)))));
+
+        MapElement claims = new MapElement(Map.of(
+                new MapKey(2), new StringElement(uri.toString()),
+                new MapKey(4), new NumberElement(expirationTime.getEpochSecond()),
+                new MapKey(6), new NumberElement(issuedAt.getEpochSecond()),
+                new MapKey(STATUS_LIST_CLAIM), statusList));
+
+        String keyId = "status-list";
+        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(
+                keyId,
+                AlgorithmID.RSA_PSS_256,
+                loadRsaCertificate().getPublicKey(),
+                loadRsaPrivateKey(),
+                List.of(loadRsaCertificate()),
+                List.of());
+        MapElement protectedHeaders = new MapElement(Map.of(
+                new MapKey(16), new StringElement("application/statuslist+cwt")));
+        COSESign1 coseSign1 = new SimpleCOSECryptoProvider(List.of(keyInfo))
+                .sign1(claims.toCBOR(), protectedHeaders, null, keyId);
+        byte[] encodedCoseSign1 = coseSign1.toCBOR();
+        byte[] encodedCwt = new byte[encodedCoseSign1.length + 1];
+        encodedCwt[0] = (byte) 0xD2; // CBOR tag 18 identifies COSE_Sign1.
+        System.arraycopy(encodedCoseSign1, 0, encodedCwt, 1, encodedCoseSign1.length);
+        return encodedCwt;
+    }
+
     public static String base64UrlDeflated(byte[] bytes) throws IOException {
         ByteArrayOutputStream compressed = new ByteArrayOutputStream();
         try (DeflaterOutputStream deflater = new DeflaterOutputStream(compressed)) {
@@ -83,6 +138,12 @@ public class StatusListTestUtil {
         return (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
     }
 
+    private static X509Certificate loadRsaCertificate() throws Exception {
+        return (X509Certificate) CertificateFactory.getInstance("X.509")
+                .generateCertificate(new ByteArrayInputStream(java.util.Base64.getDecoder().decode(CERT_DER_BASE64)));
+    }
+
+    private static final int STATUS_LIST_CLAIM = 65533;
     private StatusListTestUtil() {
     }
 }

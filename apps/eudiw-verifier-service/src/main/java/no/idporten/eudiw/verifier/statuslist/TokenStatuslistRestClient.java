@@ -3,7 +3,6 @@ package no.idporten.eudiw.verifier.statuslist;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
@@ -11,8 +10,6 @@ import org.springframework.web.client.RestClient;
 public class TokenStatuslistRestClient {
 
     private final TokenStatuslistConfig tokenStatuslistConfig;
-    protected static final String STATUS_LIST_MEDIA_TYPE = "application/statuslist+jwt";
-
     public TokenStatuslistRestClient(TokenStatuslistConfig tokenStatuslistConfig) {
         this.tokenStatuslistConfig = tokenStatuslistConfig;
     }
@@ -25,7 +22,6 @@ public class TokenStatuslistRestClient {
 
         return RestClient.builder()
                 .requestFactory(clientHttpRequestFactory)
-                .defaultHeader(HttpHeaders.ACCEPT, STATUS_LIST_MEDIA_TYPE)
                 .build();
     }
 
