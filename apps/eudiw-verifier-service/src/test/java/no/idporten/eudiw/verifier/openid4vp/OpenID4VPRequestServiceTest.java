@@ -14,6 +14,7 @@ import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
+import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
@@ -68,6 +69,8 @@ class OpenID4VPRequestServiceTest {
     private KeyProvider keyProvider;
     @Mock
     private X509Certificate certificate;
+    @Mock
+    private AuditService auditService;
 
     private OpenID4VPRequestService service;
     private ClientApplication clientApplication;
@@ -87,7 +90,8 @@ class OpenID4VPRequestServiceTest {
                 keystoreManager,
                 verificationTransactionService,
                 JsonMapper.builder().build(),
-                cacheService);
+                cacheService,
+                auditService);
         lenient().when(keystoreManager.getKeyProvider(KEYSTORE_NAME)).thenReturn(keyProvider);
         lenient().when(keyProvider.certificate()).thenReturn(certificate);
         lenient().when(certificate.getEncoded()).thenReturn(new byte[]{1, 2, 3});
@@ -184,8 +188,10 @@ class OpenID4VPRequestServiceTest {
     @Test
     @DisplayName("When a verification transaction exists, then a signed authorization request is stored and returned")
     void createsAndStoresSignedAuthorizationRequest() throws Exception {
-        configureExistingTransaction();
+        VerificationTransaction transaction = configureExistingTransaction();
         String serializedRequest = service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
+        verify(auditService, times(1)).auditFetchAuthzRequestStart(anyString(), eq(clientApplication), eq(REQUEST_ID), eq(SAME_DEVICE_FLOW));
+        verify(auditService, times(1)).auditFetchAuthzRequestEnd(eq(transaction), anyString(), eq(clientApplication), eq(REQUEST_ID), eq(serializedRequest));
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
         assertTrue(request.verify(getEcdsaVerifier(keyProvider)));
