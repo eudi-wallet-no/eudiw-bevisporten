@@ -4,6 +4,7 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.ECDHEncrypter;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.dataelement.StringElement;
@@ -15,6 +16,7 @@ import kotlinx.serialization.json.Json;
 import kotlinx.serialization.json.JsonObject;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
+import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
@@ -92,7 +94,11 @@ class OpenID4VPResponseServiceTest {
         lenient().when(trustlistsProperties.getAttestationTrustlists()).thenReturn(ATTESTATION_TRUSTLISTS);
         client = new ClientApplication();
         client.setId("client");
-        encryptionKey = new ECKeyGenerator(Curve.P_256).generate();
+        encryptionKey = new ECKeyGenerator(Curve.P_256)
+                .algorithm(JWEAlgorithm.ECDH_ES)
+                .keyUse(KeyUse.ENCRYPTION)
+                .keyID("encryption-key")
+                .generate();
     }
 
     @Test
@@ -131,18 +137,21 @@ class OpenID4VPResponseServiceTest {
                 VerificationException.class,
                 () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
 
-        assertEquals("Authorization response is not encrypted", exception.getErrorDescription());
+        assertEquals("Authorization response is not a valid JWE", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
     }
 
-    @Test
-    @DisplayName("with a real JWE and a missing selected credential, then missing credential persistence is expected")
-    void decryptsRealJweAndPersistsMissingSelectedCredential() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"A128GCM", "A256GCM"})
+    @DisplayName("When a JWE uses an advertised encryption method, then decryption and credential persistence are expected")
+    void decryptsRealJweAndPersistsMissingSelectedCredential(String encryptionMethod) throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         Map<String, Object> payload = Map.of("state", STATE, "nonce", "nonce", "vp_token", Map.of());
 
-        var callback = service.receiveResponse(client, TRANSACTION_ID, encrypted(payload));
+        JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES, EncryptionMethod.parse(encryptionMethod))
+                .keyID(encryptionKey.getKeyID()).build();
+        WalletCallback callback = service.receiveResponse(client, TRANSACTION_ID, encrypted(payload, header, encryptionKey));
 
         ArgumentCaptor<VerifiedCredentials> credentials = ArgumentCaptor.forClass(VerifiedCredentials.class);
         ArgumentCaptor<Map<String, Object>> persistedPayload = ArgumentCaptor.forClass(Map.class);
@@ -156,6 +165,63 @@ class OpenID4VPResponseServiceTest {
                 () -> assertEquals(STATE, persistedPayload.getValue().get("state")),
                 () -> assertNull(callback.getRedirectUri()));
         verifyNoInteractions(mDocService, sdJwtService);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "ECDH-ES+A256KW,A256GCM,encryption-key,Authorization response alg does not match the requested encryption key",
+            "ECDH-ES,A128CBC-HS256,encryption-key,Authorization response enc was not advertised in the request",
+            "ECDH-ES,A256GCM,wrong-key,Authorization response kid does not match the requested encryption key",
+            "ECDH-ES,A256GCM,,Authorization response kid does not match the requested encryption key",
+            "ECDH-ES,A256GCM,'',Authorization response kid does not match the requested encryption key"
+    })
+    @DisplayName("When a JWE header differs from the request, then rejection before decryption and credential processing is expected")
+    void rejectsUnadvertisedEncryptionHeader(String algorithm, String encryptionMethod, String keyId, String message) throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.parse(algorithm), EncryptionMethod.parse(encryptionMethod))
+                .keyID(keyId).build();
+        // A different recipient key makes decryption fail if the header checks are not performed first.
+        ECKey otherRecipient = new ECKeyGenerator(Curve.P_256).generate();
+        EncryptedAuthorizationResponse response = encrypted(validPayload(Map.of()), header, otherRecipient);
+
+        assertEncryptionFailure(response, "invalid_request", message);
+    }
+
+    @Test
+    @DisplayName("When the stored key has no algorithm, then invalid request is expected")
+    void rejectsMissingKeyAlgorithm() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        transaction.setEncryptionKey(new ECKey.Builder(encryptionKey).algorithm(null).build());
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+
+        assertEncryptionFailure(encrypted(validPayload(Map.of())), "invalid_request",
+                "Missing response encryption key configuration");
+    }
+
+    @Test
+    @DisplayName("When a JWE has matching headers but uses another recipient key, then a decryption error is expected")
+    void rejectsUndecryptableResponseWithMatchingHeader() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES, EncryptionMethod.A256GCM)
+                .keyID(encryptionKey.getKeyID()).build();
+        ECKey otherRecipient = new ECKeyGenerator(Curve.P_256).generate();
+
+        assertEncryptionFailure(encrypted(validPayload(Map.of()), header, otherRecipient), "invalid_request",
+                "Unable to decrypt authorization response");
+    }
+
+    private void assertEncryptionFailure(EncryptedAuthorizationResponse response, String error, String description) {
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.receiveResponse(client, TRANSACTION_ID, response));
+
+        assertAll(
+                () -> assertEquals(error, exception.getError()),
+                () -> assertEquals(description, exception.getErrorDescription()));
+        verify(verificationService).markAsError(client, TRANSACTION_ID);
+        verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
+        verifyNoInteractions(mDocService, sdJwtService, trustlistService, tokenStatuslistService);
     }
 
     @Test
@@ -829,10 +895,14 @@ class OpenID4VPResponseServiceTest {
     }
 
     private EncryptedAuthorizationResponse encrypted(Map<String, Object> payload) throws Exception {
-        JWEObject jwe = new JWEObject(
-                new JWEHeader(JWEAlgorithm.ECDH_ES, EncryptionMethod.A256GCM),
-                new Payload(payload));
-        jwe.encrypt(new ECDHEncrypter(encryptionKey.toPublicJWK()));
+        JWEHeader header = new JWEHeader.Builder(JWEAlgorithm.ECDH_ES, EncryptionMethod.A256GCM)
+                .keyID(encryptionKey.getKeyID()).build();
+        return encrypted(payload, header, encryptionKey);
+    }
+
+    private EncryptedAuthorizationResponse encrypted(Map<String, Object> payload, JWEHeader header, ECKey recipient) throws Exception {
+        JWEObject jwe = new JWEObject(header, new Payload(payload));
+        jwe.encrypt(new ECDHEncrypter(recipient.toPublicJWK()));
         return response(jwe.serialize());
     }
 

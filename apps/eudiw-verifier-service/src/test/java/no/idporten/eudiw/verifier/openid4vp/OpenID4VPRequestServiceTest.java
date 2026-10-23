@@ -1,9 +1,12 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -187,6 +190,7 @@ class OpenID4VPRequestServiceTest {
         SignedJWT request = SignedJWT.parse(serializedRequest);
         assertTrue(request.verify(getEcdsaVerifier(keyProvider)));
         VerificationTransaction storedTransaction = captureStoredTransaction();
+        Map<String, Object> metadata = request.getJWTClaimsSet().getJSONObjectClaim("client_metadata");
 
         assertAll(
                 () -> assertEquals(EXTERNAL_BASE_URI, request.getJWTClaimsSet().getIssuer()),
@@ -194,6 +198,12 @@ class OpenID4VPRequestServiceTest {
                 () -> assertEquals(request.getJWTClaimsSet().toJSONObject(), storedTransaction.getRequest()),
                 () -> assertNotNull(storedTransaction.getState()),
                 () -> assertNotNull(storedTransaction.getEncryptionKey()),
+                () -> assertEquals(JWEAlgorithm.ECDH_ES, storedTransaction.getEncryptionKey().getAlgorithm()),
+                () -> assertEquals(KeyUse.ENCRYPTION, storedTransaction.getEncryptionKey().getKeyUse()),
+                () -> assertNotNull(storedTransaction.getEncryptionKey().getKeyID()),
+                () -> assertEquals(List.of("A128GCM", "A256GCM"), metadata.get("encrypted_response_enc_values_supported")),
+                () -> assertEquals(new JWKSet(storedTransaction.getEncryptionKey()).toPublicJWKSet().toJSONObject(),
+                        metadata.get("jwks")),
                 () -> assertFalse(request.getJWTClaimsSet().toJSONObject().containsKey("verifier_info")),
                 () -> assertNull(request.getJWTClaimsSet().getClaim("dcql_query")));
     }

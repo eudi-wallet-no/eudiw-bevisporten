@@ -87,17 +87,7 @@ public class OpenID4VPResponseService {
         if (!StringUtils.hasText(encryptedAuthorizationResponse.getResponse())) {
             throw new VerificationException("invalid_request", "Missing authorization response");
         }
-        Map<String, Object> claimsFromJwePayload;
-        try {
-            claimsFromJwePayload = decryptAndDeserializeJweResponse(
-                    encryptedAuthorizationResponse.getResponse(),
-                    verificationTransaction.getEncryptionKey());
-        } catch (Exception e) {
-            throw new VerificationException(
-                    "invalid_request",
-                    "Authorization response is not encrypted",
-                    e);
-        }
+        Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse(), verificationTransaction);
         String state = (String) claimsFromJwePayload.get("state");
         if (!Objects.equals(state, verificationTransaction.getState())) {
             throw new VerificationException("invalid_request", "Invalid state in authorization response");
@@ -222,11 +212,38 @@ public class OpenID4VPResponseService {
         return verificationTransaction.getDcqlQuery().getCredentials();
     }
 
-    private Map<String, Object> decryptAndDeserializeJweResponse(String response, JWK encryptionKey) throws ParseException, JOSEException {
-        JWEObject jwe = JWEObject.parse(response);
-        JWEDecrypter decrypter = new DefaultJWEDecrypterFactory().createJWEDecrypter(jwe.getHeader(), encryptionKey.toECKey().toPrivateKey());
-        jwe.decrypt(decrypter);
+    private Map<String, Object> decryptAndDeserializeJweResponse(String response, VerificationTransaction verificationTransaction) {
+        JWEObject jwe;
+        try {
+            jwe = JWEObject.parse(response);
+        } catch (ParseException e) {
+            throw new VerificationException("invalid_request", "Authorization response is not a valid JWE", e);
+        }
+        validateResponseEncryptionHeader(jwe.getHeader(), verificationTransaction);
+        try {
+            JWEDecrypter decrypter = new DefaultJWEDecrypterFactory().createJWEDecrypter(
+                    jwe.getHeader(), verificationTransaction.getEncryptionKey().toECKey().toPrivateKey());
+            jwe.decrypt(decrypter);
+        } catch (JOSEException e) {
+            throw new VerificationException("invalid_request", "Unable to decrypt authorization response", e);
+        }
         return jwe.getPayload().toJSONObject();
+    }
+
+    private void validateResponseEncryptionHeader(JWEHeader header, VerificationTransaction verificationTransaction) {
+        JWK encryptionKey = verificationTransaction.getEncryptionKey();
+        if (encryptionKey == null || encryptionKey.getAlgorithm() == null) {
+            throw new VerificationException("invalid_request", "Missing response encryption key configuration");
+        }
+        if (!encryptionKey.getAlgorithm().getName().equals(header.getAlgorithm().getName())) {
+            throw new VerificationException("invalid_request", "Authorization response alg does not match the requested encryption key");
+        }
+        if (encryptionKey.getKeyID() != null && !encryptionKey.getKeyID().equals(header.getKeyID())) {
+            throw new VerificationException("invalid_request", "Authorization response kid does not match the requested encryption key");
+        }
+        if (!ResponseEncryption.SUPPORTED_ENCRYPTION_METHODS.contains(header.getEncryptionMethod())) {
+            throw new VerificationException("invalid_request", "Authorization response enc was not advertised in the request");
+        }
     }
 
     /**
