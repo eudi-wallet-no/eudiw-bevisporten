@@ -16,7 +16,7 @@
         <java.version>25</java.version>
         <maven.compiler.proc>full</maven.compiler.proc>
         <kotlin.version>2.4.20</kotlin.version>
-        <kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
+        <kotlinx-serialization-json-jvm.version>1.11.1-waltid-20260811</kotlinx-serialization-json-jvm.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
         <idporten-access-log.version>4.0.5</idporten-access-log.version>
@@ -125,7 +125,6 @@
             <artifactId>cose-java</artifactId>
             <version>${cose-java.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
@@ -139,13 +138,13 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-serialization-bom</artifactId>
-            <version>1.11.0</version>
+            <version>1.11.1-waltid-20260811</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-serialization-json-jvm</artifactId>
-            <version>${kotlinx-serialization-json-jvm.version}</version>
+            <version>1.11.1-waltid-20260811</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
