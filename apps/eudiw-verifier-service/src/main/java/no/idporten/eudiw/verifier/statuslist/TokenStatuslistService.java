@@ -156,6 +156,7 @@ public class TokenStatuslistService {
         StatusListTokenFormat[] formats = {preferredFormat, preferredFormat.fallback()};
         for (int index = 0; index < formats.length; index++) {
             try {
+                log.info("Requesting status list from {} with media type {}", uri, formats[index].mediaType());
                 ResponseEntity<byte[]> response = restClient.get()
                         .uri(uri)
                         .accept(formats[index].mediaType())
