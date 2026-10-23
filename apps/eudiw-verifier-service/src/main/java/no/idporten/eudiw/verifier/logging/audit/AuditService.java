@@ -10,7 +10,6 @@ import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
 
 @Service
 public class AuditService {
@@ -31,6 +30,7 @@ public class AuditService {
     protected static final String CREDENTIALS = "credentials";
     protected static final String VERIFICATION_STATUS = "status";
     protected static final String AUDIENCE = "audience";
+    protected static final String FLOW = "flow";
 
     public AuditService(AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
@@ -88,4 +88,36 @@ public class AuditService {
                 .build();
         auditLogger.log(auditEntry);
     }
+
+    public void auditFetchAuthzRequest(String verifierTransactionId, ClientApplication clientApplication, String requestId) {
+        AuditEntry auditEntry = AuditEntry.builder()
+                .auditId(AuditID.FETCH_AUTHZ_REQUEST.auditIdentifier())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(REQUEST_ID, requestId)
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .build();
+        auditLogger.log(auditEntry);
+
+    }
+
+    public void auditFetchAuthzResponse(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId) {
+        AuditEntry auditEntry = AuditEntry.builder()
+                .auditId(AuditID.FETCH_AUTHZ_RESPONSE.auditIdentifier())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(REQUEST_ID, requestId)
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(FLOW, verificationTransaction.getFlow())
+
+                .build();
+        auditLogger.log(auditEntry);
+    }
+
+    /**
+     *
+     *  verificationTransaction.setFlow(flow);
+     *         JWT authorizationRequest = makeRequestJwt(verificationTransaction, clientApplication, verificationTransactionId);
+     *         verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
+     *         cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
+     */
+
 }
