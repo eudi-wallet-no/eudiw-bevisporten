@@ -106,6 +106,7 @@ public class OpenID4VPResponseService {
         }
         List<DcqlCredentialQuery> requestedCredentials = getRequestedCredentialQueries(verificationTransaction);
         VpToken vpToken = extractVpToken(claimsFromJwePayload);
+        auditService.auditFetchDecryptedVpTokenAuthzResponse(vpToken.toString(), verifierTransactionId, clientApplication, state);
         Map<String, List<VerifiedCredential>> allCredentials = new LinkedHashMap<>();
         for (DcqlCredentialQuery credentialQuery : requestedCredentials) {
             String credentialId = credentialQuery.getId();
@@ -134,7 +135,6 @@ public class OpenID4VPResponseService {
         }
         VerifiedCredentials verifiedCredentials = new VerifiedCredentials(allCredentials);
         verificationTransactionService.addVerifiedCredentials(clientApplication, verifierTransactionId, verifiedCredentials, claimsFromJwePayload);
-        auditService.auditFetchDeliverAuthzResponse(verifiedCredentials, verifierTransactionId, clientApplication);
         WalletCallback walletCallback = new WalletCallback();
         if ("same_device".equals(verificationTransaction.getFlow()) && verificationTransaction.getRedirectUri() != null) {
             walletCallback.setRedirectUri(verificationTransaction.getRedirectUri());

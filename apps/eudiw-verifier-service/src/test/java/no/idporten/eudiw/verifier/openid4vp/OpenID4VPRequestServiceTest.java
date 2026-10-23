@@ -187,8 +187,8 @@ class OpenID4VPRequestServiceTest {
     void createsAndStoresSignedAuthorizationRequest() throws Exception {
         VerificationTransaction transaction = configureExistingTransaction();
         String serializedRequest = service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW);
-        verify(auditService, times(1)).auditFetchAuthzRequest(anyString(), eq(clientApplication), eq(REQUEST_ID), eq(SAME_DEVICE_FLOW));
-        verify(auditService, times(1)).auditFetchAuthzResponse(eq(transaction), anyString(), eq(clientApplication), eq(REQUEST_ID));
+        verify(auditService, times(1)).auditFetchAuthzRequestStart(anyString(), eq(clientApplication), eq(REQUEST_ID), eq(SAME_DEVICE_FLOW));
+        verify(auditService, times(1)).auditFetchAuthzRequestEnd(eq(transaction), anyString(), eq(clientApplication), eq(REQUEST_ID), eq(serializedRequest));
 
         SignedJWT request = SignedJWT.parse(serializedRequest);
         assertTrue(request.verify(getEcdsaVerifier(keyProvider)));
