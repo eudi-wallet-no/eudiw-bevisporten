@@ -1,6 +1,7 @@
 package no.idporten.eudiw.verifier.logging.audit;
 
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
+import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
@@ -43,15 +44,15 @@ public class AuditService {
         auditLogger.log(auditEntry);
     }
 
-    public void auditResponseStartVerificationRequest(ClientApplication clientApplication, String verifierTransactionId, String requestId, URI authorizationRequest, URI authorizationRequestQRCode) {
+    public void auditStartVerificationRequestResponse(StartVerificationResponse startVerificationResponse, ClientApplication clientApplication, String requestId) {
 
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.START_VERIFICATION_RESPONSE.auditIdentifier())
-                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
-                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(VERIFIER_TRANSACTION_ID, startVerificationResponse.verifierTransactionId())
                 .attribute(REQUEST_ID, requestId)
-                .attribute(AUTHORIZATION_REQUEST, authorizationRequest.toString())
-                .attribute(AUTHORIZATION_REQUEST_QR_CODE, authorizationRequestQRCode.toString())
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(AUTHORIZATION_REQUEST, startVerificationResponse.authorizationRequest().toString())
+                .attribute(AUTHORIZATION_REQUEST_QR_CODE, startVerificationResponse.authorizationRequestQRCode().toString())
                 .build();
         auditLogger.log(auditEntry);
 

@@ -33,8 +33,9 @@ public class VerificationService {
         URI authorizationRequestSameDevice = openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "same_device");
         URI qrCodeDataUriCrossDevice = openID4VPRequestService.createQrCodeDataURI(openID4VPRequestService.createAuthorizationRequest(requestId, clientApplication, "cross_device"));
         verificationTransactionService.initTransaction(startVerificationRequest.dcqlQuery(), startVerificationRequest.redirectUri(), verifierTransactionId, clientApplication, includeValidationDetails);
-        auditService.auditResponseStartVerificationRequest(clientApplication, verifierTransactionId, requestId, authorizationRequestSameDevice, qrCodeDataUriCrossDevice);
-        return new StartVerificationResponse(authorizationRequestSameDevice, qrCodeDataUriCrossDevice, verifierTransactionId);
+        StartVerificationResponse response = new StartVerificationResponse(authorizationRequestSameDevice, qrCodeDataUriCrossDevice, verifierTransactionId);
+        auditService.auditStartVerificationRequestResponse(response, clientApplication,requestId);
+        return response;
     }
 
     private String createVerifierTransactionId() {
