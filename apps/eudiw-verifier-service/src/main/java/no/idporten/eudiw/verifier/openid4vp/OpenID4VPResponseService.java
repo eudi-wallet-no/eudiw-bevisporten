@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonPrimitive;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
+import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
@@ -47,16 +48,18 @@ public class OpenID4VPResponseService {
     private final TokenStatuslistService tokenStatuslistService;
     private final TrustlistService trustlistService;
     private final TrustlistsProperties trustlistsProperties;
+    private final AuditService auditService;
 
     private final MDocService mDocService;
 
     private final SdJwtService sdJwtService;
 
-    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, TrustlistsProperties trustlistsProperties, MDocService mDocService, SdJwtService sdJwtService) {
+    public OpenID4VPResponseService(VerificationTransactionService verificationTransactionService, TokenStatuslistService tokenStatuslistService, TrustlistService trustlistService, TrustlistsProperties trustlistsProperties, AuditService auditService, MDocService mDocService, SdJwtService sdJwtService) {
         this.verificationTransactionService = verificationTransactionService;
         this.tokenStatuslistService = tokenStatuslistService;
         this.trustlistService = trustlistService;
         this.trustlistsProperties = trustlistsProperties;
+        this.auditService = auditService;
         this.mDocService = mDocService;
         this.sdJwtService = sdJwtService;
     }
@@ -131,6 +134,7 @@ public class OpenID4VPResponseService {
         }
         VerifiedCredentials verifiedCredentials = new VerifiedCredentials(allCredentials);
         verificationTransactionService.addVerifiedCredentials(clientApplication, verifierTransactionId, verifiedCredentials, claimsFromJwePayload);
+        auditService.auditFetchDeliverAuthzResponse(verifiedCredentials, verifierTransactionId, clientApplication);
         WalletCallback walletCallback = new WalletCallback();
         if ("same_device".equals(verificationTransaction.getFlow()) && verificationTransaction.getRedirectUri() != null) {
             walletCallback.setRedirectUri(verificationTransaction.getRedirectUri());

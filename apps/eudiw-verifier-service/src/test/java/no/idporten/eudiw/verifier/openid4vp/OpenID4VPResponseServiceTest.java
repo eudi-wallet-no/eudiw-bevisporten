@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonObject;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
@@ -78,6 +79,7 @@ class OpenID4VPResponseServiceTest {
     @Mock SDJwt sdJwt;
     @Mock VerificationResult<SDJwt> sdJwtResult;
     @Mock X509Certificate certificate;
+    @Mock AuditService auditService;
 
     private OpenID4VPResponseService service;
     private ClientApplication client;
@@ -86,7 +88,7 @@ class OpenID4VPResponseServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         service = new OpenID4VPResponseService(
-                verificationService, tokenStatuslistService, trustlistService, trustlistsProperties, mDocService, sdJwtService);
+                verificationService, tokenStatuslistService, trustlistService, trustlistsProperties, auditService, mDocService, sdJwtService);
         lenient().when(trustlistsProperties.getPidTrustlists()).thenReturn(PID_TRUSTLISTS);
         lenient().when(trustlistsProperties.getAttestationTrustlists()).thenReturn(ATTESTATION_TRUSTLISTS);
         client = new ClientApplication();

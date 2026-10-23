@@ -6,6 +6,7 @@ import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.VerificationTransaction;
+import no.idporten.eudiw.verifier.openid4vp.VerifiedCredentials;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,6 +33,7 @@ public class AuditService {
     protected static final String VERIFICATION_STATUS = "status";
     protected static final String AUDIENCE = "audience";
     protected static final String FLOW = "flow";
+    protected static final String VERIFIED_CREDENTIALS = "verified_credentials";
 
     public AuditService(AuditLogger auditLogger) {
         this.auditLogger = auditLogger;
@@ -111,6 +113,17 @@ public class AuditService {
                 .attribute(FLOW, verificationTransaction.getFlow())
                 .build();
         auditLogger.log(auditEntry);
+    }
+
+    public void auditFetchDeliverAuthzResponse(VerifiedCredentials verifiedCredentials, String verifierTransactionId, ClientApplication clientApplication) {
+        AuditEntry auditEntry = AuditEntry.builder()
+                .auditId(AuditID.DELIVER_AUTHZ_RESPONSE.auditIdentifier())
+                .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
+                .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
+                .attribute(VERIFIED_CREDENTIALS, verifiedCredentials)
+                .build();
+        auditLogger.log(auditEntry);
+
     }
 
 }

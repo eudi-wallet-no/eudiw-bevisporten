@@ -11,7 +11,6 @@ import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
-import no.idporten.eudiw.verifier.logging.audit.AuditID;
 import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlClaimQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
