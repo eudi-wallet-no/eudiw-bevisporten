@@ -171,17 +171,17 @@ public class TokenStatuslistService {
                 }
                 throw new StatusCommunicationException(
                         "Could not verify status",
-                        "Status API returned HTTP %s for %s".formatted(e.getStatusCode(), uri),
+                        "Status list API returned status code=%s for uri=%s".formatted(e.getStatusCode(), uri),
                         e);
             } catch (ResourceAccessException e) {
-                throw new IOConnectionException("Could not verify status", "Error in connection with status API " + e.getMessage(), e);
+                throw new IOConnectionException("Could not verify status", "Error in connection with status list API " + uri, e);
             } catch (Exception e) {
-                throw new StatusCommunicationException("Could not verify status", "Error in communication with status API " + e.getMessage(), e);
+                throw new StatusCommunicationException("Could not verify status", "Error in communication with status list API=" + uri, e);
             }
         }
         throw new StatusCommunicationException(
                 "Could not verify status",
-                "No supported status list format was returned for " + uri,
+                "No supported status list format was returned for uri=" + uri,
                 new IllegalStateException("Both requested status-list formats were rejected"));
     }
 
