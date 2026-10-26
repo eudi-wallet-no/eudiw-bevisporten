@@ -126,7 +126,7 @@ public class OpenID4VPRequestService {
             throw new VerificationException("invalid_request", "Unknown verification transaction");
         }
         String state = UUID.randomUUID().toString();
-        JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(JWEAlgorithm.ECDH_ES).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
+        JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(ResponseEncryption.ENCRYPTION_ALGORITHM).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
         verificationTransaction.setState(state);
         verificationTransaction.setEncryptionKey(encryptionKey);
         verificationTransaction.setFlow(flow);
@@ -238,10 +238,7 @@ public class OpenID4VPRequestService {
     private JSONObject makeClientMetadata(JWK encryptionKey) {
         JSONObject metadata = new JSONObject();
         metadata.appendField("jwks", new JWKSet(encryptionKey).toPublicJWKSet().toJSONObject());
-        JSONArray encryptedResponseAlgs = new JSONArray();
-        encryptedResponseAlgs.add(EncryptionMethod.A128GCM.getName());
-        encryptedResponseAlgs.add(EncryptionMethod.A256GCM.getName());
-        metadata.appendField("encrypted_response_enc_values_supported", encryptedResponseAlgs);
+        metadata.appendField("encrypted_response_enc_values_supported", ResponseEncryption.SUPPORTED_ENCRYPTION_METHODS.stream().map(EncryptionMethod::getName).toList());
         metadata.appendField("vp_formats_supported", makeVpFormatsSupported());
         return metadata;
     }
