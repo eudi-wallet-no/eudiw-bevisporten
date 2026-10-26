@@ -82,7 +82,6 @@ public class AuditService {
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(CREDENTIALS, verificationResultResponse.credentials())
-                .attribute(AUTHORIZATION_REQUEST, verificationResultResponse.authorizationRequest())
                 .attribute(AUTHORIZATION_RESPONSE, verificationResultResponse.authorizationResponse())
                 .build();
         auditLogger.log(auditEntry);
