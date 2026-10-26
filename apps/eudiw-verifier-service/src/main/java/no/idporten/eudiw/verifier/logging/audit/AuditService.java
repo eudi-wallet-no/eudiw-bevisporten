@@ -105,7 +105,7 @@ public class AuditService {
 
     public void auditFetchAuthzRequestEnd(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.FETCH_AUTHZ_RESPONSE.auditIdentifier())
+                .auditId(AuditID.FETCH_AUTHZ_REQUEST_END.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(REQUEST_ID, requestId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
