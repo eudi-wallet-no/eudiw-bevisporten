@@ -68,7 +68,7 @@ public class AuditService {
 
     public void auditClientFetchVerificationDataRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.FETCH_VERIFICATION_DATA_REQUEST.auditIdentifier())
+                .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(AUDIENCE, verificationTransaction.getAudience())
@@ -81,7 +81,7 @@ public class AuditService {
 
     public void auditClientFetchVerificationDataResponse(VerificationResultResponse verificationResultResponse, String verifierTransactionId, ClientApplication clientApplication) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.FETCH_VERIFICATION_DATA_RESPONSE.auditIdentifier())
+                .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(CREDENTIALS, verificationResultResponse.credentials())
@@ -93,7 +93,7 @@ public class AuditService {
 
     public void auditFetchAuthzRequestStart(String verifierTransactionId, ClientApplication clientApplication, String requestId, String flow) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.FETCH_AUTHZ_REQUEST.auditIdentifier())
+                .auditId(AuditID.RETRIEVE_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(REQUEST_ID, requestId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
@@ -105,7 +105,7 @@ public class AuditService {
 
     public void auditFetchAuthzRequestEnd(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.FETCH_AUTHZ_REQUEST_END.auditIdentifier())
+                .auditId(AuditID.SEND_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(REQUEST_ID, requestId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
@@ -117,7 +117,7 @@ public class AuditService {
 
     public void auditFetchDecryptedVpTokenAuthzResponse(String vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.VP_TOKEN_AUTHZ_RESPONSE.auditIdentifier())
+                .auditId(AuditID.RETRIEVE_AUTHZ_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(VP_TOKEN, vpToken)
