@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.1</version>
+		<version>4.1.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>no.idporten.eudiw</groupId>
@@ -17,7 +17,7 @@
 		<java.version>25</java.version>
 		<maven.compiler.proc>full</maven.compiler.proc>
 		<kotlin.version>2.4.21</kotlin.version>
-		<kotlinx-serialization-json-jvm.version>1.11.0</kotlinx-serialization-json-jvm.version>
+		<kotlinx-serialization-json-jvm.version>1.12.0</kotlinx-serialization-json-jvm.version>
 		<idporten.keystore.version>3.0.0</idporten.keystore.version>
 		<idporten-actuator.version>3.1.2</idporten-actuator.version>
 		<idporten-access-log.version>4.0.6</idporten-access-log.version>
@@ -162,7 +162,7 @@
 		<dependency>
 			<groupId>org.jetbrains.kotlinx</groupId>
 			<artifactId>kotlinx-serialization-bom</artifactId>
-			<version>1.11.0</version>
+			<version>1.12.0</version>
 			<type>pom</type>
 		</dependency>
         <dependency>
