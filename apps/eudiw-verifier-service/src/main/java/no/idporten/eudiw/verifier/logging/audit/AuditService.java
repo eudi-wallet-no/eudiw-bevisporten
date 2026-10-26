@@ -117,7 +117,7 @@ public class AuditService {
                 .auditId(AuditID.RECEIVE_AUTHZ_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
-                .attribute(VP_TOKEN, vpToken.auditLogFormatted())
+                .attribute(VP_TOKEN, vpToken.toJson())
                 .attribute(STATE, state)
                 .build();
         auditLogger.log(auditEntry);

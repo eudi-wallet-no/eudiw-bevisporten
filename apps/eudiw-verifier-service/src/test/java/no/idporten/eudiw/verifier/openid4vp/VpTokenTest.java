@@ -23,7 +23,7 @@ class VpTokenTest {
                 "credential-2", List.of(new VerifiablePresentation("token-3"))
         ));
 
-        String logged = vpToken.auditLogFormatted();
+        String logged = vpToken.toJson();
         assertTrue(logged.contains("\"credential-1\":[\"token-1\",\"token-2\"]"));
         assertTrue(logged.contains("\"credential-2\":[\"token-3\"]"));
         assertEquals("token-1", new VerifiablePresentation("token-1").value());
