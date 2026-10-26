@@ -5,6 +5,7 @@ import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.VerificationTransaction;
+import no.idporten.eudiw.verifier.openid4vp.VpToken;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -28,7 +29,6 @@ public class AuditService {
     protected static final String AUTHORIZATION_REQUEST_QR_CODE = "authorization_request_qr_code";
     protected static final String AUTHORIZATION_RESPONSE = "authorization_response";
     protected static final String CREDENTIALS = "credentials";
-    protected static final String VERIFICATION_STATUS = "status";
     protected static final String FLOW = "flow";
     protected static final String VP_TOKEN = "vp_token";
     protected static final String STATE = "state";
@@ -99,7 +99,7 @@ public class AuditService {
 
     }
 
-    public void auditFetchAuthzRequestEnd(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt) {
+    public void auditFetchAuthzRequestEnd(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.SEND_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -107,16 +107,17 @@ public class AuditService {
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(FLOW, verificationTransaction.getFlow())
                 .attribute(AUTHORIZATION_REQUEST, authzRequestJwt)
+                .attribute(STATE, state)
                 .build();
         auditLogger.log(auditEntry);
     }
 
-    public void auditFetchDecryptedVpTokenAuthzResponse(String vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
+    public void auditFetchDecryptedVpTokenAuthzResponse(VpToken vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.RETRIEVE_AUTHZ_RESPONSE.auditIdentifier())
+                .auditId(AuditID.RECEIVE_AUTHZ_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
-                .attribute(VP_TOKEN, vpToken)
+                .attribute(VP_TOKEN, vpToken.auditLogFormatted())
                 .attribute(STATE, state)
                 .build();
         auditLogger.log(auditEntry);

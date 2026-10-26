@@ -134,7 +134,7 @@ public class OpenID4VPRequestService {
         verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
         cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
         String authorizationRequestString = authorizationRequest.serialize();
-        auditService.auditFetchAuthzRequestEnd(verificationTransaction, verificationTransactionId, clientApplication, requestId, authorizationRequestString);
+        auditService.auditFetchAuthzRequestEnd(verificationTransaction, verificationTransactionId, clientApplication, requestId, authorizationRequestString, state);
         return authorizationRequestString;
     }
 
