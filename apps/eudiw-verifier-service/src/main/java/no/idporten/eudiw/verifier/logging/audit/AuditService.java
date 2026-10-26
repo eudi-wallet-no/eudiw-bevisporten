@@ -29,7 +29,6 @@ public class AuditService {
     protected static final String AUTHORIZATION_RESPONSE = "authorization_response";
     protected static final String CREDENTIALS = "credentials";
     protected static final String VERIFICATION_STATUS = "status";
-    protected static final String AUDIENCE = "audience";
     protected static final String FLOW = "flow";
     protected static final String VP_TOKEN = "vp_token";
     protected static final String STATE = "state";
@@ -71,10 +70,8 @@ public class AuditService {
                 .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
-                .attribute(AUDIENCE, verificationTransaction.getAudience())
                 .attribute(DCQL_QUERY, verificationTransaction.getDcqlQuery())
                 .attribute(REDIRECT_URI, verificationTransaction.getRedirectUri().toString())
-                .attribute(VERIFICATION_STATUS, verificationTransaction.getStatus())
                 .build();
         auditLogger.log(auditEntry);
     }
