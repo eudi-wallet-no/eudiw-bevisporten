@@ -25,6 +25,8 @@ public class AuditService {
     @Qualifier("auditLogger")
     private final AuditLogger auditLogger;
 
+    private final ObjectMapper objectMapper;
+
     // Attributes for audit logging
 
     protected static final String VERIFIER_TRANSACTION_ID = "verifier_transaction_id";
@@ -40,7 +42,8 @@ public class AuditService {
     protected static final String VP_TOKEN = "vp_token";
     protected static final String STATE = "state";
 
-    public AuditService(AuditLogger auditLogger) {
+    public AuditService(AuditLogger auditLogger, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.auditLogger = auditLogger;
     }
 
@@ -138,7 +141,7 @@ public class AuditService {
                             .toList());
         }
         try {
-            return new ObjectMapper().writeValueAsString(jsonMap);
+            return objectMapper.writeValueAsString(jsonMap);
         } catch (Exception e) {
             throw new VerificationException("error", "Failed to convert vpToken to json for logging", e);
         }
