@@ -1,15 +1,22 @@
 package no.idporten.eudiw.verifier.logging.audit;
 
+import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.VerifiablePresentation;
 import no.idporten.eudiw.verifier.openid4vp.VerificationTransaction;
 import no.idporten.eudiw.verifier.openid4vp.VpToken;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -82,7 +89,6 @@ public class AuditService {
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(CREDENTIALS, verificationResultResponse.credentials())
-                .attribute(AUTHORIZATION_RESPONSE, verificationResultResponse.authorizationResponse())
                 .build();
         auditLogger.log(auditEntry);
     }
@@ -117,9 +123,25 @@ public class AuditService {
                 .auditId(AuditID.RECEIVE_AUTHZ_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
-                .attribute(VP_TOKEN, vpToken.toJson())
+                .attribute(VP_TOKEN, vpTokenToJson(vpToken))
                 .attribute(STATE, state)
                 .build();
         auditLogger.log(auditEntry);
+    }
+
+    public String vpTokenToJson(VpToken vpToken) {
+        Map<String, List<String>> jsonMap = new HashMap<>();
+        for (var entry : vpToken.verifiablePresentations().entrySet()) {
+            jsonMap.put(entry.getKey(),
+                    entry.getValue().stream()
+                            .map(VerifiablePresentation::value)
+                            .toList());
+        }
+        try {
+            return new ObjectMapper().writeValueAsString(jsonMap);
+        } catch (Exception e) {
+            throw new VerificationException("error", "Failed to convert vpToken to json for logging", e);
+        }
+
     }
 }
