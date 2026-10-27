@@ -1,14 +1,22 @@
 package no.idporten.eudiw.verifier.logging.audit;
 
+import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
 import no.idporten.eudiw.verifier.api.verification.VerificationResultResponse;
 import no.idporten.eudiw.verifier.config.ClientApplication;
+import no.idporten.eudiw.verifier.openid4vp.VerifiablePresentation;
 import no.idporten.eudiw.verifier.openid4vp.VerificationTransaction;
+import no.idporten.eudiw.verifier.openid4vp.VpToken;
 import no.idporten.logging.audit.AuditEntry;
 import no.idporten.logging.audit.AuditLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -16,6 +24,8 @@ public class AuditService {
 
     @Qualifier("auditLogger")
     private final AuditLogger auditLogger;
+
+    private final ObjectMapper objectMapper;
 
     // Attributes for audit logging
 
@@ -28,12 +38,12 @@ public class AuditService {
     protected static final String AUTHORIZATION_REQUEST_QR_CODE = "authorization_request_qr_code";
     protected static final String AUTHORIZATION_RESPONSE = "authorization_response";
     protected static final String CREDENTIALS = "credentials";
-    protected static final String VERIFICATION_STATUS = "status";
     protected static final String FLOW = "flow";
     protected static final String VP_TOKEN = "vp_token";
     protected static final String STATE = "state";
 
-    public AuditService(AuditLogger auditLogger) {
+    public AuditService(AuditLogger auditLogger, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.auditLogger = auditLogger;
     }
 
@@ -65,7 +75,7 @@ public class AuditService {
 
     }
 
-    public void auditClientFetchVerificationDataRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication) {
+    public void auditRetrieveVerificationDataRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -76,19 +86,17 @@ public class AuditService {
         auditLogger.log(auditEntry);
     }
 
-    public void auditClientFetchVerificationDataResponse(VerificationResultResponse verificationResultResponse, String verifierTransactionId, ClientApplication clientApplication) {
+    public void auditRetrieveVerificationDataResponse(VerificationResultResponse verificationResultResponse, String verifierTransactionId, ClientApplication clientApplication) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(CREDENTIALS, verificationResultResponse.credentials())
-                .attribute(AUTHORIZATION_REQUEST, verificationResultResponse.authorizationRequest())
-                .attribute(AUTHORIZATION_RESPONSE, verificationResultResponse.authorizationResponse())
                 .build();
         auditLogger.log(auditEntry);
     }
 
-    public void auditFetchAuthzRequestStart(String verifierTransactionId, ClientApplication clientApplication, String requestId, String flow) {
+    public void auditRetrieveAuthzRequest(String verifierTransactionId, ClientApplication clientApplication, String requestId, String flow) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RETRIEVE_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -100,7 +108,7 @@ public class AuditService {
 
     }
 
-    public void auditFetchAuthzRequestEnd(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt) {
+    public void auditSendAuthzRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.SEND_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -108,18 +116,35 @@ public class AuditService {
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
                 .attribute(FLOW, verificationTransaction.getFlow())
                 .attribute(AUTHORIZATION_REQUEST, authzRequestJwt)
+                .attribute(STATE, state)
                 .build();
         auditLogger.log(auditEntry);
     }
 
-    public void auditFetchDecryptedVpTokenAuthzResponse(String vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
+    public void auditReceiveAuthzResponse(VpToken vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
-                .auditId(AuditID.RETRIEVE_AUTHZ_RESPONSE.auditIdentifier())
+                .auditId(AuditID.RECEIVE_AUTHZ_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
                 .attribute(CLIENT_APPLICATION_ID, clientApplication.getId())
-                .attribute(VP_TOKEN, vpToken)
+                .attribute(VP_TOKEN, vpTokenToJson(vpToken))
                 .attribute(STATE, state)
                 .build();
         auditLogger.log(auditEntry);
+    }
+
+    public String vpTokenToJson(VpToken vpToken) {
+        Map<String, List<String>> jsonMap = new HashMap<>();
+        for (var entry : vpToken.verifiablePresentations().entrySet()) {
+            jsonMap.put(entry.getKey(),
+                    entry.getValue().stream()
+                            .map(VerifiablePresentation::value)
+                            .toList());
+        }
+        try {
+            return objectMapper.writeValueAsString(jsonMap);
+        } catch (Exception e) {
+            throw new VerificationException("error", "Failed to convert vpToken to json for logging", e);
+        }
+
     }
 }

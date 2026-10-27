@@ -120,7 +120,7 @@ public class OpenID4VPRequestService {
         if (verificationTransactionId == null) {
             throw new VerificationException("invalid_request", "Unknown authorization request");
         }
-        auditService.auditFetchAuthzRequestStart(verificationTransactionId, clientApplication, requestId, flow);
+        auditService.auditRetrieveAuthzRequest(verificationTransactionId, clientApplication, requestId, flow);
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verificationTransactionId);
         if (verificationTransaction == null) {
             throw new VerificationException("invalid_request", "Unknown verification transaction");
@@ -134,7 +134,7 @@ public class OpenID4VPRequestService {
         verificationTransaction.setRequest(authorizationRequest.getJWTClaimsSet().toJSONObject());
         cacheService.updateVerificationTransaction(clientApplication, verificationTransactionId, verificationTransaction);
         String authorizationRequestString = authorizationRequest.serialize();
-        auditService.auditFetchAuthzRequestEnd(verificationTransaction, verificationTransactionId, clientApplication, requestId, authorizationRequestString);
+        auditService.auditSendAuthzRequest(verificationTransaction, verificationTransactionId, clientApplication, requestId, authorizationRequestString, state);
         return authorizationRequestString;
     }
 
