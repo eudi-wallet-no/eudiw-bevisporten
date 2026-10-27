@@ -50,7 +50,7 @@ public class VerificationService {
 
     public VerificationResultResponse retrieveVerificationData(String verifierTransactionId, ClientApplication clientApplication) {
         VerificationTransaction verificationTransaction = verificationTransactionService.retrieveVerifiedCredentials(clientApplication, verifierTransactionId);
-        auditService.auditClientFetchVerificationDataRequest(verificationTransaction, verifierTransactionId, clientApplication);
+        auditService.auditRetrieveVerificationDataRequest(verificationTransaction, verifierTransactionId, clientApplication);
         if (verificationTransaction.getResponse() == null) { // TODO remove response object from verificationTransaction? what do we need here?
             HashMap<String, Object> response = new HashMap<>();
             response.put("response_uri", verificationTransaction.getRedirectUri().toString());
@@ -59,7 +59,7 @@ public class VerificationService {
             verificationTransaction.setResponse(response);
         }
         VerificationResultResponse response = new VerificationResultResponse(verifierTransactionId, verificationTransaction.getVerifiedCredentials().credentials(), verificationTransaction.getRequest(), verificationTransaction.getResponse());
-        auditService.auditClientFetchVerificationDataResponse(response, verifierTransactionId, clientApplication);
+        auditService.auditRetrieveVerificationDataResponse(response, verifierTransactionId, clientApplication);
         return response;
     }
 

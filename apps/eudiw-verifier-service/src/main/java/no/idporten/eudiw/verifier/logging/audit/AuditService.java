@@ -72,7 +72,7 @@ public class AuditService {
 
     }
 
-    public void auditClientFetchVerificationDataRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication) {
+    public void auditRetrieveVerificationDataRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -83,7 +83,7 @@ public class AuditService {
         auditLogger.log(auditEntry);
     }
 
-    public void auditClientFetchVerificationDataResponse(VerificationResultResponse verificationResultResponse, String verifierTransactionId, ClientApplication clientApplication) {
+    public void auditRetrieveVerificationDataResponse(VerificationResultResponse verificationResultResponse, String verifierTransactionId, ClientApplication clientApplication) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RETRIEVE_VERIFICATION_DATA_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -93,7 +93,7 @@ public class AuditService {
         auditLogger.log(auditEntry);
     }
 
-    public void auditFetchAuthzRequestStart(String verifierTransactionId, ClientApplication clientApplication, String requestId, String flow) {
+    public void auditRetrieveAuthzRequest(String verifierTransactionId, ClientApplication clientApplication, String requestId, String flow) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RETRIEVE_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -105,7 +105,7 @@ public class AuditService {
 
     }
 
-    public void auditFetchAuthzRequestEnd(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt, String state) {
+    public void auditSendAuthzRequest(VerificationTransaction verificationTransaction, String verifierTransactionId, ClientApplication clientApplication, String requestId, String authzRequestJwt, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.SEND_AUTHZ_REQUEST.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)
@@ -118,7 +118,7 @@ public class AuditService {
         auditLogger.log(auditEntry);
     }
 
-    public void auditFetchDecryptedVpTokenAuthzResponse(VpToken vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
+    public void auditReceiveAuthzResponse(VpToken vpToken, String verifierTransactionId, ClientApplication clientApplication, String state) {
         AuditEntry auditEntry = AuditEntry.builder()
                 .auditId(AuditID.RECEIVE_AUTHZ_RESPONSE.auditIdentifier())
                 .attribute(VERIFIER_TRANSACTION_ID, verifierTransactionId)

@@ -97,7 +97,7 @@ public class OpenID4VPResponseService {
         }
         List<DcqlCredentialQuery> requestedCredentials = getRequestedCredentialQueries(verificationTransaction);
         VpToken vpToken = extractVpToken(claimsFromJwePayload);
-        auditService.auditFetchDecryptedVpTokenAuthzResponse(vpToken, verifierTransactionId, clientApplication, state);
+        auditService.auditReceiveAuthzResponse(vpToken, verifierTransactionId, clientApplication, state);
         Map<String, List<VerifiedCredential>> allCredentials = new LinkedHashMap<>();
         for (DcqlCredentialQuery credentialQuery : requestedCredentials) {
             String credentialId = credentialQuery.getId();
