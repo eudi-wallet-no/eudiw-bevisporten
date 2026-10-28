@@ -13,9 +13,22 @@ public record DcqlCredentialQuery(
         String format,
         boolean multiple,
         DcqlCredentialMeta meta,
+        @JsonProperty("trusted_authorities")
+        List<TrustedAuthorityQuery> trustedAuthorities,
         boolean require_cryptographic_holder_binding,
         List<DcqlClaimQuery> claims,
         @JsonProperty("claim_sets")
         List<List<String>> claimSets
 ) {
+    public DcqlCredentialQuery withTrustedAuthorities(List<TrustedAuthorityQuery> trustedAuthorities) {
+        return new DcqlCredentialQuery(
+                id,
+                format,
+                multiple,
+                meta,
+                trustedAuthorities,
+                require_cryptographic_holder_binding,
+                claims,
+                claimSets);
+    }
 }
