@@ -24,6 +24,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import tools.jackson.databind.ObjectMapper;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -42,7 +44,21 @@ class OpenID4VPVerificationServiceTest {
 
     private static final String WALLET_INTERACTION_ID = "wallet-interaction-id";
     private static final String VERIFIER_TRANSACTION_ID = "verifier-transaction-id";
-    private static final URI ISSUER = URI.create("https://idporten.example.com");
+    private static final URI ISSUER = URI.create("https://idporten.eidas2sandkasse.dev");
+    private static final String TRUSTED_AUTHORITY_URL =
+            "https://development.trust.tech.ec.europa.eu/lists/eudiw/pid-providers.json";
+    private static final String DCQL_QUERY_JSON = """
+            {
+              "credentials": [{
+                "id": "pid",
+                "format": "mso_mdoc",
+                "meta": {"doctype_value": "eu.europa.ec.eudi.pid.1"},
+                "multiple": false,
+                "require_cryptographic_holder_binding": true,
+                "claims": []
+              }]
+            }
+            """;
 
     @Mock
     private OpenID4VPVerifierServiceApiClient openID4VPVerifierServiceApiClient;
@@ -56,7 +72,10 @@ class OpenID4VPVerificationServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new OpenID4VPVerificationService(openID4VPVerifierServiceApiClient, openIDConnectServer);
+        service = new OpenID4VPVerificationService(
+                openID4VPVerifierServiceApiClient,
+                openIDConnectServer,
+                new OpenID4VPProperties(null));
         walletInteraction = new WalletInteraction(WALLET_INTERACTION_ID);
     }
 
@@ -72,7 +91,7 @@ class OpenID4VPVerificationServiceTest {
 
         @BeforeEach
         void setUp() throws Exception {
-            dcqlQuery = new DcqlQuery(List.of(), List.of());
+            dcqlQuery = DcqlQuery.parse(DCQL_QUERY_JSON);
             OpenIDConnectSdkConfiguration sdkConfiguration = OpenIDConnectSdkConfiguration.builder()
                     .issuer(ISSUER)
                     .build();
@@ -93,10 +112,63 @@ class OpenID4VPVerificationServiceTest {
             verify(openID4VPVerifierServiceApiClient).startVerification(eq(expected));
         }
 
+        @DisplayName("then trusted authorities are omitted when no configuration exists")
+        @Test
+        void testTrustedAuthoritiesAreOmittedWithoutConfiguration() {
+            String serializedQuery = new ObjectMapper().writeValueAsString(dcqlQuery);
+
+            assertFalse(serializedQuery.contains("trusted_authorities"));
+        }
+
         @DisplayName("then the wallet interaction is updated with the verifier transaction id")
         @Test
         void testWalletInteractionUpdated() {
             assertEquals(VERIFIER_TRANSACTION_ID, walletInteraction.getVerifierTransactionId());
+        }
+
+        @DisplayName("When trusted authorities are configured")
+        @Nested
+        class TrustedAuthorityConfigurationTests {
+
+            @DisplayName("then the authorities are included in each credential query")
+            @Test
+            void includesConfiguredTrustedAuthorities() throws Exception {
+                String trustedAuthoritiesJson = """
+                        [{
+                          "type": "etsi_tl",
+                          "values": ["%s"]
+                        }]
+                        """.formatted(TRUSTED_AUTHORITY_URL);
+                OpenID4VPProperties properties = new OpenID4VPProperties(trustedAuthoritiesJson);
+                OpenID4VPVerificationService configuredService = new OpenID4VPVerificationService(
+                        openID4VPVerifierServiceApiClient,
+                        openIDConnectServer,
+                        properties);
+                DcqlQuery query = DcqlQuery.parse(DCQL_QUERY_JSON);
+                OpenIDConnectSdkConfiguration sdkConfiguration = OpenIDConnectSdkConfiguration.builder()
+                        .issuer(ISSUER)
+                        .build();
+                when(openIDConnectServer.getSDKConfiguration()).thenReturn(sdkConfiguration);
+                when(verificationHandler.createDcqlQuery(WALLET_INTERACTION_ID)).thenReturn(query);
+                when(openID4VPVerifierServiceApiClient.startVerification(any())).thenReturn(
+                        new StartVerificationResponse(
+                                URI.create("https://verifier.eidas2sandkasse.dev/authorize"),
+                                URI.create("https://verifier.eidas2sandkasse.dev/qr"),
+                                VERIFIER_TRANSACTION_ID));
+
+                configuredService.startVerification(verificationHandler, walletInteraction);
+
+                DcqlQuery expectedQuery = query.withTrustedAuthorities(properties.parseTrustedAuthorities());
+                StartVerificationRequest expectedRequest = new StartVerificationRequest(
+                        expectedQuery,
+                        URI.create(ISSUER + "/login/" + WALLET_INTERACTION_ID));
+                verify(openID4VPVerifierServiceApiClient).startVerification(eq(expectedRequest));
+
+                String serializedQuery = new ObjectMapper().writeValueAsString(expectedQuery);
+                assertTrue(serializedQuery.contains(
+                        "\"trusted_authorities\":[{\"type\":\"etsi_tl\",\"values\":[\"%s\"]}]"
+                                .formatted(TRUSTED_AUTHORITY_URL)));
+            }
         }
 
         @DisplayName("then the authorization request and qr code are returned")

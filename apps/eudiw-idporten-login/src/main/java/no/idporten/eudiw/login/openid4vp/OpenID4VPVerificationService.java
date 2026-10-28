@@ -20,10 +20,15 @@ public class OpenID4VPVerificationService {
 
     private final OpenID4VPVerifierServiceApiClient openID4VPVerifierServiceApiClient;
     private final OpenIDConnectIntegration openIDConnectServer;
+    private final List<TrustedAuthorityQuery> trustedAuthorities;
 
-    public OpenID4VPVerificationService(OpenID4VPVerifierServiceApiClient openID4VPVerifierServiceApiClient, OpenIDConnectIntegration openIDConnectServer) {
+    public OpenID4VPVerificationService(
+            OpenID4VPVerifierServiceApiClient openID4VPVerifierServiceApiClient,
+            OpenIDConnectIntegration openIDConnectServer,
+            OpenID4VPProperties openID4VPProperties) {
         this.openID4VPVerifierServiceApiClient = openID4VPVerifierServiceApiClient;
         this.openIDConnectServer = openIDConnectServer;
+        this.trustedAuthorities = openID4VPProperties.parseTrustedAuthorities();
     }
 
     /**
@@ -35,7 +40,8 @@ public class OpenID4VPVerificationService {
      */
     public OpenID4VPAuthorizationRequests startVerification(OpenID4VPVerificationHandler verificationHandler, WalletInteraction walletInteraction) throws Exception {
         StartVerificationRequest startVerificationRequest = new StartVerificationRequest(
-                verificationHandler.createDcqlQuery(walletInteraction.getId()),
+                verificationHandler.createDcqlQuery(walletInteraction.getId())
+                        .withTrustedAuthorities(trustedAuthorities),
                 createRedirectUri(walletInteraction.getId()));
         StartVerificationResponse startVerificationResponse = openID4VPVerifierServiceApiClient.startVerification(startVerificationRequest);
         walletInteraction.setVerifierTransactionId(startVerificationResponse.verifierTransactionId());
