@@ -27,7 +27,6 @@ public class VerifierServiceProperties implements InitializingBean {
 
     @NotEmpty
     private String externalBaseUri;
-    @NotEmpty
     private String siop2ClientId;
     @NotEmpty
     private Map<String, @Valid ClientApplication> clientApplications;
