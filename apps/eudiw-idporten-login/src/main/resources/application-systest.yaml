@@ -14,6 +14,8 @@ spring:
           - digital-lommebok-redis-ha-server-2.digital-lommebok-redis-ha:26379
 
 eudiw-idporten-login:
+  openid4vp:
+    trusted-authorities: ${TRUSTED_AUTHORITIES:}
   features:
     allow-synthetic-person-identifiers: true
     allow-real-person-identifiers: false
