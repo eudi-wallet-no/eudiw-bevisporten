@@ -78,8 +78,13 @@ public class TrustlistService {
     protected boolean checkJson602(URI uri, X509Certificate cert) {
         log.info("Checking certificate against 119602 JSON trustlist at {}", uri);
         LoTEJson lote = jsonListMapping(fetchTrustlist(uri));
-        boolean allActive = lote.lote().trustedEntitiesList().stream().allMatch(TrustedEntity::noneContainServiceStatus);
-        for (TrustedEntity trustedEntity : lote.lote().trustedEntitiesList()) {
+        List<TrustedEntity> trustedEntities = lote.lote().trustedEntitiesList();
+        if (trustedEntities == null || trustedEntities.isEmpty()) {
+            log.warn("No trusted entities on 119602 JSON trustlist at {}; continuing without a certificate match", uri);
+            return false;
+        }
+        boolean allActive = trustedEntities.stream().allMatch(TrustedEntity::noneContainServiceStatus);
+        for (TrustedEntity trustedEntity : trustedEntities) {
             for (TrustedEntityService service : trustedEntity.trustedEntityServices()) {
                 for (X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
                     if (compareCertificates(cert, individual)) {
