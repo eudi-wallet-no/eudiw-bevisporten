@@ -1,5 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist;
 
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.X509CertUtils;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -11,6 +13,8 @@ import no.idporten.eudiw.verifier.testdata.Certificates;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +35,12 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.List;
 
 @SpringBootTest
 @ActiveProfiles("junit")
+@DisplayName("When checking trustlists, then certificate trust is expected to be verified")
 class TrustlistServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistServiceTest.class);
@@ -252,6 +258,49 @@ class TrustlistServiceTest {
         X509Certificate cert = certificate.getCertificateAsX509Object();
         boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert);
         assertTrue(check);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"LoTE\":{}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":null}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":[]}}"
+    })
+    @DisplayName("When a JSON trustlist has no trusted entities, then INVALID is expected")
+    void checkCertificateWithoutTrustedEntities(String payload) throws ParseException {
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(jsonTrustlistWithPayload(payload), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        X509Certificate cert = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList()).getCertificateAsX509Object();
+
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(JSONTRUSTLIST));
+
+        assertEquals(ValidationStatus.INVALID, result);
+        mockServer.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"LoTE\":{}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":null}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":[]}}"
+    })
+    @DisplayName("When a JSON trustlist has no trusted entities and the next list matches, then VALID is expected")
+    void checkCertificateOnNextTrustlistWithoutTrustedEntities(String payload) throws ParseException {
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(jsonTrustlistWithPayload(payload), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        mockServer.expect(requestTo(JWTTRUSTLISTURL))
+                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        X509Certificate cert = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList()).getCertificateAsX509Object();
+
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(JSONTRUSTLIST, JWTTRUSTLIST));
+
+        assertEquals(ValidationStatus.VALID, result);
+        mockServer.verify();
+    }
+
+    private static String jsonTrustlistWithPayload(String payload) throws ParseException {
+        JWSObject trustlist = JWSObject.parse(getJsonTrustlist());
+        return "%s.%s.%s".formatted(trustlist.getHeader().toBase64URL(), Base64URL.encode(payload), trustlist.getSignature());
     }
 
 
