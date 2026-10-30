@@ -209,10 +209,10 @@ public class StatusListCwtValidator {
     private List<MapElement> headers(COSESign1 coseSign1) {
         List<MapElement> headers = new ArrayList<>();
         try {
+            headers.add(coseSign1.decodeProtectedHeader());
             if (coseSign1.getData().get(1) instanceof MapElement unprotected) {
                 headers.add(unprotected);
             }
-            headers.add(coseSign1.decodeProtectedHeader());
         } catch (RuntimeException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT headers could not be parsed", e);
         }
