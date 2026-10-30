@@ -26,6 +26,11 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.net.URI;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,7 +92,7 @@ public class TrustlistService {
         for (TrustedEntity trustedEntity : trustedEntities) {
             for (TrustedEntityService service : trustedEntity.trustedEntityServices()) {
                 for (X509Certificate individual : service.serviceInformation().serviceDigitalIdentity().certListFromStringsToCerts()) {
-                    if (compareCertificates(cert, individual)) {
+                    if (isCertificateTrusted(cert, individual)) {
                         if (allActive || service.serviceInformation().serviceStatus() != null) {
                             log.info("Certificate found and validated OK against 119602 JSON trustlist at {} for service {}", uri, find602ServiceName(service.serviceInformation()));
                             return true;
@@ -117,7 +122,7 @@ public class TrustlistService {
         for (TLServiceProvider sp : lote.serviceProviderList().trustServiceProviders()) {
             for (TSPService service : sp.services().services()) {
                 for (DigitalId digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
-                    if (compareCertificates(cert, digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
+                    if (isCertificateTrusted(cert, digitalId.getCertificateAsX509Object()) && service.serviceInformation().serviceCurrentStatus()) {
                         log.info("Certificate found and validated OK against 119612 XML trustlist at {} for service {}", uri, getTruslistServiceName(service.serviceInformation()));
                         return true;
                     }
@@ -141,7 +146,7 @@ public class TrustlistService {
             for (TrustedEntityService602Xml service : trustedEntity.trustedEntityServices().services()) {
                 for (DigitalId602Xml digitalId : service.serviceInformation().serviceDigitalIdentity().getCertificateDigitalIds()) {
                     // No status concept exists in this XML format; every entry is treated as active.
-                    if (compareCertificates(cert, digitalId.getCertificateAsX509Object())) {
+                    if (isCertificateTrusted(cert, digitalId.getCertificateAsX509Object())) {
                         log.info("Certificate found and validated OK against 119602 XML trustlist at {}", uri);
                         return true;
                     }
@@ -205,6 +210,25 @@ public class TrustlistService {
 
     }
 
+    private boolean isCertificateTrusted(X509Certificate certificate, X509Certificate trustedCertificate) {
+        if (compareCertificates(certificate, trustedCertificate)) {
+            return true;
+        }
+        if (trustedCertificate.getBasicConstraints() < 0) {
+            return false;
+        }
+        try {
+            certificate.verify(trustedCertificate.getPublicKey());
+            return true;
+        } catch (InvalidKeyException | SignatureException e) {
+            log.warn("Certificate signature could not be verified against trustlist CA {}: {}",
+                    trustedCertificate.getSubjectX500Principal(), e.getMessage());
+            return false;
+        } catch (CertificateException | NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new VerificationException("invalid_request", "Cannot verify certificate signature against trustlist CA", e);
+        }
+    }
+
     protected boolean compareCertificates(X509Certificate certificateFromWalletResponse, X509Certificate certificatesToCompareWith) {
         try {
             return Arrays.toString(certificatesToCompareWith.getTBSCertificate()).equals(Arrays.toString(certificateFromWalletResponse.getTBSCertificate()));
@@ -216,9 +240,9 @@ public class TrustlistService {
     public @NonNull String getValidationDetail(ValidationStatus status) {
         return switch (status) {
             case INCONCLUSIVE -> "Tillitsliste: validering feila";
-            case VALID -> "Tillitsliste: bevisets sertifikat er på tillitslista";
+            case VALID -> "Tillitsliste: bevisets sertifikat er på tillitslista eller validert mot en CA på tillitslista";
             case INVALID ->
-                    "Tillitsliste: bevisets sertifikat er ikke på noen av tillitslistene, eller er satt til inaktiv på tillitslista";
+                    "Tillitsliste: bevisets sertifikat er verken på eller validert mot en CA på tillitslistene, eller tjenesten er inaktiv";
             default -> "Tillitsliste: ukjent status";
         };
     }
