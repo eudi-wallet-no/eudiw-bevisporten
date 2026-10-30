@@ -83,6 +83,20 @@ class StatusListCwtValidatorTest {
     }
 
     @Test
+    @DisplayName("and key is referenced by kid instead of x5chain then verification exception should state that key references are not supported")
+    void rejectsKeyReferencedByKidWithoutX5Chain() {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        byte[] cwt = HexFormat.of().parseHex(RFC_CWT_STATUS_LIST_HEX.replaceAll("\\s", ""));
+        URI uri = URI.create("https://example.com/statuslists/1");
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> validator.validateAndResolveStatus(uri, 0, cwt, Instant.ofEpochSecond(1686920200L)));
+
+        assertEquals("Status list CWT key resolution by kid is not supported, x5chain is required",
+                exception.getErrorDescription());
+    }
+
+    @Test
     @DisplayName("and CWT is valid then status should be resolved")
     void validateAndResolveStatusReturnsStatusWhenCwtIsValid() throws Exception {
         StatusListCwtValidator validator = new StatusListCwtValidator(Duration.ofSeconds(60));

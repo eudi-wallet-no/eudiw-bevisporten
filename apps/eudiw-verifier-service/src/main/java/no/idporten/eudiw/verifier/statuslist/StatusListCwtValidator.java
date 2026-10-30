@@ -34,6 +34,8 @@ public class StatusListCwtValidator {
     static final int COSE_SIGN1_TAG = 18;
     static final int COSE_CONTENT_TYPE_HEADER = 16;
     static final int COSE_X5CHAIN_HEADER = 33;
+    private static final java.util.Map<Integer, String> KEY_REFERENCE_HEADERS = java.util.Map.of(
+            4, "kid", 34, "x5t", 35, "x5u");
     static final int CWT_SUBJECT_CLAIM = 2;
     static final int CWT_EXPIRATION_CLAIM = 4;
     static final int CWT_ISSUED_AT_CLAIM = 6;
@@ -167,6 +169,11 @@ public class StatusListCwtValidator {
     private void verifySignature(COSESign1 coseSign1) {
         List<byte[]> encodedChain = x5Chain(coseSign1);
         if (encodedChain.isEmpty()) {
+            String keyReferences = keyReferenceHeaders(coseSign1);
+            if (!keyReferences.isEmpty()) {
+                throw new VerificationException(ERROR_CODE, "Status list CWT key resolution by " + keyReferences
+                        + " is not supported, x5chain is required");
+            }
             throw new VerificationException(ERROR_CODE, "Status list CWT must include x5chain");
         }
 
@@ -199,8 +206,7 @@ public class StatusListCwtValidator {
         }
     }
 
-    // x5chain (RFC 9360) may be in the protected or unprotected header, and is a single bstr when it holds one certificate.
-    private List<byte[]> x5Chain(COSESign1 coseSign1) {
+    private List<MapElement> headers(COSESign1 coseSign1) {
         List<MapElement> headers = new ArrayList<>();
         try {
             if (coseSign1.getData().get(1) instanceof MapElement unprotected) {
@@ -210,6 +216,22 @@ public class StatusListCwtValidator {
         } catch (RuntimeException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT headers could not be parsed", e);
         }
+        return headers;
+    }
+
+    private String keyReferenceHeaders(COSESign1 coseSign1) {
+        List<String> found = new ArrayList<>();
+        for (var reference : KEY_REFERENCE_HEADERS.entrySet()) {
+            if (headers(coseSign1).stream().anyMatch(header -> header.getValue().containsKey(new MapKey(reference.getKey())))) {
+                found.add(reference.getValue());
+            }
+        }
+        return String.join("/", found);
+    }
+
+    // x5chain (RFC 9360) may be in the protected or unprotected header, and is a single bstr when it holds one certificate.
+    private List<byte[]> x5Chain(COSESign1 coseSign1) {
+        List<MapElement> headers = headers(coseSign1);
         for (MapElement header : headers) {
             DataElement x5chain = header.getValue().get(new MapKey(COSE_X5CHAIN_HEADER));
             if (x5chain instanceof ByteStringElement certificate) {
