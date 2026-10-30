@@ -33,6 +33,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -73,6 +74,17 @@ public class TokenStatuslistService {
         return convertIntStatusToEnum(statusListCwtValidator.validateAndResolveStatus(uri, idx, statusListCwt, now));
     }
 
+    private String keyReferenceHeaders(JWSHeader header) {
+        List<String> found = new ArrayList<>();
+        if (header.getKeyID() != null) found.add("kid");
+        if (header.getX509CertURL() != null) found.add("x5u");
+        if (header.getX509CertThumbprint() != null) found.add("x5t");
+        if (header.getX509CertSHA256Thumbprint() != null) found.add("x5t#S256");
+        if (header.getJWKURL() != null) found.add("jku");
+        if (header.getJWK() != null) found.add("jwk");
+        return String.join("/", found);
+    }
+
     private JWSVerifier statusListJwsVerifier(String statusListJwt) {
         final SignedJWT jwt;
         try {
@@ -83,6 +95,11 @@ public class TokenStatuslistService {
         JWSHeader jwsHeader = jwt.getHeader();
         List<Base64> x5c = jwsHeader.getX509CertChain();
         if (x5c == null || x5c.isEmpty()) {
+            String keyReferences = keyReferenceHeaders(jwsHeader);
+            if (!keyReferences.isEmpty()) {
+                throw new VerificationException("invalid_request", "Status list JWT key resolution by " + keyReferences
+                        + " is not supported yet, x5c is required");
+            }
             throw new VerificationException("invalid_request", "Status list JWT must include x5c certificate chain");
         }
 
