@@ -172,7 +172,7 @@ public class StatusListCwtValidator {
             String keyReferences = keyReferenceHeaders(coseSign1);
             if (!keyReferences.isEmpty()) {
                 throw new VerificationException(ERROR_CODE, "Status list CWT key resolution by " + keyReferences
-                        + " is not supported, x5chain is required");
+                        + " is not supported yet, x5chain is required");
             }
             throw new VerificationException(ERROR_CODE, "Status list CWT must include x5chain");
         }

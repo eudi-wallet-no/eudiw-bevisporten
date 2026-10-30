@@ -86,7 +86,7 @@ class TokenStatuslistServiceTest {
         VerificationException exception = assertThrows(VerificationException.class,
                 () -> service.checkStatus(uri, 0, jwt, Instant.now()));
 
-        assertEquals("Status list JWT key resolution by kid is not supported, x5c is required", exception.getErrorDescription());
+        assertEquals("Status list JWT key resolution by kid is not supported yet, x5c is required", exception.getErrorDescription());
     }
 
     private static TokenStatuslistConfig config() {

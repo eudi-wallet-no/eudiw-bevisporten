@@ -92,7 +92,7 @@ class StatusListCwtValidatorTest {
         VerificationException exception = assertThrows(VerificationException.class,
                 () -> validator.validateAndResolveStatus(uri, 0, cwt, Instant.ofEpochSecond(1686920200L)));
 
-        assertEquals("Status list CWT key resolution by kid is not supported, x5chain is required",
+        assertEquals("Status list CWT key resolution by kid is not supported yet, x5chain is required",
                 exception.getErrorDescription());
     }
 

@@ -98,7 +98,7 @@ public class TokenStatuslistService {
             String keyReferences = keyReferenceHeaders(jwsHeader);
             if (!keyReferences.isEmpty()) {
                 throw new VerificationException("invalid_request", "Status list JWT key resolution by " + keyReferences
-                        + " is not supported, x5c is required");
+                        + " is not supported yet, x5c is required");
             }
             throw new VerificationException("invalid_request", "Status list JWT must include x5c certificate chain");
         }
