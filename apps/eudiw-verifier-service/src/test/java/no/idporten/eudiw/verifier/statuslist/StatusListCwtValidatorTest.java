@@ -41,6 +41,20 @@ class StatusListCwtValidatorTest {
             d7c982c5e101a5e67f0cbc1e2b6f57ce99c279
             """;
 
+    private static final String DIIA_CWT_BASE64 = "0oRYIKIBJhB4GmFwcGxpY2F0aW9uL3N0YXR1c2xpc3QrY3d0oRghWQL3MIIC8zCCApigAwIBAgIQAbc0bwF/8IesXS/NjpEnajAKBggqhkjOPQQDAjBBMQswCQYDVQQGEwJVQTEUMBIGA1UECgwLRGlpYSAodGVzdCkxHDAaBgNVBAMME0RpaWEgU2VhbCBDQSAodGVzdCkwHhcNMjYxMDEzMTIyMDQ5WhcNMjcxMDEzMTIyMDQ5WjBgMQswCQYDVQQGEwJVQTEUMBIGA1UECgwLRGlpYSAodGVzdCkxFzAVBgNVBGEMDk5UUlVBLTAwMDAwMDAwMSIwIAYDVQQDDBlEaWlhIFN0YXR1cyBTaWduZXIgKHRlc3QpMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAElALp0H+fs4KB7rDyBG07CwvE07Pe01yyr/no2UMLkOgr3k/8QKJQufs0k2ACovchRC956+e4auNCjXb8yoz2z6OCAVEwggFNMAwGA1UdEwEB/wQCMAAwDgYDVR0PAQH/BAQDAgeAMB0GA1UdDgQWBBQKn2IpTffnMNrNstKYGx1jm2ELITAfBgNVHSMEGDAWgBQIuQCJ6LwbSCGdJxnDmYQUtmfljTBRBggrBgEFBQcBAQRFMEMwQQYIKwYBBQUHMAKGNWh0dHBzOi8vZGlpYS1pc3N1ZXItYXBpMnMuZGlpYS5nb3YudWEvcGtpL3NlYWwtY2EuY2VyMEYGA1UdHwQ/MD0wO6A5oDeGNWh0dHBzOi8vZGlpYS1pc3N1ZXItYXBpMnMuZGlpYS5nb3YudWEvcGtpL3NlYWwtY2EuY3JsMFIGA1UdIARLMEkwRwYDiDcBMEAwPgYIKwYBBQUHAgEWMmh0dHBzOi8vZGlpYS1pc3N1ZXItYXBpMnMuZGlpYS5nb3YudWEvcGtpL2Nwcy5odG1sMAoGCCqGSM49BAMCA0kAMEYCIQDFfDFhvmY5Ey3Ncph+tT0Pm2K8IsdSYYldFdHD6wfihQIhAIgSqLt0fOCs84xyWHJHQ0wj2gMp0W7pH00KYtL9WIYUWQHKpQF4LGh0dHBzOi8vYXBpMnMuZGlpYS5nb3YudWEvYXBpL3YxL2V1aWQvd2FsbGV0Anh+aHR0cHM6Ly9hcGkycy5kaWlhLmdvdi51YS9hcGkvdjEvZXVpZC93YWxsZXQvdG9rZW5fc3RhdHVzX2xpc3QvVUEvZXUuZXVyb3BhLmVjLmV1ZGkucGlkLjEvOTVkMTk4OWUtOTMxOC00NmMzLTk0NDUtNjVlMzRhNjY4N2RjBBpq5Y68Bhpq5D0AGf/9omNsc3RY/Xja7ZpLDsMwCEQTy4sscwQfxUfz0dt1F23zIQz4PSmrSDXCzABRl0WbzeHM+uN9k4kEXK4FZOhWP1zez4ocEt3o//dOE/SnhD6zURoJLGUldQyH5AlYxyAagxTk5Y6xD6sHO/bc4lFaW0EGNkaDNRy0PQ+BoOIbi7TrBQZwkBooyKlMeVf0i3PtmQ3+OcrZMpNh+BzbLkVVnsg6OoKPhp1gmDR2oPFn02oP6OvaARnHn+EdwC0fHCJ9Ta1CeUuqhipSFWPJwjaNIULIpSW2lwKo0LMMWuBcLA6YbZDT/aUzbotvyBLmYMio1MQfe9p7O5rHYmdqX0voBeZ8CkNkYml0cwFYQPRsEcCaQqq5QaV2J1crVave94pU7zIS8ZUuBzy7eCWUCZJkC1eyGV2yfFqMIKCY0gr65rJV1hs7bgJtV7elJxY=";
+
+    @Test
+    @DisplayName("and x5chain is a single byte string in the unprotected header then signature should be verified and status resolved")
+    void acceptsSingleCertificateX5ChainInUnprotectedHeader() {
+        StatusListCwtValidator validator = new StatusListCwtValidator(CLOCK_SKEW);
+        byte[] cwt = java.util.Base64.getDecoder().decode(DIIA_CWT_BASE64);
+        URI uri = URI.create("https://api2s.diia.gov.ua/api/v1/euid/wallet/token_status_list/UA/eu.europa.ec.eudi.pid.1/95d1989e-9318-46c3-9445-65e34a6687dc");
+
+        int status = validator.validateAndResolveStatus(uri, 0, cwt, Instant.ofEpochSecond(0x6ae43d00L + 60));
+
+        assertEquals(0, status);
+    }
+
     @Test
     @DisplayName("and the RFC CWT example is parsed then status-list claims should be resolved")
     void parsesRfcCwtExampleAndResolvesStatus() {
