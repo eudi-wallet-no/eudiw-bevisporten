@@ -20,7 +20,7 @@
         <kotlinx-serialization-json-jvm.version>1.12.0</kotlinx-serialization-json-jvm.version>
         <idporten.keystore.version>3.0.0</idporten.keystore.version>
         <idporten-actuator-starter.version>3.1.2</idporten-actuator-starter.version>
-        <idporten-access-log.version>4.0.6</idporten-access-log.version>
+        <idporten-access-log.version>4.0.8</idporten-access-log.version>
         <idporten-log-audit.version>4.0.6</idporten-log-audit.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials-jvm.version>1.0.0</waltid-mdoc-credentials-jvm.version>
@@ -29,7 +29,7 @@
         <dss.version>6.4</dss.version>
         <fasterxml.jackson.dataformat.version>2.22.4</fasterxml.jackson.dataformat.version>
         <zxing.javase.version>3.5.4</zxing.javase.version>
-        <springdoc.version>3.1.1</springdoc.version>
+        <springdoc.version>3.2.0</springdoc.version>
         <dss.validation.version>6.4</dss.validation.version>
         <opentelemetry-api.version>1.67.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
