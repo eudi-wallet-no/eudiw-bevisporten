@@ -1,5 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist;
 
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jose.util.X509CertUtils;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -11,6 +13,8 @@ import no.idporten.eudiw.verifier.testdata.Certificates;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +35,12 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.util.List;
 
 @SpringBootTest
 @ActiveProfiles("junit")
+@DisplayName("When checking trustlists, then certificate trust is expected to be verified")
 class TrustlistServiceTest {
 
     private static final Logger log = LoggerFactory.getLogger(TrustlistServiceTest.class);
@@ -50,6 +56,49 @@ class TrustlistServiceTest {
     public static final String APPLICATION_ETSI_TSL_XML = "application/vnd.etsi.tsl+xml";
     public static final String BEGIN_CERTIFICATE = "-----BEGIN CERTIFICATE-----";
     public static final String END_CERTIFICATE = "-----END CERTIFICATE-----";
+
+    private static final String ROMANIAN_PID_DOCUMENT_SIGNER = """
+            -----BEGIN CERTIFICATE-----
+            MIIECzCCA7KgAwIBAgIQTr4+ckmEkQn5H/yqoq9nwTAKBggqhkjOPQQDAjBkMQsw
+            CQYDVQQGEwJSTzE2MDQGA1UECgwtRGlyZWN0aWEgR2VuZXJhbGEgcGVudHJ1IEV2
+            aWRlbnRhIFBlcnNvYW5lbG9yMR0wGwYDVQQDDBRSTyBQSUQgREVWIElBQ0EgUm9v
+            dDAeFw0yNjEwMjUwODM3NThaFw0yNzEwMjUwODM3NThaMIGGMQswCQYDVQQGEwJS
+            TzE5MDcGA1UECgwwRElSRUPFoklBIEdFTkVSQUzEgiBQRU5UUlUgRVZJREVOxaJB
+            IFBFUlNPQU5FTE9SMRcwFQYDVQRhDA5OVFJSTy0yNjM2Mjg3MDEjMCEGA1UEAwwa
+            Uk8gUElEIERFViBEb2N1bWVudCBTaWduZXIwWTATBgcqhkjOPQIBBggqhkjOPQMB
+            BwNCAASLqOyRasBVBrXkXggd8hk8MX3Y0Sp/+eLnKdN6WaDZrJJvCH+hD06U5vK8
+            3FqdlnT+hD7bwek4jiQBAzmqTO/0o4ICITCCAh0wDAYDVR0TAQH/BAIwADAOBgNV
+            HQ8BAf8EBAMCB4AwEgYDVR0lBAswCQYHKIGMXQUBAjAdBgNVHQ4EFgQUYvbBYmfD
+            IeTpo7Hz0oRp0AKyXlkwHwYDVR0jBBgwFoAUmAL5Ih5MWEMp6W8VJ2/M9+9Bmy8w
+            IQYDVR0gBBowGDAWBhRpg9CVqpDtrsqK75D3nobGvvCPHDCBpQYIKwYBBQUHAQEE
+            gZgwgZUwSQYIKwYBBQUHMAKGPWh0dHBzOi8vd2FsbGV0LXNhbmRib3gubWFpLmdv
+            di5yby9waWQtYmFja2VuZC92MS9waWQvaWFjYS5jZXIwSAYIKwYBBQUHMAKGPGh0
+            dHA6Ly93YWxsZXQtc2FuZGJveC5tYWkuZ292LnJvL3BpZC1iYWNrZW5kL3YxL3Bp
+            ZC9pYWNhLmNlcjCBlAYDVR0fBIGMMIGJMEOgQaA/hj1odHRwczovL3dhbGxldC1z
+            YW5kYm94Lm1haS5nb3Yucm8vcGlkLWJhY2tlbmQvdjEvcGlkL2lhY2EuY3JsMEKg
+            QKA+hjxodHRwOi8vd2FsbGV0LXNhbmRib3gubWFpLmdvdi5yby9waWQtYmFja2Vu
+            ZC92MS9waWQvaWFjYS5jcmwwIgYDVR0SBBswGYYXaHR0cHM6Ly9kZ2VwLm1haS5n
+            b3Yucm8wIwYIKwYBBQUHAQMEFzAVMBMGBgQAjkYBBjAJBgcEAIvsTgEBMAoGCCqG
+            SM49BAMCA0cAMEQCIFMTh0eIvdIOFUoKExHTqQkTFBNgt2kpWgYxX/kXNlwPAiBJ
+            6iHyz/13FxdrGawLP9opSkk0jY6bI/TVlsPRTq9DLQ==
+            -----END CERTIFICATE-----
+            """;
+    private static final String ROMANIAN_PID_IACA_ROOT = """
+            -----BEGIN CERTIFICATE-----
+            MIICMDCCAdagAwIBAgIUKqKrVJnBDPQVp5ADKEEDfcwNAc0wCgYIKoZIzj0EAwIw
+            ZDELMAkGA1UEBhMCUk8xNjA0BgNVBAoMLURpcmVjdGlhIEdlbmVyYWxhIHBlbnRy
+            dSBFdmlkZW50YSBQZXJzb2FuZWxvcjEdMBsGA1UEAwwUUk8gUElEIERFViBJQUNB
+            IFJvb3QwHhcNMjYxMDEyMTM1MzUyWhcNNDYxMDEyMTM1MzUyWjBkMQswCQYDVQQG
+            EwJSTzE2MDQGA1UECgwtRGlyZWN0aWEgR2VuZXJhbGEgcGVudHJ1IEV2aWRlbnRh
+            IFBlcnNvYW5lbG9yMR0wGwYDVQQDDBRSTyBQSUQgREVWIElBQ0EgUm9vdDBZMBMG
+            ByqGSM49AgEGCCqGSM49AwEHA0IABASg0N2UU/bhK/WKv6XGwA7TGj9ZwakaRty6
+            RnsiY2phXStpuIC7IbqtwfvuRNXpmyrR1Yr0HMw4d2QsQi7R0C2jZjBkMBIGA1Ud
+            EwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBSYAvkiHkxY
+            QynpbxUnb8z370GbLzAfBgNVHSMEGDAWgBSYAvkiHkxYQynpbxUnb8z370GbLzAK
+            BggqhkjOPQQDAgNIADBFAiAdIoc6WhtgVJlLjp06urHkbTFYDbLS8mMhJ1uT2SCY
+            5gIhAOFPY0ESJCM+0ChaoIPR+wO0kNNzkOIcxUXQ+rA7V1m/
+            -----END CERTIFICATE-----
+            """;
 
     private TrustlistService trustlistService;
 
@@ -252,6 +301,89 @@ class TrustlistServiceTest {
         X509Certificate cert = certificate.getCertificateAsX509Object();
         boolean check = trustlistService.checkJson602(JSONTRUSTLISTURL, cert);
         assertTrue(check);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"LoTE\":{}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":null}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":[]}}"
+    })
+    @DisplayName("When a JSON trustlist has no trusted entities, then INVALID is expected")
+    void checkCertificateWithoutTrustedEntities(String payload) throws ParseException {
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(jsonTrustlistWithPayload(payload), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        X509Certificate cert = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList()).getCertificateAsX509Object();
+
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(JSONTRUSTLIST));
+
+        assertEquals(ValidationStatus.INVALID, result);
+        mockServer.verify();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"LoTE\":{}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":null}}",
+            "{\"LoTE\":{\"TrustedEntitiesList\":[]}}"
+    })
+    @DisplayName("When a JSON trustlist has no trusted entities and the next list matches, then VALID is expected")
+    void checkCertificateOnNextTrustlistWithoutTrustedEntities(String payload) throws ParseException {
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(jsonTrustlistWithPayload(payload), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        mockServer.expect(requestTo(JWTTRUSTLISTURL))
+                .andRespond(withSuccess(getJsonTrustlist(), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+        X509Certificate cert = new ValueCertificate(certificates.trustlistCertificatePIDSecondOnList()).getCertificateAsX509Object();
+
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(cert, List.of(JSONTRUSTLIST, JWTTRUSTLIST));
+
+        assertEquals(ValidationStatus.VALID, result);
+        mockServer.verify();
+    }
+
+    private static String jsonTrustlistWithPayload(String payload) throws ParseException {
+        JWSObject trustlist = JWSObject.parse(getJsonTrustlist());
+        return "%s.%s.%s".formatted(trustlist.getHeader().toBase64URL(), Base64URL.encode(payload), trustlist.getSignature());
+    }
+
+    @Test
+    @DisplayName("When the Romanian PID signer is issued by the listed IACA, then VALID is expected")
+    void checkRomanianPidSignerAgainstListedCa() throws ParseException {
+        X509Certificate signer = X509CertUtils.parse(ROMANIAN_PID_DOCUMENT_SIGNER);
+        X509Certificate root = X509CertUtils.parse(ROMANIAN_PID_IACA_ROOT);
+        assertNotNull(signer);
+        assertNotNull(root);
+        assertAll(
+                () -> assertEquals(-1, signer.getBasicConstraints()),
+                () -> assertTrue(root.getBasicConstraints() >= 0),
+                () -> assertEquals(root.getSubjectX500Principal(), signer.getIssuerX500Principal()),
+                () -> assertFalse(trustlistService.compareCertificates(signer, root))
+        );
+        String payload = """
+                {
+                  "LoTE": {
+                    "TrustedEntitiesList": [{
+                      "TrustedEntityServices": [{
+                        "ServiceInformation": {
+                          "ServiceName": [{"lang": "en", "value": "PID service"}],
+                          "ServiceTypeIdentifier": "http://uri.etsi.org/19602/SvcType/PID/Issuance",
+                          "ServiceDigitalIdentity": {
+                            "X509Certificates": [{"val": "%s"}]
+                          }
+                        }
+                      }]
+                    }]
+                  }
+                }
+                """.formatted(ROMANIAN_PID_IACA_ROOT.replace(BEGIN_CERTIFICATE, "")
+                .replace(END_CERTIFICATE, "").replaceAll("\\s", ""));
+        mockServer.expect(requestTo(JSONTRUSTLISTURL))
+                .andRespond(withSuccess(jsonTrustlistWithPayload(payload), MediaType.parseMediaType(APPLICATION_JOSE_JSON)));
+
+        ValidationStatus result = trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(signer, List.of(JSONTRUSTLIST));
+
+        assertEquals(ValidationStatus.VALID, result);
+        mockServer.verify();
     }
 
 

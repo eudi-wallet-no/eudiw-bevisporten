@@ -75,6 +75,20 @@ class TokenStatuslistServiceTest {
         assertEquals("Status list JWT must include x5c certificate chain", exception.getErrorDescription());
     }
 
+    @Test
+    @DisplayName("and key is referenced by kid instead of x5c then verification exception should state that key references are not supported")
+    void checkStatusThrowsVerificationExceptionWhenKeyIsReferencedByKid() {
+        URI uri = URI.create("https://status.example/list/1");
+        String header = java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"alg\":\"RS256\",\"typ\":\"statuslist+jwt\",\"kid\":\"key-1\"}".getBytes());
+        String jwt = header + "." + createCompactJwtWithoutX5c().split("\\.")[1] + ".c2ln";
+
+        VerificationException exception = assertThrows(VerificationException.class,
+                () -> service.checkStatus(uri, 0, jwt, Instant.now()));
+
+        assertEquals("Status list JWT key resolution by kid is not supported yet, x5c is required", exception.getErrorDescription());
+    }
+
     private static TokenStatuslistConfig config() {
         return new TokenStatuslistConfig(Duration.ofSeconds(3), Duration.ofSeconds(3), Duration.ofSeconds(60));
     }

@@ -24,6 +24,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StatusListCwtValidator {
@@ -32,6 +33,9 @@ public class StatusListCwtValidator {
     static final int COSE_MAC0_TAG = 17;
     static final int COSE_SIGN1_TAG = 18;
     static final int COSE_CONTENT_TYPE_HEADER = 16;
+    static final int COSE_X5CHAIN_HEADER = 33;
+    private static final java.util.Map<Integer, String> KEY_REFERENCE_HEADERS = java.util.Map.of(
+            4, "kid", 34, "x5t", 35, "x5u");
     static final int CWT_SUBJECT_CLAIM = 2;
     static final int CWT_EXPIRATION_CLAIM = 4;
     static final int CWT_ISSUED_AT_CLAIM = 6;
@@ -163,8 +167,13 @@ public class StatusListCwtValidator {
     }
 
     private void verifySignature(COSESign1 coseSign1) {
-        List<byte[]> encodedChain = coseSign1.getX5Chain();
-        if (encodedChain == null || encodedChain.isEmpty()) {
+        List<byte[]> encodedChain = x5Chain(coseSign1);
+        if (encodedChain.isEmpty()) {
+            String keyReferences = keyReferenceHeaders(coseSign1);
+            if (!keyReferences.isEmpty()) {
+                throw new VerificationException(ERROR_CODE, "Status list CWT key resolution by " + keyReferences
+                        + " is not supported yet, x5chain is required");
+            }
             throw new VerificationException(ERROR_CODE, "Status list CWT must include x5chain");
         }
 
@@ -195,6 +204,51 @@ public class StatusListCwtValidator {
         } catch (RuntimeException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT signature validation failed", e);
         }
+    }
+
+    private List<MapElement> headers(COSESign1 coseSign1) {
+        List<MapElement> headers = new ArrayList<>();
+        try {
+            headers.add(coseSign1.decodeProtectedHeader());
+            if (coseSign1.getData().get(1) instanceof MapElement unprotected) {
+                headers.add(unprotected);
+            }
+        } catch (RuntimeException e) {
+            throw new VerificationException(ERROR_CODE, "Status list CWT headers could not be parsed", e);
+        }
+        return headers;
+    }
+
+    private String keyReferenceHeaders(COSESign1 coseSign1) {
+        List<String> found = new ArrayList<>();
+        for (var reference : KEY_REFERENCE_HEADERS.entrySet()) {
+            if (headers(coseSign1).stream().anyMatch(header -> header.getValue().containsKey(new MapKey(reference.getKey())))) {
+                found.add(reference.getValue());
+            }
+        }
+        return String.join("/", found);
+    }
+
+    // x5chain (RFC 9360) may be in the protected or unprotected header, and is a single bstr when it holds one certificate.
+    private List<byte[]> x5Chain(COSESign1 coseSign1) {
+        List<MapElement> headers = headers(coseSign1);
+        for (MapElement header : headers) {
+            DataElement x5chain = header.getValue().get(new MapKey(COSE_X5CHAIN_HEADER));
+            if (x5chain instanceof ByteStringElement certificate) {
+                return List.of(certificate.getValue());
+            }
+            if (x5chain instanceof ListElement certificates) {
+                List<byte[]> chain = new ArrayList<>();
+                for (DataElement certificate : certificates.getValue()) {
+                    if (!(certificate instanceof ByteStringElement encoded)) {
+                        throw new VerificationException(ERROR_CODE, "Status list CWT x5chain must contain byte strings");
+                    }
+                    chain.add(encoded.getValue());
+                }
+                return chain;
+            }
+        }
+        return List.of();
     }
 
     private X509Certificate parseCertificate(byte[] encodedCertificate) {

@@ -17,6 +17,13 @@ Profiles in the [resources](/src/main/resources) folder:
 | systest | Systest environment                        |
 | test    | Test environment                           |
 
+### Empty JSON trustlists
+
+An ETSI TS 119 602 JSON trustlist with a missing, null or empty
+`TrustedEntitiesList` is treated as having no certificate matches. The verifier
+logs a warning and continues checking the remaining configured trustlists. If
+none of them match, trustlist validation returns `INVALID`.
+
 
 ## Secrets
 Clone https://github.com/eudi-wallet-no/eudiw-developer-secrets and follow the instructions in the README.
