@@ -3,9 +3,8 @@ package no.idporten.eudiw.verifier.openid4vp;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
-import id.walt.mdoc.dataelement.StringElement;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
+import id.walt.mdoc.objects.deviceretrieval.DeviceResponse;
+import id.walt.mdoc.objects.document.Document;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
 import kotlinx.serialization.json.JsonElement;
@@ -304,7 +303,7 @@ public class OpenID4VPResponseService {
 
     private VerifiedCredential mdocVerifiedCredential(String vpToken, VerificationTransaction verificationTransaction, DcqlCredentialQuery credentialQuery) {
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken(vpToken);
-        MDoc mdoc = mDocService.mDocFromDeviceResponse(deviceResponse);
+        Document mdoc = mDocService.mDocFromDeviceResponse(deviceResponse);
         Map<String, Object> claims = mDocService.claimsFromMDoc(mdoc);
         ValidationStatus mdocStatus = mDocService.verifyMDoc(mdoc, verificationTransaction);
         validateRequestedCredentialType(mdoc, credentialQuery);
@@ -321,14 +320,14 @@ public class OpenID4VPResponseService {
 
     }
 
-    private void validateRequestedCredentialType(MDoc mdoc, DcqlCredentialQuery credentialQuery) {
+    private void validateRequestedCredentialType(Document mdoc, DcqlCredentialQuery credentialQuery) {
         DcqlCredentialMeta meta = credentialQuery.getMeta();
         if (meta == null || !StringUtils.hasText(meta.getDoctypeValue())) {
             throw new VerificationException("invalid_request",
                     "Missing or invalid meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
-        StringElement docType = mdoc.getDocType();
-        if (docType == null || !meta.getDoctypeValue().equals(docType.getValue())) {
+        String docType = mdoc.getDocType();
+        if (docType == null || !meta.getDoctypeValue().equals(docType)) {
             throw new VerificationException("invalid_request",
                     "Returned doctype does not match meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
@@ -345,9 +344,8 @@ public class OpenID4VPResponseService {
                 && PID_VCT_PATTERN.matcher(primitive.getContent()).matches();
     }
 
-    private boolean isPid(MDoc mdoc) {
-        StringElement docType = mdoc.getDocType();
-        return docType != null && PID_DOC_TYPE.equals(docType.getValue());
+    private boolean isPid(Document mdoc) {
+        return PID_DOC_TYPE.equals(mdoc.getDocType());
     }
 
     private boolean validateStatus(ValidationStatus formatSpecificStatus, ValidationStatus statuslistStatus, ValidationStatus trustlistStatus, ValidationStatus holderBindingStatus) {

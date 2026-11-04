@@ -1,11 +1,11 @@
 package no.idporten.eudiw.verifier.statuslist;
 
-import id.walt.mdoc.cose.COSESign1;
-import id.walt.mdoc.dataelement.ByteStringElement;
-import id.walt.mdoc.dataelement.MapElement;
-import id.walt.mdoc.dataelement.MapKey;
-import id.walt.mdoc.dataelement.NumberElement;
-import id.walt.mdoc.dataelement.StringElement;
+import id.walt.cose.CoseSign1;
+import kotlinx.serialization.cbor.CborByteString;
+import kotlinx.serialization.cbor.CborElementKt;
+import kotlinx.serialization.cbor.CborInteger;
+import kotlinx.serialization.cbor.CborMap;
+import kotlinx.serialization.cbor.CborString;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,24 +61,19 @@ class StatusListCwtValidatorTest {
         StatusListCwtValidator validator = new StatusListCwtValidator(Duration.ofSeconds(60));
         byte[] cwtBytes = HexFormat.of().parseHex(RFC_CWT_STATUS_LIST_HEX.replaceAll("\\s", ""));
 
-        COSESign1 cwt = validator.parseCwt(cwtBytes);
+        CoseSign1 cwt = validator.parseCwt(cwtBytes);
         validator.validateProtectedHeader(cwt);
-        MapElement claims = validator.decodePayload(cwt);
-        StringElement subject = assertInstanceOf(StringElement.class,
-                claims.getValue().get(new MapKey(CWT_SUBJECT_CLAIM)));
-        NumberElement issuedAt = assertInstanceOf(NumberElement.class,
-                claims.getValue().get(new MapKey(CWT_ISSUED_AT_CLAIM)));
-        MapElement statusList = assertInstanceOf(MapElement.class,
-                claims.getValue().get(new MapKey(CWT_STATUS_LIST_CLAIM)));
-        NumberElement bits = assertInstanceOf(NumberElement.class,
-                statusList.getValue().get(new MapKey(STATUS_LIST_BITS)));
-        ByteStringElement lst = assertInstanceOf(ByteStringElement.class,
-                statusList.getValue().get(new MapKey(STATUS_LIST_DATA)));
+        CborMap claims = validator.decodePayload(cwt);
+        CborString subject = assertInstanceOf(CborString.class, claims.get(CWT_SUBJECT_CLAIM));
+        CborInteger issuedAt = assertInstanceOf(CborInteger.class, claims.get(CWT_ISSUED_AT_CLAIM));
+        CborMap statusList = assertInstanceOf(CborMap.class, claims.get(CWT_STATUS_LIST_CLAIM));
+        CborInteger bits = assertInstanceOf(CborInteger.class, statusList.get(STATUS_LIST_BITS));
+        CborByteString lst = assertInstanceOf(CborByteString.class, statusList.get(STATUS_LIST_DATA));
 
         assertEquals("https://example.com/statuslists/1", subject.getValue());
-        assertEquals(1686920170L, issuedAt.getValue().longValue());
-        assertEquals(1, bits.getValue().intValue());
-        assertEquals(1, StatusListDecoder.resolveStatus(0, bits.getValue().intValue(), lst.getValue()));
+        assertEquals(1686920170L, CborElementKt.getLong(issuedAt));
+        assertEquals(1, CborElementKt.getInt(bits));
+        assertEquals(1, StatusListDecoder.resolveStatus(0, CborElementKt.getInt(bits), lst.getBytes()));
 
     }
 

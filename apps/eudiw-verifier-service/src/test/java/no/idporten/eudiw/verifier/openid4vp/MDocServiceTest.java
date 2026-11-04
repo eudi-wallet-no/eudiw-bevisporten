@@ -1,11 +1,16 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.mdoc.cose.COSESign1;
-import id.walt.mdoc.dataelement.*;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
-import id.walt.mdoc.issuersigned.IssuerSigned;
+import com.upokecenter.cbor.CBORObject;
+import id.walt.cose.CoseCertificate;
+import id.walt.cose.CoseHeaders;
+import id.walt.cose.CoseInternalKt;
+import id.walt.cose.CoseSign1;
+import id.walt.mdoc.objects.deviceretrieval.DeviceResponse;
+import id.walt.mdoc.objects.document.Document;
+import id.walt.mdoc.objects.document.IssuerSigned;
+import id.walt.mdoc.objects.mso.MobileSecurityObject;
+import kotlinx.serialization.cbor.CborElement;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -39,9 +44,9 @@ class MDocServiceTest {
 
     private MDocService service;
 
-    @Mock MDoc mDoc;
+    @Mock Document mDoc;
     @Mock IssuerSigned issuerSigned;
-    @Mock COSESign1 issuerAuth;
+    @Mock MobileSecurityObject mso;
     @Mock DeviceResponse deviceResponse;
     Certificates certificates = new Certificates();
 
@@ -53,7 +58,7 @@ class MDocServiceTest {
     @DisplayName("with a valid VP token, then PID claims are expected")
     void parsesRealVpTokenAndExtractsClaims() {
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc parsed = service.mDocFromDeviceResponse(deviceResponse);
+        Document parsed = service.mDocFromDeviceResponse(deviceResponse);
 
         Map<String, Object> claims = service.claimsFromMDoc(parsed);
 
@@ -80,10 +85,9 @@ class MDocServiceTest {
         Security.addProvider(new BouncyCastleProvider());
         VerificationTransaction verificationTransaction = new VerificationTransaction();
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        id.walt.mdoc.doc.MDoc validMdoc = service.mDocFromDeviceResponse(deviceResponse);
+        Document validMdoc = service.mDocFromDeviceResponse(deviceResponse);
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
-        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth("not-a-cert".getBytes(StandardCharsets.UTF_8)));
         assertAll(
                 () -> assertEquals(ValidationStatus.VALID, service.verifyMDoc(validMdoc, verificationTransaction)),
                 () -> assertThrows(VerificationException.class, () -> service.verifyMDoc(mDoc, verificationTransaction))
@@ -95,7 +99,7 @@ class MDocServiceTest {
     void extractsCertificateFromRealMdoc(){
 
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc mDoc = service.mDocFromDeviceResponse(deviceResponse);
+        Document mDoc = service.mDocFromDeviceResponse(deviceResponse);
 
         X509Certificate certificate =
                 service.extractCertificateFromMdoc(mDoc);
@@ -110,8 +114,7 @@ class MDocServiceTest {
     @DisplayName("without issuer authentication or x5chain, then invalid request is expected")
     void rejectsMissingIssuerAuthAndX5chain() {
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
-        when(issuerSigned.getIssuerAuth()).thenReturn(null, issuerAuth);
-        when(issuerAuth.getX5Chain()).thenReturn(List.of());
+        when(issuerSigned.getIssuerAuth()).thenReturn(null, issuerAuth());
 
         VerificationException missingAuth =
                 assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
@@ -127,8 +130,7 @@ class MDocServiceTest {
     @DisplayName("with a malformed certificate, then invalid request is expected")
     void rejectsMalformedCertificate() {
         when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
-        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth);
-        when(issuerAuth.getX5Chain()).thenReturn(List.of("not-a-cert".getBytes(StandardCharsets.UTF_8)));
+        when(issuerSigned.getIssuerAuth()).thenReturn(issuerAuth("not-a-cert".getBytes(StandardCharsets.UTF_8)));
 
         VerificationException exception =
                 assertThrows(VerificationException.class, () -> service.extractCertificateFromMdoc(mDoc));
@@ -144,7 +146,9 @@ class MDocServiceTest {
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
         StatuslistEntry status =
                 service.extractStatuslistUriAndIdx(service.mDocFromDeviceResponse(deviceResponse));
-        when(mDoc.getMSO()).thenReturn(null);
+        when(mDoc.getIssuerSigned()).thenReturn(issuerSigned);
+        when(issuerSigned.decodeMobileSecurityObject()).thenReturn(mso);
+        when(mso.getStatus()).thenReturn(null);
         StatuslistEntry absent = service.extractStatuslistUriAndIdx(mDoc);
 
         assertAll(
@@ -158,19 +162,21 @@ class MDocServiceTest {
     @Test
     @DisplayName("with supported data element values, then matching Java values are expected")
     void convertsSupportedDataElementValues() {
-        MapElement map = new MapElement(Map.of(
-                new MapKey("flag"), new BooleanElement(true),
-                new MapKey("name"), new StringElement("Ada")));
+        CBORObject map = CBORObject.NewMap().Add("flag", true).Add("name", "Ada");
 
         assertAll(
-                () -> assertEquals(true, service.extractValue(new BooleanElement(true))),
-                () -> assertEquals(42, service.extractValue(new NumberElement(42))),
-                () -> assertEquals("Ada", service.extractValue(new StringElement("Ada"))),
-                () -> assertEquals(List.of("Ada", 42), service.extractValue(
-                        new ListElement(List.of(new StringElement("Ada"), new NumberElement(42))))),
-                () -> assertEquals(Map.of("flag", true, "name", "Ada"), service.extractValue(map)),
+                () -> assertEquals(true, service.extractValue(cbor(CBORObject.True))),
+                () -> assertEquals(42L, service.extractValue(cbor(CBORObject.FromObject(42)))),
+                () -> assertEquals(-42L, service.extractValue(cbor(CBORObject.FromObject(-42)))),
+                () -> assertEquals("Ada", service.extractValue(cbor(CBORObject.FromObject("Ada")))),
+                () -> assertEquals("1922-06-22", service.extractValue(
+                        cbor(CBORObject.FromObjectAndTag("1922-06-22", 1004)))),
+                () -> assertEquals(List.of("Ada", 42L), service.extractValue(
+                        cbor(CBORObject.NewArray().Add("Ada").Add(42)))),
+                () -> assertEquals(Map.of("flag", true, "name", "Ada"), service.extractValue(cbor(map))),
                 () -> assertEquals(Base64.getEncoder().encodeToString("bytes".getBytes(StandardCharsets.UTF_8)),
-                        service.extractValue(new ByteStringElement("bytes".getBytes(StandardCharsets.UTF_8)))),
+                        service.extractValue(cbor(CBORObject.FromObject("bytes".getBytes(StandardCharsets.UTF_8))))),
+                () -> assertNull(service.extractValue(cbor(CBORObject.Null))),
                 () -> assertNull(service.extractValue(null)));
     }
 
@@ -189,7 +195,7 @@ class MDocServiceTest {
     @Test
     @DisplayName("with two mdocs from the same device response, then invalid request is expected")
     void throwsExceptionWhenTwoDeviceResponsesForSameMdoc() {
-        when(deviceResponse.getDocuments()).thenReturn(List.of(mDoc, mDoc));
+        when(deviceResponse.getDocuments()).thenReturn(new Document[]{mDoc, mDoc});
         VerificationException exception = assertThrows(VerificationException.class, () -> service.mDocFromDeviceResponse(deviceResponse));
         assertEquals("Multiple mdoc documents in vp_token, only one is supported", exception.getErrorDescription());
     }
@@ -199,7 +205,20 @@ class MDocServiceTest {
     void validMdocSignatureTest() {
         Security.addProvider(new BouncyCastleProvider());
         DeviceResponse deviceResponse = service.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc parsed = service.mDocFromDeviceResponse(deviceResponse);
+        Document parsed = service.mDocFromDeviceResponse(deviceResponse);
         assertEquals(ValidationStatus.VALID, service.verifyMDoc(parsed, new VerificationTransaction()));
+    }
+
+    private static CborElement cbor(CBORObject value) {
+        return CoseInternalKt.getCoseCompliantCbor()
+                .decodeFromByteArray(CborElement.Companion.serializer(), value.EncodeToBytes());
+    }
+
+    private static CoseSign1 issuerAuth(byte[]... x5chain) {
+        List<CoseCertificate> certificates = java.util.Arrays.stream(x5chain).map(CoseCertificate::new).toList();
+        CoseHeaders unprotected = new CoseHeaders(null, null, null, null, null, null, null, null,
+                certificates.isEmpty() ? null : certificates, null, null);
+        byte[] emptyProtectedHeader = CBORObject.NewMap().EncodeToBytes();
+        return new CoseSign1(emptyProtectedHeader, unprotected, null, new byte[0]);
     }
 }

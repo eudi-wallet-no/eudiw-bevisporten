@@ -8,15 +8,12 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import id.walt.mdoc.COSECryptoProviderKeyInfo;
-import id.walt.mdoc.SimpleCOSECryptoProvider;
-import id.walt.mdoc.cose.COSESign1;
-import id.walt.mdoc.dataelement.ByteStringElement;
-import id.walt.mdoc.dataelement.MapElement;
-import id.walt.mdoc.dataelement.MapKey;
-import id.walt.mdoc.dataelement.NumberElement;
-import id.walt.mdoc.dataelement.StringElement;
-import org.cose.java.AlgorithmID;
+import com.upokecenter.cbor.CBORObject;
+import id.walt.cose.CoseCertificate;
+import id.walt.cose.CoseContentType;
+import id.walt.cose.CoseHeaders;
+import id.walt.cose.CoseSign1;
+import no.idporten.eudiw.verifier.crypto.SuspendBridge;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -24,6 +21,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.KeyFactory;
 import java.security.Security;
+import java.security.Signature;
+import java.security.spec.MGF1ParameterSpec;
+import java.security.spec.PSSParameterSpec;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -95,34 +95,39 @@ public class StatusListTestUtil {
 
     public static byte[] createSignedStatusListCwtWithRsa(
             URI uri, Instant issuedAt, Instant expirationTime, int bits, byte[] statuses) throws Exception {
-        MapElement statusList = new MapElement(Map.of(
-                new MapKey("bits"), new NumberElement(bits),
-                new MapKey("lst"), new ByteStringElement(
-                        java.util.Base64.getUrlDecoder().decode(base64UrlDeflated(statuses)))));
+        CBORObject statusList = CBORObject.NewOrderedMap()
+                .Add("bits", bits)
+                .Add("lst", java.util.Base64.getUrlDecoder().decode(base64UrlDeflated(statuses)));
 
-        MapElement claims = new MapElement(Map.of(
-                new MapKey(2), new StringElement(uri.toString()),
-                new MapKey(4), new NumberElement(expirationTime.getEpochSecond()),
-                new MapKey(6), new NumberElement(issuedAt.getEpochSecond()),
-                new MapKey(STATUS_LIST_CLAIM), statusList));
+        CBORObject claims = CBORObject.NewOrderedMap()
+                .Add(2, uri.toString())
+                .Add(4, expirationTime.getEpochSecond())
+                .Add(6, issuedAt.getEpochSecond())
+                .Add(STATUS_LIST_CLAIM, statusList);
 
-        String keyId = "status-list";
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(
-                keyId,
-                AlgorithmID.RSA_PSS_256,
-                loadRsaCertificate().getPublicKey(),
-                loadRsaPrivateKey(),
-                List.of(loadRsaCertificate()),
-                List.of());
-        MapElement protectedHeaders = new MapElement(Map.of(
-                new MapKey(16), new StringElement("application/statuslist+cwt")));
-        COSESign1 coseSign1 = new SimpleCOSECryptoProvider(List.of(keyInfo))
-                .sign1(claims.toCBOR(), protectedHeaders, null, keyId);
-        byte[] encodedCoseSign1 = coseSign1.toCBOR();
-        byte[] encodedCwt = new byte[encodedCoseSign1.length + 1];
-        encodedCwt[0] = (byte) 0xD2; // CBOR tag 18 identifies COSE_Sign1.
-        System.arraycopy(encodedCoseSign1, 0, encodedCwt, 1, encodedCoseSign1.length);
-        return encodedCwt;
+        CoseHeaders protectedHeaders = new CoseHeaders(
+                PS256, null, null, null, null, null, null,
+                new CoseContentType.AsString("application/statuslist+cwt"), null, null, null);
+        CoseHeaders unprotectedHeaders = new CoseHeaders(
+                null, null, null, null, null, null, null, null,
+                List.of(new CoseCertificate(loadRsaCertificate().getEncoded())), null, null);
+        RSAPrivateKey privateKey = loadRsaPrivateKey();
+        CoseSign1 coseSign1 = SuspendBridge.runBlocking((scope, continuation) -> CoseSign1.Companion.createAndSign(
+                protectedHeaders, unprotectedHeaders, claims.EncodeToBytes(),
+                (data, signContinuation) -> signRsaPss(privateKey, data), new byte[0], continuation));
+        return coseSign1.toTagged();
+    }
+
+    private static byte[] signRsaPss(RSAPrivateKey privateKey, byte[] data) {
+        try {
+            Signature signature = Signature.getInstance("RSASSA-PSS");
+            signature.setParameter(new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 1));
+            signature.initSign(privateKey);
+            signature.update(data);
+            return signature.sign();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static String base64UrlDeflated(byte[] bytes) throws IOException {
@@ -144,6 +149,7 @@ public class StatusListTestUtil {
     }
 
     private static final int STATUS_LIST_CLAIM = 65533;
+    private static final int PS256 = -37;
     private StatusListTestUtil() {
     }
 }

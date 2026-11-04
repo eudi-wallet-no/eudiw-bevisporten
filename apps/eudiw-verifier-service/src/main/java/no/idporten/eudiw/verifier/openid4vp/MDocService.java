@@ -1,27 +1,42 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
-import id.walt.mdoc.COSECryptoProviderKeyInfo;
-import id.walt.mdoc.SimpleCOSECryptoProvider;
-import id.walt.mdoc.dataelement.*;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
-import id.walt.mdoc.doc.MDocVerificationParams;
-import id.walt.mdoc.doc.VerificationType;
-import id.walt.mdoc.issuersigned.IssuerSigned;
+import id.walt.cose.CoseCertificate;
+import id.walt.cose.CoseHeaders;
+import id.walt.cose.CoseInternalKt;
+import id.walt.cose.CoseSign1;
+import id.walt.mdoc.encoding.ByteStringWrapper;
+import id.walt.mdoc.objects.deviceretrieval.DeviceResponse;
+import id.walt.mdoc.objects.document.Document;
+import id.walt.mdoc.objects.document.IssuerSigned;
+import id.walt.mdoc.objects.elements.IssuerSignedItem;
+import id.walt.mdoc.objects.elements.IssuerSignedList;
+import id.walt.mdoc.objects.mso.MobileSecurityObject;
+import id.walt.mdoc.crypto.MdocCrypto;
+import id.walt.mdoc.objects.mso.Status;
+import id.walt.mdoc.objects.mso.ValidityInfo;
+import id.walt.mdoc.verification.IssuerSignedDataIntegrityKt;
+import kotlinx.serialization.cbor.*;
+import kotlinx.serialization.json.Json;
+import kotlinx.serialization.json.JsonElementKt;
+import kotlinx.serialization.json.JsonObject;
 import no.idporten.eudiw.verifier.VerificationException;
+import no.idporten.eudiw.verifier.crypto.CoseSignatureVerifier;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.cose.java.AlgorithmID;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,20 +45,26 @@ public class MDocService {
 
     private static final Logger log = LogManager.getLogger(MDocService.class);
 
+    private final Clock clock;
+
     public MDocService() {
+        this(Clock.systemUTC());
+    }
+
+    MDocService(Clock clock) {
+        this.clock = clock;
     }
 
     public DeviceResponse deviceResponseFromVpToken(String vpToken) {
         DeviceResponse deviceResponse;
         try {
-            deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
+            byte[] encoded = Base64.getUrlDecoder().decode(vpToken);
+            deviceResponse = CoseInternalKt.getCoseCompliantCbor()
+                    .decodeFromByteArray(DeviceResponse.Companion.serializer(), encoded);
         } catch (IllegalArgumentException | IllegalStateException e) {
-            if (e.getMessage() != null && e.getMessage().contains("must not be empty")) {
-                throw new VerificationException("invalid_request", "No mdoc documents in vp_token", e);
-            }
             throw new VerificationException("invalid_request", "Failed to parse mdoc vp_token", e);
         }
-        if (deviceResponse.getDocuments().isEmpty()) {
+        if (deviceResponse.getDocuments() == null || deviceResponse.getDocuments().length == 0) {
             throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
         }
         return deviceResponse;
@@ -55,48 +76,64 @@ public class MDocService {
      * @param deviceResponse this contains the single MDoc.
      * @return
      */
-    public MDoc mDocFromDeviceResponse(DeviceResponse deviceResponse) {
-        if(deviceResponse.getDocuments().size() > 1) {
+    public Document mDocFromDeviceResponse(DeviceResponse deviceResponse) {
+        if(deviceResponse.getDocuments().length > 1) {
             throw new VerificationException("invalid_request", "Multiple mdoc documents in vp_token, only one is supported");
         } else {
-            return deviceResponse.getDocuments().getFirst();
+            return deviceResponse.getDocuments()[0];
         }
     }
 
-    public Map<String, Object> claimsFromMDoc(MDoc mDoc) {
+    public Map<String, Object> claimsFromMDoc(Document mDoc) {
         Map<String, Object> claims = new HashMap<>();
         mDocClaims(mDoc.getIssuerSigned(), claims);
         return claims;
     }
 
-    protected ValidationStatus verifyMDoc(id.walt.mdoc.doc.MDoc mDoc, VerificationTransaction verificationTransaction) {
+    /**
+     * Verifies issuer signature, MSO validity, doctype and digests of the disclosed items. Device authentication is
+     * not verified. The issuer signature is verified with the same certificate as is checked against the trust list.
+     */
+    protected ValidationStatus verifyMDoc(Document mDoc, VerificationTransaction verificationTransaction) {
 
         X509Certificate issuerCertificate = extractCertificateFromMdoc(mDoc);
 
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(
-                issuerCertificate.getSubjectX500Principal().getName(),
-                AlgorithmID.ECDSA_256,
-                issuerCertificate.getPublicKey(),
-                null,
-                List.of(issuerCertificate),
-                Collections.emptyList());
-        SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
-        boolean verify =  mDoc.verify(new MDocVerificationParams(
-                        Set.of(VerificationType.VALIDITY,
-                                VerificationType.DOC_TYPE,
-                                VerificationType.ISSUER_SIGNATURE,
-                                VerificationType.ITEMS_TAMPER_CHECK),
-                        issuerCertificate.getSubjectX500Principal().getName(),
-                        null,
-                        null,
-                        null,
-                        null),
-                cryptoProvider);
-
-        if (verify) {
+        try {
+            MobileSecurityObject mso = mso(mDoc);
+            if (!CoseSignatureVerifier.verify(mDoc.getIssuerSigned().getIssuerAuth(), issuerCertificate)) {
+                log.info("mdoc issuer signature is invalid");
+                return ValidationStatus.INVALID;
+            }
+            issuerCertificate.checkValidity(new Date(mso.getValidityInfo().getSigned().toEpochMilliseconds()));
+            verifyMsoValidity(mso);
+            if (!mDoc.getDocType().equals(mso.getDocType())) {
+                log.info("mdoc doctype {} does not match MSO doctype {}", mDoc.getDocType(), mso.getDocType());
+                return ValidationStatus.INVALID;
+            }
+            IssuerSignedDataIntegrityKt.verifyIssuerSignedItemDigests(mDoc, mso);
             return ValidationStatus.VALID;
-        } else {
+        } catch (IllegalArgumentException | IllegalStateException
+                 | CertificateExpiredException | CertificateNotYetValidException e) {
+            log.info("mdoc verification failed: {}", e.getMessage());
             return ValidationStatus.INVALID;
+        }
+    }
+
+    // Same checks as MdocVerifier.verifyMso, but against our clock instead of the system clock
+    private void verifyMsoValidity(MobileSecurityObject mso) {
+        ValidityInfo validityInfo = mso.getValidityInfo();
+        validityInfo.precheck();
+        Instant now = clock.instant();
+        Instant validFrom = Instant.ofEpochSecond(validityInfo.getValidFrom().getEpochSeconds());
+        Instant validUntil = Instant.ofEpochSecond(validityInfo.getValidUntil().getEpochSeconds());
+        if (now.isBefore(validFrom)) {
+            throw new IllegalArgumentException("MSO is not yet valid, valid from " + validFrom);
+        }
+        if (now.isAfter(validUntil)) {
+            throw new IllegalArgumentException("MSO is no longer valid, expired " + validUntil);
+        }
+        if (!MdocCrypto.INSTANCE.isSupportedDigest(mso.getDigestAlgorithm())) {
+            throw new IllegalArgumentException("MSO digest algorithm is not supported: " + mso.getDigestAlgorithm());
         }
     }
 
@@ -106,66 +143,52 @@ public class MDocService {
      **/
 
     protected Map<String, Object> mDocClaims(IssuerSigned issuerSigned, Map<String, Object> claims) {
-        for (String namespace : issuerSigned.getNameSpaces().keySet()) {
-            List<EncodedCBORElement> elements = issuerSigned.getNameSpaces().get(namespace);
-            for (EncodedCBORElement element : elements) {
-                Map<MapKey, DataElement> elementMap = ((MapElement) element.decode()).getValue();
-                String elementIdentifier = null;
-                Object elementValue = null;
-                for (MapKey mapKey : elementMap.keySet()) {
-                    if (mapKey.getStr().equals("elementIdentifier")) {
-                        elementIdentifier = String.valueOf(elementMap.get(mapKey).getInternalValue());
-                    }
-                    if (mapKey.getStr().equals("elementValue")) {
-                        elementValue = extractValue(elementMap.get(mapKey));
-                    }
-                }
-                Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace, _ -> new HashMap<String, Object>());
-                nameSpaceMap.put(elementIdentifier, elementValue);
+        if (issuerSigned.getNamespaces() == null) {
+            return claims;
+        }
+        for (Map.Entry<String, IssuerSignedList> namespace : issuerSigned.getNamespaces().entrySet()) {
+            Map<String, Object> nameSpaceMap = (Map<String, Object>) claims.computeIfAbsent(namespace.getKey(), _ -> new HashMap<String, Object>());
+            for (ByteStringWrapper<IssuerSignedItem> wrappedItem : namespace.getValue().getEntries()) {
+                IssuerSignedItem item = wrappedItem.getValue();
+                nameSpaceMap.put(item.getElementIdentifier(), extractValue(item.getElementValue()));
             }
         }
         return claims;
     }
 
-    protected Object extractValue(DataElement dataElement) {
-        if (dataElement == null) {
-            return null;
-        }
-        if (dataElement instanceof BooleanElement) {
-            return ((BooleanElement) dataElement).getValue();
-        }
-        return switch (dataElement.getType()) {
-            case number -> ((NumberElement) dataElement).getValue();
-            case textString -> ((StringElement) dataElement).getValue();
-            case dateTime -> ((DateTimeElement) dataElement).getValue().toString();
-            case fullDate -> ((FullDateElement) dataElement).getValue().toString();
-            case nil -> null;
-            case map -> ((MapElement) dataElement).getValue().entrySet()
+    protected Object extractValue(CborElement element) {
+        return switch (element) {
+            case null -> null;
+            case CborBoolean booleanElement -> booleanElement.getValue();
+            case CborInteger integerElement -> CborElementKt.getLong(integerElement);
+            case CborFloat floatElement -> floatElement.getValue();
+            // tdate (tag 0) and full-date (tag 1004) are text strings
+            case CborString stringElement -> stringElement.getValue();
+            case CborNull _, CborUndefined _ -> null;
+            case CborMap mapElement -> mapElement.entrySet()
                     .stream()
                     .collect(Collectors.toMap(
-                            e -> String.valueOf(e.getKey()),
+                            e -> String.valueOf(extractValue(e.getKey())),
                             e -> extractValue(e.getValue())));
-            case list -> ((ListElement) dataElement).getValue()
+            case CborArray listElement -> listElement
                     .stream()
                     .map(this::extractValue)
                     .toList();
-            case byteString -> new String(Base64.getEncoder().encode(((ByteStringElement) dataElement).getValue()));
-            default -> String.valueOf(dataElement.getInternalValue());
+            case CborByteString byteStringElement -> Base64.getEncoder().encodeToString(byteStringElement.getBytes());
+            default -> String.valueOf(element);
         };
-
     }
 
-    protected X509Certificate extractCertificateFromMdoc(MDoc mDoc) {
+    protected X509Certificate extractCertificateFromMdoc(Document mDoc) {
         IssuerSigned issuerSigned = mDoc.getIssuerSigned();
         if (issuerSigned.getIssuerAuth() == null) {
             throw new VerificationException("invalid_request", "issuerAuth is missing in mdoc");
         }
-        var issuerAuth = issuerSigned.getIssuerAuth();
-        List<byte[]> x5chain = issuerAuth.getX5Chain();
+        List<CoseCertificate> x5chain = x5Chain(issuerSigned.getIssuerAuth());
         if (x5chain == null || x5chain.isEmpty()) {
             throw new VerificationException("invalid_request", "x5chain is missing in issuerAuth of mdoc");
         }
-        byte[] leafDer = x5chain.getFirst();
+        byte[] leafDer = x5chain.getFirst().getRawBytes();
         X509Certificate cert;
         try {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -179,12 +202,39 @@ public class MDocService {
         return cert;
     }
 
-
-    protected StatuslistEntry extractStatuslistUriAndIdx(MDoc mDoc) {
-        if (!Objects.isNull(mDoc.getMSO()) && !Objects.isNull(mDoc.getMSO().getStatus()) && !Objects.isNull(mDoc.getMSO().getStatus().getStatusList())) {
-            return new StatuslistEntry(mDoc.getMSO().getStatus().getStatusList().toJSON().get("idx").toString(), URI.create(mDoc.getMSO().getStatus().getStatusList().getUri()));
+    // ISO 18013-5 places x5chain in the unprotected header, but some issuers put it in the protected header.
+    private List<CoseCertificate> x5Chain(CoseSign1 issuerAuth) {
+        if (issuerAuth.getUnprotected() != null && issuerAuth.getUnprotected().getX5chain() != null) {
+            return issuerAuth.getUnprotected().getX5chain();
         }
-        return null;
+        try {
+            return CoseInternalKt.getCoseCompliantCbor()
+                    .decodeFromByteArray(CoseHeaders.Companion.serializer(), issuerAuth.getProtected())
+                    .getX5chain();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    protected StatuslistEntry extractStatuslistUriAndIdx(Document mDoc) {
+        Status status = mso(mDoc).getStatus();
+        if (status == null || status.getStatusList() == null) {
+            return null;
+        }
+        // idx is an unsigned long and uri a value class, neither has a Java accessible getter
+        JsonObject statusList = JsonElementKt.getJsonObject(Json.Default.encodeToJsonElement(
+                Status.StatusListInfo.Companion.serializer(), status.getStatusList()));
+        return new StatuslistEntry(
+                JsonElementKt.getJsonPrimitive(statusList.get("idx")).getContent(),
+                URI.create(JsonElementKt.getJsonPrimitive(statusList.get("uri")).getContent()));
+    }
+
+    private MobileSecurityObject mso(Document mDoc) {
+        try {
+            return mDoc.getIssuerSigned().decodeMobileSecurityObject();
+        } catch (IllegalArgumentException e) {
+            throw new VerificationException("invalid_request", "Unable to parse MSO of mdoc", e);
+        }
     }
 
     public @NonNull String getValidationDetail(ValidationStatus status) {

@@ -7,9 +7,8 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.mdoc.dataelement.StringElement;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
+import id.walt.mdoc.objects.deviceretrieval.DeviceResponse;
+import id.walt.mdoc.objects.document.Document;
 import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
 import kotlinx.serialization.json.Json;
@@ -78,7 +77,7 @@ class OpenID4VPResponseServiceTest {
     @Mock TrustlistsProperties trustlistsProperties;
     @Mock MDocService mDocService;
     @Mock SdJwtService sdJwtService;
-    @Mock MDoc mDoc;
+    @Mock Document mDoc;
     @Mock SDJwt sdJwt;
     @Mock VerificationResult<SDJwt> sdJwtResult;
     @Mock X509Certificate certificate;
@@ -504,7 +503,7 @@ class OpenID4VPResponseServiceTest {
         transaction.setIncludeValidationDetails(true);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
+        when(mDoc.getDocType()).thenReturn(PID_DOC_TYPE);
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of("family_name", "Nordmann"));
         when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
@@ -604,7 +603,7 @@ class OpenID4VPResponseServiceTest {
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement(docType));
+        when(mDoc.getDocType()).thenReturn(docType);
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
         when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
@@ -752,7 +751,7 @@ class OpenID4VPResponseServiceTest {
         MDocService service = spy(realService);
 
         DeviceResponse deviceResponse = realService.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc realMdoc = realService.mDocFromDeviceResponse(deviceResponse);
+        Document realMdoc = realService.mDocFromDeviceResponse(deviceResponse);
         Certificates certs = new Certificates();
         X509Certificate negativeTestCert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+ certs.webuildPidDigdirCertificate() +"-----END CERTIFICATE-----");
 
@@ -775,10 +774,10 @@ class OpenID4VPResponseServiceTest {
                 .thenReturn(ValidationStatus.VALID);
         if ("mso_mdoc".equals(format)) {
             DeviceResponse deviceResponse = mock(DeviceResponse.class);
-            MDoc document = mock(MDoc.class);
+            Document document = mock(Document.class);
             when(mDocService.deviceResponseFromVpToken(token)).thenReturn(deviceResponse);
             when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(document);
-            when(document.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
+            when(document.getDocType()).thenReturn(PID_DOC_TYPE);
             when(mDocService.claimsFromMDoc(document)).thenReturn(Map.of("value", token));
             when(mDocService.verifyMDoc(document, transaction)).thenReturn(status);
             when(mDocService.extractCertificateFromMdoc(document)).thenReturn(presentationCertificate);
@@ -802,7 +801,7 @@ class OpenID4VPResponseServiceTest {
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
+        when(mDoc.getDocType()).thenReturn(PID_DOC_TYPE);
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
         when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
@@ -828,7 +827,7 @@ class OpenID4VPResponseServiceTest {
         when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
         when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
         if (docType != null) {
-            when(mDoc.getDocType()).thenReturn(new StringElement(docType));
+            when(mDoc.getDocType()).thenReturn(docType);
         }
     }
 
