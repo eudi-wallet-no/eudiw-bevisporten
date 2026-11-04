@@ -12,19 +12,19 @@ public enum CredentialFormat {
     DC_SD_JWT("dc+sd-jwt", ValidationType.SDJWT, StatusListTokenFormat.JWT),
     MSO_MDOC("mso_mdoc", ValidationType.MDOC, StatusListTokenFormat.CWT);
 
-    private final String dcqlFormat;
+    private final String format;
     private final ValidationType validationType;
     private final StatusListTokenFormat statusListTokenFormat;
 
-    CredentialFormat(String dcqlFormat, ValidationType validationType, StatusListTokenFormat statusListTokenFormat) {
-        this.dcqlFormat = dcqlFormat;
+    CredentialFormat(String format, ValidationType validationType, StatusListTokenFormat statusListTokenFormat) {
+        this.format = format;
         this.validationType = validationType;
         this.statusListTokenFormat = statusListTokenFormat;
     }
 
-    public static CredentialFormat fromDcql(String format) {
+    public static CredentialFormat fromString(String format) {
         for (CredentialFormat credentialFormat : values()) {
-            if (credentialFormat.dcqlFormat.equals(format)) {
+            if (credentialFormat.format.equals(format)) {
                 return credentialFormat;
             }
         }

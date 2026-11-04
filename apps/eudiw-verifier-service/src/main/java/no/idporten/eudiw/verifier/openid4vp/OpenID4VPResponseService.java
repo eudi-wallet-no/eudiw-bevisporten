@@ -272,7 +272,7 @@ public class OpenID4VPResponseService {
     }
 
     private VerifiedCredential verifiedCredential(String vpToken, VerificationTransaction verificationTransaction, DcqlCredentialQuery credentialQuery) {
-        CredentialVerifier credentialVerifier = switch (CredentialFormat.fromDcql(credentialQuery.getFormat())) {
+        CredentialVerifier credentialVerifier = switch (CredentialFormat.fromString(credentialQuery.getFormat())) {
             case DC_SD_JWT -> sdJwtCredentialVerifier;
             case MSO_MDOC -> mdocCredentialVerifier;
         };

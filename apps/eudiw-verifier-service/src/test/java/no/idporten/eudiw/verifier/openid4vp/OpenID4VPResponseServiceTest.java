@@ -747,7 +747,7 @@ class OpenID4VPResponseServiceTest {
         X509Certificate presentationCertificate = mock(X509Certificate.class);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(presentationCertificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
-        CredentialFormat credentialFormat = CredentialFormat.fromDcql(format);
+        CredentialFormat credentialFormat = CredentialFormat.fromString(format);
         String type = credentialFormat == CredentialFormat.MSO_MDOC ? PID_DOC_TYPE : vct;
         CredentialVerifier verifier = credentialFormat == CredentialFormat.MSO_MDOC ? mdocVerifier : sdJwtVerifier;
         when(verifier.verify(eq(token), any(), eq(transaction)))
