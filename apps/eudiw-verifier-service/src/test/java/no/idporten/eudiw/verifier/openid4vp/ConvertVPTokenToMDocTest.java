@@ -3,8 +3,11 @@ package no.idporten.eudiw.verifier.openid4vp;
 import com.nimbusds.jose.util.X509CertUtils;
 import id.walt.mdoc.objects.document.Document;
 import id.walt.mdoc.objects.mso.MobileSecurityObject;
+import id.walt.mdoc.objects.document.IssuerSigned;
 import id.walt.mdoc.verification.MdocVerifier;
+import no.idporten.eudiw.verifier.crypto.SuspendBridge;
 import no.idporten.eudiw.verifier.testdata.Certificates;
+import no.idporten.eudiw.verifier.walt.WaltPresentations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,16 +15,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("When convert vp-token of format mDoc to MDoc")
 class ConvertVPTokenToMDocTest {
 
-    private static final MDocService mDocService = new MDocService();
-
     private static Document parse(String vpToken) {
-        return mDocService.mDocFromDeviceResponse(mDocService.deviceResponseFromVpToken(vpToken));
+        return WaltPresentations.parseMdocPresentation(vpToken).getMdoc().getDocument();
     }
 
     @DisplayName("then valid parsing to MDoc")
@@ -52,7 +54,9 @@ class ConvertVPTokenToMDocTest {
             Document mDoc = parse(vpToken_norsk_onlyFamilyName);
             assertNotNull(mDoc.getIssuerSigned());
             assertNotNull(mDoc.getIssuerSigned().getIssuerAuth());
-            X509Certificate cert = mDocService.extractCertificateFromMdoc(mDoc);
+            IssuerSigned.ParsedIssuerAuth issuerAuth = SuspendBridge.runBlocking((scope, continuation) ->
+                    mDoc.getIssuerSigned().getParsedIssuerAuth(continuation));
+            X509Certificate cert = X509CertUtils.parse(Base64.getDecoder().decode(issuerAuth.getX5c().getFirst()));
             assertNotNull(cert);
             Certificates certificates = new Certificates();
             assertEquals(X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+certificates.certificateOnlyForOldMdocTestWithOldPIDWithoutOInDN()+ "-----END CERTIFICATE-----"), cert);

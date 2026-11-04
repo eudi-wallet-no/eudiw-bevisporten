@@ -28,7 +28,8 @@
         <idporten-log-audit.version>4.0.6</idporten-log-audit.version>
         <oauth2-oidc-sdk.version>11.38.2</oauth2-oidc-sdk.version>
         <waltid-mdoc-credentials2-jvm.version>1.2.0</waltid-mdoc-credentials2-jvm.version>
-        <waltid-sdjwt-jvm.version>1.2.0</waltid-sdjwt-jvm.version>
+        <waltid-digital-credentials-jvm.version>1.2.0</waltid-digital-credentials-jvm.version>
+        <waltid-verification-policies2-vp-jvm.version>1.2.0</waltid-verification-policies2-vp-jvm.version>
         <dss.version>6.4</dss.version>
         <bouncycastle.version>1.86</bouncycastle.version>
         <upokecenter-cbor.version>4.5.6</upokecenter-cbor.version>
@@ -118,14 +119,38 @@
             <version>${waltid-mdoc-credentials2-jvm.version}</version>
         </dependency>
         <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-digital-credentials-jvm</artifactId>
+            <version>${waltid-digital-credentials-jvm.version}</version>
+            <exclusions>
+                <!-- Declared by digital-credentials, but only mdoc-credentials2 is used -->
+                <exclusion>
+                    <groupId>id.walt.mdoc-credentials</groupId>
+                    <artifactId>waltid-mdoc-credentials-jvm</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-verification-policies2-vp-jvm</artifactId>
+            <version>${waltid-verification-policies2-vp-jvm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>id.walt.mdoc-credentials</groupId>
+                    <artifactId>waltid-mdoc-credentials-jvm</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Runtime scope in policies2-vp, but VerificationSessionContext exposes OpenID4VPResponseMode -->
+        <dependency>
+            <groupId>id.walt.protocols</groupId>
+            <artifactId>waltid-openid4vp-jvm</artifactId>
+            <version>${waltid-verification-policies2-vp-jvm.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
             <version>${bouncycastle.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>id.walt.sdjwt</groupId>
-            <artifactId>waltid-sdjwt-jvm</artifactId>
-            <version>${waltid-sdjwt-jvm.version}</version>
         </dependency>
 
         <dependency>
@@ -192,6 +217,7 @@
                         </goals>
                         <configuration>
                             <sourceDirs>
+                                <source>src/main/kotlin</source>
                                 <source>src/main/java</source>
                                 <source>target/generated-sources/annotations</source>
                                 <source>src/test/kotlin</source>
@@ -215,6 +241,35 @@
                 <configuration>
                     <jvmTarget>25</jvmTarget>
                 </configuration>
+            </plugin>
+            <!-- Mixed build: Kotlin (src/main/kotlin) is compiled before Java, so Java can call the Kotlin bridge -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>java-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
