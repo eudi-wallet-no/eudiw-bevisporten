@@ -35,7 +35,7 @@ public abstract class CredentialVerifier {
         this.clock = clock;
     }
 
-    public abstract CredentialVerification verify(String vpToken, DcqlCredentialQuery credentialQuery, VerificationTransaction transaction);
+    public abstract CredentialVerificationResult verify(String vpToken, DcqlCredentialQuery credentialQuery, VerificationTransaction transaction);
 
     protected Map<String, PolicyRunResult> runPolicies(VerifiablePresentation presentation, VPPolicyList policies,
                                                        String vpToken, VerificationTransaction transaction) {

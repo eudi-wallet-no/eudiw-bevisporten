@@ -754,10 +754,10 @@ class OpenID4VPResponseServiceTest {
                 .thenReturn(verification(credentialFormat, type, Map.of("value", token), presentationCertificate, null, status));
     }
 
-    private static CredentialVerification verification(CredentialFormat format, String type, Map<String, Object> claims,
-                                                       X509Certificate certificate, StatuslistEntry statuslistEntry,
-                                                       ValidationStatus status) {
-        return new CredentialVerification(format, type, claims, certificate, statuslistEntry, status,
+    private static CredentialVerificationResult verification(CredentialFormat format, String type, Map<String, Object> claims,
+                                                             X509Certificate certificate, StatuslistEntry statuslistEntry,
+                                                             ValidationStatus status) {
+        return new CredentialVerificationResult(format, type, claims, certificate, statuslistEntry, status,
                 format == CredentialFormat.MSO_MDOC ? ValidationStatus.NOT_APPLICABLE : ValidationStatus.VALID);
     }
 

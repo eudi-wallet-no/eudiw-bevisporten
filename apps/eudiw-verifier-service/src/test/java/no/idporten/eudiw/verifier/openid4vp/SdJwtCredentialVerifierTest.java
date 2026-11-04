@@ -15,7 +15,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
@@ -39,7 +38,7 @@ class SdJwtCredentialVerifierTest {
     @Test
     @DisplayName("with valid holder binding, then claims, issuer certificate, status and valid statuses are expected")
     void verifiesPresentation() {
-        CredentialVerification verification = verifier.verify(VpTokenTestdata.VP_TOKEN, sdJwtQuery(true), transaction(NONCE, AUDIENCE));
+        CredentialVerificationResult verification = verifier.verify(VpTokenTestdata.VP_TOKEN, sdJwtQuery(true), transaction(NONCE, AUDIENCE));
 
         assertAll(
                 () -> assertEquals(CredentialFormat.DC_SD_JWT, verification.format()),
@@ -68,7 +67,7 @@ class SdJwtCredentialVerifierTest {
     void requiresKeyBindingJwtOnlyWhenHolderBindingIsRequired() {
         String withoutKeyBinding = VpTokenTestdata.VP_TOKEN.substring(0, VpTokenTestdata.VP_TOKEN.lastIndexOf('~') + 1);
 
-        CredentialVerification verification = verifier.verify(withoutKeyBinding, sdJwtQuery(false), transaction(NONCE, AUDIENCE));
+        CredentialVerificationResult verification = verifier.verify(withoutKeyBinding, sdJwtQuery(false), transaction(NONCE, AUDIENCE));
 
         assertAll(
                 () -> assertHolderBindingFails(() -> verifier.verify(withoutKeyBinding, sdJwtQuery(true), transaction(NONCE, AUDIENCE))),
@@ -137,7 +136,7 @@ class SdJwtCredentialVerifierTest {
         void verifiesSdJwt(String sample) throws Exception {
             String vpToken = read(sample);
 
-            CredentialVerification verification = launchpadVerifier(vpToken).verify(vpToken, sdJwtQuery(true), sessionOf(sample));
+            CredentialVerificationResult verification = launchpadVerifier(vpToken).verify(vpToken, sdJwtQuery(true), sessionOf(sample));
 
             assertAll(
                     () -> assertTrue(verification.credentialType().startsWith("urn:eudi:pid:")),

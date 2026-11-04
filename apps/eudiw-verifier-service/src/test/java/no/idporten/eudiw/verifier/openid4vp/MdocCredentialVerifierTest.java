@@ -35,7 +35,7 @@ class MdocCredentialVerifierTest {
     @Test
     @DisplayName("with an expired MSO, then invalid status is expected")
     void rejectsExpiredMso() throws Exception {
-        CredentialVerification verification = verifier.verify(read(EXPIRED), mdocQuery(false), new VerificationTransaction());
+        CredentialVerificationResult verification = verifier.verify(read(EXPIRED), mdocQuery(false), new VerificationTransaction());
 
         assertAll(
                 () -> assertEquals(ValidationStatus.INVALID, verification.credentialStatus()),
@@ -136,7 +136,7 @@ class MdocCredentialVerifierTest {
         void verifiesMdoc(String sample) throws Exception {
             String vpToken = read(sample);
 
-            CredentialVerification verification = launchpadVerifier(clockAt(msoValidFrom(vpToken)))
+            CredentialVerificationResult verification = launchpadVerifier(clockAt(msoValidFrom(vpToken)))
                     .verify(vpToken, mdocQuery(true), sessionOf(sample));
 
             assertAll(
@@ -175,7 +175,7 @@ class MdocCredentialVerifierTest {
             String vpToken = read(sample);
             MdocCredentialVerifier launchpadVerifier = launchpadVerifier(Clock.systemUTC());
 
-            CredentialVerification verification = launchpadVerifier.verify(vpToken, mdocQuery(false), sessionOf(sample));
+            CredentialVerificationResult verification = launchpadVerifier.verify(vpToken, mdocQuery(false), sessionOf(sample));
 
             assertAll(
                     () -> assertEquals(ValidationStatus.INVALID, verification.credentialStatus()),
@@ -189,7 +189,7 @@ class MdocCredentialVerifierTest {
         void rejectsMsoSignedBeforeCertificateValidity() throws Exception {
             String vpToken = read(SIGNED_BEFORE_CERTIFICATE);
 
-            CredentialVerification verification = launchpadVerifier(clockAt(msoValidFrom(vpToken)))
+            CredentialVerificationResult verification = launchpadVerifier(clockAt(msoValidFrom(vpToken)))
                     .verify(vpToken, mdocQuery(true), sessionOf(SIGNED_BEFORE_CERTIFICATE));
 
             assertAll(

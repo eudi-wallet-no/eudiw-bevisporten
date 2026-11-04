@@ -77,7 +77,7 @@ public class MdocCredentialVerifier extends CredentialVerifier {
      * signature is not checked and holder binding is not applicable.
      */
     @Override
-    public CredentialVerification verify(String vpToken, DcqlCredentialQuery credentialQuery, VerificationTransaction transaction) {
+    public CredentialVerificationResult verify(String vpToken, DcqlCredentialQuery credentialQuery, VerificationTransaction transaction) {
         boolean holderBindingRequired = credentialQuery.getRequireCryptographicHolderBinding();
         requireSingleDocument(vpToken);
         MsoMdocPresentation presentation = parse(() -> WaltPresentations.parseMdocPresentation(vpToken), "Failed to parse mdoc vp_token");
@@ -102,7 +102,7 @@ public class MdocCredentialVerifier extends CredentialVerifier {
             log.warn("mdoc doctype {} does not match MSO doctype {}", document.getDocType(), mso.getDocType());
             credentialStatus = ValidationStatus.INVALID;
         }
-        return new CredentialVerification(
+        return new CredentialVerificationResult(
                 CredentialFormat.MSO_MDOC,
                 document.getDocType(),
                 claims(document),

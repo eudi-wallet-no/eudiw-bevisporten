@@ -75,7 +75,7 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
     }
 
     @Override
-    public CredentialVerification verify(String vpToken, DcqlCredentialQuery credentialQuery, VerificationTransaction transaction) {
+    public CredentialVerificationResult verify(String vpToken, DcqlCredentialQuery credentialQuery, VerificationTransaction transaction) {
         // A presentation without key binding JWT ends with the separator after the last disclosure
         boolean hasKeyBinding = !vpToken.endsWith("~");
         if (!hasKeyBinding && credentialQuery.getRequireCryptographicHolderBinding()) {
@@ -101,7 +101,7 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
             throw holderBindingFailed();
         }
         JsonObject credentialData = presentation.getCredential().getCredentialData();
-        return new CredentialVerification(
+        return new CredentialVerificationResult(
                 CredentialFormat.DC_SD_JWT,
                 stringClaim(credentialData, "vct"),
                 disclosureClaims(presentation.getDisclosures()),

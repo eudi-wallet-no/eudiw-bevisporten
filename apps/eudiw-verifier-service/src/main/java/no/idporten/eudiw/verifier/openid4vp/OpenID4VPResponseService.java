@@ -101,7 +101,7 @@ public class OpenID4VPResponseService {
             }
             List<VerifiedCredential> parsedCredentials = new ArrayList<>();
             for (VerifiablePresentation verifiablePresentation : verifiablePresentations) {
-                parsedCredentials.add(verifiedCredential(verifiablePresentation.value(), verificationTransaction, credentialQuery));
+                parsedCredentials.add(verifyCredential(verifiablePresentation.value(), verificationTransaction, credentialQuery));
             }
             allCredentials.put(credentialId, parsedCredentials);
         }
@@ -147,7 +147,7 @@ public class OpenID4VPResponseService {
         throw new VerificationException("invalid_request", "Unsupported vp_token structure");
     }
 
-    private List<ValidationDetail> validationDetails(CredentialVerification verification, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus) {
+    private List<ValidationDetail> validationDetails(CredentialVerificationResult verification, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus) {
         List<ValidationDetail> validationDetails = new ArrayList<>();
         validationDetails.add(new ValidationDetail(ValidationType.STATUS_LIST, statuslistStatus, tokenStatuslistService.getValidationDetail(statuslistStatus)));
         validationDetails.add(new ValidationDetail(ValidationType.TRUST_LIST, trustlistStatus, trustlistService.getValidationDetail(trustlistStatus)));
@@ -271,12 +271,12 @@ public class OpenID4VPResponseService {
         return status;
     }
 
-    private VerifiedCredential verifiedCredential(String vpToken, VerificationTransaction verificationTransaction, DcqlCredentialQuery credentialQuery) {
+    private VerifiedCredential verifyCredential(String vpToken, VerificationTransaction verificationTransaction, DcqlCredentialQuery credentialQuery) {
         CredentialVerifier credentialVerifier = switch (CredentialFormat.fromString(credentialQuery.getFormat())) {
             case DC_SD_JWT -> sdJwtCredentialVerifier;
             case MSO_MDOC -> mdocCredentialVerifier;
         };
-        CredentialVerification verification = credentialVerifier.verify(vpToken, credentialQuery, verificationTransaction);
+        CredentialVerificationResult verification = credentialVerifier.verify(vpToken, credentialQuery, verificationTransaction);
         if (verification.format() == CredentialFormat.MSO_MDOC) {
             validateRequestedDocType(verification.credentialType(), credentialQuery);
         }
@@ -296,13 +296,13 @@ public class OpenID4VPResponseService {
             throw new VerificationException("invalid_request",
                     "Missing or invalid meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
-        if (docType == null || !meta.getDoctypeValue().equals(docType)) {
+        if (!meta.getDoctypeValue().equals(docType)) {
             throw new VerificationException("invalid_request",
                     "Returned doctype does not match meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
     }
 
-    private static boolean isPid(CredentialVerification verification) {
+    private static boolean isPid(CredentialVerificationResult verification) {
         String type = verification.credentialType();
         return type != null && switch (verification.format()) {
             case MSO_MDOC -> PID_DOC_TYPE.equals(type);

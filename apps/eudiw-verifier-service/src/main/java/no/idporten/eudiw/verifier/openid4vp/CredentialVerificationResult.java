@@ -17,7 +17,7 @@ import java.util.Map;
  * @param credentialStatus    issuer signature, integrity and validity period of the credential
  * @param holderBindingStatus proof of possession of the holder key, NOT_APPLICABLE when not verified
  */
-public record CredentialVerification(
+public record CredentialVerificationResult(
         CredentialFormat format,
         String credentialType,
         Map<String, Object> claims,
