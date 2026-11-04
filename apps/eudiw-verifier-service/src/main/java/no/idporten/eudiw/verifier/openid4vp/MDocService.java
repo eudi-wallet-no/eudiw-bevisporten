@@ -101,20 +101,20 @@ public class MDocService {
         try {
             MobileSecurityObject mso = mso(mDoc);
             if (!CoseSignatureVerifier.verify(mDoc.getIssuerSigned().getIssuerAuth(), issuerCertificate)) {
-                log.info("mdoc issuer signature is invalid");
+                log.warn("mdoc issuer signature is invalid");
                 return ValidationStatus.INVALID;
             }
             issuerCertificate.checkValidity(new Date(mso.getValidityInfo().getSigned().toEpochMilliseconds()));
             verifyMsoValidity(mso);
             if (!mDoc.getDocType().equals(mso.getDocType())) {
-                log.info("mdoc doctype {} does not match MSO doctype {}", mDoc.getDocType(), mso.getDocType());
+                log.warn("mdoc doctype {} does not match MSO doctype {}", mDoc.getDocType(), mso.getDocType());
                 return ValidationStatus.INVALID;
             }
             IssuerSignedDataIntegrityKt.verifyIssuerSignedItemDigests(mDoc, mso);
             return ValidationStatus.VALID;
         } catch (IllegalArgumentException | IllegalStateException
                  | CertificateExpiredException | CertificateNotYetValidException e) {
-            log.info("mdoc verification failed: {}", e.getMessage());
+            log.warn("mdoc verification failed: {}", e.getMessage());
             return ValidationStatus.INVALID;
         }
     }
