@@ -19,7 +19,7 @@ public enum ErrorCode {
     SERVER_ERROR("server_error", HttpStatus.INTERNAL_SERVER_ERROR),
 
 
-    INVALID_RRESPONSE("invalid_response", HttpStatus.FAILED_DEPENDENCY); // Se næærmere på denne!!
+    INVALID_RRESPONSE("invalid_response_external", HttpStatus.BAD_REQUEST); // Se næærmere på denne!!
 
     private final String error;
     private final HttpStatus httpStatus;

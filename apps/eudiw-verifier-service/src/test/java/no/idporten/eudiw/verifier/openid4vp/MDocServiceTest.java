@@ -73,7 +73,7 @@ class MDocServiceTest {
                 () -> service.deviceResponseFromVpToken(VP_TOKEN_WITHOUT_DOCUMENTS));
 
         assertEquals("invalid_request", exception.getError());
-        assertEquals("No mdoc documents in vp_token", exception.getLogMessage());
+        assertEquals("No mdoc documents in vp_token", exception.getErrorDescription());
     }
     @Test
     @DisplayName("with valid and invalid mdocs, then matching validation statuses are expected")
@@ -136,7 +136,7 @@ class MDocServiceTest {
 
         assertAll(
                 () -> assertEquals("invalid_request", exception.getError()),
-                () -> assertEquals("unable to extract certificate from issuerAuth x5chain mdoc", exception.getLogMessage())
+                () -> assertEquals("unable to extract certificate from issuerAuth x5chain mdoc", exception.getErrorDescription())
         );
     }
 

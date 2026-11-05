@@ -142,10 +142,10 @@ public class TokenStatuslistService {
             }
             StatusListResponse response = requestStatusList(uri, preferredFormat);
             if (response.body() == null || response.body().length == 0) {
-                throw new VerificationException("Invalid response", "Response body from status API is empty for url %s".formatted(uri));
+                throw new VerificationException(ErrorCode.INVALID_RRESPONSE, "Response body from status API is empty for url %s".formatted(uri));
             }
             if (response.contentType() == null) {
-                throw new VerificationException("Invalid response", "Content-Type is missing from status API response for url %s".formatted(uri));
+                throw new VerificationException(ErrorCode.INVALID_RRESPONSE, "Content-Type is missing from status API response for url %s".formatted(uri));
             }
             if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
                 return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
@@ -153,7 +153,7 @@ public class TokenStatuslistService {
             if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
                 return checkStatus(uri, idx, response.body(), Instant.now());
             }
-            throw new VerificationException("Invalid response", "Unsupported status list Content-Type %s".formatted(response.contentType()));
+            throw new VerificationException(ErrorCode.INVALID_RRESPONSE, "Unsupported status list Content-Type %s".formatted(response.contentType()));
         } catch (StatusCommunicationException | IOConnectionException e) {
             // TODO: create and update metrics for IOConnectionException.
             log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
@@ -169,7 +169,7 @@ public class TokenStatuslistService {
 
     private StatusListResponse requestStatusList(URI uri, StatusListTokenFormat preferredFormat) {
         if (uri == null) {
-            throw new VerificationException("Invalid response", "Statuslist url is null");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Statuslist url is null");
         }
         StatusListTokenFormat[] formats = {preferredFormat, preferredFormat.fallback()};
         for (int index = 0; index < formats.length; index++) {

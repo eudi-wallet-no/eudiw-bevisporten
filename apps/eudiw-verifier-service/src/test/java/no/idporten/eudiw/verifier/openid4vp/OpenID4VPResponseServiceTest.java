@@ -14,6 +14,7 @@ import id.walt.sdjwt.SDJwt;
 import id.walt.sdjwt.VerificationResult;
 import kotlinx.serialization.json.Json;
 import kotlinx.serialization.json.JsonObject;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -139,7 +140,7 @@ class OpenID4VPResponseServiceTest {
                 VerificationException.class,
                 () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
 
-        assertEquals("Authorization response is not a valid JWE", exception.getLogMessage());
+        assertEquals("Authorization response is not a valid JWE", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
     }
 
@@ -220,7 +221,7 @@ class OpenID4VPResponseServiceTest {
 
         assertAll(
                 () -> assertEquals(error, exception.getError()),
-                () -> assertEquals(description, exception.getLogMessage()));
+                () -> assertEquals(description, exception.getErrorDescription()));
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
         verifyNoInteractions(mDocService, sdJwtService, trustlistService, tokenStatuslistService);
@@ -300,7 +301,7 @@ class OpenID4VPResponseServiceTest {
         DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException processingException =
-                new VerificationException("invalid_request", "Invalid mdoc");
+                new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid mdoc");
         when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenThrow(processingException);
 
         VerificationException exception = assertThrows(

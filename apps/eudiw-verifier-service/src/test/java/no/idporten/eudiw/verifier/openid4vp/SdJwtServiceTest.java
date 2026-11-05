@@ -71,7 +71,7 @@ class SdJwtServiceTest {
         VerificationException exception =
                 assertThrows(VerificationException.class, () -> service.sdJwtClaims(verificationResult));
 
-        assertEquals("Failed to parse disclosure", exception.getLogMessage());
+        assertEquals("Failed to parse disclosure", exception.getErrorDescription());
     }
 
     @Test
@@ -134,7 +134,7 @@ class SdJwtServiceTest {
                 assertThrows(VerificationException.class, () -> service.certificate(sdJwt));
 
         assertAll(
-                () -> assertEquals("Failed to extract certificate from SDJwt", exception.getLogMessage()),
+                () -> assertEquals("Failed to extract certificate from SDJwt", exception.getErrorDescription()),
                 () -> assertEquals("invalid_request", exception.getError())
         );
     }
@@ -244,7 +244,7 @@ class SdJwtServiceTest {
                         () -> service.validateSdJwtTimeClaims(verificationResult));
 
         assertEquals("Invalid exp claim. Expected NumericDate within valid Instant range",
-                exception.getLogMessage());
+                exception.getErrorDescription());
     }
 
     @Test
