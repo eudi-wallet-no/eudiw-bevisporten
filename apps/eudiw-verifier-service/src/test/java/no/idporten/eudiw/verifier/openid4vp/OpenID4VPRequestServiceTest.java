@@ -300,8 +300,8 @@ class OpenID4VPRequestServiceTest {
                 () -> service.retrieveAuthorizationRequest(clientApplication, REQUEST_ID, SAME_DEVICE_FLOW));
 
         assertAll(
-                () -> assertEquals("server_error", exception.getError()),
-                () -> assertEquals("Failed to parse configured verifier info attestation", exception.getErrorDescription())
+                () -> assertEquals("invalid_request", exception.getError()),
+                () -> assertEquals("Failed to parse configured verifier info attestation", exception.getLogMessage())
         );
     }
 

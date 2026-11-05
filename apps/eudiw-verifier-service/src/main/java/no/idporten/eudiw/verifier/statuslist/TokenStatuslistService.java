@@ -8,6 +8,7 @@ import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -90,38 +91,38 @@ public class TokenStatuslistService {
         try {
             jwt = SignedJWT.parse(statusListJwt);
         } catch (ParseException e) {
-            throw new VerificationException("invalid_request", "Status list JWT is not a valid compact signed JWT", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT is not a valid compact signed JWT", e);
         }
         JWSHeader jwsHeader = jwt.getHeader();
         List<Base64> x5c = jwsHeader.getX509CertChain();
         if (x5c == null || x5c.isEmpty()) {
             String keyReferences = keyReferenceHeaders(jwsHeader);
             if (!keyReferences.isEmpty()) {
-                throw new VerificationException("invalid_request", "Status list JWT key resolution by " + keyReferences
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT key resolution by " + keyReferences
                         + " is not supported yet, x5c is required");
             }
-            throw new VerificationException("invalid_request", "Status list JWT must include x5c certificate chain");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT must include x5c certificate chain");
         }
 
         final byte[] encodedCert;
         try {
             encodedCert = x5c.getFirst().decode();
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Status list JWT x5c certificate could not be parsed", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT x5c certificate could not be parsed", e);
         }
 
         X509Certificate cert = X509CertUtils.parse(encodedCert);
         if (cert == null) {
-            throw new VerificationException("invalid_request", "Status list JWT x5c certificate could not be parsed");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT x5c certificate could not be parsed");
         }
         PublicKey publicKey = cert.getPublicKey();
         if (!(publicKey instanceof RSAPublicKey || publicKey instanceof ECPublicKey)) {
-            throw new VerificationException("invalid_request", "Status list JWT x5c certificate must contain an EC or RSA public key");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT x5c certificate must contain an EC or RSA public key");
         }
         try {
             return new DefaultJWSVerifierFactory().createJWSVerifier(jwsHeader, publicKey);
         } catch (JOSEException e) {
-            throw new VerificationException("invalid_request", "Failed to create JWS verifier for Status list JWT", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to create JWS verifier for Status list JWT", e);
         }
     }
 
@@ -137,7 +138,7 @@ public class TokenStatuslistService {
         ValidationStatus status;
         try {
             if (uri == null || preferredFormat == null) {
-                throw new VerificationException("invalid_request", "Status list URI and preferred format are required");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list URI and preferred format are required");
             }
             StatusListResponse response = requestStatusList(uri, preferredFormat);
             if (response.body() == null || response.body().length == 0) {

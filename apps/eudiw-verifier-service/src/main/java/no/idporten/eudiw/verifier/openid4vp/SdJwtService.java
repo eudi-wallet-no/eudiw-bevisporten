@@ -14,6 +14,7 @@ import kotlinx.serialization.json.JsonElement;
 import kotlinx.serialization.json.JsonNull;
 import kotlinx.serialization.json.JsonObject;
 import kotlinx.serialization.json.JsonPrimitive;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.config.SdjwtConfig;
 import no.idporten.eudiw.verifier.crypto.ECUtils;
@@ -62,7 +63,7 @@ public class SdJwtService {
         VerificationResult<SDJwt> verificationResult = sdJwt.verify(cryptoProvider, null);
         if (!verificationResult.getVerified()) {
             throw new VerificationException(
-                    "invalid_request",
+                    ErrorCode.INVALID_REQUEST,
                     "Invalid vp_token. Signature verified: %s, disclosures verified: %s".formatted(
                             verificationResult.getSignatureVerified(),
                             verificationResult.getDisclosuresVerified()));
@@ -81,7 +82,7 @@ public class SdJwtService {
     public ValidationStatus validationStatusHolderBinding(VerificationTransaction verificationTransaction, SDJwt sdJwt, Boolean isCryptographicHolderBindingRequired) {
         if (!checkHolderBinding(verificationTransaction, sdJwt, isCryptographicHolderBindingRequired)) {
             throw new VerificationException(
-                    "invalid_request",
+                    ErrorCode.INVALID_REQUEST,
                     "Invalid vp_token. Holder binding failed.");
         }
         return VALID;
@@ -99,20 +100,20 @@ public class SdJwtService {
                 parsedDisclosure = JSONArrayUtils.parse(new String(Base64.getUrlDecoder().decode(disclosure)));
 
             } catch (ParseException | IllegalArgumentException e) {
-                throw new VerificationException("invalid_request", "Failed to parse disclosure", e);
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to parse disclosure", e);
             }
             if (parsedDisclosure.size() == 2) {
                 // Unnamed disclosures are valid for SD-JWT array elements.
                 continue;
             }
             if (parsedDisclosure.size() != 3) {
-                throw new VerificationException("invalid_request", "Failed to parse disclosure");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to parse disclosure");
             }
             if (parsedDisclosure.get(1) instanceof String claimName) {
                 claims.put(claimName, parsedDisclosure.get(2));
                 continue;
             }
-            throw new VerificationException("invalid_request", "Failed to parse disclosure for claim=%s".formatted(parsedDisclosure.get(1)));
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to parse disclosure for claim=%s".formatted(parsedDisclosure.get(1)));
         }
         return claims;
     }
@@ -170,14 +171,14 @@ public class SdJwtService {
             return null;
         }
         if (!(element instanceof JsonPrimitive primitive)) {
-            throw new VerificationException("invalid_request",
+            throw new VerificationException(ErrorCode.INVALID_REQUEST,
                     "Invalid %s claim. Expected primitive value".formatted(claimName));
         }
         if (primitive.isString()) {
             try {
                 return Instant.parse(primitive.getContent());
             } catch (DateTimeException e) {
-                throw new VerificationException("invalid_request",
+                throw new VerificationException(ErrorCode.INVALID_REQUEST,
                         "Invalid %s claim. Expected NumericDate or ISO-8601 UTC".formatted(claimName), e);
             }
         }
@@ -187,7 +188,7 @@ public class SdJwtService {
             long epochSeconds = Long.parseLong(primitive.getContent());
             return Instant.ofEpochSecond(epochSeconds);
         } catch (NumberFormatException | DateTimeException | ArithmeticException e) {
-            throw new VerificationException("invalid_request",
+            throw new VerificationException(ErrorCode.INVALID_REQUEST,
                     "Invalid %s claim. Expected NumericDate within valid Instant range".formatted(claimName), e);
         }
     }
@@ -208,10 +209,10 @@ public class SdJwtService {
             JWSHeader jwsHeader = JWSHeader.parse(unverifiedSDJwt.getHeader().toString());
             cert = X509CertUtils.parse(jwsHeader.getX509CertChain().getFirst().decode());
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Failed to extract certificate from SDJwt", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to extract certificate from SDJwt", e);
         }
         if(cert == null) {
-            throw new VerificationException("invalid_request", "Failed to extract certificate from SDJwt or certificate is null");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to extract certificate from SDJwt or certificate is null");
         }
         return cert;
     }
@@ -220,7 +221,7 @@ public class SdJwtService {
         try {
             return new ECDSAVerifier((ECPublicKey) cert.getPublicKey());
         } catch (JOSEException e) {
-            throw new VerificationException("invalid_request", "Failed to create JWS verifier for SDJwt", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to create JWS verifier for SDJwt", e);
         }
     }
 
@@ -248,11 +249,11 @@ public class SdJwtService {
             Object cnfRaw = sdJwt.getFullPayload().get("cnf");
             Map<String, Object> cnf = (Map<String, Object>) cnfRaw;
             if(cnf == null || cnf.get("jwk") == null) {
-                throw new VerificationException("invalid_request", "Missing cnf.jwk claim in SDJwt");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Missing cnf.jwk claim in SDJwt");
             }
             ECPublicKey holderKey = jwkToEcPublicKey(cnf);
             if(holderKey == null) {
-                throw new VerificationException("invalid_request", "Invalid holder public key in cnf.jwk claim");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid holder public key in cnf.jwk claim");
             }
             try {
                 JWSVerifier verifier = new ECDSAVerifier(holderKey);
@@ -260,7 +261,7 @@ public class SdJwtService {
                         new SimpleJWTCryptoProvider(ECUtils.jwsAlgorithmFromKey(holderKey), null, verifier);
                 return sdJwt.getKeyBindingJwt().verifyKB(cryptoProviderHolderBinding, verificationTransaction.getAudience(), verificationTransaction.getNonce(), sdJwt, null);
             } catch (JOSEException e) {
-                throw new VerificationException("invalid_request", "Failed to create JWS verifier for holder binding", e);
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to create JWS verifier for holder binding", e);
             }
         }
         return true;

@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.statuslist;
 
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 
 import java.io.ByteArrayInputStream;
@@ -10,7 +11,7 @@ import java.util.Set;
 import java.util.zip.InflaterInputStream;
 
 final class StatusListDecoder {
-    private static final String ERROR_CODE = "invalid_request";
+    private static final ErrorCode ERROR_CODE = ErrorCode.INVALID_REQUEST;
     private static final Set<Integer> ALLOWED_BITS = Set.of(1, 2, 4, 8);
     private static final int MAX_DECOMPRESSED_BYTES = 1_000_000;
 

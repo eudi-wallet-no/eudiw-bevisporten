@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 
 
@@ -24,7 +25,7 @@ public record TLSchemeInformation(
 {
     public TLSchemeInformation {
         if (listIssueDateTime == null || ZonedDateTime.parse(listIssueDateTime).isAfter(ZonedDateTime.now())) {
-            throw new VerificationException("invalid_request","Invalid list of scheme issue dates for trustlist");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST,"Invalid list of scheme issue dates for trustlist");
         }
     }
 }

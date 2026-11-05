@@ -11,6 +11,7 @@ import id.walt.sdjwt.VerificationResult;
 import kotlinx.serialization.json.JsonElement;
 import kotlinx.serialization.json.JsonObject;
 import kotlinx.serialization.json.JsonPrimitive;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -68,7 +69,7 @@ public class OpenID4VPResponseService {
     public WalletCallback receiveResponse(ClientApplication clientApplication, String verifierTransactionId, EncryptedAuthorizationResponse encryptedAuthorizationResponse) {
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
-            throw new VerificationException("invalid_request", "Unknown verification transaction id");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown verification transaction id");
         }
         try {
             return processResponse(
@@ -88,12 +89,12 @@ public class OpenID4VPResponseService {
             EncryptedAuthorizationResponse encryptedAuthorizationResponse,
             VerificationTransaction verificationTransaction)  {
         if (!StringUtils.hasText(encryptedAuthorizationResponse.getResponse())) {
-            throw new VerificationException("invalid_request", "Missing authorization response");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Missing authorization response");
         }
         Map<String, Object> claimsFromJwePayload = decryptAndDeserializeJweResponse(encryptedAuthorizationResponse.getResponse(), verificationTransaction);
         String state = (String) claimsFromJwePayload.get("state");
         if (!Objects.equals(state, verificationTransaction.getState())) {
-            throw new VerificationException("invalid_request", "Invalid state in authorization response");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid state in authorization response");
         }
         List<DcqlCredentialQuery> requestedCredentials = getRequestedCredentialQueries(verificationTransaction);
         VpToken vpToken = extractVpToken(claimsFromJwePayload);
@@ -107,7 +108,7 @@ public class OpenID4VPResponseService {
                 continue;
             }
             if (!credentialQuery.isMultiple() && verifiablePresentations.size() > 1) {
-                throw new VerificationException("invalid_request", "Multiple presentations are not allowed for credential id: %s".formatted(credentialId));
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Multiple presentations are not allowed for credential id: %s".formatted(credentialId));
             }
             String format = credentialQuery.getFormat();
             List<VerifiedCredential> parsedCredentials = new ArrayList<>();
@@ -118,7 +119,7 @@ public class OpenID4VPResponseService {
                 } else if ("mso_mdoc".equals(format)) {
                     verifiedCredential = mdocVerifiedCredential(verifiablePresentation.value(), verificationTransaction, credentialQuery);
                 } else {
-                    throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
+                    throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported credential format: " + format);
                 }
                 parsedCredentials.add(verifiedCredential);
             }
@@ -154,16 +155,16 @@ public class OpenID4VPResponseService {
             Map<String, List<VerifiablePresentation>> verifiablePresentations = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : vpTokenMap.entrySet()) {
                 if (!(entry.getKey() instanceof String credentialId)) {
-                    throw new VerificationException("invalid_request", "Unsupported vp_token key type");
+                    throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported vp_token key type");
                 }
                 verifiablePresentations.put(credentialId, toVerifiablePresentations(entry.getValue(), credentialId));
             }
             return new VpToken(verifiablePresentations);
         }
         if (vpTokenObject == null) {
-            throw new VerificationException("invalid_request", "Missing vp_token");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Missing vp_token");
         }
-        throw new VerificationException("invalid_request", "Unsupported vp_token structure");
+        throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported vp_token structure");
     }
 
     private List<ValidationDetail> validationDetails(boolean isIncludeValidationStatus, ValidationStatus trustlistStatus, ValidationStatus statuslistStatus, ValidationStatus formatSpecificStatus, ValidationStatus holderBindingStatus, String format) {
@@ -186,12 +187,12 @@ public class OpenID4VPResponseService {
     private List<VerifiablePresentation> toVerifiablePresentations(Object vpTokenValue, String credentialId) {
         if (vpTokenValue instanceof List<?> presentations) {
             if (CollectionUtils.isEmpty(presentations)) {
-                throw new VerificationException("invalid_request", "Empty presentation array for credential id: %s".formatted(credentialId));
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Empty presentation array for credential id: %s".formatted(credentialId));
             }
             List<VerifiablePresentation> verifiablePresentations = new ArrayList<>();
             for (Object presentation : presentations) {
                 if (!(presentation instanceof String)) {
-                    throw new VerificationException("invalid_request", "Unsupported vp_token value type for credential id: " + credentialId);
+                    throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported vp_token value type for credential id: " + credentialId);
                 }
                 verifiablePresentations.add(new VerifiablePresentation((String) presentation));
             }
@@ -200,17 +201,17 @@ public class OpenID4VPResponseService {
         if (vpTokenValue instanceof String presentation) {
             return List.of(new VerifiablePresentation(presentation));
         }
-        throw new VerificationException("invalid_request", "Unsupported vp_token structure for credential id: " + credentialId);
+        throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported vp_token structure for credential id: " + credentialId);
     }
 
     private static List<DcqlCredentialQuery> getRequestedCredentialQueries(VerificationTransaction verificationTransaction) {
         if (verificationTransaction.getDcqlQuery() == null || verificationTransaction.getDcqlQuery().getCredentials() == null
                 || verificationTransaction.getDcqlQuery().getCredentials().isEmpty()) {
-            throw new VerificationException("invalid_request", "Missing credentials in dcql_query");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Missing credentials in dcql_query");
         }
         for (DcqlCredentialQuery credential : verificationTransaction.getDcqlQuery().getCredentials()) {
             if (credential.getId() == null || credential.getId().isBlank()) {
-                throw new VerificationException("invalid_request", "Missing id in dcql_query credential");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Missing id in dcql_query credential");
             }
         }
         return verificationTransaction.getDcqlQuery().getCredentials();
@@ -221,7 +222,7 @@ public class OpenID4VPResponseService {
         try {
             jwe = JWEObject.parse(response);
         } catch (ParseException e) {
-            throw new VerificationException("invalid_request", "Authorization response is not a valid JWE", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Authorization response is not a valid JWE", e);
         }
         validateResponseEncryptionHeader(jwe.getHeader(), verificationTransaction);
         try {
@@ -229,7 +230,7 @@ public class OpenID4VPResponseService {
                     jwe.getHeader(), verificationTransaction.getEncryptionKey().toECKey().toPrivateKey());
             jwe.decrypt(decrypter);
         } catch (JOSEException e) {
-            throw new VerificationException("invalid_request", "Unable to decrypt authorization response", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unable to decrypt authorization response", e);
         }
         return jwe.getPayload().toJSONObject();
     }
@@ -237,16 +238,16 @@ public class OpenID4VPResponseService {
     private void validateResponseEncryptionHeader(JWEHeader header, VerificationTransaction verificationTransaction) {
         JWK encryptionKey = verificationTransaction.getEncryptionKey();
         if (encryptionKey == null || encryptionKey.getAlgorithm() == null) {
-            throw new VerificationException("invalid_request", "Missing response encryption key configuration");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Missing response encryption key configuration");
         }
         if (!encryptionKey.getAlgorithm().getName().equals(header.getAlgorithm().getName())) {
-            throw new VerificationException("invalid_request", "Authorization response alg does not match the requested encryption key");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Authorization response alg does not match the requested encryption key");
         }
         if (encryptionKey.getKeyID() != null && !encryptionKey.getKeyID().equals(header.getKeyID())) {
-            throw new VerificationException("invalid_request", "Authorization response kid does not match the requested encryption key");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Authorization response kid does not match the requested encryption key");
         }
         if (!ResponseEncryption.SUPPORTED_ENCRYPTION_METHODS.contains(header.getEncryptionMethod())) {
-            throw new VerificationException("invalid_request", "Authorization response enc was not advertised in the request");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Authorization response enc was not advertised in the request");
         }
     }
 
@@ -270,10 +271,10 @@ public class OpenID4VPResponseService {
             try {
                 index = Integer.parseInt(statuslistEntry.idx());
             } catch (NumberFormatException e) {
-                throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid status list idx in vp_token");
             }
             if (index < 0) {
-                throw new VerificationException("invalid_request", "Invalid status list idx in vp_token");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid status list idx in vp_token");
             }
             status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index, preferredFormat);
         } else {
@@ -324,12 +325,12 @@ public class OpenID4VPResponseService {
     private void validateRequestedCredentialType(MDoc mdoc, DcqlCredentialQuery credentialQuery) {
         DcqlCredentialMeta meta = credentialQuery.getMeta();
         if (meta == null || !StringUtils.hasText(meta.getDoctypeValue())) {
-            throw new VerificationException("invalid_request",
+            throw new VerificationException(ErrorCode.INVALID_REQUEST,
                     "Missing or invalid meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
         StringElement docType = mdoc.getDocType();
         if (docType == null || !meta.getDoctypeValue().equals(docType.getValue())) {
-            throw new VerificationException("invalid_request",
+            throw new VerificationException(ErrorCode.INVALID_REQUEST,
                     "Returned doctype does not match meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
     }

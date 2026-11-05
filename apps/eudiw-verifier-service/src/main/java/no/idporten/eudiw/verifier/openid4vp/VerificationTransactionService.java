@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
@@ -65,7 +66,7 @@ public class VerificationTransactionService {
             cacheService.putVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
         }
         if(!Objects.equals(clientApplication.getKeystoreName(), verificationTransaction.getClientApplication().getKeystoreName())) {
-            throw new VerificationException("invalid_request", "client application id does not match transactions client application id");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "client application id does not match transactions client application id");
         }
         return verificationTransaction.getStatus();
     }
@@ -73,7 +74,7 @@ public class VerificationTransactionService {
     public void addVerifiedCredentials(ClientApplication clientApplication, String verifierTransactionId, VerifiedCredentials verifiedCredentials, Map<String, Object> vpTokenResponse) {
         VerificationTransaction verificationTransaction = cacheService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
-            throw new VerificationException("invalid_request", "Unknown verifier transaction");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown verifier transaction");
         }
         verificationTransaction.setStatus(STATUS_AVAILABLE);
         verificationTransaction.setVerifiedCredentials(verifiedCredentials);
@@ -84,7 +85,7 @@ public class VerificationTransactionService {
     public void markAsError(ClientApplication clientApplication, String verifierTransactionId) {
         VerificationTransaction verificationTransaction = cacheService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
-            throw new VerificationException("invalid_request", "Unknown verifier transaction");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown verifier transaction");
         }
         verificationTransaction.setStatus(STATUS_ERROR);
         cacheService.updateVerificationTransaction(clientApplication, verifierTransactionId, verificationTransaction);
@@ -92,17 +93,17 @@ public class VerificationTransactionService {
 
     public VerificationTransaction retrieveVerifiedCredentials(ClientApplication clientApplication, String verifierTransactionId) {
         if(clientApplication == null) {
-            throw new VerificationException("invalid_request", "Unknown client application");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown client application");
         }
         VerificationTransaction verificationTransaction = cacheService.getVerificationTransaction(clientApplication, verifierTransactionId);
         if (verificationTransaction == null) {
-            throw new VerificationException("invalid_request", "Unknown verifier transaction");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown verifier transaction");
         }
         if (verificationTransaction.getVerifiedCredentials() == null) {
-            throw new VerificationException("invalid_request", "Verifier transaction data not available");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Verifier transaction data not available");
         }
         if(!Objects.equals(clientApplication.getKeystoreName(), verificationTransaction.getClientApplication().getKeystoreName())) {
-            throw new VerificationException("invalid_request", "client application name does not match transactions client application name");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "client application name does not match transactions client application name");
         }
         cacheService.removeVerificationTransaction(clientApplication, verifierTransactionId);
         return verificationTransaction;

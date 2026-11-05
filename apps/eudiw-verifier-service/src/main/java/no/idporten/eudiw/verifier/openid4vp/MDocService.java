@@ -8,6 +8,7 @@ import id.walt.mdoc.doc.MDoc;
 import id.walt.mdoc.doc.MDocVerificationParams;
 import id.walt.mdoc.doc.VerificationType;
 import id.walt.mdoc.issuersigned.IssuerSigned;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
@@ -39,12 +40,12 @@ public class MDocService {
             deviceResponse = DeviceResponse.Companion.fromCBORBase64URL(vpToken);
         } catch (IllegalArgumentException | IllegalStateException e) {
             if (e.getMessage() != null && e.getMessage().contains("must not be empty")) {
-                throw new VerificationException("invalid_request", "No mdoc documents in vp_token", e);
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "No mdoc documents in vp_token", e);
             }
-            throw new VerificationException("invalid_request", "Failed to parse mdoc vp_token", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to parse mdoc vp_token", e);
         }
         if (deviceResponse.getDocuments().isEmpty()) {
-            throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "No mdoc documents in vp_token");
         }
         return deviceResponse;
     }
@@ -57,7 +58,7 @@ public class MDocService {
      */
     public MDoc mDocFromDeviceResponse(DeviceResponse deviceResponse) {
         if(deviceResponse.getDocuments().size() > 1) {
-            throw new VerificationException("invalid_request", "Multiple mdoc documents in vp_token, only one is supported");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Multiple mdoc documents in vp_token, only one is supported");
         } else {
             return deviceResponse.getDocuments().getFirst();
         }
@@ -158,12 +159,12 @@ public class MDocService {
     protected X509Certificate extractCertificateFromMdoc(MDoc mDoc) {
         IssuerSigned issuerSigned = mDoc.getIssuerSigned();
         if (issuerSigned.getIssuerAuth() == null) {
-            throw new VerificationException("invalid_request", "issuerAuth is missing in mdoc");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "issuerAuth is missing in mdoc");
         }
         var issuerAuth = issuerSigned.getIssuerAuth();
         List<byte[]> x5chain = issuerAuth.getX5Chain();
         if (x5chain == null || x5chain.isEmpty()) {
-            throw new VerificationException("invalid_request", "x5chain is missing in issuerAuth of mdoc");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "x5chain is missing in issuerAuth of mdoc");
         }
         byte[] leafDer = x5chain.getFirst();
         X509Certificate cert;
@@ -171,10 +172,10 @@ public class MDocService {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(leafDer));
         } catch (CertificateException e) {
-            throw new VerificationException("invalid_request", "unable to extract certificate from issuerAuth x5chain mdoc", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "unable to extract certificate from issuerAuth x5chain mdoc", e);
         }
         if (cert == null) {
-            throw new VerificationException("invalid_request", "Failed to extract certificate from issuerAuth x5chain mdoc since certificate is null");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to extract certificate from issuerAuth x5chain mdoc since certificate is null");
         }
         return cert;
     }

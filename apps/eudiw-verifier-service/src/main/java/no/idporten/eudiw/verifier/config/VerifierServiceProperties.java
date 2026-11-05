@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -36,7 +37,7 @@ public class VerifierServiceProperties implements InitializingBean {
         ClientApplication clientApplication = clientApplications.get(clientApplicationId);
 
         if (clientApplication == null || clientApplication.isDisabled()) {
-            throw new VerificationException("invalid_request", "Unknown client application");
+            throw new VerificationException(ErrorCode.INVALID_CLIENT, "Unknown client application");
         }
 
         return clientApplication;
@@ -46,13 +47,16 @@ public class VerifierServiceProperties implements InitializingBean {
         ClientApplication clientApplication = clientApplications.get(clientApplicationId);
 
         if (clientApplication == null || clientApplication.isDisabled()) {
-            throw new VerificationException("invalid_request", "Unknown client application");
+            throw new VerificationException(ErrorCode.INVALID_CLIENT, "Unknown client application");
         }
 
         if (apiKey == null || !apiKey.equals(clientApplication.getApiKey())) {
-            // TODO: replace logging with exception when clients are ready
-            LoggerFactory.getLogger(VerifierServiceProperties.class).warn("Invalid API Key for client application: " + clientApplicationId);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API Key"); // TODO skrive om til custom exception som håndteres i ControllerAdvice
+            throw new VerificationException(
+                    ErrorCode.INVALID_CLIENT,
+                    "Invalid API Key",
+                    "Invalid API key for client application: " + clientApplicationId,
+                    null
+            );
         }
 
         return clientApplication;

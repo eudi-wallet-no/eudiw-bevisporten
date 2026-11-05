@@ -139,7 +139,7 @@ class OpenID4VPResponseServiceTest {
                 VerificationException.class,
                 () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
 
-        assertEquals("Authorization response is not a valid JWE", exception.getErrorDescription());
+        assertEquals("Authorization response is not a valid JWE", exception.getLogMessage());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
     }
 
@@ -220,7 +220,7 @@ class OpenID4VPResponseServiceTest {
 
         assertAll(
                 () -> assertEquals(error, exception.getError()),
-                () -> assertEquals(description, exception.getErrorDescription()));
+                () -> assertEquals(description, exception.getLogMessage()));
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
         verifyNoInteractions(mDocService, sdJwtService, trustlistService, tokenStatuslistService);

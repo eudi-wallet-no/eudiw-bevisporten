@@ -2,6 +2,7 @@ package no.idporten.eudiw.verifier.trustlist;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
@@ -57,7 +58,7 @@ public record TrustlistsProperties(
     private TrustlistEntry resolveTrustlist(String name) {
         TrustlistEntry entry = namedTrustlists.get(name);
         if (entry == null) {
-            throw new VerificationException("invalid_trustlist", "Unknown trustlist: " + name);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown trustlist: " + name);
         }
         return entry;
     }
