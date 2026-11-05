@@ -43,6 +43,21 @@ class MdocCredentialVerifierTest {
                 () -> assertNotNull(verification.issuerCertificate()));
     }
 
+    // ISO/IEC 18013-5 does not allow fractions of seconds in MSO timestamps, so the MSO cannot be parsed
+    @Test
+    @DisplayName("with fractions of seconds in the MSO, then invalid status without issuer certificate is expected")
+    void rejectsFractionalSecondsInMso() {
+        String vpToken = ConvertVPTokenToMDocTest.SuccessfulConversions.vpToken2_solvenia;
+
+        CredentialVerificationResult verification = verifier.verify(vpToken, mdocQuery(false), new VerificationTransaction());
+
+        assertAll(
+                () -> assertEquals(ValidationStatus.INVALID, verification.credentialStatus()),
+                () -> assertEquals(ValidationStatus.NOT_APPLICABLE, verification.holderBindingStatus()),
+                () -> assertNull(verification.issuerCertificate()),
+                () -> assertHolderBindingFails(() -> verifier.verify(vpToken, mdocQuery(true), new VerificationTransaction())));
+    }
+
     @Test
     @DisplayName("with holder binding required and a policy list without device authentication, then holder binding failure is expected")
     void requiresDeviceAuthenticationPolicyForHolderBinding() throws Exception {
@@ -103,9 +118,6 @@ class MdocCredentialVerifierTest {
     @DisplayName("with PIDs from the EUDI launchpad")
     class Launchpad {
 
-        // ISO/IEC 18013-5 does not allow fractions of seconds in MSO timestamps. Only the Portuguese issuer does this,
-        // so it is not worked around.
-        private static final String FRACTIONAL_SECONDS = "mdoc/launchpad/pt/";
         // clr and oidf are conformance test suites that include negative tests, so some of their samples should fail.
         // MSO is signed before the document signer certificate is valid
         private static final String SIGNED_BEFORE_CERTIFICATE = "mdoc/launchpad/clr/b7bee650-587a-4837-a283-948877ae8dde.mdoc";
@@ -118,12 +130,8 @@ class MdocCredentialVerifierTest {
                 new DeviceAuthMdocVpPolicy(), new IssuerAuthMdocVpPolicy(), new IssuerSignedDataMdocVpPolicy());
 
         static Stream<String> validSamples() throws Exception {
-            return samples("mdoc/launchpad", ".mdoc").filter(sample -> !sample.startsWith(FRACTIONAL_SECONDS)
-                    && !sample.equals(SIGNED_BEFORE_CERTIFICATE) && !INVALID_HOLDER_BINDING.contains(sample));
-        }
-
-        static Stream<String> fractionalSecondsSamples() throws Exception {
-            return samples("mdoc/launchpad", ".mdoc").filter(sample -> sample.startsWith(FRACTIONAL_SECONDS));
+            return samples("mdoc/launchpad", ".mdoc").filter(sample -> !sample.equals(SIGNED_BEFORE_CERTIFICATE)
+                    && !INVALID_HOLDER_BINDING.contains(sample));
         }
 
         static Stream<String> invalidHolderBinding() {
@@ -166,22 +174,6 @@ class MdocCredentialVerifierTest {
             String vpToken = read(sample);
 
             assertHolderBindingFails(() -> launchpadVerifier(clockAt(msoValidFrom(vpToken))).verify(vpToken, mdocQuery(true), sessionOf(sample)));
-        }
-
-        @DisplayName("with fractions of seconds in the MSO, then invalid status without issuer certificate is expected")
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("fractionalSecondsSamples")
-        void rejectsFractionalSecondsInMso(String sample) throws Exception {
-            String vpToken = read(sample);
-            MdocCredentialVerifier launchpadVerifier = launchpadVerifier(Clock.systemUTC());
-
-            CredentialVerificationResult verification = launchpadVerifier.verify(vpToken, mdocQuery(false), sessionOf(sample));
-
-            assertAll(
-                    () -> assertEquals(ValidationStatus.INVALID, verification.credentialStatus()),
-                    () -> assertEquals(ValidationStatus.NOT_APPLICABLE, verification.holderBindingStatus()),
-                    () -> assertNull(verification.issuerCertificate()),
-                    () -> assertHolderBindingFails(() -> launchpadVerifier.verify(vpToken, mdocQuery(true), sessionOf(sample))));
         }
 
         @Test
