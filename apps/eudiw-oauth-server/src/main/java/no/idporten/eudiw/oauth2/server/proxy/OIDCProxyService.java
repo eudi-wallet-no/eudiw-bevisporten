@@ -1,8 +1,6 @@
 package no.idporten.eudiw.oauth2.server.proxy;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.oauth2.sdk.*;
 import com.nimbusds.oauth2.sdk.auth.*;
@@ -98,7 +96,7 @@ public class OIDCProxyService {
             if (authorizationResponse.indicatesSuccess()) {
                 OIDCTokens oidcTokens = fetchTokens(authorizationResponse, protocolVerifiers);
                 IDTokenClaimsSet idTokenClaimsSet = validateIDToken(oidcTokens.getIDToken(), protocolVerifiers);
-                return buildAuthorization(clientAuthorizationRequest, oidcTokens, idTokenClaimsSet);
+                return buildAuthorization(clientAuthorizationRequest, idTokenClaimsSet);
             } else {
                 handleAuthorizationErrorResponse(authorizationResponse);
                 throw new OIDCProxyException(OAuth2Exception.INVALID_REQUEST, "Invalid response from OIDC server", HttpStatus.BAD_REQUEST);
@@ -134,14 +132,12 @@ public class OIDCProxyService {
         return idTokenClaimsSet;
     }
 
-    private Authorization buildAuthorization(PushedAuthorizationRequest authorizationRequest, OIDCTokens oidcTokens, IDTokenClaimsSet idTokenClaimsSet) throws BadJOSEException, JOSEException {
+    private Authorization buildAuthorization(PushedAuthorizationRequest authorizationRequest, IDTokenClaimsSet idTokenClaimsSet) {
         final String personIdentifier = idTokenClaimsSet.getStringClaim("pid");
         Authorization.AuthorizationBuilder builder = Authorization.builder()
                 .sub(personIdentifier)
                 .acr(idTokenClaimsSet.getACR().getValue())
-                .amr(idTokenClaimsSet.getAMR().getFirst().getValue())
-                .attribute("xid", oidcTokens.getIDTokenString())
-                .attribute("xat", oidcTokens.getAccessToken().getValue());
+                .amr(idTokenClaimsSet.getAMR().getFirst().getValue());
         if(authorizationRequest.getResolvedDpopJkt() != null) {
              builder.dpopJkt(authorizationRequest.getResolvedDpopJkt());
         }
