@@ -530,6 +530,33 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
     }
 
+    /**
+     * Checks whether two WIAs (client attestations) attest the same Wallet Instance.
+     * <p>
+     * TS3 does not require the Wallet Unit to send the very same WIA in the PAR and the token request
+     * (a WIA lives less than 24 hours and may be renewed in between), so the serialized JWTs are not compared.
+     * The WIAs are considered equal if they have the same subject (client_id) and the same
+     * Wallet Instance key, i.e. the same JWK SHA-256 thumbprint of the key in the cnf claim.
+     * Both WIAs are expected to be validated before calling this method.
+     */
+    protected boolean wiaEquals(String wia1, String wia2) {
+        if (Objects.equals(wia1, wia2)) {
+            return true;
+        }
+        try {
+            SignedJWT jwt1 = SignedJWT.parse(wia1);
+            SignedJWT jwt2 = SignedJWT.parse(wia2);
+            String sub1 = jwt1.getJWTClaimsSet().getSubject();
+            if (!hasText(sub1) || !sub1.equals(jwt2.getJWTClaimsSet().getSubject())) {
+                return false;
+            }
+            return extractJWKFromCnf(jwt1).computeThumbprint().equals(extractJWKFromCnf(jwt2).computeThumbprint());
+        } catch (Exception e) {
+            log.warn("Failed to compare WIAs from requests", e);
+            return false;
+        }
+    }
+
     ECKey extractJWKFromCnf(SignedJWT signedJWT) {
         try {
             ECKey ecKey = ECKey.parse((Map) signedJWT.getJWTClaimsSet().getJSONObjectClaim("cnf").get("jwk"));
@@ -614,6 +641,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         authorization.setAud(calcAudience(pushedAuthorizationRequest));
         authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
         authorization.setIssuerState(pushedAuthorizationRequest.getIssuerState());
+        authorization.setWia(pushedAuthorizationRequest.getClientAttestation());
         authorization.setDpopJkt(pushedAuthorizationRequest.getResolvedDpopJkt()); // parse og sjekk også dpop_jkt
 
         if (!hasText(authorization.getAcr())) {
@@ -707,6 +735,12 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (tokenRequest.hasResourceIndicator()) {
             authorization.setAud(tokenRequest.getResource());
         }
+        if (tokenRequest.isAuthenticatedRequest() && tokenRequest.isAttestationBased()) {
+            if (!wiaEquals(authorization.getWia(), tokenRequest.getClientAttestation())) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestation does not match the authorization.", 400);
+            }
+            authorization.setWia(tokenRequest.getClientAttestation());
+        }
         try {
             TokenResponse tokenResponse = createTokenResponse(authorization);
             if (serverConfiguration.getUserinfoEndpoint() != null) {
@@ -769,6 +803,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .claim("client_id", authorization.getClientId())
                 .claim("scope", authorization.getScope())
                 .claim("issuer_state", authorization.getIssuerState())
+                .claim("wia", authorization.getWia())
                 .expirationTime(new Date(new Date().getTime() + (serverConfiguration.getAccessTokenLifetimeSeconds() * 1000L)))
                 .issueTime(new Date())
                 .subject(authorization.getSub());

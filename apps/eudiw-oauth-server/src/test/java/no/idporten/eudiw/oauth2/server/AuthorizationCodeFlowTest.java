@@ -209,6 +209,7 @@ class AuthorizationCodeFlowTest {
         assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
         assertEquals("openid pid.mdoc", accessTokenClaimsSet.getClaim("scope"));
         assertEquals("is", accessTokenClaimsSet.getClaim("issuer_state"));
+        assertEquals(clientAttestation.serialize(), accessTokenClaimsSet.getClaim("wia"));
         if (hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP==DPopTestCase.DPOP_TOKEN) { // TODO verify test later for only DPoP on token
             assertNotNull(accessTokenClaimsSet.getClaim("cnf"));
             assertEquals(findDpopJktFromDpopHeader(dPoPHeaderToken), ((java.util.Map<String, Object>) accessTokenClaimsSet.getClaim("cnf")).get("jkt"));

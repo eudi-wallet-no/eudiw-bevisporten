@@ -76,6 +76,9 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
         if (tokenRequest.hasResourceIndicator()) {
             preAuthorization.setAud(tokenRequest.getResource());
         }
+        if (tokenRequest.isAuthenticatedRequest() && tokenRequest.isAttestationBased()) {
+            preAuthorization.setWia(tokenRequest.getClientAttestation());
+        }
         try {
             TokenResponse tokenResponse = createTokenResponse(preAuthorization);
             getConfiguration().getAuditLogger().auditTokenResponse(tokenResponse);
