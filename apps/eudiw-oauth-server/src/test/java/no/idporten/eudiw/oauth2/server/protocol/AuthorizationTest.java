@@ -55,17 +55,19 @@ class AuthorizationTest {
                 .amr("a")
                 .acr("r")
                 .sub("p")
+                .wia("w")
                 .attribute("foo", "bar")
                 .attribute("boolean", true)
                 .attributes(extra)
                 .build();
         AuditData auditData = authorization.getAuditData();
         assertAll(
-                () -> assertEquals(8, auditData.getAttributes().size()),
+                () -> assertEquals(9, auditData.getAttributes().size()),
                 () -> assertEquals("client", auditData.getAttribute("aud")),
                 () -> assertEquals("p", auditData.getAttribute("sub")),
                 () -> assertEquals("a", auditData.getAttribute("amr")),
                 () -> assertEquals("r", auditData.getAttribute("acr")),
+                () -> assertEquals("w", auditData.getAttribute("wia")),
                 () -> assertEquals("bar", auditData.getAttribute("foo")),
                 () -> assertEquals(true, auditData.getAttribute("boolean")),
                 () -> assertEquals(1000, auditData.getAttribute("rema")),

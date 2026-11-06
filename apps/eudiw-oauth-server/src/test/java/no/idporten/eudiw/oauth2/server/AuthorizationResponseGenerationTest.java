@@ -33,7 +33,7 @@ public class AuthorizationResponseGenerationTest {
             OAuth2AuthorizationServer oAuth2AuthorizationServer = initServer(true);
             MockRequest request = new MockRequest();
             request.addParameter("client_id", "c");
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             Authorization authorization = Authorization.builder().sub("p").build();
             AuthorizationResponse authorizationResponse = oAuth2AuthorizationServer.authorize(pushedAuthorizationRequest, authorization);
             assertAll(
@@ -50,7 +50,7 @@ public class AuthorizationResponseGenerationTest {
         public void testErrorResponse() throws Exception {
             OAuth2AuthorizationServer authorizationServer = initServer(true);
             MockRequest request = new MockRequest();
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             AuthorizationResponse authorizationResponse = authorizationServer.errorResponse(pushedAuthorizationRequest, "foo", "msg");
             assertAll(
                     () -> assertEquals(authorizationServer.getConfiguration().getIssuer().toString(), authorizationResponse.toResponseParameters().get("iss")),
@@ -74,7 +74,7 @@ public class AuthorizationResponseGenerationTest {
             OAuth2AuthorizationServer authorizationServer = initServer(false);
             MockRequest request = new MockRequest();
             request.addParameter("client_id", "c");
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             Authorization authorization = Authorization.builder().sub("p").build();
             AuthorizationResponse authorizationResponse = authorizationServer.authorize(pushedAuthorizationRequest, authorization);
             assertAll(
@@ -89,7 +89,7 @@ public class AuthorizationResponseGenerationTest {
         public void testErrorResponse() throws Exception {
             OAuth2AuthorizationServer authorizationServer = initServer(false);
             MockRequest request = new MockRequest();
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             AuthorizationResponse authorizationResponse = authorizationServer.errorResponse(pushedAuthorizationRequest, "foo", "msg");
             assertAll(
                     () -> assertNull(authorizationResponse.getIss()),

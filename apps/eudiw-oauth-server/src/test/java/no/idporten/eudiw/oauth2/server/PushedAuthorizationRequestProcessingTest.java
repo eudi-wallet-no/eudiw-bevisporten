@@ -353,7 +353,7 @@ public class PushedAuthorizationRequestProcessingTest {
             request.addHeader("DPoP", TestUtils.createDpopHeader(authorizationServer.getConfiguration().getPushedAuthorizationRequestEndpoint()));
             request.addParameter("client_id", client1.getClientId());
 
-            assertDoesNotThrow(() -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            assertDoesNotThrow(() -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
         }
 
         @Test
@@ -363,7 +363,7 @@ public class PushedAuthorizationRequestProcessingTest {
             request.addHeader("DPoP", "not-valid-jwt");
             request.addParameter("client_id", client1.getClientId());
 
-            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
             assertAll(
                     () -> assertEquals(OAuth2Exception.INVALID_DPOP_PROOF, e.error()),
                     () -> assertTrue(e.errorDescription().contains("Failed to parse DPop header"))
@@ -377,7 +377,7 @@ public class PushedAuthorizationRequestProcessingTest {
             request.addParameter("dpop_jkt", TestUtils.createDpopJtk());
             request.addParameter("client_id", client1.getClientId());
 
-            assertDoesNotThrow(() -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            assertDoesNotThrow(() -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
         }
 
         @Test
@@ -390,7 +390,7 @@ public class PushedAuthorizationRequestProcessingTest {
             request.addParameter("client_id", client1.getClientId());
             request.addParameter("dpop_jkt", findDpopJktFromDpopHeader(dpopHeader));
 
-            assertDoesNotThrow(() -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            assertDoesNotThrow(() -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
         }
 
         @Test
@@ -401,7 +401,7 @@ public class PushedAuthorizationRequestProcessingTest {
             request.addHeader("DPoP", TestUtils.createDpopHeader(authorizationServer.getConfiguration().getPushedAuthorizationRequestEndpoint()));
             request.addParameter("dpop_jkt", TestUtils.createDpopJtk());
             request.addParameter("client_id", client1.getClientId());
-            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateDPoP(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
             assertAll(
                     () -> assertEquals(OAuth2Exception.INVALID_DPOP_PROOF, e.error()),
                     () -> assertTrue(e.errorDescription().contains("must be equal"))
@@ -416,7 +416,7 @@ public class PushedAuthorizationRequestProcessingTest {
     public void testMultipleOpenidCredentialEntriesRejected() {
         MockRequest request = new MockRequest();
         request.addParameter("authorization_details", "[{\"type\": \"openid_credential\"}, {\"type\": \"openid_credential\"}]");
-        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateAuthorizationDetails(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> authorizationServer.validateAuthorizationDetails(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
         assertAll(
                 () -> assertEquals("invalid_authorization_details", e.error()),
                 () -> assertTrue(e.errorDescription().contains("At most one entry of type openid_credential is supported"))
@@ -433,7 +433,7 @@ public class PushedAuthorizationRequestProcessingTest {
         OAuth2AuthorizationServerBase server = new OAuth2AuthorizationServerBase(serverConfiguration);
         MockRequest request = new MockRequest();
         request.addParameter("authorization_details", "[{\"type\": \"openid_credential\"}]");
-        assertDoesNotThrow(() -> server.validateAuthorizationDetails(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().build()));
+        assertDoesNotThrow(() -> server.validateAuthorizationDetails(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()), ClientMetadata.builder().clientId(client1.getClientId()).build()));
     }
 
     @Nested
@@ -446,7 +446,7 @@ public class PushedAuthorizationRequestProcessingTest {
             MockRequest request = new MockRequest();
             request.addParameter("client_id", "client1");
             request.addParameter("authorization_details", "[{\"type\": \"openid_credential\", \"locations\": [\"https://credential-issuer.example.com\"]}]");
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             Authorization authorization = Authorization.builder().sub("p").build();
             authorizationServer.authorize(pushedAuthorizationRequest, authorization);
             assertEquals("https://credential-issuer.example.com", authorization.getAud());
@@ -459,7 +459,7 @@ public class PushedAuthorizationRequestProcessingTest {
             request.addParameter("client_id", "client1");
             request.addParameter("resource", "https://api.example.com");
             request.addParameter("authorization_details", "[{\"type\": \"openid_credential\", \"locations\": [\"https://credential-issuer.example.com\"]}]");
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             Authorization authorization = Authorization.builder().sub("p").build();
             authorizationServer.authorize(pushedAuthorizationRequest, authorization);
             assertEquals("https://api.example.com", authorization.getAud());
@@ -477,7 +477,7 @@ public class PushedAuthorizationRequestProcessingTest {
             MockRequest request = new MockRequest();
             request.addParameter("client_id", "client1");
             request.addParameter("authorization_details", "[{\"type\": \"openid_credential\", \"locations\": [\"https://issuer1.example.com\", \"https://issuer2.example.com\"]}]");
-            PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+            PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
             Authorization authorization = Authorization.builder().sub("p").build();
             server.authorize(pushedAuthorizationRequest, authorization);
             assertEquals("https://default-audience.example.com", authorization.getAud());
