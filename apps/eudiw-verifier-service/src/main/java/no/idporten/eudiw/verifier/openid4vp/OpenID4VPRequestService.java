@@ -160,16 +160,17 @@ public class OpenID4VPRequestService {
         Nonce nonce = new Nonce();
         verificationTransaction.setNonce(nonce.getValue());
         Instant issuedAt = Clock.systemUTC().instant().truncatedTo(ChronoUnit.SECONDS); // Same iat in header and payload
+        final String clientId = makeClientId(clientApplication);
 
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .audience("https://self-issued.me/v2")
-                .issuer(verifierServiceProperties.getExternalBaseUri())
+                .issuer(clientId)
+                .claim("client_id", clientId)
                 .claim("response_uri", createResponseUri(clientApplication, verificationTransactionId).toString())
                 .claim("response_type", "vp_token")
                 .claim("response_mode", "direct_post.jwt")
                 .claim("nonce", verificationTransaction.getNonce())
                 .claim("state", verificationTransaction.getState())
-                .claim("client_id", makeClientId(verificationTransaction.getClientApplication()))
                 .claim("dcql_query", convertDcqlQuery(verificationTransaction.getDcqlQuery()))
                 .claim("client_metadata", makeClientMetadata(verificationTransaction.getEncryptionKey()))
                 .jwtID(UUID.randomUUID().toString()) // Must be unique for each grant
