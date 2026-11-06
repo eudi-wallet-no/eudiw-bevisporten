@@ -15,11 +15,17 @@ import no.idporten.eudiw.byob.service.model.CredentialConfigurations;
 import no.idporten.eudiw.byob.service.model.web.CredentialConfigurationRequestResource;
 import no.idporten.eudiw.byob.service.service.CredentialConfigurationContext;
 import no.idporten.eudiw.byob.service.service.CredentialConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 @RestController
 public class CredentialConfigurationController {
@@ -31,6 +37,22 @@ public class CredentialConfigurationController {
     public CredentialConfigurationController(CredentialConfigurationService service, ByobServiceProperties properties) {
         this.properties = properties;
         this.service = service;
+    }
+
+    @GetMapping("/log")
+    public String log(HttpServletRequest request) {
+        Logger logger = LoggerFactory.getLogger(CredentialConfigurationController.class);
+
+        ArrayList<String> protoHeaders = Collections.list(request.getHeaders("X-Forwarded-Proto"));
+        logger.info("X-Forwarded-Proto headers: {}", protoHeaders);
+
+        String headers = "class=" + request.getClass().getName()
+                + " scheme=" + request.getScheme() + " secure=" + request.isSecure()
+                + " url=" + ServletUriComponentsBuilder.fromCurrentRequest().toUriString()
+                + " X-Forwarded-Proto=" + Collections.list(request.getHeaders("X-Forwarded-Proto"))
+                + " Forwarded=" + Collections.list(request.getHeaders("Forwarded"));
+        logger.info("Request info: {}", headers);
+        return headers;
     }
 
     @Operation(

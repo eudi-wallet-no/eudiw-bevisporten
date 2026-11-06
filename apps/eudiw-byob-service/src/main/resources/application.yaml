@@ -1,6 +1,7 @@
 ---
 server:
   port: 8080
+#  forward-headers-strategy: framework
 
 spring:
   application:
@@ -51,6 +52,12 @@ digdir:
       ip-address: true
     prometheus:
       counter: true
+
+  access:
+    logging:
+      debug-level: request
+      filtering:
+        static-resources: true
 
 # byob-service: Bring your own bevis service properties
 byob-service:
