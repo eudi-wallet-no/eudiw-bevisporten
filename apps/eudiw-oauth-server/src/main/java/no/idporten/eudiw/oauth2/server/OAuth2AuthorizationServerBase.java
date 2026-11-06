@@ -746,7 +746,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         String wia = wia(tokenRequest);
         if (wia != null) {
             if (!wiaEquals(authorization.getWia(), wia)) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestation does not match the authorization.", 400);
+                throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestations does not match across requests.", 400);
             }
             authorization.setWia(wia);
         }
