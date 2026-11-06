@@ -40,7 +40,7 @@ public class AuthorizationProxyEndpointController {
         PushedAuthorizationRequest pushedAuthorizationRequest = openID4VCIAuthorizationServer.process(new AuthorizationRequest(headers, parameters));
         session.setAttribute(SESSION_PUSHED_AUTHORIZATION_REQUEST, pushedAuthorizationRequest);
         if (isHeadlessLoginEnabled(pushedAuthorizationRequest)) {
-            log.info("Headless login enabled for clientId: {}", pushedAuthorizationRequest.getClientId());
+            log.info("Headless login enabled for clientId: {}", pushedAuthorizationRequest.getClientAuthentication().getClientId());
             return handleHeadlessLogin(pushedAuthorizationRequest);
         }
         ProtocolVerifiers protocolVerifiers = ProtocolVerifiers.forLogin();
@@ -52,7 +52,7 @@ public class AuthorizationProxyEndpointController {
     private boolean isHeadlessLoginEnabled(PushedAuthorizationRequest clientAuthorizationRequest) {
         OIDCProxyProperties.HeadlessLoginProperties headlessLogin = oidcProxyProperties.getHeadlessLogin();
         boolean enabled = headlessLogin.isEnabled();
-        String requestClientId = clientAuthorizationRequest.getClientId();
+        String requestClientId = clientAuthorizationRequest.getClientAuthentication().getClientId();
         var configuredClientIds = headlessLogin.getClientIds();
         boolean clientIdAllowed = configuredClientIds != null && configuredClientIds.contains(requestClientId);
         return enabled && clientIdAllowed;

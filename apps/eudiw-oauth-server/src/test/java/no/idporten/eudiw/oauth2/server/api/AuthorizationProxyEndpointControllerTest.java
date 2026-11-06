@@ -48,7 +48,7 @@ class AuthorizationProxyEndpointControllerTest {
         com.nimbusds.oauth2.sdk.AuthorizationRequest upstreamRequest = mock(com.nimbusds.oauth2.sdk.AuthorizationRequest.class);
 
         when(authorizationServer.process(any(AuthorizationRequest.class))).thenReturn(pushedAuthorizationRequest);
-        when(pushedAuthorizationRequest.getClientId()).thenReturn("wallet-client");
+        when(pushedAuthorizationRequest.getClientAuthentication()).thenReturn(ClientAuthentication.builder().clientId("wallet-client").build());
         when(oidcProxyService.createAuthorizationRequest(eq(pushedAuthorizationRequest), any())).thenReturn(upstreamRequest);
         when(upstreamRequest.toURI()).thenReturn(URI.create("https://login.test.idporten.no/authorize?request_uri=urn:1"));
 
@@ -76,7 +76,7 @@ class AuthorizationProxyEndpointControllerTest {
         ArgumentCaptor<Authorization> authorizationCaptor = ArgumentCaptor.forClass(Authorization.class);
 
         when(authorizationServer.process(any(AuthorizationRequest.class))).thenReturn(pushedAuthorizationRequest);
-        when(pushedAuthorizationRequest.getClientId()).thenReturn("wallet-client");
+        when(pushedAuthorizationRequest.getClientAuthentication()).thenReturn(ClientAuthentication.builder().clientId("wallet-client").build());
         when(authorizationServer.authorize(eq(pushedAuthorizationRequest), authorizationCaptor.capture())).thenReturn(authorizationResponse);
         when(authorizationServer.createClientResponse(authorizationResponse)).thenReturn(clientResponse);
 

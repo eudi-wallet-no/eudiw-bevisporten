@@ -108,7 +108,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     protected void validateDPoP(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
         // TODO implement DPoP validation and correct error messages, see RFC.
         if (authorizationRequest.getDPoPHeader() != null) {
-            String dpopJtk = validateDPoPProofAndGetDPoPJtk(authorizationRequest.getDPoPHeader(), authorizationRequest.getClientId(), serverConfiguration.getPushedAuthorizationRequestEndpoint());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(authorizationRequest.getDPoPHeader(), clientMetadata.getClientId(), serverConfiguration.getPushedAuthorizationRequestEndpoint());
             if(authorizationRequest.getDpopJkt() != null && !authorizationRequest.getDpopJkt().equals(dpopJtk)) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid parameter dpop_jkt and header DPoP, must be equal to each other.", 400);
             }
@@ -342,7 +342,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client authentication does not match parameter client_id.", 401);
         }
         authenticatedRequest.clearAuthentication();
-        authenticatedRequest.setAuthenticatedClientId(clientAuthentication.getClientId());
+        authenticatedRequest.setClientAuthentication(clientAuthentication);
         serverConfiguration.getAuditLogger().auditClientAuthentication(clientAuthentication);
         return clientMetadata;
     }
@@ -539,6 +539,14 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
      * Wallet Instance key, i.e. the same JWK SHA-256 thumbprint of the key in the cnf claim.
      * Both WIAs are expected to be validated before calling this method.
      */
+    /**
+     * The WIA used to authenticate the client of a request, or null if the client was not authenticated with an attestation.
+     */
+    protected static String wia(AuthenticatedRequest authenticatedRequest) {
+        ClientAuthentication clientAuthentication = authenticatedRequest.getClientAuthentication();
+        return clientAuthentication != null ? clientAuthentication.getWia() : null;
+    }
+
     protected boolean wiaEquals(String wia1, String wia2) {
         if (Objects.equals(wia1, wia2)) {
             return true;
@@ -610,7 +618,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (!pushedAuthorizationRequest.isValidNow()) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter request_uri. request_uri has expired.", 400);
         }
-        if (hasText(authorizationRequest.getClientId()) && !authorizationRequest.getClientId().equals(pushedAuthorizationRequest.getClientId())) {
+        if (hasText(authorizationRequest.getClientId()) && !authorizationRequest.getClientId().equals(pushedAuthorizationRequest.getClientAuthentication().getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter client_id. The request was pushed by another client.", 400);
         }
         // do only support PAR, no need to check incoming DPoP
@@ -637,11 +645,11 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         authorization.setNonce(pushedAuthorizationRequest.getNonce());
         authorization.setCodeChallenge(pushedAuthorizationRequest.getCodeChallenge());
         authorization.setLifetimeSeconds(serverConfiguration.getAuthorizationLifetimeSeconds());
-        authorization.setClientId(pushedAuthorizationRequest.getClientId());
+        authorization.setClientId(pushedAuthorizationRequest.getClientAuthentication().getClientId());
         authorization.setAud(calcAudience(pushedAuthorizationRequest));
         authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
         authorization.setIssuerState(pushedAuthorizationRequest.getIssuerState());
-        authorization.setWia(pushedAuthorizationRequest.getClientAttestation());
+        authorization.setWia(wia(pushedAuthorizationRequest));
         authorization.setDpopJkt(pushedAuthorizationRequest.getResolvedDpopJkt()); // parse og sjekk også dpop_jkt
 
         if (!hasText(authorization.getAcr())) {
@@ -655,7 +663,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
                 .redirectUri(pushedAuthorizationRequest.getRedirectUri())
-                .aud(pushedAuthorizationRequest.getClientId())
+                .aud(pushedAuthorizationRequest.getClientAuthentication().getClientId())
                 .iss(serverConfiguration.isAuthorizationResponseIssParameterSupported() ? serverConfiguration.getIssuer().toString() : null)
                 .responseMode(pushedAuthorizationRequest.getResolvedResponseMode())
                 .code(code)
@@ -670,7 +678,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     public AuthorizationResponse errorResponse(PushedAuthorizationRequest pushedAuthorizationRequest, String error, String errorDescription) {
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
                 .redirectUri(pushedAuthorizationRequest.getRedirectUri())
-                .aud(pushedAuthorizationRequest.getClientId())
+                .aud(pushedAuthorizationRequest.getClientAuthentication().getClientId())
                 .iss(serverConfiguration.isAuthorizationResponseIssParameterSupported() ? serverConfiguration.getIssuer().toString() : null)
                 .responseMode(pushedAuthorizationRequest.getResolvedResponseMode())
                 .error(error)
@@ -724,7 +732,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid code_verifier.", 400);
         }
         if (tokenRequest.getDPoPHeader() != null) {
-            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), tokenRequest.getClientId(), serverConfiguration.getTokenEndpoint());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), clientMetadata.getClientId(), serverConfiguration.getTokenEndpoint());
             if (hasText(authorization.getDpopJkt()) && !Objects.equals(dpopJtk, authorization.getDpopJkt())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
             }
@@ -735,11 +743,12 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (tokenRequest.hasResourceIndicator()) {
             authorization.setAud(tokenRequest.getResource());
         }
-        if (tokenRequest.isAuthenticatedRequest() && tokenRequest.isAttestationBased()) {
-            if (!wiaEquals(authorization.getWia(), tokenRequest.getClientAttestation())) {
+        String wia = wia(tokenRequest);
+        if (wia != null) {
+            if (!wiaEquals(authorization.getWia(), wia)) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestation does not match the authorization.", 400);
             }
-            authorization.setWia(tokenRequest.getClientAttestation());
+            authorization.setWia(wia);
         }
         try {
             TokenResponse tokenResponse = createTokenResponse(authorization);

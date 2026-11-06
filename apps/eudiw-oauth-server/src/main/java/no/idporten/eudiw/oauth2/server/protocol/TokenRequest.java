@@ -26,6 +26,7 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
     private String grantType;
     private String redirectUri;
     private String resource;
+    private ClientAuthentication clientAuthentication;
     @Getter(AccessLevel.NONE)
     @Builder.Default
     private Map<String, String> parameters = new HashMap<>();
@@ -51,14 +52,19 @@ public class TokenRequest implements AuthenticatedRequest, ResourceIndicatorSupp
     }
 
     @Override
-    public void clearAuthentication() {
-        clientAttestation = null;
-        clientAttestationPoP = null;
+    public ClientAuthentication getClientAuthentication() {
+        return clientAuthentication;
     }
 
     @Override
-    public void setAuthenticatedClientId(String clientId) {
-        this.clientId = clientId;
+    public void setClientAuthentication(ClientAuthentication clientAuthentication) {
+        this.clientAuthentication = clientAuthentication;
+    }
+
+    @Override
+    public void clearAuthentication() {
+        clientAttestation = null;
+        clientAttestationPoP = null;
     }
 
     @Override

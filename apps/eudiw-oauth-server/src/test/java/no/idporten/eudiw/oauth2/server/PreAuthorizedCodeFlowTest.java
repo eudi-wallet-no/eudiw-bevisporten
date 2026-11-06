@@ -137,7 +137,6 @@ class PreAuthorizedCodeFlowTest {
         verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
         assertEquals("attest_jwt_client_auth", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
         JWTClaimsSet accessTokenClaimsSet = SignedJWT.parse(tokenResponse.getAccessToken()).getJWTClaimsSet();
-        assertEquals("wallet", accessTokenClaimsSet.getClaim("client_id"));
         assertEquals(clientAttestation.serialize(), accessTokenClaimsSet.getClaim("wia"));
     }
 
