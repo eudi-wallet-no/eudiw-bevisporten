@@ -199,7 +199,8 @@ class OpenID4VPRequestServiceTest {
         Map<String, Object> metadata = request.getJWTClaimsSet().getJSONObjectClaim("client_metadata");
 
         assertAll(
-                () -> assertEquals(EXTERNAL_BASE_URI, request.getJWTClaimsSet().getIssuer()),
+                () -> assertTrue(request.getJWTClaimsSet().getStringClaim("client_id").startsWith("x509_hash:")),
+                () -> assertEquals(request.getJWTClaimsSet().getStringClaim("client_id"), request.getJWTClaimsSet().getIssuer()),
                 () -> assertEquals(SAME_DEVICE_FLOW, storedTransaction.getFlow()),
                 () -> assertEquals(request.getJWTClaimsSet().toJSONObject(), storedTransaction.getRequest()),
                 () -> assertNotNull(storedTransaction.getState()),
