@@ -169,7 +169,7 @@ public class TokenStatuslistService {
 
     private StatusListResponse requestStatusList(URI uri, StatusListTokenFormat preferredFormat) {
         if (uri == null) {
-            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Statuslist url is null");
+            throw new VerificationException(ErrorCode.INVALID_RRESPONSE, "Statuslist url is null");
         }
         StatusListTokenFormat[] formats = {preferredFormat, preferredFormat.fallback()};
         for (int index = 0; index < formats.length; index++) {
