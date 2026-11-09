@@ -52,7 +52,7 @@ public class AuthorizationProxyEndpointController {
     private boolean isHeadlessLoginEnabled(PushedAuthorizationRequest clientAuthorizationRequest) {
         OIDCProxyProperties.HeadlessLoginProperties headlessLogin = oidcProxyProperties.getHeadlessLogin();
         boolean enabled = headlessLogin.isEnabled();
-        String requestClientId = clientAuthorizationRequest.getClientAuthentication().getClientId();
+        String requestClientId = clientAuthorizationRequest.getClientId();
         var configuredClientIds = headlessLogin.getClientIds();
         boolean clientIdAllowed = configuredClientIds != null && configuredClientIds.contains(requestClientId);
         return enabled && clientIdAllowed;
