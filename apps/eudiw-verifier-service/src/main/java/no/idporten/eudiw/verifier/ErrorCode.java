@@ -16,10 +16,7 @@ public enum ErrorCode {
     INVALID_REQUEST_URI_METHOD("invalid_request_uri_method", HttpStatus.BAD_REQUEST),
     INVALID_TRANSACTION_DATA("invalid_transaction_data", HttpStatus.BAD_REQUEST),
     WALLET_UNAVAILABLE("wallet_unavailable", HttpStatus.SERVICE_UNAVAILABLE),
-    SERVER_ERROR("server_error", HttpStatus.INTERNAL_SERVER_ERROR),
-
-
-    INVALID_RRESPONSE("invalid_response_external", HttpStatus.BAD_REQUEST); // Se næærmere på denne!!
+    SERVER_ERROR("server_error", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String error;
     private final HttpStatus httpStatus;
@@ -37,33 +34,4 @@ public enum ErrorCode {
         return httpStatus;
     }
 
-    public static HttpStatus httpStatusFor(String errorCode) {
-        if (errorCode == null || errorCode.isBlank()) {
-            return HttpStatus.BAD_REQUEST;
-        }
-        for (ErrorCode value : values()) {
-            if (value.error.equals(errorCode)) {
-                return value.httpStatus;
-            }
-        }
-        return HttpStatus.BAD_REQUEST;
-    }
-
-    public static ErrorCode fromHttpStatus(HttpStatus httpStatus) {
-        if (httpStatus == null) {
-            return INVALID_REQUEST;
-        }
-        for (ErrorCode value : values()) {
-            if (value.httpStatus.equals(httpStatus)) {
-                return value;
-            }
-        }
-        if (httpStatus.is4xxClientError()) {
-            return INVALID_REQUEST;
-        }
-        if (httpStatus.is5xxServerError()) {
-            return SERVER_ERROR;
-        }
-        return INVALID_REQUEST;
-    }
 }

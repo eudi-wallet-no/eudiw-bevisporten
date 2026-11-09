@@ -34,19 +34,6 @@ public class VerifierServiceControllerAdvice {
                 .body(new ErrorResponse(e.getError(), e.getErrorDescription()));
     }
 
-    @ExceptionHandler(IOConnectionException.class)
-    public ResponseEntity<ErrorResponse> ioConnectionException(IOConnectionException e) {
-        log.warn("Connect to external service failed", e);
-        HttpStatus status = e.getHttpStatus();
-        if (status == null) {
-            status = HttpStatus.SERVICE_UNAVAILABLE;
-        }
-
-        return ResponseEntity.status(status)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new ErrorResponse(e.getErrorCode(), e.getErrorDescription()));
-    }
-
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ErrorResponse> responseStatusException(ResponseStatusException e) {
         log.warn("Unknown error", e);
@@ -55,7 +42,9 @@ public class VerifierServiceControllerAdvice {
             status = HttpStatus.BAD_REQUEST;
         }
 
-        ErrorCode errorCode = ErrorCode.fromHttpStatus(status);
+        ErrorCode errorCode = status.is5xxServerError()
+                ? ErrorCode.SERVER_ERROR
+                : ErrorCode.INVALID_REQUEST;
         String description = e.getReason();
         if (description == null) {
             description = "Request failed";
