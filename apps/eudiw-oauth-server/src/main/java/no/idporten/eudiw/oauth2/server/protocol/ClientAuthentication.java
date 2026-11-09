@@ -16,7 +16,7 @@ public class ClientAuthentication implements AuditDataProvider, Serializable {
     private String clientId;
     private String tokenEndpointAuthMethod;
     private String clientAttestation;
-    private transient String clientAttestationPoP;
+    private String clientAttestationPoP;
     private String attestationChallenge;
     private String walletName;
     private String walletLink;
@@ -28,19 +28,6 @@ public class ClientAuthentication implements AuditDataProvider, Serializable {
      */
     public String getWia() {
         return clientAttestation;
-    }
-
-    /**
-     * Excludes the attestation PoP.
-     */
-    @Override
-    public String toString() {
-        return "ClientAuthentication(clientId=" + clientId
-                + ", tokenEndpointAuthMethod=" + tokenEndpointAuthMethod
-                + ", clientAttestation=" + clientAttestation
-                + ", attestationChallenge=" + attestationChallenge
-                + ", walletName=" + walletName
-                + ", walletLink=" + walletLink + ")";
     }
 
     @Override
