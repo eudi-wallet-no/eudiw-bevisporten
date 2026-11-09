@@ -15,8 +15,7 @@ public class VerifierServiceControllerAdvice {
     private static final Logger log = LoggerFactory.getLogger(VerifierServiceControllerAdvice.class);
 
     @ExceptionHandler(VerificationException.class)
-    public ResponseEntity<ErrorResponse> handleException(VerificationException e) {
-
+    public ResponseEntity<ErrorResponse> verificationException(VerificationException e) {
         if (e.getLogMessage() != null) {
             log.error(e.getLogMessage(), e);
         } else if (e.getErrorDescription() != null) {
@@ -24,39 +23,54 @@ public class VerifierServiceControllerAdvice {
         } else {
             log.warn("Verification transaction failed", e);
         }
-        HttpStatus status = e.getHttpStatus() != null ? e.getHttpStatus() : HttpStatus.BAD_REQUEST;
+
+        HttpStatus status = e.getHttpStatus();
+        if (status == null) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse(e.getError(), e.getErrorDescription()));
     }
 
     @ExceptionHandler(IOConnectionException.class)
-    public ResponseEntity<ErrorResponse> handleIOConnectionException(IOConnectionException e) {
+    public ResponseEntity<ErrorResponse> ioConnectionException(IOConnectionException e) {
         log.warn("Connect to external service failed", e);
-        HttpStatus status = e.getHttpStatus() != null ? e.getHttpStatus() : HttpStatus.SERVICE_UNAVAILABLE;
+        HttpStatus status = e.getHttpStatus();
+        if (status == null) {
+            status = HttpStatus.SERVICE_UNAVAILABLE;
+        }
+
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse(e.getErrorCode(), e.getErrorDescription()));
     }
 
-
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleResponseStatusException(ResponseStatusException e) {
+    public ResponseEntity<ErrorResponse> responseStatusException(ResponseStatusException e) {
         log.warn("Unknown error", e);
-        HttpStatus status = e.getStatusCode() instanceof HttpStatus httpStatus ? httpStatus : HttpStatus.BAD_REQUEST;
+        HttpStatus status = HttpStatus.resolve(e.getStatusCode().value());
+        if (status == null) {
+            status = HttpStatus.BAD_REQUEST;
+        }
+
         ErrorCode errorCode = ErrorCode.fromHttpStatus(status);
+        String description = e.getReason();
+        if (description == null) {
+            description = "Request failed";
+        }
+
         return ResponseEntity.status(status)
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new ErrorResponse(errorCode.error(), e.getReason() != null ? e.getReason() : "Request failed"));
+                .body(new ErrorResponse(errorCode.error(), description));
     }
 
-
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    public ResponseEntity<ErrorResponse> unknownException(Exception e) {
         log.warn("Unknown error", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ErrorResponse(ErrorCode.SERVER_ERROR.error(), "The server encountered an unexpected condition that prevented it from fulfilling the request"));
     }
-
 }

@@ -1,9 +1,7 @@
 package no.idporten.eudiw.verifier;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-@Getter
 public class VerificationException extends RuntimeException {
 
     private final String error;
