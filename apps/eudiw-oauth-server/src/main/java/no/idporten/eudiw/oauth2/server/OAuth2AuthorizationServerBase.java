@@ -108,7 +108,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     protected void validateDPoP(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
         // TODO implement DPoP validation and correct error messages, see RFC.
         if (authorizationRequest.getDPoPHeader() != null) {
-            String dpopJtk = validateDPoPProofAndGetDPoPJtk(authorizationRequest.getDPoPHeader(), clientMetadata.getClientId(), serverConfiguration.getPushedAuthorizationRequestEndpoint());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(authorizationRequest.getDPoPHeader(), authorizationRequest.getClientId(), serverConfiguration.getPushedAuthorizationRequestEndpoint());
             if(authorizationRequest.getDpopJkt() != null && !authorizationRequest.getDpopJkt().equals(dpopJtk)) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid parameter dpop_jkt and header DPoP, must be equal to each other.", 400);
             }
@@ -736,7 +736,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid code_verifier.", 400);
         }
         if (tokenRequest.getDPoPHeader() != null) {
-            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), clientMetadata.getClientId(), serverConfiguration.getTokenEndpoint());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), tokenRequest.getClientId(), serverConfiguration.getTokenEndpoint());
             if (hasText(authorization.getDpopJkt()) && !Objects.equals(dpopJtk, authorization.getDpopJkt())) {
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
             }
