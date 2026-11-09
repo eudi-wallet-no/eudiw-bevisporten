@@ -40,7 +40,7 @@ public class AuthorizationProxyEndpointController {
         PushedAuthorizationRequest pushedAuthorizationRequest = openID4VCIAuthorizationServer.process(new AuthorizationRequest(headers, parameters));
         session.setAttribute(SESSION_PUSHED_AUTHORIZATION_REQUEST, pushedAuthorizationRequest);
         if (isHeadlessLoginEnabled(pushedAuthorizationRequest)) {
-            log.info("Headless login enabled for clientId: {}", pushedAuthorizationRequest.getClientAuthentication().getClientId());
+            log.info("Headless login enabled for clientId: {}", pushedAuthorizationRequest.getClientId());
             return handleHeadlessLogin(pushedAuthorizationRequest);
         }
         ProtocolVerifiers protocolVerifiers = ProtocolVerifiers.forLogin();
