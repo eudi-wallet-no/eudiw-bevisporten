@@ -748,12 +748,10 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             authorization.setAud(tokenRequest.getResource());
         }
         String wia = wia(tokenRequest);
-        if (wia != null) {
-            if (!wiaEquals(authorization.getWia(), wia)) {
-                throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestations does not match across requests.", 400);
-            }
-            authorization.setWia(wia);
+        if (!wiaEquals(authorization.getWia(), wia)) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestations does not match across requests.", 400);
         }
+        authorization.setWia(wia);
         try {
             TokenResponse tokenResponse = createTokenResponse(authorization);
             if (serverConfiguration.getUserinfoEndpoint() != null) {
