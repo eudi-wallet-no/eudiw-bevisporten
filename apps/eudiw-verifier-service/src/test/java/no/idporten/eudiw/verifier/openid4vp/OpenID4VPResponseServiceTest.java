@@ -6,15 +6,6 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import com.nimbusds.jose.util.X509CertUtils;
-import id.walt.mdoc.dataelement.StringElement;
-import id.walt.mdoc.dataretrieval.DeviceResponse;
-import id.walt.mdoc.doc.MDoc;
-import id.walt.sdjwt.SDJwt;
-import id.walt.sdjwt.VerificationResult;
-import kotlinx.serialization.json.Json;
-import kotlinx.serialization.json.JsonObject;
-import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -23,16 +14,16 @@ import no.idporten.eudiw.verifier.logging.audit.AuditService;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialMeta;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlQuery;
+import no.idporten.eudiw.verifier.openid4vp.validation.ValidationDetail;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
+import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
 import no.idporten.eudiw.verifier.statuslist.StatusListTokenFormat;
 import no.idporten.eudiw.verifier.statuslist.StatuslistEntry;
 import no.idporten.eudiw.verifier.statuslist.TokenStatuslistService;
-import no.idporten.eudiw.verifier.testdata.Certificates;
 import no.idporten.eudiw.verifier.trustlist.TrustlistFormat;
 import no.idporten.eudiw.verifier.trustlist.TrustlistReference;
 import no.idporten.eudiw.verifier.trustlist.TrustlistService;
 import no.idporten.eudiw.verifier.trustlist.TrustlistsProperties;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,12 +37,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
-import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 
-import static no.idporten.eudiw.verifier.openid4vp.MDocServiceTest.VALID_VP_TOKEN;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -77,11 +66,8 @@ class OpenID4VPResponseServiceTest {
     @Mock TokenStatuslistService tokenStatuslistService;
     @Mock TrustlistService trustlistService;
     @Mock TrustlistsProperties trustlistsProperties;
-    @Mock MDocService mDocService;
-    @Mock SdJwtService sdJwtService;
-    @Mock MDoc mDoc;
-    @Mock SDJwt sdJwt;
-    @Mock VerificationResult<SDJwt> sdJwtResult;
+    @Mock SdJwtCredentialVerifier sdJwtVerifier;
+    @Mock MdocCredentialVerifier mdocVerifier;
     @Mock X509Certificate certificate;
     @Mock AuditService auditService;
 
@@ -92,7 +78,7 @@ class OpenID4VPResponseServiceTest {
     @BeforeEach
     void setUp() throws Exception {
         service = new OpenID4VPResponseService(
-                verificationService, tokenStatuslistService, trustlistService, trustlistsProperties, auditService, mDocService, sdJwtService);
+                verificationService, tokenStatuslistService, trustlistService, trustlistsProperties, auditService, sdJwtVerifier, mdocVerifier);
         lenient().when(trustlistsProperties.getPidTrustlists()).thenReturn(PID_TRUSTLISTS);
         lenient().when(trustlistsProperties.getAttestationTrustlists()).thenReturn(ATTESTATION_TRUSTLISTS);
         client = new ClientApplication();
@@ -113,7 +99,7 @@ class OpenID4VPResponseServiceTest {
                 () -> service.receiveResponse(client, TRANSACTION_ID, response("not-a-jwe")));
 
         assertEquals("Unknown verification transaction id", exception.getErrorDescription());
-        verifyNoInteractions(tokenStatuslistService, trustlistService, mDocService, sdJwtService);
+        verifyNoInteractions(tokenStatuslistService, trustlistService, sdJwtVerifier, mdocVerifier);
     }
 
     @Test
@@ -167,7 +153,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertEquals(List.of(), missing.validationDetails()),
                 () -> assertEquals(STATE, persistedPayload.getValue().get("state")),
                 () -> assertNull(callback.getRedirectUri()));
-        verifyNoInteractions(mDocService, sdJwtService);
+        verifyNoInteractions(sdJwtVerifier, mdocVerifier);
     }
 
     @ParameterizedTest
@@ -224,7 +210,7 @@ class OpenID4VPResponseServiceTest {
                 () -> assertEquals(description, exception.getErrorDescription()));
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
-        verifyNoInteractions(mDocService, sdJwtService, trustlistService, tokenStatuslistService);
+        verifyNoInteractions(sdJwtVerifier, mdocVerifier, trustlistService, tokenStatuslistService);
     }
 
     @Test
@@ -277,6 +263,7 @@ class OpenID4VPResponseServiceTest {
                         encrypted(validPayload(Map.of("pid", List.of("token"))))));
 
         assertEquals("Unsupported credential format: jwt_vc_json", exception.getErrorDescription());
+        verifyNoInteractions(sdJwtVerifier, mdocVerifier);
     }
 
     @Test
@@ -298,11 +285,10 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("when credential processing fails, then error status is expected")
     void marksCredentialProcessingFailureAsError() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
-        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException processingException =
-                new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid mdoc");
-        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenThrow(processingException);
+                new VerificationException("invalid_request", "Invalid mdoc");
+        when(mdocVerifier.verify(eq("mdoc-token"), any(), eq(transaction))).thenThrow(processingException);
 
         VerificationException exception = assertThrows(
                 VerificationException.class,
@@ -399,7 +385,7 @@ class OpenID4VPResponseServiceTest {
                         exception.getErrorDescription()));
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
-        verifyNoInteractions(mDocService, sdJwtService, tokenStatuslistService, trustlistService);
+        verifyNoInteractions(sdJwtVerifier, mdocVerifier, tokenStatuslistService, trustlistService);
     }
 
     @ParameterizedTest
@@ -477,7 +463,7 @@ class OpenID4VPResponseServiceTest {
         assertEquals("Multiple presentations are not allowed for credential id: single", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
-        verifyNoInteractions(mDocService, sdJwtService, tokenStatuslistService, trustlistService);
+        verifyNoInteractions(sdJwtVerifier, mdocVerifier, tokenStatuslistService, trustlistService);
     }
 
     @Test
@@ -494,27 +480,22 @@ class OpenID4VPResponseServiceTest {
         assertEquals("Empty presentation array for credential id: pid", exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
-        verifyNoInteractions(mDocService, sdJwtService, tokenStatuslistService, trustlistService);
+        verifyNoInteractions(sdJwtVerifier, mdocVerifier, tokenStatuslistService, trustlistService);
     }
 
     @Test
     @DisplayName("with an mdoc credential, then routing and combined validation details are expected")
     void routesMdocAndCombinesValidationStatusesAndDetails() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
-        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         transaction.setIncludeValidationDetails(true);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
-        when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of("family_name", "Nordmann"));
-        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
-        when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
-        when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
+        when(mdocVerifier.verify(eq("mdoc-token"), eq(transaction.getDcqlQuery().getCredentials().getFirst()), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.MSO_MDOC, PID_DOC_TYPE, Map.of("family_name", "Nordmann"),
+                        certificate, null, ValidationStatus.VALID));
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
         when(tokenStatuslistService.getValidationDetail(ValidationStatus.NOT_APPLICABLE)).thenReturn("no status");
         when(trustlistService.getValidationDetail(ValidationStatus.VALID)).thenReturn("trusted");
-        when(mDocService.getValidationDetail(ValidationStatus.VALID)).thenReturn("valid mdoc");
 
         service.receiveResponse(client, TRANSACTION_ID,
                 encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
@@ -523,12 +504,49 @@ class OpenID4VPResponseServiceTest {
         assertAll(
                 () -> assertTrue(credential.valid()),
                 () -> assertEquals("Nordmann", credential.claims().get("family_name")),
-                () -> assertEquals(3, credential.validationDetails().size()),
+                () -> assertEquals(List.of(ValidationType.STATUS_LIST, ValidationType.TRUST_LIST, ValidationType.MDOC),
+                        credential.validationDetails().stream().map(ValidationDetail::validationType).toList()),
                 () -> assertEquals("no status", credential.validationDetails().get(0).validationDetails()),
                 () -> assertEquals("trusted", credential.validationDetails().get(1).validationDetails()),
-                () -> assertEquals("valid mdoc", credential.validationDetails().get(2).validationDetails()));
-        verify(mDocService).mDocFromDeviceResponse(deviceResponse);
-        verifyNoInteractions(sdJwtService);
+                () -> assertEquals("mdoc: mdoc er gyldig", credential.validationDetails().get(2).validationDetails()));
+    }
+
+    @Test
+    @DisplayName("with an SD-JWT credential, then holder binding and SD-JWT validation details are expected")
+    void addsHolderBindingDetailForSdJwt() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
+        transaction.setIncludeValidationDetails(true);
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        when(sdJwtVerifier.verify(eq("sd-token"), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.DC_SD_JWT, PID_VCT, Map.of(), certificate, null, ValidationStatus.INVALID));
+        when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
+                .thenReturn(ValidationStatus.VALID);
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("pid", List.of("sd-token")))));
+
+        VerifiedCredential credential = persistedCredential("pid");
+        assertAll(
+                () -> assertFalse(credential.valid()),
+                () -> assertEquals(List.of(ValidationType.STATUS_LIST, ValidationType.TRUST_LIST, ValidationType.HOLDER_BINDING, ValidationType.SDJWT),
+                        credential.validationDetails().stream().map(ValidationDetail::validationType).toList()),
+                () -> assertEquals("Holder binding: gyldig", credential.validationDetails().get(2).validationDetails()),
+                () -> assertEquals("SD-JWT VC: SDJwt er ugyldig", credential.validationDetails().get(3).validationDetails()));
+    }
+
+    @Test
+    @DisplayName("without an issuer certificate, then an invalid trust list status without lookup is expected")
+    void rejectsCredentialWithoutIssuerCertificate() throws Exception {
+        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
+        when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
+        when(mdocVerifier.verify(eq("mdoc-token"), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.MSO_MDOC, PID_DOC_TYPE, Map.of(), null, null, ValidationStatus.INVALID));
+
+        service.receiveResponse(client, TRANSACTION_ID,
+                encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
+
+        assertFalse(persistedCredential("pid").valid());
+        verifyNoInteractions(trustlistService);
     }
 
     @Test
@@ -536,16 +554,9 @@ class OpenID4VPResponseServiceTest {
     void routesSdJwtAndMarksCombinedInvalidOutcome() throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
-        when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(PID_VCT));
-        when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
-        when(sdJwtService.validateSdJwtTimeClaims(sdJwtResult)).thenReturn(ValidationStatus.VALID);
-        when(sdJwtService.validationStatusSdJwt(sdJwtResult, ValidationStatus.VALID)).thenReturn(ValidationStatus.VALID);
-        when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of("given_name", "Ola"));
-        when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult))
-                .thenReturn(new StatuslistEntry("7", URI.create("https://status.example/list")));
-        when(sdJwtResult.getSdJwt()).thenReturn(sdJwt);
+        when(sdJwtVerifier.verify(eq("sd-token"), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.DC_SD_JWT, PID_VCT, Map.of("given_name", "Ola"), certificate,
+                        new StatuslistEntry("7", URI.create("https://status.example/list")), ValidationStatus.VALID));
         when(tokenStatuslistService.lookupStatusFromStatuslist(
                 URI.create("https://status.example/list"), 7, StatusListTokenFormat.JWT))
                 .thenReturn(ValidationStatus.INVALID);
@@ -560,10 +571,8 @@ class OpenID4VPResponseServiceTest {
                 () -> assertFalse(credential.valid()),
                 () -> assertEquals("Ola", credential.claims().get("given_name")),
                 () -> assertNull(credential.validationDetails()));
-        verify(sdJwtService).verifySdJwt(sdJwt, certificate);
         verify(tokenStatuslistService)
                 .lookupStatusFromStatuslist(URI.create("https://status.example/list"), 7, StatusListTokenFormat.JWT);
-        verifyNoInteractions(mDocService);
     }
 
     @ParameterizedTest
@@ -603,13 +612,8 @@ class OpenID4VPResponseServiceTest {
         String docType = "no.eidas2sandkasse.dev.attestation.1";
         transaction.getDcqlQuery().getCredentials().getFirst().getMeta().setDoctypeValue(docType);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
-        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement(docType));
-        when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
-        when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
-        when(mDocService.extractStatuslistUriAndIdx(mDoc)).thenReturn(null);
+        when(mdocVerifier.verify(eq("mdoc-token"), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.MSO_MDOC, docType, Map.of(), certificate, null, ValidationStatus.VALID));
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
 
@@ -676,16 +680,8 @@ class OpenID4VPResponseServiceTest {
     void routesNonPidSdJwtToAttestationTrustlists(String vct) throws Exception {
         VerificationTransaction transaction = transaction(query("pid", "dc+sd-jwt", true));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(sdJwtService.sdJwtFromVpToken("sd-token")).thenReturn(sdJwt);
-        when(sdJwt.getFullPayload()).thenReturn(payloadWithVct(vct));
-        when(sdJwtService.certificate(sdJwt)).thenReturn(certificate);
-        when(sdJwtService.verifySdJwt(sdJwt, certificate)).thenReturn(sdJwtResult);
-        when(sdJwtService.validationStatusHolderBinding(transaction, sdJwt, true)).thenReturn(ValidationStatus.VALID);
-        when(sdJwtService.validateSdJwtTimeClaims(sdJwtResult)).thenReturn(ValidationStatus.VALID);
-        when(sdJwtService.validationStatusSdJwt(sdJwtResult, ValidationStatus.VALID)).thenReturn(ValidationStatus.VALID);
-        when(sdJwtService.sdJwtClaims(sdJwtResult)).thenReturn(Map.of());
-        when(sdJwtService.extractStatuslistUriAndIdx(sdJwtResult)).thenReturn(null);
-        when(sdJwtResult.getSdJwt()).thenReturn(sdJwt);
+        when(sdJwtVerifier.verify(eq("sd-token"), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.DC_SD_JWT, vct, Map.of(), certificate, null, ValidationStatus.VALID));
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, ATTESTATION_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
 
@@ -700,7 +696,7 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("with malformed or overflowing status list indexes, then invalid request is expected")
     void rejectsMalformedAndOverflowingStatusListIndexes() throws Exception {
         for (String idx : List.of("not-a-number", "2147483648", "-1", "-2147483649")) {
-            reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
+            reset(verificationService, sdJwtVerifier, mdocVerifier, trustlistService, tokenStatuslistService);
             prepareMdocWithStatus(idx, ValidationStatus.VALID);
             VerificationException exception = assertThrows(VerificationException.class,
                     () -> service.receiveResponse(client, TRANSACTION_ID,
@@ -714,7 +710,7 @@ class OpenID4VPResponseServiceTest {
     @DisplayName("with integer status list boundaries, then successful lookups are expected")
     void acceptsIntegerStatusListBoundaries() throws Exception {
         for (int idx : List.of(0, Integer.MAX_VALUE)) {
-            reset(verificationService, mDocService, trustlistService, tokenStatuslistService);
+            reset(verificationService, sdJwtVerifier, mdocVerifier, trustlistService, tokenStatuslistService);
             prepareMdocWithStatus(Integer.toString(idx), ValidationStatus.VALID);
             service.receiveResponse(client, TRANSACTION_ID,
                     encrypted(validPayload(Map.of("pid", List.of("mdoc-token")))));
@@ -743,29 +739,6 @@ class OpenID4VPResponseServiceTest {
         assertTrue(transaction.getDcqlQuery().getCredentials().getFirst().getRequireCryptographicHolderBinding());
     }
 
-    @Test
-    @DisplayName("with a bad issuer signature, then invalid request is expected")
-    void validationStatusNegativeWhenWrongIssuerSignature() {
-        Security.addProvider(new BouncyCastleProvider());
-        VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
-
-        MDocService realService = new MDocService();
-        MDocService service = spy(realService);
-
-        DeviceResponse deviceResponse = realService.deviceResponseFromVpToken(VALID_VP_TOKEN);
-        MDoc realMdoc = realService.mDocFromDeviceResponse(deviceResponse);
-        Certificates certs = new Certificates();
-        X509Certificate negativeTestCert = X509CertUtils.parse("-----BEGIN CERTIFICATE-----"+ certs.webuildPidDigdirCertificate() +"-----END CERTIFICATE-----");
-
-        doReturn(negativeTestCert)
-                .when(service)
-                .extractCertificateFromMdoc(realMdoc);
-
-        ValidationStatus status = service.verifyMDoc(realMdoc, transaction);
-
-        assertEquals(ValidationStatus.INVALID, status);
-    }
-
     private void preparePresentation(String format, String token, VerificationTransaction transaction, ValidationStatus status) {
         preparePresentation(format, token, transaction, status, PID_VCT);
     }
@@ -774,41 +747,26 @@ class OpenID4VPResponseServiceTest {
         X509Certificate presentationCertificate = mock(X509Certificate.class);
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(presentationCertificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
-        if ("mso_mdoc".equals(format)) {
-            DeviceResponse deviceResponse = mock(DeviceResponse.class);
-            MDoc document = mock(MDoc.class);
-            when(mDocService.deviceResponseFromVpToken(token)).thenReturn(deviceResponse);
-            when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(document);
-            when(document.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
-            when(mDocService.claimsFromMDoc(document)).thenReturn(Map.of("value", token));
-            when(mDocService.verifyMDoc(document, transaction)).thenReturn(status);
-            when(mDocService.extractCertificateFromMdoc(document)).thenReturn(presentationCertificate);
-        } else {
-            SDJwt presentation = mock(SDJwt.class);
-            VerificationResult<SDJwt> result = mock();
-            when(result.getSdJwt()).thenReturn(presentation);
-            when(sdJwtService.sdJwtFromVpToken(token)).thenReturn(presentation);
-            when(presentation.getFullPayload()).thenReturn(payloadWithVct(vct));
-            when(sdJwtService.certificate(presentation)).thenReturn(presentationCertificate);
-            when(sdJwtService.verifySdJwt(presentation, presentationCertificate)).thenReturn(result);
-            when(sdJwtService.validationStatusHolderBinding(transaction, presentation, true)).thenReturn(ValidationStatus.VALID);
-            when(sdJwtService.validateSdJwtTimeClaims(result)).thenReturn(ValidationStatus.VALID);
-            when(sdJwtService.validationStatusSdJwt(result, ValidationStatus.VALID)).thenReturn(status);
-            when(sdJwtService.sdJwtClaims(result)).thenReturn(Map.of("value", token));
-        }
+        CredentialFormat credentialFormat = CredentialFormat.fromString(format);
+        String type = credentialFormat == CredentialFormat.MSO_MDOC ? PID_DOC_TYPE : vct;
+        CredentialVerifier verifier = credentialFormat == CredentialFormat.MSO_MDOC ? mdocVerifier : sdJwtVerifier;
+        when(verifier.verify(eq(token), any(), eq(transaction)))
+                .thenReturn(verification(credentialFormat, type, Map.of("value", token), presentationCertificate, null, status));
+    }
+
+    private static CredentialVerificationResult verification(CredentialFormat format, String type, Map<String, Object> claims,
+                                                             X509Certificate certificate, StatuslistEntry statuslistEntry,
+                                                             ValidationStatus status) {
+        return new CredentialVerificationResult(format, type, claims, certificate, statuslistEntry, status,
+                format == CredentialFormat.MSO_MDOC ? ValidationStatus.NOT_APPLICABLE : ValidationStatus.VALID);
     }
 
     private void prepareMdocWithStatus(String idx, ValidationStatus status) {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
-        DeviceResponse deviceResponse = mDocService.deviceResponseFromVpToken("mdoc-token");
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDoc.getDocType()).thenReturn(new StringElement(PID_DOC_TYPE));
-        when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
-        when(mDocService.extractCertificateFromMdoc(mDoc)).thenReturn(certificate);
-        when(mDocService.extractStatuslistUriAndIdx(mDoc))
-                .thenReturn(new StatuslistEntry(idx, URI.create("https://status.example/list")));
+        when(mdocVerifier.verify(eq("mdoc-token"), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.MSO_MDOC, PID_DOC_TYPE, Map.of(), certificate,
+                        new StatuslistEntry(idx, URI.create("https://status.example/list")), ValidationStatus.VALID));
         when(trustlistService.checkIfCertificateFromJwsHeaderIsOnTrustlist(certificate, PID_TRUSTLISTS))
                 .thenReturn(ValidationStatus.VALID);
         if (idx.matches("-?\\d{1,10}")) {
@@ -822,15 +780,9 @@ class OpenID4VPResponseServiceTest {
     }
 
     private void prepareMdocForTypeValidation(String token, VerificationTransaction transaction, String docType) {
-        DeviceResponse deviceResponse = mock(DeviceResponse.class);
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
-        when(mDocService.deviceResponseFromVpToken(token)).thenReturn(deviceResponse);
-        when(mDocService.mDocFromDeviceResponse(deviceResponse)).thenReturn(mDoc);
-        when(mDocService.claimsFromMDoc(mDoc)).thenReturn(Map.of());
-        when(mDocService.verifyMDoc(mDoc, transaction)).thenReturn(ValidationStatus.VALID);
-        if (docType != null) {
-            when(mDoc.getDocType()).thenReturn(new StringElement(docType));
-        }
+        when(mdocVerifier.verify(eq(token), any(), eq(transaction)))
+                .thenReturn(verification(CredentialFormat.MSO_MDOC, docType, Map.of(), certificate, null, ValidationStatus.VALID));
     }
 
     private void assertMdocTypeFailure(String credentialId, String message) throws Exception {
@@ -841,8 +793,7 @@ class OpenID4VPResponseServiceTest {
         assertEquals(message, exception.getErrorDescription());
         verify(verificationService).markAsError(client, TRANSACTION_ID);
         verify(verificationService, never()).addVerifiedCredentials(any(), anyString(), any(), any());
-        verify(mDocService, never()).extractCertificateFromMdoc(any());
-        verifyNoInteractions(trustlistService, tokenStatuslistService, sdJwtService);
+        verifyNoInteractions(trustlistService, tokenStatuslistService);
     }
 
     private void assertVpTokenFailure(Map<?, ?> vpToken, String message) throws Exception {
@@ -891,10 +842,6 @@ class OpenID4VPResponseServiceTest {
 
     private static Map<String, Object> validPayload(Object vpToken) {
         return Map.of("state", STATE, "nonce", "nonce", "vp_token", vpToken);
-    }
-
-    private static JsonObject payloadWithVct(String vct) {
-        return (JsonObject) Json.Default.parseToJsonElement("{\"vct\":\"%s\"}".formatted(vct));
     }
 
     private EncryptedAuthorizationResponse encrypted(Map<String, Object> payload) throws Exception {

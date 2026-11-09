@@ -1,17 +1,16 @@
 package no.idporten.eudiw.verifier.statuslist;
 
-import id.walt.mdoc.COSECryptoProviderKeyInfo;
-import id.walt.mdoc.SimpleCOSECryptoProvider;
-import id.walt.mdoc.cose.COSESign1;
-import id.walt.mdoc.dataelement.ByteStringElement;
-import id.walt.mdoc.dataelement.DataElement;
-import id.walt.mdoc.dataelement.ListElement;
-import id.walt.mdoc.dataelement.MapElement;
-import id.walt.mdoc.dataelement.MapKey;
-import id.walt.mdoc.dataelement.NumberElement;
-import id.walt.mdoc.dataelement.StringElement;
-import kotlinx.serialization.SerializationException;
-import no.idporten.eudiw.verifier.ErrorCode;
+import id.walt.cose.CoseCertificate;
+import id.walt.cose.CoseContentType;
+import id.walt.cose.CoseHeaders;
+import id.walt.cose.CoseInternalKt;
+import id.walt.cose.CoseSign1;
+import kotlinx.serialization.cbor.CborByteString;
+import kotlinx.serialization.cbor.CborElement;
+import kotlinx.serialization.cbor.CborElementKt;
+import kotlinx.serialization.cbor.CborInteger;
+import kotlinx.serialization.cbor.CborMap;
+import kotlinx.serialization.cbor.CborString;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.cose.java.AlgorithmID;
 
@@ -29,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StatusListCwtValidator {
-    private static final ErrorCode ERROR_CODE = ErrorCode.INVALID_REQUEST;
+    private static final String ERROR_CODE = "invalid_request";
     private static final String STATUS_LIST_CWT_MEDIA_TYPE = "application/statuslist+cwt";
     static final int COSE_MAC0_TAG = 17;
     static final int COSE_SIGN1_TAG = 18;

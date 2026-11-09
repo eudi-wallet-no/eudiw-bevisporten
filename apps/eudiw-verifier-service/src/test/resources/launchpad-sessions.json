@@ -1,0 +1,548 @@
+{
+  "mdoc/launchpad/clr/36614f4a-a9d4-48b5-80da-b7e841f4bdec.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "Zinm26rlLqxi-pB7WF3NQESAXTzL4DI1okMdRzVrpXM",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/36614f4a-a9d4-48b5-80da-b7e841f4bdec",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "zh73bwAPyA7W5CU9IgMcaFAVeX5n1Nwy7CCHnXbZD-w",
+      "x": "oJZOn1FX2c4zSKCiMCXFY166ZVwufel1GgHwff61bTU",
+      "y": "7kX2oNncs0P9xnSr2C3pwvhmKo2BCAlkch0rE1qD-Fk",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/5c0fcdcf-dfa4-4994-8e93-bf3c4b0edd40.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "8cm-I5zwouconJZEX4a-t7XjIKveFhbzEsWF5MmU9CA",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/5c0fcdcf-dfa4-4994-8e93-bf3c4b0edd40",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "vMWz0hTOelQL68uijBmMPUo8siKea8xazwB_pmGscsg",
+      "x": "fxbfwqqqj-NoBzs50i9Z1UrvJ1O2kXBuTco9yCrpalY",
+      "y": "WmloQ3Z01_S0eIlBzs9k8H4PH5bLVY858lLWGM9jNi0",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/739bd195-1d3b-4366-8ec1-d5e7f036c0bb.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "Lm9ZWsQkOba3z2OEJAJPoLr1njVF4KTjV8k514jBIm0",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/739bd195-1d3b-4366-8ec1-d5e7f036c0bb",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "N5lCrQKn2U6CjlLuNudboFQX2Jvb8Tuk_rIURddDPlE",
+      "x": "jYcUi8dbwM4bfZQBUUxMZhb_9u4dhZdIsvSQSmjVAi0",
+      "y": "jQdidO-2-0W_Bs7BVL7qNFRePy3JH745aQnUg0zwyvU",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/791267cc-159d-40b0-b3e0-1f377d2099e9.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "8YXBmrxem3zZoENzmJFkGHV_l8B209VaUjZaM-zyDew",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/791267cc-159d-40b0-b3e0-1f377d2099e9",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "c0_GLEw_9_UIQUeNfrFDgWZXYIf3K-lv7UAF9y1KFO4",
+      "x": "aciRNK838cW_2sBf0H4T6ohG-TiKV8wqzE85vcYP1BQ",
+      "y": "a6NHUkE4vMymAWwhKGc7-9nFRmf_63cxemUXg59Rros",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/b0dcfd83-6325-41ed-8ef3-39385419065e.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "432WmgidiOihlY4-OGifOU9-dMX8zYoIrTP3C_QGju4",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/b0dcfd83-6325-41ed-8ef3-39385419065e",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "KvvwuyaTu_F63tD0mNYqSEz3FEhTzatOV8HgEQ5yyNw",
+      "x": "Po7QoKva45Hy_5N4YpF_No1EXF0F_Wjv268zmsstrcY",
+      "y": "9kG00x2odxcY7KTS8Y0EfldJzzKuidjxwQ-npqdRoXk",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/b7bee650-587a-4837-a283-948877ae8dde.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "uXIdjCPKWOgoWRDaIF5xHdQqfLz5z5vbimxsmOMNG8Y",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/b7bee650-587a-4837-a283-948877ae8dde",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "xJoZYlp0b6SOO0pCDqFoJMdqnj3ZMpdWI95rranBoB0",
+      "x": "JJvl4m_QhKBgWuJPDG1z85oecqxTqfecbdLTZse-u-A",
+      "y": "20JPQY3kGGw9toKEX4V5JmEBvr58sbmCg8Q1QaiaE5Y",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/bd2c8ea5-1329-4afc-ad4c-771ef63d6a19.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "Ue4Eq2AgWgDS5upaAEoItQ8JjrtUyU9j9Fw6LV6Rf3M",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/bd2c8ea5-1329-4afc-ad4c-771ef63d6a19",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "_cxqJk3SSyLX3TCzSgjZd-w83zfimEido9RtVNWclp8",
+      "x": "-Y-J7Crb40OaPrNFKRwcllnqtBvkNxmOmKxbUPNPp2M",
+      "y": "W8TnNQ638kgT95sNT5CfiNSQoc95zbvLUsznYTfEEXs",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/c45978fb-df09-4084-b063-3fd6e0db2668.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "chYDontpDIgU7Z_Pkh3Y_WRuk0fOWhkumeRbNrk0wfo",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/c45978fb-df09-4084-b063-3fd6e0db2668",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "710dhzxTbQV7jk35SWsGKSB_L-Vc-0Pc670MWvwLOn8",
+      "x": "aXD9u6Nm25uL-InA2qvPQbcEiHgezkioE7E_HLueqW0",
+      "y": "KgiQ0Dvcc9urAnuRHFO8JImtCO6a6GOXwu5gFRq5ZIE",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/e6f89cbf-0c1d-49ef-834d-1400f49d3669.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "m3PHmsQSTXkENXRs2sQE_9IP5yFJuFplAs4ld_bZ6uk",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/e6f89cbf-0c1d-49ef-834d-1400f49d3669",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "N0FmQzCmwK5pmstNrOkgkDamL_62vAOakKumt2urNX8",
+      "x": "EBHR0FuaI8CM-Wml3RFXyGUhliq1mG5NBuOrFi_M35g",
+      "y": "-yjY6QsBRsRR-za3aK1EDWUBiMsLY-ORt_e1icoau9I",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/clr/f382f293-49b8-4c9e-a23c-2f62de36f863.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "cmuhkk7XwL16BfPyqbHF4zNF4DM8CeUVyso1ikZf-DI",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/f382f293-49b8-4c9e-a23c-2f62de36f863",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "QWhY8fYHSX-jQ26ac3oDIzQZUv-JyJt0EFkN45gSiBI",
+      "x": "gjTX-Slrx1ua8Nrw-Gzw_GcE9dy7j00ywVlD8ThdViA",
+      "y": "AH4nd1d-TZcpSGPwuT50wQ6RAP6gZtqqMlLw2qCnY4E",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/fime/6ac5c067-fda1-46b2-9543-9833850296be.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "OtrgVLoLtkkU-7sR0CS7KFQK3nJpysmWwgegNRAZUiQ",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/6ac5c067-fda1-46b2-9543-9833850296be",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "qzuO8GOs-lfc5UgAcpm-_XaT_nEJj0ylLyts5Gcx6SY",
+      "x": "77DG_F-jUsH-hj1TTSXNDOijaOX1ra0ovMpFc7Qj21s",
+      "y": "h_E9zG4VEKYiowDJo8hzqOJTpucQYugKdPzZfHoGXO0",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/fime/9b4fffa7-a0ee-479f-971c-7478434db733.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "h280xY-a7pXhKuzbYexMXP-J2lcSspUrK219Wy1LhrE",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/idporten-login-launchpad/9b4fffa7-a0ee-479f-971c-7478434db733",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "3dBLBTLw71JnPVu1nTk5wGPk5kgxpdR_M-QYrirBOx8",
+      "x": "kR5ClGpICKWbyBNtHLwEcOf0li6JETfjqaA8hpCkaXs",
+      "y": "FklVRRmuF8yxN6dhaxTM6xM08NpdwtvNnAEwuAvOuCc",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/fime/adaf3492-278c-48b9-b1c8-355eb03557f0.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "2PKZSYvEoktlyvKstMdLTiQq9D3CWIVWHFXjyynwQTk",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/adaf3492-278c-48b9-b1c8-355eb03557f0",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "Ip7nBjlC9flLuQ92xJcVJ2S4V14TCiZCE1R9Ciun4lE",
+      "x": "MGfYkqvFbiZMP5GxIhBb8fBJ_c9SINwvZi1XDKcCq8k",
+      "y": "3eeOMsFUwNPzxXEd6dR4E6_KpaZaJnYJtiLyyIJxoB8",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/fime/d340fde6-cd7b-4473-938e-ee2900a4bd5e.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "JBzoPwok4zDSPZ6dKVm9XcDVRmNuq87RJdAuk5ZbQk4",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/idporten-login-launchpad/d340fde6-cd7b-4473-938e-ee2900a4bd5e",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "9q1f0QKbYR0L8JGIm_CqjtX00_rgTpVnACqXdDjfLAQ",
+      "x": "nDzarSTmGhMj3jXQ3A4Whrk-9-guzq-Y-m-yi9vRwFo",
+      "y": "ApfpBKMnkZFMlHMsIKzIci55J9Ype_zaCSLGbI0Lk6M",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/fime/f72e1ff1-4e4c-4d5c-a6de-281df4c8a538.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "rRF2wO9je7PrH00BU1hMEzc3SxxrNDYhZ_V8qL48xOw",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/f72e1ff1-4e4c-4d5c-a6de-281df4c8a538",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "lKn1T53KJTzrEiVozkzpNSaBbajBwmJejPqVhDx_dT8",
+      "x": "tbXVBdRSWCxLg1z27utFjPmVLZCZTnLEj7XBcqmZ6OI",
+      "y": "5niLplN5lcQHFT00tbMEoi0TTpPfJk-7GI_wQszpCrg",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/it/67308fae-e9f6-4cb4-9344-c389211ad26f.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "GCyq8TlIJ0AWf-3u-luASd00pM_zqdzumXZWzj9cHac",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/idporten-login-launchpad/67308fae-e9f6-4cb4-9344-c389211ad26f",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "gRRDyTYnmofRXZgcNFaDfJCOEqUkJDY4ewdaTn6O-8E",
+      "x": "ubG8iaEQjpH7R_Xpx5pLf3s3vJycWSXAF04JtEJU4DA",
+      "y": "ZNfZwT-HwQJtW4UzNg4YmtoRLmGbOkPHgl6WNhTo3dw",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/lu/0120561d-6648-4767-8466-1d5dd6b1163f.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "GjM160Vwhk83GmXFHsfWPXg67lDon2juKr-KaP850SQ",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/0120561d-6648-4767-8466-1d5dd6b1163f",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "Rre_wPBYAlShKc17OGfA5LMg2vZ2O0IYToPbsl0AogE",
+      "x": "4DoE-zrJL-SdxeUJUCgOc0eSHHPoUGnJfpXi7avHTiI",
+      "y": "DC6mHzb0lWpLmEymB6cG4o2UQqwE9e3U69WyxwDgS2I",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/oidf/0b7a1a18-9b63-47e6-adb8-f282b0cb2f7c.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "yLN_yDAZGMqN61f30VX5sNt6AXTGnxBJbmai6nFUGAc",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/0b7a1a18-9b63-47e6-adb8-f282b0cb2f7c",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "T6Eo5EC0pQNTIw9o2o95LQCctQE84NVzSvQRMTqYOzw",
+      "x": "zX98o56fjzl54q4QBs2FZB4-ZXaB8nhvkHKeKn6wZss",
+      "y": "OwbNTTU5Hsm7NVEVln4snTniWxJe0pgCk7Y-rxvrWUM",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/oidf/1cfb4180-45e1-4011-964d-63287100a4d1.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "MWq5yUPoyGXKzPpEgl56-PiLJVV2Mbhz8YPkG8fPEko",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/idporten-login-launchpad/1cfb4180-45e1-4011-964d-63287100a4d1",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "23S_Wfm7tGD-lxbuylaxZpCXfBlV3ALBOT4olIhuIz8",
+      "x": "3rntxipYL9Y087wJ7yB3iIXJAksNif3G4NrXeXVHiUc",
+      "y": "tUnlt3MmNhmdGPgRVPQicpZuF4gBWbKlX5ISlsGQvlY",
+      "alg": "ECDH-ES"
+    }
+  },
+  "mdoc/launchpad/oidf/54dcc7e9-109d-4a84-8a8a-0a8c0fc99cdc.mdoc": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "KvIn092KTCFLyp4Rm2Coq6C1rs7FoWO5J98e5VwP07o",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/54dcc7e9-109d-4a84-8a8a-0a8c0fc99cdc",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "txh90fSxkuyu9fLpha0O7gkWHepwrSlTbuTdjm5zDRY",
+      "x": "BoeeZYXihsRpdepimysC4D15AJoyq5UC1_zxmtk8mYs",
+      "y": "3Ic_M6qs4J2LckJSZmKcfeCqx42cUh9h8uxFZU3QhT4",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/clr/739bd195-1d3b-4366-8ec1-d5e7f036c0bb.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "Lm9ZWsQkOba3z2OEJAJPoLr1njVF4KTjV8k514jBIm0",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/739bd195-1d3b-4366-8ec1-d5e7f036c0bb",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "N5lCrQKn2U6CjlLuNudboFQX2Jvb8Tuk_rIURddDPlE",
+      "x": "jYcUi8dbwM4bfZQBUUxMZhb_9u4dhZdIsvSQSmjVAi0",
+      "y": "jQdidO-2-0W_Bs7BVL7qNFRePy3JH745aQnUg0zwyvU",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/clr/f382f293-49b8-4c9e-a23c-2f62de36f863.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "cmuhkk7XwL16BfPyqbHF4zNF4DM8CeUVyso1ikZf-DI",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/f382f293-49b8-4c9e-a23c-2f62de36f863",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "QWhY8fYHSX-jQ26ac3oDIzQZUv-JyJt0EFkN45gSiBI",
+      "x": "gjTX-Slrx1ua8Nrw-Gzw_GcE9dy7j00ywVlD8ThdViA",
+      "y": "AH4nd1d-TZcpSGPwuT50wQ6RAP6gZtqqMlLw2qCnY4E",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/2ebba0c3-0129-4451-9791-01139bffc491.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "p-gEFcmxss303H3gpWYqZeVRaTfwCWCBBLJgEIVwI_U",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/2ebba0c3-0129-4451-9791-01139bffc491",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "HsUMNliBcLO0F-kSnmcizMrTg9TYG9nqp01S9jemVog",
+      "x": "qFor80E3peS-hv0qxLkmExMGLTOgrYgjHR5rwskVG3I",
+      "y": "oAnih-72ALxEZxFt1jgJ0MmA_vR6FBvruqls4Uui9WA",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/38272a52-c457-45c1-bc22-7f3fdb33a167.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "j7v9aX2aRudK6NmxkNfMNY-218v7UZSQmBXija3zvzw",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/38272a52-c457-45c1-bc22-7f3fdb33a167",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "LyMRodrch03qFs2OUnridHcolaGNou45D3cj3Luv2p8",
+      "x": "aDLTBRIkMja_V8PSnkNg67EBKB6D6D3xt2oHJi_hyFY",
+      "y": "6WY8G_YZEkzuQoN2siBuu5-OtoAMiekQgWdpGw4Ybug",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/3f2780b0-d391-492d-86e3-641ab4e82723.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "PUJHgND5n0TTgJv29HOudxe_NF7-49zkWiHqLtj5jcc",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/3f2780b0-d391-492d-86e3-641ab4e82723",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "SJOl9Ii0kl00KKj3WDgfsEIkJ1ucRfjDi1cy2dR6QmM",
+      "x": "YI6Tz3LEB9Ugl1D_70TMKk4O_VVgMNxNDGRxI3O9Ll8",
+      "y": "9aRiX25p0wjwoBsAB2wZJdc807YaGWmE2qncTXQf0Cg",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/a7f6aebf-d77e-4255-91e8-f5287d4181ba.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "_OWZB29T24LRi7CSbXZPmfJUKCKkb5KhzZy1Yo05lPs",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/a7f6aebf-d77e-4255-91e8-f5287d4181ba",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "-EBUCa-U6Dt7A1WdIiK4utXUG7_Ie6cyTbwOz4K893A",
+      "x": "0c86v9Uizp-_SvqmquaFWLpr3ZlqKzb8TqWyeqKMgpQ",
+      "y": "BPcUbXP0a4_hLeoFJBNJU9ibgW-fHbS4vFM8ZNOKGIE",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/b34b6149-a69a-4994-9034-397b2a42a593.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "tEXPltHFRRT3u1grd4D0jB_eidIfE_Zo4DeoajtCB-M",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/b34b6149-a69a-4994-9034-397b2a42a593",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "gxM5QYEYMgBThoekPRo4anWJfOgHoK6gmp79FNO0PGs",
+      "x": "v9i6G3ze-NLSPX0kY7GshhTiJ7twZbG00jDZqo1VWRY",
+      "y": "QL4xf5e729RZXbP6DrKQVzYVeoW5vkVcRQytgVqcHm8",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/b4282a1d-c5a5-4274-ae55-a214efb1bbc0.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "mS0b3Lr66BlWBzwsNqqgj-m2vDJEm9g8TH7TEoBLNdE",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/b4282a1d-c5a5-4274-ae55-a214efb1bbc0",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "--tKw98VgeTf3-c3BMo5jcgT5v4HS67nYnZqOJN5k_U",
+      "x": "o5QzktswchC1pnd3B2E3Y2sx00s4007y_H88ylR3Ypk",
+      "y": "762M5pn_Lc1BBbZfNrN1SpGD-2ZrBg46Ie613X6JxtY",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/b5f3a44a-1b2a-47c8-8c8f-73b2785dbe6a.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "Fk6VPLbxybSRmTJZzikMx9IDQXheo315uViBqLXSdJY",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/b5f3a44a-1b2a-47c8-8c8f-73b2785dbe6a",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "fuqteheV8pHG__s9vi4-LzPpfp-nwncT8OqJ_G3QUAc",
+      "x": "b2d69-NGQ2vwkvSjWZeaRGQuzSmsFXem93sn_flq52U",
+      "y": "gr-W83Ba6D_sKhIut9EWIHQffwAACf76tjOzjfSZLmM",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/b867f657-4bd9-48cd-b96a-7a133badff75.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "PlHksvKh9CKsx-i3YeDvPfB7r9EcfrBOMGj4dKx3g1A",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/b867f657-4bd9-48cd-b96a-7a133badff75",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "eButL7Xv3lbGy6D1JRnMpJJB0Kn1IyxaY8f6yiSWi4M",
+      "x": "aF-fOuS1fTdcCCzfHDBLu1N71jvr2SWIGbrnJ1dTLMs",
+      "y": "-1lYtL4iDdLTIn9LztdZlT9Oio6Zm2Hk3wKzBUDS1FI",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/ba770218-a11c-4e64-86ad-e755e655008d.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "QJZVoEvr-QV5bOufHuuGtGCi3TH0tnUyFANaR6iJ4o8",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/ba770218-a11c-4e64-86ad-e755e655008d",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "8NYeVroPSpLGQ3tHssBDVtKcQdszYuoo6PRFEHl6BGE",
+      "x": "lZqugWoElT_9btSBzLldHSh04iaUP66VbbP4Z08T2Lg",
+      "y": "XSJXwYDuWeufZdRa3INyUYinXIXpVt-Q-fGy0y5H4Z0",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/bb2fe5be-4481-4312-be04-7e47293c0f34.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "AN2Dmen1JqO72JiqEp6fGTg6FX-cUOcPGaW4bsm8c5A",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/bb2fe5be-4481-4312-be04-7e47293c0f34",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "MGT3Nguf3iXzyn-OYUWFJ1rSq4F05Fe87kX_WNXozZw",
+      "x": "4X8aNp2zt2iTGrdB-xCjWH0DMFtvC70WLlLX892Hd_Y",
+      "y": "GLCKZ-y4236FMsp9DPp0CDWfURa4Jql6MnYVxwgOP6A",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/fime/d3621944-cf15-4cf7-9aaf-84a3ea445ca4.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "I_hs2tPgg7q2ywVjTkQn-n3JrdaAvx7D3zAF4nTsyXE",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/d3621944-cf15-4cf7-9aaf-84a3ea445ca4",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "4OxS1GI0l9LCeXRum6ZbNnsfHQhai5eUOkSi47DyVnk",
+      "x": "bXiGYX6ciuCIvjBweyADnSRV8C2Ic4Wy6sB5YKH5DEE",
+      "y": "i5nRUDmdYoLqaLeeOGVOdlKTfYZTcJapTcCN4Ms_NHM",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/lu/3f495a63-df2d-4caf-95ff-9c5a65b7f301.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "p8al0yQ8XXtT5rMuCxmIr-MlVwrCyhbiu8qgczhVlwA",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/3f495a63-df2d-4caf-95ff-9c5a65b7f301",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "ThDmcYtcl_DO_1qQizrQC25iwAl7suIRGXQe9xXNLS0",
+      "x": "Ekjl9Gp-uPI2FDoKz5HzfWIs2gXAxDXI2gwP60NKurM",
+      "y": "iFxyMsxcD-lJPVz20SDUB2HYx4I9TIiRI_0LLqAv8ZY",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/oidf/0011ed29-8e5d-44f3-ac5c-dd3320596ce8.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "D9yEnno3p5bS5IJLrEbnZ-YpevGsUKSjmp78d-4H47E",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/0011ed29-8e5d-44f3-ac5c-dd3320596ce8",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "L6iAoG22OJwmrXsc58ZhBdJSUbIc24VOwsKJ7Mn7KPI",
+      "x": "_3aOg5c9ZPFu0eczIKmN-F2t4JUKU5R91Jen3Kd0bKs",
+      "y": "vWRxNMVFwGJjUCjCySJjxGFPTKpyTgrxpDf8rigxkGk",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/oidf/12b5c358-2c2a-49cb-a533-c592c522f8dd.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "NYda0LRGtKn-jyxLVcXa5NCS8WkWHGQq1DtfgRjhKb0",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/12b5c358-2c2a-49cb-a533-c592c522f8dd",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "qewy_sOi9RslJ-ZxWHHzMQby4VI7ekHW7isAN4lsIPw",
+      "x": "9sMfLQUUetxvhp1lo0YLRx5q3fn7-lM4EjZ17xgjmV0",
+      "y": "gjYm7mM9jXgY5DXHbZFNuyOoXJCDllCuwZgnEfHCR8w",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/oidf/5f889704-e0c4-43bf-b174-c98a8865f2e8.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "4DUhnP1mNiUaDrh5QE7Vm7_yxUATrWQruHP1sOU_1jA",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/5f889704-e0c4-43bf-b174-c98a8865f2e8",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "_JMRvY88OlwMVVa7756m71YieIFO_hipnCAAjOIfVaI",
+      "x": "pSYduReOmNb8DXys22rx8elthHmamt3rAwfX6gmIU7k",
+      "y": "MsaBuG_Im7nHQ8W8skb3Ccr42bXGCh29jxyxx-3e5yw",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/oidf/f8e499c4-cf7c-41b2-a438-fbc7f1385a1f.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "Nz4kPYzThPgiDAMv16BiySeXC1Lk-DXmjiSSwd2cPoM",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/f8e499c4-cf7c-41b2-a438-fbc7f1385a1f",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "0StzM1Da5-EvgCzl3gbO2BmxY2S0Gjv4qbIZrXRFbns",
+      "x": "aKgExW06a9wyPmwuca9JCPp6x3YxbyVWXG4q98SWtgk",
+      "y": "x8S6WiO3M1tWzAHAgMEvygwSjJYweqWB9OO6EXb2tuk",
+      "alg": "ECDH-ES"
+    }
+  },
+  "sdjwt/launchpad/unknown/d8b364ab-1330-4be5-bb16-678c1e10b108.sdjwt": {
+    "client_id": "x509_hash:yK-UDZY_uKsHWptIcWPZNHuz_lqmUT3i4Z90_QOZtXE",
+    "nonce": "2a2HVLFmSbQ4pIU_zCiKQ5YXu-auwSs3vnm8w4Y-P5g",
+    "response_uri": "https://verifier-service.eidas2sandkasse.dev/openid4vp/authz-response/bevisgenerator-launchpad/d8b364ab-1330-4be5-bb16-678c1e10b108",
+    "encryption_jwk": {
+      "kty": "EC",
+      "use": "enc",
+      "crv": "P-256",
+      "kid": "GKKzoDIwMCc4uwvqnhzNT7xYFlEzPd1Q5H0ueh_6KKM",
+      "x": "7o-47qEzKQYkeB-nmVK6KSJzTn380uY4vRvigl3Ph7o",
+      "y": "yqLwUdOyb61H2qXIwtebZlKf3iwTnxUfdKt3kaApcg0",
+      "alg": "ECDH-ES"
+    }
+  }
+}
