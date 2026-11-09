@@ -3,6 +3,7 @@ package no.idporten.eudiw.verifier.openid4vp;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -164,6 +165,15 @@ public class OpenID4VPResponseService {
 
     }
 
+    private static String detail(String prefix, String valid, String invalid, ValidationStatus status) {
+        return prefix + ": " + switch (status) {
+            case VALID -> valid;
+            case INVALID -> invalid;
+            case INCONCLUSIVE -> "validering feila";
+            default -> "ukjent status";
+        };
+    }
+
     private List<VerifiablePresentation> toVerifiablePresentations(Object vpTokenValue, String credentialId) {
         if (vpTokenValue instanceof List<?> presentations) {
             if (CollectionUtils.isEmpty(presentations)) {
@@ -289,7 +299,7 @@ public class OpenID4VPResponseService {
                     "Missing or invalid meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
         if (!meta.getDoctypeValue().equals(docType)) {
-            throw new VerificationException("invalid_request",
+            throw new VerificationException(ErrorCode.INVALID_REQUEST,
                     "Returned doctype does not match meta.doctype_value for credential id: %s".formatted(credentialQuery.getId()));
         }
     }

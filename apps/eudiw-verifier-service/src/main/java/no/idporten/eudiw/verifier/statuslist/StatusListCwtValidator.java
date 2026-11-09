@@ -13,7 +13,7 @@ import kotlinx.serialization.cbor.CborMap;
 import kotlinx.serialization.cbor.CborString;
 import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
-import org.cose.java.AlgorithmID;
+import no.idporten.eudiw.verifier.crypto.CoseSignatureVerifier;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -33,10 +33,6 @@ public class StatusListCwtValidator {
     private static final String STATUS_LIST_CWT_MEDIA_TYPE = "application/statuslist+cwt";
     static final int COSE_MAC0_TAG = 17;
     static final int COSE_SIGN1_TAG = 18;
-    static final int COSE_CONTENT_TYPE_HEADER = 16;
-    static final int COSE_X5CHAIN_HEADER = 33;
-    private static final java.util.Map<Integer, String> KEY_REFERENCE_HEADERS = java.util.Map.of(
-            4, "kid", 34, "x5t", 35, "x5u");
     static final int CWT_SUBJECT_CLAIM = 2;
     static final int CWT_EXPIRATION_CLAIM = 4;
     static final int CWT_ISSUED_AT_CLAIM = 6;
@@ -62,11 +58,11 @@ public class StatusListCwtValidator {
             throw new VerificationException(ERROR_CODE, "Current time is required");
         }
 
-        COSESign1 coseSign1 = parseCwt(statusListCwt);
+        CoseSign1 coseSign1 = parseCwt(statusListCwt);
         validateProtectedHeader(coseSign1);
         verifySignature(coseSign1);
 
-        MapElement claims = decodePayload(coseSign1);
+        CborMap claims = decodePayload(coseSign1);
         String subject = requiredStringClaim(claims, CWT_SUBJECT_CLAIM, "sub");
         if (!expectedUri.toString().equals(subject)) {
             throw new VerificationException(ERROR_CODE, "Status list CWT sub does not match expected status list uri");
@@ -77,7 +73,7 @@ public class StatusListCwtValidator {
             throw new VerificationException(ERROR_CODE, "Status list CWT iat is in the future");
         }
 
-        DataElement expirationClaim = claims.getValue().get(new MapKey(CWT_EXPIRATION_CLAIM));
+        CborElement expirationClaim = claims.get(CWT_EXPIRATION_CLAIM);
         if (expirationClaim != null) {
             Instant expirationTime = timeClaim(expirationClaim, "exp");
             if (!now.minus(clockSkew).isBefore(expirationTime)) {
@@ -85,23 +81,22 @@ public class StatusListCwtValidator {
             }
         }
 
-        MapElement statusList = requiredMapClaim(claims, CWT_STATUS_LIST_CLAIM, "status_list");
-        DataElement bits = statusList.getValue().get(new MapKey(STATUS_LIST_BITS));
-        DataElement lst = statusList.getValue().get(new MapKey(STATUS_LIST_DATA));
-        Object bitsClaim = bits instanceof NumberElement numberElement ? numberElement.getValue() : bits;
-        Object lstClaim = lst instanceof ByteStringElement byteStringElement
-                ? byteStringElement.getValue()
+        CborMap statusList = requiredMapClaim(claims, CWT_STATUS_LIST_CLAIM, "status_list");
+        CborElement bits = statusList.get(STATUS_LIST_BITS);
+        CborElement lst = statusList.get(STATUS_LIST_DATA);
+        Object bitsClaim = bits instanceof CborInteger integer ? CborElementKt.getLongOrNull(integer) : bits;
+        Object lstClaim = lst instanceof CborByteString byteString
+                ? byteString.getBytes()
                 : lst;
         return StatusListDecoder.resolveStatus(idx, bitsClaim, lstClaim);
     }
 
-    COSESign1 parseCwt(byte[] statusListCwt) {
+    CoseSign1 parseCwt(byte[] statusListCwt) {
         if (!hasCoseSign1Tag(statusListCwt)) {
             throw new VerificationException(ERROR_CODE, "Status list CWT must be tagged COSE_Sign1");
         }
         try {
-            ListElement coseSign1Data = DataElement.Companion.<ListElement>fromCBOR(statusListCwt);
-            return new COSESign1(coseSign1Data.getValue());
+            return CoseSign1.Companion.fromTagged(statusListCwt);
         } catch (RuntimeException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT is not a valid COSE_Sign1", e);
         }
@@ -137,37 +132,29 @@ public class StatusListCwtValidator {
         return tag == COSE_SIGN1_TAG;
     }
 
-    void validateProtectedHeader(COSESign1 coseSign1) {
-        final MapElement protectedHeader;
+    void validateProtectedHeader(CoseSign1 coseSign1) {
+        final CoseHeaders protectedHeader;
         try {
-            protectedHeader = coseSign1.decodeProtectedHeader();
+            protectedHeader = protectedHeader(coseSign1);
         } catch (RuntimeException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT protected header could not be parsed", e);
         }
 
-        DataElement contentType = protectedHeader.getValue().get(new MapKey(COSE_CONTENT_TYPE_HEADER));
-        if (!(contentType instanceof StringElement contentTypeElement)
-                || !STATUS_LIST_CWT_MEDIA_TYPE.equals(contentTypeElement.getValue())) {
+        if (!(protectedHeader.getType() instanceof CoseContentType.AsString type)
+                || !STATUS_LIST_CWT_MEDIA_TYPE.equals(type.getValue())) {
             throw new VerificationException(ERROR_CODE, "Status list CWT protected type must be application/statuslist+cwt");
         }
-        if (algorithm(coseSign1.getAlgorithm()) == null) {
+        if (!CoseSignatureVerifier.ALLOWED_ALGORITHMS.contains(protectedHeader.getAlgorithm())) {
             throw new VerificationException(ERROR_CODE, "Status list CWT algorithm is not allowed");
         }
     }
 
-    private AlgorithmID algorithm(int algorithmId) {
-        return switch (algorithmId) {
-            case -7 -> AlgorithmID.ECDSA_256;
-            case -35 -> AlgorithmID.ECDSA_384;
-            case -36 -> AlgorithmID.ECDSA_512;
-            case -37 -> AlgorithmID.RSA_PSS_256;
-            case -38 -> AlgorithmID.RSA_PSS_384;
-            case -39 -> AlgorithmID.RSA_PSS_512;
-            default -> null;
-        };
+    private CoseHeaders protectedHeader(CoseSign1 coseSign1) {
+        return CoseInternalKt.getCoseCompliantCbor()
+                .decodeFromByteArray(CoseHeaders.Companion.serializer(), coseSign1.getProtected());
     }
 
-    private void verifySignature(COSESign1 coseSign1) {
+    private void verifySignature(CoseSign1 coseSign1) {
         List<byte[]> encodedChain = x5Chain(coseSign1);
         if (encodedChain.isEmpty()) {
             String keyReferences = keyReferenceHeaders(coseSign1);
@@ -186,18 +173,8 @@ public class StatusListCwtValidator {
             throw new VerificationException(ERROR_CODE, "Status list CWT x5chain certificate must contain an EC or RSA public key");
         }
 
-        AlgorithmID algorithm = algorithm(coseSign1.getAlgorithm());
-        String keyId = "status-list";
-        COSECryptoProviderKeyInfo keyInfo = new COSECryptoProviderKeyInfo(
-                keyId,
-                algorithm,
-                publicKey,
-                null,
-                certificateChain,
-                List.of());
         try {
-            SimpleCOSECryptoProvider cryptoProvider = new SimpleCOSECryptoProvider(List.of(keyInfo));
-            if (!cryptoProvider.verify1(coseSign1, keyId)) {
+            if (!CoseSignatureVerifier.verify(coseSign1, certificateChain.getFirst())) {
                 throw new VerificationException(ERROR_CODE, "Status list CWT signature validation failed");
             }
         } catch (VerificationException e) {
@@ -207,12 +184,12 @@ public class StatusListCwtValidator {
         }
     }
 
-    private List<MapElement> headers(COSESign1 coseSign1) {
-        List<MapElement> headers = new ArrayList<>();
+    private List<CoseHeaders> headers(CoseSign1 coseSign1) {
+        List<CoseHeaders> headers = new ArrayList<>();
         try {
-            headers.add(coseSign1.decodeProtectedHeader());
-            if (coseSign1.getData().get(1) instanceof MapElement unprotected) {
-                headers.add(unprotected);
+            headers.add(protectedHeader(coseSign1));
+            if (coseSign1.getUnprotected() != null) {
+                headers.add(coseSign1.getUnprotected());
             }
         } catch (RuntimeException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT headers could not be parsed", e);
@@ -220,33 +197,26 @@ public class StatusListCwtValidator {
         return headers;
     }
 
-    private String keyReferenceHeaders(COSESign1 coseSign1) {
+    private String keyReferenceHeaders(CoseSign1 coseSign1) {
+        List<CoseHeaders> headers = headers(coseSign1);
         List<String> found = new ArrayList<>();
-        for (var reference : KEY_REFERENCE_HEADERS.entrySet()) {
-            if (headers(coseSign1).stream().anyMatch(header -> header.getValue().containsKey(new MapKey(reference.getKey())))) {
-                found.add(reference.getValue());
-            }
+        if (headers.stream().anyMatch(header -> header.getKid() != null)) {
+            found.add("kid");
+        }
+        if (headers.stream().anyMatch(header -> header.getX5t() != null)) {
+            found.add("x5t");
+        }
+        if (headers.stream().anyMatch(header -> header.getX5u() != null)) {
+            found.add("x5u");
         }
         return String.join("/", found);
     }
 
     // x5chain (RFC 9360) may be in the protected or unprotected header, and is a single bstr when it holds one certificate.
-    private List<byte[]> x5Chain(COSESign1 coseSign1) {
-        List<MapElement> headers = headers(coseSign1);
-        for (MapElement header : headers) {
-            DataElement x5chain = header.getValue().get(new MapKey(COSE_X5CHAIN_HEADER));
-            if (x5chain instanceof ByteStringElement certificate) {
-                return List.of(certificate.getValue());
-            }
-            if (x5chain instanceof ListElement certificates) {
-                List<byte[]> chain = new ArrayList<>();
-                for (DataElement certificate : certificates.getValue()) {
-                    if (!(certificate instanceof ByteStringElement encoded)) {
-                        throw new VerificationException(ERROR_CODE, "Status list CWT x5chain must contain byte strings");
-                    }
-                    chain.add(encoded.getValue());
-                }
-                return chain;
+    private List<byte[]> x5Chain(CoseSign1 coseSign1) {
+        for (CoseHeaders header : headers(coseSign1)) {
+            if (header.getX5chain() != null && !header.getX5chain().isEmpty()) {
+                return header.getX5chain().stream().map(CoseCertificate::getRawBytes).toList();
             }
         }
         return List.of();
@@ -261,35 +231,39 @@ public class StatusListCwtValidator {
         }
     }
 
-    MapElement decodePayload(COSESign1 coseSign1) {
+    CborMap decodePayload(CoseSign1 coseSign1) {
+        if (coseSign1.getPayload() == null) {
+            throw new VerificationException(ERROR_CODE, "Status list CWT payload is missing");
+        }
         try {
-            MapElement claims = coseSign1.decodePayload();
-            if (claims == null) {
-                throw new VerificationException(ERROR_CODE, "Status list CWT payload is missing");
+            CborElement claims = CoseInternalKt.getCoseCompliantCbor()
+                    .decodeFromByteArray(CborElement.Companion.serializer(), coseSign1.getPayload());
+            if (!(claims instanceof CborMap claimsMap)) {
+                throw new VerificationException(ERROR_CODE, "Status list CWT claims could not be parsed");
             }
-            return claims;
-        } catch (SerializationException | ClassCastException e) {
+            return claimsMap;
+        } catch (IllegalArgumentException e) {
             throw new VerificationException(ERROR_CODE, "Status list CWT claims could not be parsed", e);
         }
     }
 
-    private String requiredStringClaim(MapElement claims, int claimId, String claimName) {
-        DataElement claim = claims.getValue().get(new MapKey(claimId));
-        if (!(claim instanceof StringElement stringElement) || stringElement.getValue().isBlank()) {
+    private String requiredStringClaim(CborMap claims, int claimId, String claimName) {
+        CborElement claim = claims.get(claimId);
+        if (!(claim instanceof CborString stringElement) || stringElement.getValue().isBlank()) {
             throw new VerificationException(ERROR_CODE, "Status list CWT is missing required %s claim".formatted(claimName));
         }
         return stringElement.getValue();
     }
 
-    private Instant requiredTimeClaim(MapElement claims, int claimId, String claimName) {
-        DataElement claim = claims.getValue().get(new MapKey(claimId));
+    private Instant requiredTimeClaim(CborMap claims, int claimId, String claimName) {
+        CborElement claim = claims.get(claimId);
         if (claim == null) {
             throw new VerificationException(ERROR_CODE, "Status list CWT is missing required %s claim".formatted(claimName));
         }
         return timeClaim(claim, claimName);
     }
 
-    private Instant timeClaim(DataElement claim, String claimName) {
+    private Instant timeClaim(CborElement claim, String claimName) {
         long epochSeconds = requiredLong(claim, claimName);
         try {
             return Instant.ofEpochSecond(epochSeconds);
@@ -298,24 +272,25 @@ public class StatusListCwtValidator {
         }
     }
 
-    private MapElement requiredMapClaim(MapElement claims, int claimId, String claimName) {
-        DataElement claim = claims.getValue().get(new MapKey(claimId));
-        if (!(claim instanceof MapElement mapElement)) {
+    private CborMap requiredMapClaim(CborMap claims, int claimId, String claimName) {
+        CborElement claim = claims.get(claimId);
+        if (!(claim instanceof CborMap mapElement)) {
             throw new VerificationException(ERROR_CODE, "Status list CWT is missing required %s claim".formatted(claimName));
         }
         return mapElement;
     }
 
-    private long requiredLong(DataElement value, String claimName) {
-        if (!(value instanceof NumberElement numberElement)
-                || !(numberElement.getValue() instanceof Byte || numberElement.getValue() instanceof Short
-                || numberElement.getValue() instanceof Integer || numberElement.getValue() instanceof Long)) {
+    private long requiredLong(CborElement value, String claimName) {
+        if (!(value instanceof CborInteger integer)) {
             throw new VerificationException(ERROR_CODE, "%s must be an integer".formatted(claimName));
         }
-        long integer = numberElement.getValue().longValue();
-        if (integer < 0) {
+        if (!integer.isPositive()) {
             throw new VerificationException(ERROR_CODE, "%s must be a non-negative integer".formatted(claimName));
         }
-        return integer;
+        Long longValue = CborElementKt.getLongOrNull(integer);
+        if (longValue == null) {
+            throw new VerificationException(ERROR_CODE, "%s is out of range".formatted(claimName));
+        }
+        return longValue;
     }
 }

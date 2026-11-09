@@ -5,6 +5,7 @@ import id.walt.credentials.presentations.formats.VerifiablePresentation;
 import id.walt.policies2.vp.policies.VPPolicy2;
 import id.walt.policies2.vp.policies.VPPolicy2.PolicyRunResult;
 import id.walt.policies2.vp.policies.VPPolicyList;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -61,7 +62,7 @@ public abstract class CredentialVerifier {
     }
 
     protected static VerificationException holderBindingFailed() {
-        return new VerificationException("invalid_request", HOLDER_BINDING_FAILED);
+        return new VerificationException(ErrorCode.INVALID_REQUEST, HOLDER_BINDING_FAILED);
     }
 
     protected static <T> T parse(Supplier<T> parser, String errorDescription) {
@@ -70,7 +71,7 @@ public abstract class CredentialVerifier {
         } catch (VerificationException e) {
             throw e;
         } catch (RuntimeException e) {
-            throw new VerificationException("invalid_request", errorDescription, e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, errorDescription, e);
         }
     }
 
@@ -89,7 +90,7 @@ public abstract class CredentialVerifier {
         try {
             return transaction.getEncryptionKey().toPublicJWK().computeThumbprint().toString();
         } catch (JOSEException e) {
-            throw new VerificationException("invalid_request", "Unable to compute thumbprint of the response encryption key", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unable to compute thumbprint of the response encryption key", e);
         }
     }
 }

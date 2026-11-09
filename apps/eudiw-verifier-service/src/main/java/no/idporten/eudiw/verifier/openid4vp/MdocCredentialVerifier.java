@@ -18,6 +18,7 @@ import kotlinx.serialization.json.JsonArray;
 import kotlinx.serialization.json.JsonElementKt;
 import kotlinx.serialization.json.JsonObject;
 import kotlinx.serialization.json.JsonPrimitive;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.dcql.DcqlCredentialQuery;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
@@ -121,10 +122,10 @@ public class MdocCredentialVerifier extends CredentialVerifier {
                 DeviceResponse.Companion.serializer(), Base64.getUrlDecoder().decode(vpToken)),
                 "Failed to parse mdoc vp_token");
         if (deviceResponse.getDocuments() == null || deviceResponse.getDocuments().length == 0) {
-            throw new VerificationException("invalid_request", "No mdoc documents in vp_token");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "No mdoc documents in vp_token");
         }
         if (deviceResponse.getDocuments().length > 1) {
-            throw new VerificationException("invalid_request", "Multiple mdoc documents in vp_token, only one is supported");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Multiple mdoc documents in vp_token, only one is supported");
         }
     }
 

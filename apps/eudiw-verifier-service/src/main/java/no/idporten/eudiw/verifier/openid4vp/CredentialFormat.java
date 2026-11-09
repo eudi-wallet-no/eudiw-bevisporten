@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.openid4vp;
 
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationType;
 import no.idporten.eudiw.verifier.statuslist.StatusListTokenFormat;
@@ -28,7 +29,7 @@ public enum CredentialFormat {
                 return credentialFormat;
             }
         }
-        throw new VerificationException("invalid_request", "Unsupported credential format: " + format);
+        throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported credential format: " + format);
     }
 
     public ValidationType validationType() {
