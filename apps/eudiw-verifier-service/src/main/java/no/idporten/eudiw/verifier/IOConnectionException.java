@@ -5,13 +5,15 @@ import org.springframework.http.HttpStatus;
 public class IOConnectionException extends RuntimeException {
 
     private final String errorCode;
-    private final String errorDescription;
     private final HttpStatus httpStatus;
 
     public IOConnectionException(String errorCode, String errorDescription, Exception exception) {
         super(errorDescription, exception);
-        this.errorCode = errorCode == null || errorCode.isBlank() ? ErrorCode.SERVER_ERROR.error() : errorCode;
-        this.errorDescription = errorDescription;
+        if (errorCode == null || errorCode.isBlank()) {
+            this.errorCode = ErrorCode.SERVER_ERROR.error();
+        } else {
+            this.errorCode = errorCode;
+        }
         this.httpStatus = ErrorCode.httpStatusFor(this.errorCode);
     }
 
@@ -20,7 +22,7 @@ public class IOConnectionException extends RuntimeException {
     }
 
     public String getErrorDescription() {
-        return errorDescription;
+        return getMessage();
     }
 
     public HttpStatus getHttpStatus() {
