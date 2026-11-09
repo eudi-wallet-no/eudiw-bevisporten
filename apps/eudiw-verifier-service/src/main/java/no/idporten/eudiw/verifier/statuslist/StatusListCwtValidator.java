@@ -11,6 +11,7 @@ import kotlinx.serialization.cbor.CborElementKt;
 import kotlinx.serialization.cbor.CborInteger;
 import kotlinx.serialization.cbor.CborMap;
 import kotlinx.serialization.cbor.CborString;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.cose.java.AlgorithmID;
 
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StatusListCwtValidator {
-    private static final String ERROR_CODE = "invalid_request";
+    private static final ErrorCode ERROR_CODE = ErrorCode.INVALID_REQUEST;
     private static final String STATUS_LIST_CWT_MEDIA_TYPE = "application/statuslist+cwt";
     static final int COSE_MAC0_TAG = 17;
     static final int COSE_SIGN1_TAG = 18;
