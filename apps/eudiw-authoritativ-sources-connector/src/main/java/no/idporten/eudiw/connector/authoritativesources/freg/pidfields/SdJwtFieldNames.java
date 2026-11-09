@@ -4,6 +4,7 @@ public class SdJwtFieldNames extends PidFieldNames {
     private static final String BIRTH_DATE = "birthdate";
     private static final String BIRTH_PLACE = "place_of_birth";
     private static final String NATIONALITY = "nationalities";
+    private static final String EXPIRY_DATE = "date_of_expiry";
 
     private static final SdJwtFieldNames INSTANCE = new SdJwtFieldNames();
 
@@ -24,5 +25,10 @@ public class SdJwtFieldNames extends PidFieldNames {
     @Override
     public String getNationality() {
         return NATIONALITY;
+    }
+
+    @Override
+    public String getExpiryDate() {
+        return super.getExpiryDate();
     }
 }

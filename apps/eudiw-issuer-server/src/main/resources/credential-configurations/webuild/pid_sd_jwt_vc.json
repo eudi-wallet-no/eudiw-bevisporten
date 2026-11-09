@@ -133,7 +133,7 @@
       },
       {
         "path": [
-          "expiry_date"
+          "date_of_expiry"
         ],
         "type": "iso_date",
         "display": [
