@@ -29,6 +29,6 @@ public class SdJwtFieldNames extends PidFieldNames {
 
     @Override
     public String getExpiryDate() {
-        return super.getExpiryDate();
+        return EXPIRY_DATE;
     }
 }
