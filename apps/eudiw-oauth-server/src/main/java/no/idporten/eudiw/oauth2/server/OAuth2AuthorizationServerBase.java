@@ -119,10 +119,14 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     }
 
     protected void validateClientId(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
-        if (!hasText(authorizationRequest.getClientId())) {
+        String clientId = authorizationRequest.getClientId();
+        if (!hasText(clientId)) {
+            clientId = clientMetadata.getClientId();
+        }
+        if (!hasText(clientId)) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing parameter client_id.", 400);
         }
-        if (!Objects.equals(authorizationRequest.getClientId(), clientMetadata.getClientId())) {
+        if (!Objects.equals(clientId, clientMetadata.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter client_id. The request was pushed by another client.", 400);
         }
     }
