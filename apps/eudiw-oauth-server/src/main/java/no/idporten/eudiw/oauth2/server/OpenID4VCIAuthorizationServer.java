@@ -66,7 +66,7 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
             throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. Invalid transaction code.", 400);
         }
         if (tokenRequest.getDPoPHeader() != null) {
-            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), tokenRequest.getClientId(), getConfiguration().getTokenEndpoint());
+            String dpopJtk = validateDPoPProofAndGetDPoPJtk(tokenRequest.getDPoPHeader(), clientMetadata.getClientId(), getConfiguration().getTokenEndpoint());
             if (!hasText(dpopJtk)) { // dummy greia, ta vekk
                 throw new OAuth2Exception(OAuth2Exception.INVALID_DPOP_PROOF, "Invalid DPop. The DPop header is invalid.", 400);
             }
@@ -76,6 +76,7 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
         if (tokenRequest.hasResourceIndicator()) {
             preAuthorization.setAud(tokenRequest.getResource());
         }
+        preAuthorization.setWia(wia(tokenRequest));
         try {
             TokenResponse tokenResponse = createTokenResponse(preAuthorization);
             getConfiguration().getAuditLogger().auditTokenResponse(tokenResponse);
@@ -95,7 +96,7 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
         tokenRequest.clearAuthentication();
         ClientMetadata clientMetadata = ClientMetadata.builder().clientId("unauthenticated-pre-authorized").build();
         ClientAuthentication clientAuthentication = ClientAuthentication.builder().clientId(clientMetadata.getClientId()).tokenEndpointAuthMethod("none").build();
-        tokenRequest.setAuthenticatedClientId(clientAuthentication.getClientId());
+        tokenRequest.setClientAuthentication(clientAuthentication);
         getConfiguration().getAuditLogger().auditClientAuthentication(clientAuthentication);
         return clientMetadata;
     }

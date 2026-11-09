@@ -46,6 +46,7 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     private String resource;
     private String issuerState;
     private transient String dpopJkt;
+    private ClientAuthentication clientAuthentication;
 
     @Getter(AccessLevel.NONE)
     private Map<String, String> parameters = new HashMap<>();
@@ -124,14 +125,19 @@ public class PushedAuthorizationRequest implements AuthenticatedRequest, Resourc
     }
 
     @Override
-    public void clearAuthentication() {
-        clientAttestation = null;
-        clientAttestationPoP = null;
+    public ClientAuthentication getClientAuthentication() {
+        return clientAuthentication;
     }
 
     @Override
-    public void setAuthenticatedClientId(String clientId) {
-        this.clientId = clientId;
+    public void setClientAuthentication(ClientAuthentication clientAuthentication) {
+        this.clientAuthentication = clientAuthentication;
+    }
+
+    @Override
+    public void clearAuthentication() {
+        clientAttestation = null;
+        clientAttestationPoP = null;
     }
 
     @Override

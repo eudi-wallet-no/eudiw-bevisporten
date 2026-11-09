@@ -51,10 +51,16 @@ public class ClientAuthenticationTest {
         private String clientId;
         private String clientAttestation;
         private String clientAttestationPoP;
+        private ClientAuthentication clientAuthentication;
 
         @Override
-        public void setAuthenticatedClientId(String clientId) {
-            this.clientId = clientId;
+        public ClientAuthentication getClientAuthentication() {
+            return clientAuthentication;
+        }
+
+        @Override
+        public void setClientAuthentication(ClientAuthentication clientAuthentication) {
+            this.clientAuthentication = clientAuthentication;
         }
 
         @Override

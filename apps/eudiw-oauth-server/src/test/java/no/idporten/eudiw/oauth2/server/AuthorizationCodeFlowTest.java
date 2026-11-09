@@ -14,6 +14,7 @@ import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -62,6 +63,38 @@ class AuthorizationCodeFlowTest {
         oAuth2AuthorizationServer = new OAuth2AuthorizationServerBase(oAuth2ServerConfiguration);
         cache = (SimpleOpenIDConnectCache) oAuth2ServerConfiguration.getCache();
         proofFactory = getDPoPProofFactory();
+    }
+
+    @Test
+    @DisplayName("then an attestation-authenticated pushed authorization request without client_id is accepted")
+    void testAttestationAuthenticatedParWithoutClientId() throws Exception {
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
+        ECKey clientKey = TestUtils.createECPrivateKey();
+        ChallengeResponse challengeResponse = oAuth2AuthorizationServer.process(new ChallengeRequest(new MockRequest().getHeaders()));
+        SignedJWT clientAttestation = TestUtils.createClientAttestation(clientMetadata.getClientId(), "jw", "https://jw.eidas2sandkasse.dev", clientKey);
+        SignedJWT clientAttestationPoP = TestUtils.createClientAttestationPoP(
+                clientMetadata.getClientId(),
+                challengeResponse.getAttestationChallenge(),
+                oAuth2AuthorizationServer.getConfiguration().getIssuer().toString(),
+                clientKey);
+
+        MockRequest request = new MockRequest();
+        request.addHeader("OAuth-Client-Attestation", clientAttestation.serialize());
+        request.addHeader("OAuth-Client-Attestation-PoP", clientAttestationPoP.serialize());
+        request.addParameter("code_challenge", "WWHTYIjNclXxS69q1gerQ-eTlW5ab1YCpKTorurQ3zw");
+        request.addParameter("code_challenge_method", "S256");
+        request.addParameter("scope", "openid");
+        request.addParameter("redirect_uri", clientMetadata.getRedirectUris().getFirst());
+        request.addParameter("response_type", "code");
+        PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+
+        PushedAuthorizationResponse response = oAuth2AuthorizationServer.process(pushedAuthorizationRequest);
+
+        assertAll(
+                () -> assertEquals(201, response.getHttpStatusCode()),
+                () -> assertNull(pushedAuthorizationRequest.getClientId()),
+                () -> assertEquals(clientMetadata.getClientId(), pushedAuthorizationRequest.getClientAuthentication().getClientId())
+        );
     }
 
 
@@ -209,6 +242,7 @@ class AuthorizationCodeFlowTest {
         assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
         assertEquals("openid pid.mdoc", accessTokenClaimsSet.getClaim("scope"));
         assertEquals("is", accessTokenClaimsSet.getClaim("issuer_state"));
+        assertEquals(clientAttestation.serialize(), accessTokenClaimsSet.getClaim("wia"));
         if (hasDPoP == DPopTestCase.DPOP_ALL || hasDPoP==DPopTestCase.DPOP_TOKEN) { // TODO verify test later for only DPoP on token
             assertNotNull(accessTokenClaimsSet.getClaim("cnf"));
             assertEquals(findDpopJktFromDpopHeader(dPoPHeaderToken), ((java.util.Map<String, Object>) accessTokenClaimsSet.getClaim("cnf")).get("jkt"));
