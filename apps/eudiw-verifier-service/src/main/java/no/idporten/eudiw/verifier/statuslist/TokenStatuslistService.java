@@ -143,15 +143,13 @@ public class TokenStatuslistService {
         StatusListResponse response = requestStatusList(uri, preferredFormat);
         if (response.body() == null || response.body().length == 0) {
             throw new StatusCommunicationException(
-                    ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
-                    "Response body from status API is empty for url %s".formatted(uri),
-                    null);
+                    STATUS_LIST_USER_ERROR,
+                    "Response body from status API is empty for url %s".formatted(uri), null);
         }
         if (response.contentType() == null) {
             throw new StatusCommunicationException(
-                    ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
-                    "Content-Type is missing from status API response for url %s".formatted(uri),
-                    null);
+                    STATUS_LIST_USER_ERROR,
+                    "Content-Type is missing from status API response for url %s".formatted(uri), null);
         }
         if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
             return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
@@ -160,10 +158,8 @@ public class TokenStatuslistService {
             return checkStatus(uri, idx, response.body(), Instant.now());
         } else {
             throw new StatusCommunicationException(
-                    ErrorCode.INVALID_REQUEST,
                     STATUS_LIST_USER_ERROR,
-                    "Unsupported status list Content-Type %s".formatted(response.contentType()),
-                    null);
+                    "Unsupported status list Content-Type %s".formatted(response.contentType()), null);
         }
     }
 
@@ -193,20 +189,18 @@ public class TokenStatuslistService {
                     continue;
                 }
                 throw new StatusCommunicationException(
-                        ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
+                        STATUS_LIST_USER_ERROR,
                         "Status list API returned status code=%s for uri=%s".formatted(e.getStatusCode(), uri),
                         e);
             } catch (ResourceAccessException e) {
                 throw new IOConnectionException("Error in connection with status list API %s".formatted(uri), e);
             } catch (Exception e) {
-                throw new StatusCommunicationException(ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR, "Error in communication with status list API=" + uri, e);
+                throw new StatusCommunicationException(STATUS_LIST_USER_ERROR, "Error in communication with status list API=" + uri, e);
             }
         }
         throw new StatusCommunicationException(
-                ErrorCode.INVALID_REQUEST,
                 STATUS_LIST_USER_ERROR,
-                "No supported status list format was returned for uri=" + uri,
-                null);
+                "No supported status list format was returned for uri=" + uri, null);
     }
 
     private record StatusListResponse(MediaType contentType, byte[] body) {
