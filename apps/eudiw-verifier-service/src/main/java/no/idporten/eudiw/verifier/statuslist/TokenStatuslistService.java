@@ -137,42 +137,34 @@ public class TokenStatuslistService {
     }
 
     public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx, StatusListTokenFormat preferredFormat) {
-        ValidationStatus status;
-        try {
-            if (uri == null || preferredFormat == null) {
-                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list URI and preferred format are required");
-            }
-            StatusListResponse response = requestStatusList(uri, preferredFormat);
-            if (response.body() == null || response.body().length == 0) {
-                // TODO: Nøst opp i dette.
-                throw new StatusCommunicationException(
-                        ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
-                        "Response body from status API is empty for url %s".formatted(uri),
-                        null);
-            }
-            if (response.contentType() == null) {
-                throw new StatusCommunicationException(
-                        ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
-                        "Content-Type is missing from status API response for url %s".formatted(uri),
-                        new IllegalStateException("Status list response has no Content-Type"));
-            }
-            if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
-                return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
-            }
-            if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
-                return checkStatus(uri, idx, response.body(), Instant.now());
-            }
+        if (uri == null || preferredFormat == null) {
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list URI and preferred format are required");
+        }
+        StatusListResponse response = requestStatusList(uri, preferredFormat);
+        if (response.body() == null || response.body().length == 0) {
+            throw new StatusCommunicationException(
+                    ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
+                    "Response body from status API is empty for url %s".formatted(uri),
+                    null);
+        }
+        if (response.contentType() == null) {
+            throw new StatusCommunicationException(
+                    ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
+                    "Content-Type is missing from status API response for url %s".formatted(uri),
+                    new IllegalStateException("Status list response has no Content-Type"));
+        }
+        if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
+            return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
+        }
+        if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
+            return checkStatus(uri, idx, response.body(), Instant.now());
+        } else {
             throw new StatusCommunicationException(
                     ErrorCode.INVALID_REQUEST,
                     STATUS_LIST_USER_ERROR,
                     "Unsupported status list Content-Type %s".formatted(response.contentType()),
                     new IllegalStateException("Unsupported status list Content-Type"));
-        } catch (StatusCommunicationException | IOConnectionException e) {
-            // TODO: create and update metrics for IOConnectionException.
-            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
-            status = ValidationStatus.INCONCLUSIVE;
         }
-        return status;
     }
 
     private boolean hasContentType(MediaType contentType, StatusListTokenFormat format) {
