@@ -3,9 +3,15 @@ package no.idporten.eudiw.oauth2.server.protocol;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Data
 @Builder
-public class ClientAuthentication implements AuditDataProvider {
+public class ClientAuthentication implements AuditDataProvider, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     private String clientId;
     private String tokenEndpointAuthMethod;
@@ -14,6 +20,15 @@ public class ClientAuthentication implements AuditDataProvider {
     private String attestationChallenge;
     private String walletName;
     private String walletLink;
+
+    /**
+     * The Wallet Instance Attestation (WIA) used for attestation based client authentication.
+     *
+     * @return the WIA, or null if the client was not authenticated with an attestation
+     */
+    public String getWia() {
+        return clientAttestation;
+    }
 
     @Override
     public AuditData getAuditData() {

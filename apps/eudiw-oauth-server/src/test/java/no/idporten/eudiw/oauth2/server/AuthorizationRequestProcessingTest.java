@@ -112,7 +112,7 @@ public class AuthorizationRequestProcessingTest {
         String requestUri = "urn:idporten:1234";
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "client1");
-        PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+        PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
         pushedAuthorizationRequest.setLifetimeSeconds(10);
         cache.putAuthorizationRequest(requestUri, pushedAuthorizationRequest);
         request = new MockRequest();
@@ -142,7 +142,7 @@ public class AuthorizationRequestProcessingTest {
         String clientId = TestUtils.defaultClientMetadata().getClientId();
         MockRequest request = new MockRequest();
         request.addParameter("client_id", clientId);
-        PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+        PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
         pushedAuthorizationRequest.setLifetimeSeconds(10);
         cache.putAuthorizationRequest(requestUri, pushedAuthorizationRequest);
         request = new MockRequest();
@@ -170,7 +170,7 @@ public class AuthorizationRequestProcessingTest {
         String clientId = TestUtils.defaultClientMetadata().getClientId();
         MockRequest request = new MockRequest();
         request.addParameter("client_id", clientId);
-        PushedAuthorizationRequest pushedAuthorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+        PushedAuthorizationRequest pushedAuthorizationRequest = TestUtils.authenticated(new PushedAuthorizationRequest(request.getHeaders(), request.getParameters()));
         pushedAuthorizationRequest.setLifetimeSeconds(10);
         SimpleOpenIDConnectCache cache = new SimpleOpenIDConnectCache();
         cache.putAuthorizationRequest(requestUri, pushedAuthorizationRequest);
