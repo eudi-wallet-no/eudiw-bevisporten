@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import no.idporten.eudiw.issuer.credentials.formats.CredentialFormat;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Validated
 @NoArgsConstructor
@@ -46,6 +48,16 @@ public class ExtendedCredentialConfiguration {
     @NotNull
     @JsonProperty("scope")
     private String scope;
+
+    @JsonProperty("key_attestations_required")
+    @Builder.Default
+    private Boolean keyAttestationsRequired = true;
+
+    @JsonProperty("key_storage")
+    private List<String> keyStorage;
+
+    @JsonProperty("user_authentication")
+    private List<String> userAuthentication;
 
     /**
      * Extended credential metadata including data types.

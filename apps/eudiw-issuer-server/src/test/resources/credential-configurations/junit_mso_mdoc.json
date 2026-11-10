@@ -10,6 +10,8 @@
   "credential_type": "junitdoc",
   "format": "mso_mdoc",
   "scope": "eudiw:junit",
+  "key_storage": ["iso_18045_high"],
+  "user_authentication": ["iso_18045_high", "iso_18045_moderate"],
   "credential_metadata": {
     "display": [
       {

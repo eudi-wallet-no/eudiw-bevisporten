@@ -10,6 +10,7 @@ import com.nimbusds.jose.crypto.impl.ECDSA;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import no.idporten.eudiw.issuer.ErrorCode;
 import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.api.Endpoints;
@@ -196,17 +197,28 @@ public class CredentialIssuerMetadataService {
                         .vct(credentialConfiguration.getCredentialType())
                         .credentialSigningAlgValuesSupported(credentialIssuerProperties.getCredentialSigningAlgorithms().getDcSdJwt());
             }
-            credentialConfigurationBuilder.proofTypes(createProofTypes(credentialIssuerProperties));
+            credentialConfigurationBuilder.proofTypes(createProofTypes(credentialIssuerProperties, credentialConfiguration));
             credentialConfigurations.put(credentialConfiguration.getCredentialConfigurationId(), credentialConfigurationBuilder.build());
         }
         return credentialConfigurations;
     }
 
-    private static ProofTypes createProofTypes(CredentialIssuerServerProperties credentialIssuerProperties) {
-        KeyAttestationRequired keyAttestationRequired = credentialIssuerProperties.isKeyAttestationsRequired()
+    private static ProofTypes createProofTypes(CredentialIssuerServerProperties credentialIssuerProperties,
+                                               ExtendedCredentialConfiguration credentialConfiguration) {
+        List<String> keyStorage = credentialConfiguration.getKeyStorage() != null
+                ? credentialConfiguration.getKeyStorage()
+                : credentialIssuerProperties.getAttestationKeyStorage();
+        List<String> userAuthentication = credentialConfiguration.getUserAuthentication() != null
+                ? credentialConfiguration.getUserAuthentication()
+                : credentialIssuerProperties.getAttestationUserAuthentication();
+        boolean keyAttestationsRequired =
+                (CollectionUtils.isNotEmpty(keyStorage) || CollectionUtils.isNotEmpty(userAuthentication))
+                || credentialConfiguration.getKeyAttestationsRequired() != null && credentialConfiguration.getKeyAttestationsRequired()
+                || credentialIssuerProperties.isKeyAttestationsRequired();
+        KeyAttestationRequired keyAttestationRequired = keyAttestationsRequired
                 ? KeyAttestationRequired.builder()
-                .keyStorage(credentialIssuerProperties.getAttestationKeyStorage())
-                .userAuthentication(credentialIssuerProperties.getAttestationUserAuthentication())
+                .keyStorage(keyStorage)
+                .userAuthentication(userAuthentication)
                 .build()
                 : null;
         ProofTypes.ProofTypesBuilder proofTypesBuilder = ProofTypes.builder()
@@ -215,7 +227,7 @@ public class CredentialIssuerMetadataService {
                                 .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
                                 .keyAttestationsRequired(keyAttestationRequired)
                                 .build());
-        if (credentialIssuerProperties.isKeyAttestationsRequired()) {
+        if (keyAttestationsRequired) {
             proofTypesBuilder.attestationProofType(
                     ProofType.builder()
                             .algorithms(credentialIssuerProperties.getProofSigningAlgorithms())
