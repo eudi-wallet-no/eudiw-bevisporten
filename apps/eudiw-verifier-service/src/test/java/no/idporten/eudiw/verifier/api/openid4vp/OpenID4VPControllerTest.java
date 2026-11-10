@@ -1,11 +1,14 @@
 package no.idporten.eudiw.verifier.api.openid4vp;
 
+import no.idporten.eudiw.verifier.ErrorCode;
+import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.config.ClientApplication;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPRequestService;
 import no.idporten.eudiw.verifier.openid4vp.OpenID4VPResponseService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -98,4 +101,26 @@ class OpenID4VPControllerTest {
                         .value("https://example.test/verification-complete"));
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "INVALID_REQUEST, 400, invalid_request",
+            "INVALID_CLIENT, 401, invalid_client",
+            "SERVER_ERROR, 500, server_error"
+    })
+    @DisplayName("When authorization request retrieval fails, then the expected HTTP error is expected")
+    void returnsVerificationError(
+            ErrorCode errorCode, int expectedStatus, String expectedError) throws Exception {
+            String description = "Authorization request could not be retrieved";
+
+            when(openID4VPRequestService.retrieveAuthorizationRequest(
+                    any(), eq(REQUEST_ID), eq("same_device")))
+                    .thenThrow(new VerificationException(errorCode, description));
+
+            mockMvc.perform(get("/openid4vp/authz-request/{clientApplicationId}/{requestId}",
+                            CLIENT_APPLICATION_ID, REQUEST_ID))
+                    .andExpect(status().is(expectedStatus))
+                    .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.error").value(expectedError))
+                    .andExpect(jsonPath("$.error_description").value(description));
+        }
 }
