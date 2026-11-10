@@ -12,6 +12,8 @@
   },
   "credential_type": "no:minid:mpid:1",
   "format": "dc+sd-jwt",
+  "key_attestations_required": true,
+  "key_storage": ["iso_18045_high", "iso_18045_moderate"],
   "scope": "eudiw:no:minid:mpid",
   "credential_metadata": {
     "display": [
