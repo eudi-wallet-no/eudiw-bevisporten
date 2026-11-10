@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import no.idporten.eudiw.verifier.ErrorCode;
+import no.idporten.eudiw.verifier.InvalidClientException;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -37,7 +38,7 @@ public class VerifierServiceProperties implements InitializingBean {
         ClientApplication clientApplication = clientApplications.get(clientApplicationId);
 
         if (clientApplication == null || clientApplication.isDisabled()) {
-            throw new VerificationException(ErrorCode.INVALID_CLIENT, "Unknown client application");
+            throw new InvalidClientException("Unknown client application", "Unknown client application %s".formatted(clientApplicationId));
         }
 
         return clientApplication;
@@ -47,15 +48,14 @@ public class VerifierServiceProperties implements InitializingBean {
         ClientApplication clientApplication = clientApplications.get(clientApplicationId);
 
         if (clientApplication == null || clientApplication.isDisabled()) {
-            throw new VerificationException(ErrorCode.INVALID_CLIENT, "Unknown client application");
+            throw new InvalidClientException("Unknown client application", "Unknown client application %s".formatted(clientApplicationId));
         }
 
+
         if (apiKey == null || !apiKey.equals(clientApplication.getApiKey())) {
-            throw new VerificationException(
-                    ErrorCode.INVALID_CLIENT,
+            throw new InvalidClientException(
                     "Invalid API Key",
-                    "Invalid API key for client application: " + clientApplicationId,
-                    null
+                    "Invalid API key for client application %s".formatted(clientApplicationId)
             );
         }
 
