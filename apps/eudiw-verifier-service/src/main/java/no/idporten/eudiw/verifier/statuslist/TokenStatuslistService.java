@@ -51,6 +51,8 @@ public class TokenStatuslistService {
     private final TokenStatuslistConfig tokenStatuslistConfig;
     private final StatusListCwtValidator statusListCwtValidator;
 
+    private static final String STATUS_LIST_USER_ERROR = "Error in communication about status of credential";
+
     private static final Logger log = LoggerFactory.getLogger(TokenStatuslistService.class);
 
     public TokenStatuslistService(@Qualifier("tokenStatuslist") RestClient restClient, TokenStatuslistConfig tokenStatuslistConfig) {
@@ -142,14 +144,15 @@ public class TokenStatuslistService {
             }
             StatusListResponse response = requestStatusList(uri, preferredFormat);
             if (response.body() == null || response.body().length == 0) {
+                // TODO: Nøst opp i dette.
                 throw new StatusCommunicationException(
-                        "Could not verify status",
+                        ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
                         "Response body from status API is empty for url %s".formatted(uri),
-                        new IllegalStateException("Status list response body is empty"));
+                        null);
             }
             if (response.contentType() == null) {
                 throw new StatusCommunicationException(
-                        "Could not verify status",
+                        ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
                         "Content-Type is missing from status API response for url %s".formatted(uri),
                         new IllegalStateException("Status list response has no Content-Type"));
             }
@@ -160,7 +163,8 @@ public class TokenStatuslistService {
                 return checkStatus(uri, idx, response.body(), Instant.now());
             }
             throw new StatusCommunicationException(
-                    "Could not verify status",
+                    ErrorCode.INVALID_REQUEST,
+                    STATUS_LIST_USER_ERROR,
                     "Unsupported status list Content-Type %s".formatted(response.contentType()),
                     new IllegalStateException("Unsupported status list Content-Type"));
         } catch (StatusCommunicationException | IOConnectionException e) {
@@ -197,19 +201,20 @@ public class TokenStatuslistService {
                     continue;
                 }
                 throw new StatusCommunicationException(
-                        "Could not verify status",
+                        ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
                         "Status list API returned status code=%s for uri=%s".formatted(e.getStatusCode(), uri),
                         e);
             } catch (ResourceAccessException e) {
                 throw new IOConnectionException("Error in connection with status list API %s".formatted(uri), e);
             } catch (Exception e) {
-                throw new StatusCommunicationException("Could not verify status", "Error in communication with status list API=" + uri, e);
+                throw new StatusCommunicationException(ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR, "Error in communication with status list API=" + uri, e);
             }
         }
         throw new StatusCommunicationException(
-                "Could not verify status",
+                ErrorCode.INVALID_REQUEST,
+                STATUS_LIST_USER_ERROR,
                 "No supported status list format was returned for uri=" + uri,
-                new IllegalStateException("Both requested status-list formats were rejected"));
+                null);
     }
 
     private record StatusListResponse(MediaType contentType, byte[] body) {
