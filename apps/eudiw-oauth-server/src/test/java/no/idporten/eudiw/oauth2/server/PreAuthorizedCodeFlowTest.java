@@ -2,6 +2,7 @@ package no.idporten.eudiw.oauth2.server;
 
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -11,6 +12,7 @@ import no.idporten.eudiw.oauth2.server.audit.OpenIDConnectAuditLogger;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -93,6 +95,7 @@ class PreAuthorizedCodeFlowTest {
         assertEquals("12345678901", accessTokenClaimsSet.getClaim("sub"));
         assertEquals("scp1 scp2", accessTokenClaimsSet.getClaim("scope"));
         assertEquals("tid1", accessTokenClaimsSet.getClaim("tx_id"));
+        assertNull(accessTokenClaimsSet.getClaim("wia"));
 
         // 8. Check all id's unique
         assertEquals(2, Set.of(preAuthorizedCode, accessTokenClaimsSet.getJWTID()).size());
@@ -102,6 +105,39 @@ class PreAuthorizedCodeFlowTest {
         verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
         verifyNoMoreInteractions(auditLogger);
         assertEquals("none", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
+    }
+
+    @Test
+    @DisplayName("then a client authenticated with attestation gets the WIA included in the access token")
+    void testPreAuthorizedCodeFlowWithClientAttestation() throws Exception {
+        // 1. Create pre-authorization
+        PreAuthorizationRequest preAuthorizationRequest = new PreAuthorizationRequest();
+        preAuthorizationRequest.setAud(openID4VCIAuthorizationServer.getConfiguration().getIssuer().toString());
+        preAuthorizationRequest.setSub("12345678901");
+        preAuthorizationRequest.setScope(List.of("scp1"));
+        preAuthorizationRequest.setTxId("tid1");
+        preAuthorizationRequest.setAuthorizationLifetimeSeconds(999);
+        PreAuthorizationResponse preAuthorizationResponse = openID4VCIAuthorizationServer.process(preAuthorizationRequest, TestUtils.headersWithApiKey(TestUtils.defaultApiKey()));
+
+        // 2. Get attestation challenge and create WIA with PoP
+        ChallengeResponse challengeResponse = openID4VCIAuthorizationServer.process(new ChallengeRequest(new MockRequest().getHeaders()));
+        ECKey clientKey = TestUtils.createECPrivateKey();
+        SignedJWT clientAttestation = TestUtils.createClientAttestation("wallet", "jw", "https://jw.eidas2sandkasse.dev", clientKey);
+        SignedJWT clientAttestationPoP = TestUtils.createClientAttestationPoP("wallet", challengeResponse.getAttestationChallenge(), openID4VCIAuthorizationServer.getConfiguration().getIssuer().toString(), clientKey);
+
+        // 3. Process token request w/pre-authorized_code and client attestation
+        MockRequest request = new MockRequest();
+        request.addHeader("OAuth-Client-Attestation", clientAttestation.serialize());
+        request.addHeader("OAuth-Client-Attestation-PoP", clientAttestationPoP.serialize());
+        request.addParameter("grant_type", "urn:ietf:params:oauth:grant-type:pre-authorized_code");
+        request.addParameter("pre-authorized_code", preAuthorizationResponse.getPreAuthorizedCode());
+        TokenResponse tokenResponse = openID4VCIAuthorizationServer.process(new TokenRequest(request.getHeaders(), request.getParameters()));
+
+        // 4. Validate client authentication and WIA in access_token
+        verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
+        assertEquals("attest_jwt_client_auth", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
+        JWTClaimsSet accessTokenClaimsSet = SignedJWT.parse(tokenResponse.getAccessToken()).getJWTClaimsSet();
+        assertEquals(clientAttestation.serialize(), accessTokenClaimsSet.getClaim("wia"));
     }
 
 }

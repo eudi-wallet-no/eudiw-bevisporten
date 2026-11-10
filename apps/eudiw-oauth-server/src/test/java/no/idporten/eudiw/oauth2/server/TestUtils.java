@@ -18,6 +18,9 @@ import com.nimbusds.oauth2.sdk.dpop.DefaultDPoPProofFactory;
 import no.idporten.eudiw.oauth2.server.cache.SimpleOpenIDConnectCache;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
+import no.idporten.eudiw.oauth2.server.protocol.AuthenticatedRequest;
+import no.idporten.eudiw.oauth2.server.protocol.ClientAuthentication;
+import no.idporten.eudiw.oauth2.server.protocol.PushedAuthorizationRequest;
 import no.idporten.eudiw.oauth2.server.util.JsonObjectBuilder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -54,6 +57,18 @@ public class TestUtils {
     /**
      * A default issuer for testing.
      */
+    /**
+     * Marks a pushed authorization request as authenticated with client authentication method none, as done by
+     * {@link OAuth2AuthorizationServerBase#authenticateClient(AuthenticatedRequest)}.
+     */
+    public static PushedAuthorizationRequest authenticated(PushedAuthorizationRequest pushedAuthorizationRequest) {
+        pushedAuthorizationRequest.setClientAuthentication(ClientAuthentication.builder()
+                .clientId(pushedAuthorizationRequest.getClientId())
+                .tokenEndpointAuthMethod("none")
+                .build());
+        return pushedAuthorizationRequest;
+    }
+
     public static String defaultIssuer() {
         return defaultIssuer;
     }

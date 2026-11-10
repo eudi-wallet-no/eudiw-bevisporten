@@ -119,10 +119,14 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     }
 
     protected void validateClientId(PushedAuthorizationRequest authorizationRequest, ClientMetadata clientMetadata) {
-        if (!hasText(authorizationRequest.getClientId())) {
+        String clientId = authorizationRequest.getClientId();
+        if (!hasText(clientId)) {
+            clientId = clientMetadata.getClientId();
+        }
+        if (!hasText(clientId)) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Missing parameter client_id.", 400);
         }
-        if (!Objects.equals(authorizationRequest.getClientId(), clientMetadata.getClientId())) {
+        if (!Objects.equals(clientId, clientMetadata.getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter client_id. The request was pushed by another client.", 400);
         }
     }
@@ -342,7 +346,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client authentication does not match parameter client_id.", 401);
         }
         authenticatedRequest.clearAuthentication();
-        authenticatedRequest.setAuthenticatedClientId(clientAuthentication.getClientId());
+        authenticatedRequest.setClientAuthentication(clientAuthentication);
         serverConfiguration.getAuditLogger().auditClientAuthentication(clientAuthentication);
         return clientMetadata;
     }
@@ -530,6 +534,41 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
     }
 
+    /**
+     * Checks whether two WIAs (client attestations) attest the same Wallet Instance.
+     * <p>
+     * TS3 does not require the Wallet Unit to send the very same WIA in the PAR and the token request
+     * (a WIA lives less than 24 hours and may be renewed in between), so the serialized JWTs are not compared.
+     * The WIAs are considered equal if they have the same subject (client_id) and the same
+     * Wallet Instance key, i.e. the same JWK SHA-256 thumbprint of the key in the cnf claim.
+     * Both WIAs are expected to be validated before calling this method.
+     */
+    /**
+     * The WIA used to authenticate the client of a request, or null if the client was not authenticated with an attestation.
+     */
+    protected static String wia(AuthenticatedRequest authenticatedRequest) {
+        ClientAuthentication clientAuthentication = authenticatedRequest.getClientAuthentication();
+        return clientAuthentication != null ? clientAuthentication.getWia() : null;
+    }
+
+    protected boolean wiaEquals(String wia1, String wia2) {
+        if (Objects.equals(wia1, wia2)) {
+            return true;
+        }
+        try {
+            SignedJWT jwt1 = SignedJWT.parse(wia1);
+            SignedJWT jwt2 = SignedJWT.parse(wia2);
+            String sub1 = jwt1.getJWTClaimsSet().getSubject();
+            if (!hasText(sub1) || !sub1.equals(jwt2.getJWTClaimsSet().getSubject())) {
+                return false;
+            }
+            return extractJWKFromCnf(jwt1).computeThumbprint().equals(extractJWKFromCnf(jwt2).computeThumbprint());
+        } catch (Exception e) {
+            log.warn("Failed to compare WIAs from requests", e);
+            return false;
+        }
+    }
+
     ECKey extractJWKFromCnf(SignedJWT signedJWT) {
         try {
             ECKey ecKey = ECKey.parse((Map) signedJWT.getJWTClaimsSet().getJSONObjectClaim("cnf").get("jwk"));
@@ -583,7 +622,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (!pushedAuthorizationRequest.isValidNow()) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter request_uri. request_uri has expired.", 400);
         }
-        if (hasText(authorizationRequest.getClientId()) && !authorizationRequest.getClientId().equals(pushedAuthorizationRequest.getClientId())) {
+        if (hasText(authorizationRequest.getClientId()) && !authorizationRequest.getClientId().equals(pushedAuthorizationRequest.getClientAuthentication().getClientId())) {
             throw new OAuth2Exception(OAuth2Exception.INVALID_REQUEST, "Invalid parameter client_id. The request was pushed by another client.", 400);
         }
         // do only support PAR, no need to check incoming DPoP
@@ -610,10 +649,11 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         authorization.setNonce(pushedAuthorizationRequest.getNonce());
         authorization.setCodeChallenge(pushedAuthorizationRequest.getCodeChallenge());
         authorization.setLifetimeSeconds(serverConfiguration.getAuthorizationLifetimeSeconds());
-        authorization.setClientId(pushedAuthorizationRequest.getClientId());
+        authorization.setClientId(pushedAuthorizationRequest.getClientAuthentication().getClientId());
         authorization.setAud(calcAudience(pushedAuthorizationRequest));
         authorization.setScope(String.join(" ", pushedAuthorizationRequest.getScope()));
         authorization.setIssuerState(pushedAuthorizationRequest.getIssuerState());
+        authorization.setWia(wia(pushedAuthorizationRequest));
         authorization.setDpopJkt(pushedAuthorizationRequest.getResolvedDpopJkt()); // parse og sjekk også dpop_jkt
 
         if (!hasText(authorization.getAcr())) {
@@ -627,7 +667,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
 
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
                 .redirectUri(pushedAuthorizationRequest.getRedirectUri())
-                .aud(pushedAuthorizationRequest.getClientId())
+                .aud(pushedAuthorizationRequest.getClientAuthentication().getClientId())
                 .iss(serverConfiguration.isAuthorizationResponseIssParameterSupported() ? serverConfiguration.getIssuer().toString() : null)
                 .responseMode(pushedAuthorizationRequest.getResolvedResponseMode())
                 .code(code)
@@ -642,7 +682,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
     public AuthorizationResponse errorResponse(PushedAuthorizationRequest pushedAuthorizationRequest, String error, String errorDescription) {
         AuthorizationResponse authorizationResponse = AuthorizationResponse.builder()
                 .redirectUri(pushedAuthorizationRequest.getRedirectUri())
-                .aud(pushedAuthorizationRequest.getClientId())
+                .aud(pushedAuthorizationRequest.getClientAuthentication().getClientId())
                 .iss(serverConfiguration.isAuthorizationResponseIssParameterSupported() ? serverConfiguration.getIssuer().toString() : null)
                 .responseMode(pushedAuthorizationRequest.getResolvedResponseMode())
                 .error(error)
@@ -707,6 +747,11 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         if (tokenRequest.hasResourceIndicator()) {
             authorization.setAud(tokenRequest.getResource());
         }
+        String wia = wia(tokenRequest);
+        if (!wiaEquals(authorization.getWia(), wia)) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_GRANT, "Invalid grant. The client attestations does not match across requests.", 400);
+        }
+        authorization.setWia(wia);
         try {
             TokenResponse tokenResponse = createTokenResponse(authorization);
             if (serverConfiguration.getUserinfoEndpoint() != null) {
@@ -769,6 +814,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .claim("client_id", authorization.getClientId())
                 .claim("scope", authorization.getScope())
                 .claim("issuer_state", authorization.getIssuerState())
+                .claim("wia", authorization.getWia())
                 .expirationTime(new Date(new Date().getTime() + (serverConfiguration.getAccessTokenLifetimeSeconds() * 1000L)))
                 .issueTime(new Date())
                 .subject(authorization.getSub());

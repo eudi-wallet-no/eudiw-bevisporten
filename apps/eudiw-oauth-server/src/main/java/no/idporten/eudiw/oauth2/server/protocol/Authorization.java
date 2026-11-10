@@ -35,6 +35,7 @@ public class Authorization implements Cacheable, AuditDataProvider {
     private String sub;
     private String amr;
     private String acr;
+    private String wia;
     private String issuerState;
     private String dpopJkt;
 
@@ -71,6 +72,7 @@ public class Authorization implements Cacheable, AuditDataProvider {
                 .attribute("amr", amr)
                 .attribute("acr", acr)
                 .attribute("aud", aud)
+                .attribute("wia", wia)
                 .attribute("client_id", clientId);
 
         attributes.forEach(builder::attribute);
