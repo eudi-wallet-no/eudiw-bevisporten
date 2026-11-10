@@ -276,8 +276,7 @@ public class OpenID4VPResponseService {
     private VerifiedCredential verifyCredential(String vpToken, VerificationTransaction verificationTransaction, DcqlCredentialQuery credentialQuery) {
         CredentialVerifier credentialVerifier = switch (CredentialFormat.fromString(credentialQuery.getFormat())) {
             case DC_SD_JWT -> sdJwtCredentialVerifier;
-            case MSO_MDOC -> mdocCredentialVerifier;
-        };
+            case MSO_MDOC -> mdocCredentialVerifier;};
         CredentialVerificationResult verification = credentialVerifier.verify(vpToken, credentialQuery, verificationTransaction);
         if (verification.format() == CredentialFormat.MSO_MDOC) {
             validateRequestedDocType(verification.credentialType(), credentialQuery);

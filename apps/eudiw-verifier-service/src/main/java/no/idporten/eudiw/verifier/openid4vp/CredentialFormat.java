@@ -29,7 +29,7 @@ public enum CredentialFormat {
                 return credentialFormat;
             }
         }
-        throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unsupported credential format: " + format);
+        throw new VerificationException(ErrorCode.VP_FORMATS_NOT_SUPPORTED, "Unsupported credential format: " + format);
     }
 
     public ValidationType validationType() {
