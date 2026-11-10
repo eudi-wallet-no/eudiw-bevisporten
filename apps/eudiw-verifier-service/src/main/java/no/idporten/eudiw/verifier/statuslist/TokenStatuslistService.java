@@ -140,7 +140,13 @@ public class TokenStatuslistService {
         if (uri == null || preferredFormat == null) {
             throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list URI and preferred format are required");
         }
-        StatusListResponse response = requestStatusList(uri, preferredFormat);
+        final StatusListResponse response;
+        try {
+            response = requestStatusList(uri, preferredFormat);
+        } catch (StatusCommunicationException | IOConnectionException e) {
+            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
+            return ValidationStatus.INCONCLUSIVE;
+        }
         if (response.body() == null || response.body().length == 0) {
             throw new StatusCommunicationException(
                     STATUS_LIST_USER_ERROR,
