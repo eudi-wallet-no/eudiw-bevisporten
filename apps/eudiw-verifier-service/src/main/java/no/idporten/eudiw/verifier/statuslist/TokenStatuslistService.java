@@ -151,7 +151,7 @@ public class TokenStatuslistService {
             throw new StatusCommunicationException(
                     ErrorCode.INVALID_REQUEST, STATUS_LIST_USER_ERROR,
                     "Content-Type is missing from status API response for url %s".formatted(uri),
-                    new IllegalStateException("Status list response has no Content-Type"));
+                    null);
         }
         if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
             return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
@@ -163,7 +163,7 @@ public class TokenStatuslistService {
                     ErrorCode.INVALID_REQUEST,
                     STATUS_LIST_USER_ERROR,
                     "Unsupported status list Content-Type %s".formatted(response.contentType()),
-                    new IllegalStateException("Unsupported status list Content-Type"));
+                    null);
         }
     }
 
