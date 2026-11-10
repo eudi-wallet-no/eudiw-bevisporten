@@ -142,11 +142,9 @@ class TokenStatuslistRestClientTest {
                 .andExpect(header(HttpHeaders.ACCEPT, StatusListTokenFormat.CWT.mediaType().toString()))
                 .andRespond(withStatus(HttpStatus.NOT_ACCEPTABLE));
 
+        ValidationStatus status = service.lookupStatusFromStatuslist(uri, 0, StatusListTokenFormat.JWT);
 
-        Assertions.assertThrows(VerificationException.class, () -> {
-            service.lookupStatusFromStatuslist(uri, 0, StatusListTokenFormat.JWT);
-        });
-
+        assertEquals(ValidationStatus.INCONCLUSIVE, status);
         mockServer.verify();
     }
 

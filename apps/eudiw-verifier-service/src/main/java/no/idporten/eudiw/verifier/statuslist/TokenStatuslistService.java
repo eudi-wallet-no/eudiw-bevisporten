@@ -137,16 +137,12 @@ public class TokenStatuslistService {
     }
 
     public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx, StatusListTokenFormat preferredFormat) {
+        try {
         if (uri == null || preferredFormat == null) {
             throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list URI and preferred format are required");
         }
-        final StatusListResponse response;
-        try {
-            response = requestStatusList(uri, preferredFormat);
-        } catch (StatusCommunicationException | IOConnectionException e) {
-            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
-            return ValidationStatus.INCONCLUSIVE;
-        }
+         StatusListResponse response = requestStatusList(uri, preferredFormat);
+        
         if (response.body() == null || response.body().length == 0) {
             throw new StatusCommunicationException(
                     STATUS_LIST_USER_ERROR,
@@ -162,11 +158,11 @@ public class TokenStatuslistService {
         }
         if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
             return checkStatus(uri, idx, response.body(), Instant.now());
-        } else {
-            throw new StatusCommunicationException(
-                    STATUS_LIST_USER_ERROR,
-                    "Unsupported status list Content-Type %s".formatted(response.contentType()), null);
+        } } catch (StatusCommunicationException | IOConnectionException e) {
+            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
+            return ValidationStatus.INCONCLUSIVE;
         }
+        return ValidationStatus.INCONCLUSIVE;
     }
 
     private boolean hasContentType(MediaType contentType, StatusListTokenFormat format) {
