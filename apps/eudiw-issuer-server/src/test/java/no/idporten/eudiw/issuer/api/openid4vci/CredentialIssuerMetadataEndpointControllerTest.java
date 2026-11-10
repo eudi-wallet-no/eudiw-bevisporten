@@ -141,6 +141,26 @@ public class CredentialIssuerMetadataEndpointControllerTest {
     @DisplayName("when requesting credential metadata content")
     class CredentialMetadataContent {
 
+        @DisplayName("When a credential defines key attestation requirements, then credential-specific requirements in metadata are expected")
+        @Test
+        void testCredentialKeyAttestationRequirementsInMetadata() throws Exception {
+            mockMvc.perform(get("/.well-known/openid-credential-issuer"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['proof_types_supported']['jwt']['key_attestations_required']['key_storage']")
+                            .value(Matchers.contains("iso_18045_high")))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['proof_types_supported']['attestation']['key_attestations_required']['key_storage']")
+                            .value(Matchers.contains("iso_18045_high")))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['proof_types_supported']['jwt']['key_attestations_required']['user_authentication']")
+                            .value(Matchers.contains("iso_18045_high", "iso_18045_moderate")))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_mso_mdoc']['proof_types_supported']['attestation']['key_attestations_required']['user_authentication']")
+                            .value(Matchers.contains("iso_18045_high", "iso_18045_moderate")))
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['proof_types_supported']['jwt']['key_attestations_required']['key_storage']").doesNotExist())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['proof_types_supported']['attestation']['key_attestations_required']['key_storage']").doesNotExist())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['proof_types_supported']['jwt']['key_attestations_required']['user_authentication']").doesNotExist())
+                    .andExpect(jsonPath("$['credential_configurations_supported']['junitdoc_sd_jwt_vc']['proof_types_supported']['attestation']['key_attestations_required']['user_authentication']").doesNotExist());
+        }
+
         @DisplayName("then credential configurations metadata is created from issuer server, credentials configuration and claims sources config ")
         @Test
         void testCredentialConfigurationsSupportedBuiltFromApplicationConfiguration() throws Exception {
