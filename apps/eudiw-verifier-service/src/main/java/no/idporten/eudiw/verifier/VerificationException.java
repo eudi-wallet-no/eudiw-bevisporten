@@ -1,22 +1,46 @@
 package no.idporten.eudiw.verifier;
 
-import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-@Getter
 public class VerificationException extends RuntimeException {
 
-    private String error;
-    private String errorDescription;
+    private final String error;
+    private final String logMessage;
+    private final HttpStatus httpStatus;
 
-    public VerificationException(String errorCode, String errorMessage) {
-        super(errorMessage);
-        this.error = errorCode;
-        this.errorDescription = errorMessage;
+    public VerificationException(ErrorCode errorCode, String errorDescription) {
+        this(errorCode, errorDescription, null, null);
     }
-    public VerificationException(String errorCode, String errorMessage, Exception e) {
-        super(errorMessage, e);
-        this.error = errorCode;
-        this.errorDescription = errorMessage;
+
+    public VerificationException(ErrorCode errorCode, String errorDescription, Throwable cause) {
+        this(errorCode, errorDescription, null, cause);
+    }
+
+    public VerificationException(ErrorCode errorCode, String errorDescription, String logMessage) {
+        this(errorCode, errorDescription, logMessage, null);
+    }
+
+    public VerificationException(ErrorCode errorCode, String errorDescription, String logMessage, Throwable cause) {
+        super(errorDescription, cause);
+        this.error = errorCode.error();
+        this.httpStatus = errorCode.httpStatus();
+        this.logMessage = logMessage;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public String getLogMessage() {
+        return logMessage;
+    }
+
+    public HttpStatus getHttpStatus() {
+        return httpStatus;
+    }
+
+    public String getErrorDescription() {
+        return super.getMessage();
     }
 
 }

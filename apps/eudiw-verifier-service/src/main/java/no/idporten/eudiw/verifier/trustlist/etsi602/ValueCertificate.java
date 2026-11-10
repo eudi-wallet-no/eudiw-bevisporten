@@ -1,6 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist.etsi602;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -23,7 +24,7 @@ public record ValueCertificate(
 
     public String getValidCertString() {
         if (!hasCertificate()) {
-            throw new VerificationException("invalid_request", "DigitalId cert is null/blank for this DigitalId entry");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "DigitalId cert is null/blank for this DigitalId entry");
         }
         String prefix = "-----BEGIN CERTIFICATE-----";
         String suffix = "-----END CERTIFICATE-----";
@@ -37,7 +38,7 @@ public record ValueCertificate(
         try (PEMParser pemParser = new PEMParser(new StringReader(getValidCertString()))) {
             return (X509CertificateHolder) pemParser.readObject();
         } catch (IOException | DecoderException e) {
-            throw new VerificationException("invalid_request", "Certificate cannot be read", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Certificate cannot be read", e);
         }
     }
 
@@ -45,7 +46,7 @@ public record ValueCertificate(
         try {
             return new JcaX509CertificateConverter().getCertificate(getCertificate());
         } catch (CertificateException e) {
-            throw new VerificationException("invalid_request", "Certificate cannot be read into x509 object", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Certificate cannot be read into x509 object", e);
         }
 
     }

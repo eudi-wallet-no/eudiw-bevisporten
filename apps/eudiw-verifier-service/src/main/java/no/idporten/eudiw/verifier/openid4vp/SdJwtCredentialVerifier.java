@@ -12,6 +12,7 @@ import id.walt.policies2.vp.policies.*;
 import id.walt.policies2.vp.policies.VPPolicy2.PolicyRunResult;
 import kotlinx.serialization.json.JsonObject;
 import kotlinx.serialization.json.JsonPrimitive;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.config.SdjwtConfig;
 import no.idporten.eudiw.verifier.crypto.JwsSignatureVerifier;
@@ -89,7 +90,7 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
         try {
             JwsSignatureVerifier.verify(presentation.getSdJwt(), issuerCertificate);
         } catch (IllegalArgumentException e) {
-            throw new VerificationException("invalid_request", "Invalid vp_token. Issuer signature is invalid.", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid vp_token. Issuer signature is invalid.", e);
         }
 
         List<DcSdJwtVPPolicy> selectedPolicies = hasKeyBinding ? policies : without(policies, HOLDER_BINDING_POLICY);
@@ -115,7 +116,7 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
     private static DcSdJwtPresentation presentationWithoutKeyBinding(String vpToken) {
         DigitalCredential credential = parse(() -> WaltPresentations.parseCredential(vpToken), "Failed to parse SD-JWT vp_token");
         if (!(credential instanceof SdJwtCredential)) {
-            throw new VerificationException("invalid_request", "vp_token is not an SD-JWT VC");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "vp_token is not an SD-JWT VC");
         }
         List<String> parts = List.of(vpToken.split("~"));
         return new DcSdJwtPresentation(parts.getFirst(), parts.subList(1, parts.size()), "", credential,
@@ -127,11 +128,11 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
         try {
             x5c = JWSHeader.parse(new Base64URL(issuerSignedJwt.substring(0, issuerSignedJwt.indexOf('.')))).getX509CertChain();
         } catch (ParseException | IndexOutOfBoundsException e) {
-            throw new VerificationException("invalid_request", "Failed to extract certificate from SDJwt", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to extract certificate from SDJwt", e);
         }
         X509Certificate certificate = x5c == null || x5c.isEmpty() ? null : X509CertUtils.parse(x5c.getFirst().decode());
         if (certificate == null) {
-            throw new VerificationException("invalid_request", "Failed to extract certificate from SDJwt or certificate is null");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to extract certificate from SDJwt or certificate is null");
         }
         return certificate;
     }
@@ -144,12 +145,12 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
             try {
                 parsedDisclosure = JSONArrayUtils.parse(new String(java.util.Base64.getUrlDecoder().decode(disclosure)));
             } catch (ParseException | IllegalArgumentException e) {
-                throw new VerificationException("invalid_request", "Failed to parse disclosure", e);
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to parse disclosure", e);
             }
             if (parsedDisclosure.size() == 3 && parsedDisclosure.get(1) instanceof String claimName) {
                 claims.put(claimName, parsedDisclosure.get(2));
             } else if (parsedDisclosure.size() != 2) {
-                throw new VerificationException("invalid_request", "Failed to parse disclosure");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to parse disclosure");
             }
         }
         return claims;
@@ -161,7 +162,7 @@ public class SdJwtCredentialVerifier extends CredentialVerifier {
             return null;
         }
         if (!(statusList.get("idx") instanceof JsonPrimitive idx) || !(statusList.get("uri") instanceof JsonPrimitive uri)) {
-            throw new VerificationException("invalid_request", "Invalid status list in vp_token");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid status list in vp_token");
         }
         return new StatuslistEntry(idx.getContent(), URI.create(uri.getContent()));
     }

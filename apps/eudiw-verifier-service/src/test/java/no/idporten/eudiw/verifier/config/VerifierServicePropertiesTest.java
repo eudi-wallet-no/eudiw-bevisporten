@@ -98,7 +98,7 @@ class VerifierServicePropertiesTest {
                     () -> assertEquals("junit-disabled", disabledClientApplication.getId()),
                     () -> assertEquals("junit-access", disabledClientApplication.getKeystoreName()),
                     () -> assertTrue(disabledClientApplication.isDisabled()),
-                    () -> assertEquals("invalid_request", exception.getError()),
+                    () -> assertEquals("invalid_client", exception.getError()),
                     () -> assertEquals("Unknown client application", exception.getErrorDescription())
             );
         }
@@ -112,7 +112,7 @@ class VerifierServicePropertiesTest {
             );
 
             assertAll(
-                    () -> assertEquals("invalid_request", exception.getError()),
+                    () -> assertEquals("invalid_client", exception.getError()),
                     () -> assertEquals("Unknown client application", exception.getErrorDescription())
             );
         }
@@ -140,14 +140,14 @@ class VerifierServicePropertiesTest {
         @ValueSource(strings = {"", " ", "invalid-api-key"})
         void rejectsInvalidApiKeyForValidClientApplications(final String apiKey) {
 
-            ResponseStatusException exception = assertThrows(
-                    ResponseStatusException.class,
+            VerificationException exception = assertThrows(
+                    VerificationException.class,
                     () -> properties.validateClientApplication("junit", apiKey)
             );
 
             assertAll(
-                    () -> assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode()),
-                    () -> assertEquals("Invalid API Key", exception.getReason())
+                    () -> assertEquals("invalid_client", exception.getError()),
+                    () -> assertEquals("Invalid API Key", exception.getErrorDescription())
             );
         }
 
@@ -161,7 +161,7 @@ class VerifierServicePropertiesTest {
             );
 
             assertAll(
-                    () -> assertEquals("invalid_request", exception.getError()),
+                    () -> assertEquals("invalid_client", exception.getError()),
                     () -> assertEquals("Unknown client application", exception.getErrorDescription())
             );
         }

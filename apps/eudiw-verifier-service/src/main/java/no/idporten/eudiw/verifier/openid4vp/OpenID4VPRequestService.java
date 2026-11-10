@@ -20,6 +20,7 @@ import com.nimbusds.openid.connect.sdk.Nonce;
 import lombok.SneakyThrows;
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.cache.CacheService;
 import no.idporten.eudiw.verifier.config.ClientApplication;
@@ -97,12 +98,12 @@ public class OpenID4VPRequestService {
         try {
             md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new VerificationException("server_error", "Failed to generate client-id", e);
+            throw new VerificationException(ErrorCode.SERVER_ERROR, "Failed to generate client-id", e);
         }
         try {
             md.update(keystoreManager.getKeyProvider(clientApplication.getKeystoreName()).certificate().getEncoded());
         } catch (CertificateEncodingException e) {
-            throw new VerificationException("server_error", "Failed to get keystore to generate client-id", e);
+            throw new VerificationException(ErrorCode.SERVER_ERROR, "Failed to get keystore to generate client-id", e);
         }
         String clientId = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(md.digest());
         return "x509_hash:" + clientId;
@@ -118,12 +119,12 @@ public class OpenID4VPRequestService {
     public String retrieveAuthorizationRequest(ClientApplication clientApplication, String requestId, String flow) {
         String verificationTransactionId = cacheService.retrieveAuthorizationRequest(clientApplication, requestId);
         if (verificationTransactionId == null) {
-            throw new VerificationException("invalid_request", "Unknown authorization request");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown authorization request");
         }
         auditService.auditRetrieveAuthzRequest(verificationTransactionId, clientApplication, requestId, flow);
         VerificationTransaction verificationTransaction = verificationTransactionService.getVerificationTransaction(clientApplication, verificationTransactionId);
         if (verificationTransaction == null) {
-            throw new VerificationException("invalid_request", "Unknown verification transaction");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Unknown verification transaction");
         }
         String state = UUID.randomUUID().toString();
         JWK encryptionKey = new ECKeyGenerator(Curve.P_256).algorithm(ResponseEncryption.ENCRYPTION_ALGORITHM).keyUse(KeyUse.ENCRYPTION).keyIDFromThumbprint(true).generate();
@@ -209,14 +210,14 @@ public class OpenID4VPRequestService {
         try {
             attestation = JSONObjectUtils.parse(attestationJson);
         } catch (ParseException e) {
-            throw new VerificationException("server_error", "Failed to parse configured verifier info attestation", e);
+            throw new VerificationException(ErrorCode.SERVER_ERROR, "Failed to parse configured verifier info attestation", e);
         }
         Object format = attestation.get("format");
         Object data = attestation.get("data");
         if (!(format instanceof String formatValue)
                 || formatValue.isBlank()
                 || !(data instanceof Map<?, ?> || data instanceof String)) {
-            throw new VerificationException("server_error", "Invalid configured verifier info attestation");
+            throw new VerificationException(ErrorCode.SERVER_ERROR, "Invalid configured verifier info attestation");
         }
         verifierInfo.add(attestation);
     }

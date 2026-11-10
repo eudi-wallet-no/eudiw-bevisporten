@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public record ServiceDigitalIdentity(
                 if(digitalId.getCertificateAsX509Object() != null) {
                     listOfDigitalIdWithCertificate.add(digitalId);
                 } else {
-                    throw new VerificationException("invalid_request", "Certificate cannot be read into x509 object");
+                    throw new VerificationException(ErrorCode.INVALID_REQUEST, "Certificate cannot be read into x509 object");
                 }
             }
         }

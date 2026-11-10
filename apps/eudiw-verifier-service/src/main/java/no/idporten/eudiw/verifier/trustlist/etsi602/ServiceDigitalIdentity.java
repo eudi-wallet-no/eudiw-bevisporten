@@ -1,6 +1,7 @@
 package no.idporten.eudiw.verifier.trustlist.etsi602;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 
 import java.security.cert.X509Certificate;
@@ -18,7 +19,7 @@ public record ServiceDigitalIdentity(
             if(cert.getCertificateAsX509Object() != null) {
                 certs.add(cert.getCertificateAsX509Object());
             } else {
-                throw new VerificationException("invalid_request", "trustlist contains non-parsable certificate");
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "trustlist contains non-parsable certificate");
             }
         }
         return certs;

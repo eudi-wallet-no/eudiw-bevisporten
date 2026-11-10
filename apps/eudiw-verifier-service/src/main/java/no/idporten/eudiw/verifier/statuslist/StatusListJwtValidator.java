@@ -3,6 +3,7 @@ package no.idporten.eudiw.verifier.statuslist;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 
 import java.net.URI;
@@ -19,7 +20,7 @@ import java.util.Set;
 public class StatusListJwtValidator {
 
     private static final String STATUS_LIST_JWT_TYP = "statuslist+jwt";
-    private static final String ERROR_CODE = "invalid_request";
+    private static final ErrorCode ERROR_CODE = ErrorCode.INVALID_REQUEST;
 
     private final Set<JWSAlgorithm> allowedAlgorithms;
     private final Duration clockSkew;
