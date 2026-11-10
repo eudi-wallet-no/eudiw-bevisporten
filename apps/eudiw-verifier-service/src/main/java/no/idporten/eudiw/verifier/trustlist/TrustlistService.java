@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.xml.deser.FromXmlParser;
 import com.nimbusds.jose.JWSObject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import no.idporten.eudiw.verifier.trustlist.etsi602.ServiceInformation;
@@ -56,7 +57,7 @@ public class TrustlistService {
                     .retrieve()
                     .body(String.class);
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot fetch trustlist %s".formatted(uri), e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Cannot fetch trustlist %s".formatted(uri), e);
         }
     }
 
@@ -97,7 +98,7 @@ public class TrustlistService {
                             log.info("Certificate found and validated OK against 119602 JSON trustlist at {} for service {}", uri, find602ServiceName(service.serviceInformation()));
                             return true;
                         } else {
-                            throw new VerificationException("invalid_request", "Service " +
+                            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Service " +
                                     find602ServiceName(service.serviceInformation()) +
                                     "  is set to inactive on trustlist," +
                                     "or is missing status field ");
@@ -183,7 +184,7 @@ public class TrustlistService {
                     .build();
             return xmlMapper.readValue(trustlist, LoTEXml.class);
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 612 trustlist", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Cannot parse ETSI TS 119 612 trustlist", e);
         }
     }
 
@@ -195,7 +196,7 @@ public class TrustlistService {
                     .build();
             return xmlMapper.readValue(trustlist, LoTEXml602.class);
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 602 XML trustlist", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Cannot parse ETSI TS 119 602 XML trustlist", e);
         }
     }
 
@@ -205,7 +206,7 @@ public class TrustlistService {
             ObjectMapper objectMapper = new JsonMapper();
             return objectMapper.readValue(jwt.getPayload().toString(), LoTEJson.class);
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot parse ETSI TS 119 602 trustlist", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Cannot parse ETSI TS 119 602 trustlist", e);
         }
 
     }
@@ -225,7 +226,7 @@ public class TrustlistService {
                     trustedCertificate.getSubjectX500Principal(), e.getMessage());
             return false;
         } catch (CertificateException | NoSuchAlgorithmException | NoSuchProviderException e) {
-            throw new VerificationException("invalid_request", "Cannot verify certificate signature against trustlist CA", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Cannot verify certificate signature against trustlist CA", e);
         }
     }
 
@@ -233,7 +234,7 @@ public class TrustlistService {
         try {
             return Arrays.toString(certificatesToCompareWith.getTBSCertificate()).equals(Arrays.toString(certificateFromWalletResponse.getTBSCertificate()));
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Cannot compare certificates", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Cannot compare certificates", e);
         }
     }
 

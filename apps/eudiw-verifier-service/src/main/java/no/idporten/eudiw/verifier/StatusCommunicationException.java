@@ -1,22 +1,8 @@
 package no.idporten.eudiw.verifier;
 
-public class StatusCommunicationException extends RuntimeException {
+public class StatusCommunicationException extends VerificationException {
 
-    private String errorCode;
-    private String errorDescription;
-
-    public StatusCommunicationException(String errorCode, String errorDescription, Exception exception) {
-        super(errorDescription, exception);
-        this.errorCode = errorCode;
-        this.errorDescription = errorDescription;
+    public StatusCommunicationException(String errorDescription, String logMessage, Exception e) {
+        super(ErrorCode.INVALID_REQUEST, errorDescription, logMessage, e);
     }
-
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    public String getErrorDescription() {
-        return errorDescription;
-    }
-
 }

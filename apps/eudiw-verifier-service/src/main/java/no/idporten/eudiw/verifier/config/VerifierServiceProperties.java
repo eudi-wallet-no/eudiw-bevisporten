@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import no.idporten.eudiw.verifier.ErrorCode;
+import no.idporten.eudiw.verifier.InvalidClientException;
 import no.idporten.eudiw.verifier.VerificationException;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -36,7 +38,7 @@ public class VerifierServiceProperties implements InitializingBean {
         ClientApplication clientApplication = clientApplications.get(clientApplicationId);
 
         if (clientApplication == null || clientApplication.isDisabled()) {
-            throw new VerificationException("invalid_request", "Unknown client application");
+            throw new InvalidClientException("Unknown client application", "Unknown client application %s".formatted(clientApplicationId));
         }
 
         return clientApplication;
@@ -46,13 +48,15 @@ public class VerifierServiceProperties implements InitializingBean {
         ClientApplication clientApplication = clientApplications.get(clientApplicationId);
 
         if (clientApplication == null || clientApplication.isDisabled()) {
-            throw new VerificationException("invalid_request", "Unknown client application");
+            throw new InvalidClientException("Unknown client application", "Unknown client application %s".formatted(clientApplicationId));
         }
 
+
         if (apiKey == null || !apiKey.equals(clientApplication.getApiKey())) {
-            // TODO: replace logging with exception when clients are ready
-            LoggerFactory.getLogger(VerifierServiceProperties.class).warn("Invalid API Key for client application: " + clientApplicationId);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid API Key"); // TODO skrive om til custom exception som håndteres i ControllerAdvice
+            throw new InvalidClientException(
+                    "Invalid API Key",
+                    "Invalid API key for client application %s".formatted(clientApplicationId)
+            );
         }
 
         return clientApplication;

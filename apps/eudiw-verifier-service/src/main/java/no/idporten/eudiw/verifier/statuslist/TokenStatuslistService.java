@@ -8,6 +8,7 @@ import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.nimbusds.jwt.SignedJWT;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.IOConnectionException;
 import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
@@ -50,6 +51,8 @@ public class TokenStatuslistService {
     private final TokenStatuslistConfig tokenStatuslistConfig;
     private final StatusListCwtValidator statusListCwtValidator;
 
+    private static final String STATUS_LIST_USER_ERROR = "Error in communication about status of credential";
+
     private static final Logger log = LoggerFactory.getLogger(TokenStatuslistService.class);
 
     public TokenStatuslistService(@Qualifier("tokenStatuslist") RestClient restClient, TokenStatuslistConfig tokenStatuslistConfig) {
@@ -90,38 +93,38 @@ public class TokenStatuslistService {
         try {
             jwt = SignedJWT.parse(statusListJwt);
         } catch (ParseException e) {
-            throw new VerificationException("invalid_request", "Status list JWT is not a valid compact signed JWT", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT is not a valid compact signed JWT", e);
         }
         JWSHeader jwsHeader = jwt.getHeader();
         List<Base64> x5c = jwsHeader.getX509CertChain();
         if (x5c == null || x5c.isEmpty()) {
             String keyReferences = keyReferenceHeaders(jwsHeader);
             if (!keyReferences.isEmpty()) {
-                throw new VerificationException("invalid_request", "Status list JWT key resolution by " + keyReferences
+                throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT key resolution by " + keyReferences
                         + " is not supported yet, x5c is required");
             }
-            throw new VerificationException("invalid_request", "Status list JWT must include x5c certificate chain");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT must include x5c certificate chain");
         }
 
         final byte[] encodedCert;
         try {
             encodedCert = x5c.getFirst().decode();
         } catch (Exception e) {
-            throw new VerificationException("invalid_request", "Status list JWT x5c certificate could not be parsed", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT x5c certificate could not be parsed", e);
         }
 
         X509Certificate cert = X509CertUtils.parse(encodedCert);
         if (cert == null) {
-            throw new VerificationException("invalid_request", "Status list JWT x5c certificate could not be parsed");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT x5c certificate could not be parsed");
         }
         PublicKey publicKey = cert.getPublicKey();
         if (!(publicKey instanceof RSAPublicKey || publicKey instanceof ECPublicKey)) {
-            throw new VerificationException("invalid_request", "Status list JWT x5c certificate must contain an EC or RSA public key");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list JWT x5c certificate must contain an EC or RSA public key");
         }
         try {
             return new DefaultJWSVerifierFactory().createJWSVerifier(jwsHeader, publicKey);
         } catch (JOSEException e) {
-            throw new VerificationException("invalid_request", "Failed to create JWS verifier for Status list JWT", e);
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Failed to create JWS verifier for Status list JWT", e);
         }
     }
 
@@ -134,31 +137,32 @@ public class TokenStatuslistService {
     }
 
     public ValidationStatus lookupStatusFromStatuslist(URI uri, int idx, StatusListTokenFormat preferredFormat) {
-        ValidationStatus status;
         try {
-            if (uri == null || preferredFormat == null) {
-                throw new VerificationException("invalid_request", "Status list URI and preferred format are required");
-            }
-            StatusListResponse response = requestStatusList(uri, preferredFormat);
-            if (response.body() == null || response.body().length == 0) {
-                throw new VerificationException("Invalid response", "Response body from status API is empty for url %s".formatted(uri));
-            }
-            if (response.contentType() == null) {
-                throw new VerificationException("Invalid response", "Content-Type is missing from status API response for url %s".formatted(uri));
-            }
-            if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
-                return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
-            }
-            if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
-                return checkStatus(uri, idx, response.body(), Instant.now());
-            }
-            throw new VerificationException("Invalid response", "Unsupported status list Content-Type %s".formatted(response.contentType()));
-        } catch (StatusCommunicationException | IOConnectionException e) {
-            // TODO: create and update metrics for IOConnectionException.
-            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
-            status = ValidationStatus.INCONCLUSIVE;
+        if (uri == null || preferredFormat == null) {
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Status list URI and preferred format are required");
         }
-        return status;
+         StatusListResponse response = requestStatusList(uri, preferredFormat);
+        
+        if (response.body() == null || response.body().length == 0) {
+            throw new StatusCommunicationException(
+                    STATUS_LIST_USER_ERROR,
+                    "Response body from status API is empty for url %s".formatted(uri), null);
+        }
+        if (response.contentType() == null) {
+            throw new StatusCommunicationException(
+                    STATUS_LIST_USER_ERROR,
+                    "Content-Type is missing from status API response for url %s".formatted(uri), null);
+        }
+        if (hasContentType(response.contentType(), StatusListTokenFormat.JWT)) {
+            return checkStatus(uri, idx, new String(response.body(), StandardCharsets.UTF_8), Instant.now());
+        }
+        if (hasContentType(response.contentType(), StatusListTokenFormat.CWT)) {
+            return checkStatus(uri, idx, response.body(), Instant.now());
+        } } catch (StatusCommunicationException | IOConnectionException e) {
+            log.error("Set validation-status=INCONCLUSIVE since error in communication with status-api: {}", uri, e);
+            return ValidationStatus.INCONCLUSIVE;
+        }
+        return ValidationStatus.INCONCLUSIVE;
     }
 
     private boolean hasContentType(MediaType contentType, StatusListTokenFormat format) {
@@ -168,7 +172,7 @@ public class TokenStatuslistService {
 
     private StatusListResponse requestStatusList(URI uri, StatusListTokenFormat preferredFormat) {
         if (uri == null) {
-            throw new VerificationException("Invalid response", "Statuslist url is null");
+            throw new VerificationException(ErrorCode.INVALID_REQUEST, "Statuslist url is null");
         }
         StatusListTokenFormat[] formats = {preferredFormat, preferredFormat.fallback()};
         for (int index = 0; index < formats.length; index++) {
@@ -187,19 +191,18 @@ public class TokenStatuslistService {
                     continue;
                 }
                 throw new StatusCommunicationException(
-                        "Could not verify status",
+                        STATUS_LIST_USER_ERROR,
                         "Status list API returned status code=%s for uri=%s".formatted(e.getStatusCode(), uri),
                         e);
             } catch (ResourceAccessException e) {
-                throw new IOConnectionException("Could not verify status", "Error in connection with status list API " + uri, e);
+                throw new IOConnectionException("Error in connection with status list API %s".formatted(uri), e);
             } catch (Exception e) {
-                throw new StatusCommunicationException("Could not verify status", "Error in communication with status list API=" + uri, e);
+                throw new StatusCommunicationException(STATUS_LIST_USER_ERROR, "Error in communication with status list API=" + uri, e);
             }
         }
         throw new StatusCommunicationException(
-                "Could not verify status",
-                "No supported status list format was returned for uri=" + uri,
-                new IllegalStateException("Both requested status-list formats were rejected"));
+                STATUS_LIST_USER_ERROR,
+                "No supported status list format was returned for uri=" + uri, null);
     }
 
     private record StatusListResponse(MediaType contentType, byte[] body) {

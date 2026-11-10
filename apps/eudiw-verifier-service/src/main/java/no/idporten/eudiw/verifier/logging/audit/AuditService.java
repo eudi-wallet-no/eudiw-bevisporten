@@ -1,5 +1,6 @@
 package no.idporten.eudiw.verifier.logging.audit;
 
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationRequest;
 import no.idporten.eudiw.verifier.api.verification.StartVerificationResponse;
@@ -143,7 +144,7 @@ public class AuditService {
         try {
             return objectMapper.writeValueAsString(jsonMap);
         } catch (Exception e) {
-            throw new VerificationException("error", "Failed to convert vpToken to json for logging", e);
+            throw new VerificationException(ErrorCode.SERVER_ERROR, "Failed to convert vpToken to json for logging", e);
         }
 
     }

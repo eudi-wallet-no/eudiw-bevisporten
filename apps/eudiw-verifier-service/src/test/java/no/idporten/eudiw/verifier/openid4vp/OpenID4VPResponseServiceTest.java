@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import no.idporten.eudiw.verifier.ErrorCode;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -287,7 +288,7 @@ class OpenID4VPResponseServiceTest {
         VerificationTransaction transaction = transaction(query("pid", "mso_mdoc", false));
         when(verificationService.getVerificationTransaction(client, TRANSACTION_ID)).thenReturn(transaction);
         VerificationException processingException =
-                new VerificationException("invalid_request", "Invalid mdoc");
+                new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid mdoc");
         when(mdocVerifier.verify(eq("mdoc-token"), any(), eq(transaction))).thenThrow(processingException);
 
         VerificationException exception = assertThrows(
