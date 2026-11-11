@@ -8,7 +8,6 @@ import no.idporten.eudiw.issuer.oauth2.AccessTokenValidator;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerService;
-import no.idporten.eudiw.issuer.openid4vci.proofs.ProofService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
@@ -58,9 +57,6 @@ public class CredentialEndpointControllerTest {
     private CredentialIssuerService credentialIssuerService;
 
     @MockitoBean
-    private ProofService proofService;
-
-    @MockitoBean
     private AuditLogger auditLogger;
 
     @Captor
@@ -101,7 +97,7 @@ public class CredentialEndpointControllerTest {
                 .andExpect(jsonPath("$.credentials").isArray())
                 .andExpect(jsonPath("$.credentials").isNotEmpty())
                 .andExpect(jsonPath("$.credentials[0].credential").value("foo"));
-        verify(proofService).validateProofs(credentialIssuerTenantCaptor.capture(), any());
+        verify(credentialIssuerService).issueCredentials(credentialIssuerTenantCaptor.capture(), any(CredentialRequest.class), any(JWT.class));
         assertTrue(credentialIssuerTenantCaptor.getValue().isRootCredentialIssuer());
     }
 
@@ -117,7 +113,7 @@ public class CredentialEndpointControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.error").value("invalid_credential_request"));
-        verifyNoInteractions(credentialIssuerService, proofService);
+        verifyNoInteractions(credentialIssuerService);
     }
 
     @DisplayName("then a credential request can not have both credential_identifier and credential_configuration_id")
@@ -135,7 +131,7 @@ public class CredentialEndpointControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.error").value("invalid_credential_request"));
-        verifyNoInteractions(credentialIssuerService, proofService);
+        verifyNoInteractions(credentialIssuerService);
     }
 
     @DisplayName("then a credential without proof gives credential error response with a c_nonce")
@@ -153,7 +149,7 @@ public class CredentialEndpointControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
                 .andExpect(jsonPath("$.error").value("invalid_proof"))
                 .andExpect(jsonPath("$.c_nonce").isNotEmpty());
-        verifyNoInteractions(credentialIssuerService, proofService);
+        verifyNoInteractions(credentialIssuerService);
     }
 
 }
