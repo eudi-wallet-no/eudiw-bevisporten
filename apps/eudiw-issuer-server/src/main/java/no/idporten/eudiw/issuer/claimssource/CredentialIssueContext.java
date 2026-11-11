@@ -6,6 +6,7 @@ import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialCon
 import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.oauth2.InvalidAccessTokenException;
+import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
 
 /**
  * Context for credential issuance.
@@ -15,13 +16,15 @@ import no.idporten.eudiw.issuer.oauth2.InvalidAccessTokenException;
  * @param credentialConfiguration credential configuration for the credential being issued
  * @param issuanceTransactionId issuance transaction id, resolved by the caller before building the context
  * @param issuanceType the grant type flow in use, determined from the access token
+ * @param bindingKeys binding keys from the validated proofs in the credential request
  */
 public record CredentialIssueContext(
         JWT accessToken,
         CredentialIssuerTenant credentialIssuerTenant,
         ExtendedCredentialConfiguration credentialConfiguration,
         IssuanceTransactionId issuanceTransactionId,
-        CredentialIssuanceType issuanceType) {
+        CredentialIssuanceType issuanceType,
+        BindingKeys bindingKeys) {
 
     /**
      * Extract person identifier from access token subject.

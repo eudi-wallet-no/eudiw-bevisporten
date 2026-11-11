@@ -34,7 +34,8 @@ public class CredentialCreateService {
     /**
      * Creates credentials in the format configured on credential configuration.
      */
-    public List<Credential> createCredentials(CredentialIssueContext context, BindingKeys bindingKeys, List<Claim> claims) {
+    public List<Credential> createCredentials(CredentialIssueContext context, List<Claim> claims) {
+        BindingKeys bindingKeys = context.bindingKeys();
         if (bindingKeys == null) {
             // TODO this is most likely invalid - test with android and ios updated to OpenID4VCI 1!
             return List.of(createCredential(context, null, claims, allocateStatus(context)));

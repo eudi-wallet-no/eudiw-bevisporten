@@ -41,6 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.net.URI;
 import java.util.List;
 
+import static no.idporten.eudiw.issuer.TestData.bindingKeys;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -118,8 +119,9 @@ public class CredentialIssuerServiceTest {
             List<Claim> claims = List.of(Claim.builder().path("n1").path("p1").value(new StringValue("v1")).build());
             when(claimsSource.issueClaims(credentialIssueContextCaptor.capture())).thenReturn(claims);
             when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
-            when(proofService.validateProofs(any(), any(), any())).thenReturn(new BindingKeys(List.of()));
-            when(credentialCreateService.createCredentials(any(), any(BindingKeys.class), anyList()))
+            BindingKeys bindingKeys = bindingKeys();
+            when(proofService.validateProofs(any(), any(), any())).thenReturn(bindingKeys);
+            when(credentialCreateService.createCredentials(any(), anyList()))
                     .thenReturn(List.of(Credential.builder().credential("{credential-with-n1-p1-v1}").build()));
             IssuanceTransactionId issuanceTransactionId = new IssuanceTransactionId(transactionId);
             when(credentialIssuanceStatusService.credentialIssued(eq("cid"), eq(issuanceTransactionId))).thenReturn(new NotificationId("nid"));
@@ -127,6 +129,7 @@ public class CredentialIssuerServiceTest {
             List<Credential> credentials = credentialResponse.getCredentials();
             assertAll(
                     () -> assertEquals(accessToken, credentialIssueContextCaptor.getValue().accessToken()),
+                    () -> assertSame(bindingKeys, credentialIssueContextCaptor.getValue().bindingKeys()),
                     () -> assertEquals(1, credentials.size()),
                     () -> assertTrue(credentials.getFirst().getCredential().contains("n1")),
                     () -> assertTrue(credentials.getFirst().getCredential().contains("p1")),
@@ -173,8 +176,8 @@ public class CredentialIssuerServiceTest {
 
             when(claimsSource.issueClaims(any())).thenReturn(List.of(Claim.builder().path("n1").value(new StringValue("v1")).build()));
             when(claimsSourceService.findClaimsSource(any(URI.class))).thenReturn(claimsSource);
-            when(proofService.validateProofs(any(), any(), any())).thenReturn(new BindingKeys(List.of()));
-            when(credentialCreateService.createCredentials(any(), any(BindingKeys.class), anyList()))
+            when(proofService.validateProofs(any(), any(), any())).thenReturn(bindingKeys());
+            when(credentialCreateService.createCredentials(any(), anyList()))
                     .thenReturn(List.of(Credential.builder().credential("{credential}").build()));
             when(credentialIssuanceStatusService.credentialIssued(eq("cid"), any(IssuanceTransactionId.class)))
                     .thenReturn(new NotificationId("nid"));
@@ -183,7 +186,7 @@ public class CredentialIssuerServiceTest {
 
             InOrder inOrder = inOrder(credentialIssuanceTransactionDao, credentialCreateService);
             inOrder.verify(credentialIssuanceTransactionDao).insertTransaction(anyString(), eq("cid"), isNull(), anyLong());
-            inOrder.verify(credentialCreateService).createCredentials(any(), any(BindingKeys.class), anyList());
+            inOrder.verify(credentialCreateService).createCredentials(any(), anyList());
             verify(subjectCredentialTransactionDao).insertSubjectCredentialTransaction(eq("12345678901"), anyString(), anyLong());
             verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
         }

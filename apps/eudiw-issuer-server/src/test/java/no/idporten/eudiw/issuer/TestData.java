@@ -11,6 +11,7 @@ import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMet
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
+import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
 
 import java.net.URI;
 import java.util.List;
@@ -73,6 +74,13 @@ public class TestData {
 
     public static String syntheticPersonIdentifier() {
         return "03866599717";
+    }
+
+    /**
+     * Binding keys without any validated proofs
+     */
+    public static BindingKeys bindingKeys() {
+        return new BindingKeys(List.of());
     }
 
 }

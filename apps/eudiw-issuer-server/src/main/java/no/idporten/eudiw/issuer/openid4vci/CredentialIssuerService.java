@@ -55,9 +55,9 @@ public class CredentialIssuerService {
         CredentialIssuanceType issuanceType = CredentialIssuanceType.fromAccessToken(accessToken);
         IssuanceTransactionId issuanceTransactionId = resolveIssuanceTransactionId(accessToken, issuanceType, credentialRequest, tenant);
 
-        CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration, issuanceTransactionId, issuanceType);
+        CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration, issuanceTransactionId, issuanceType, bindingKeys);
         List<Claim> claims = claimsSource.issueClaims(credentialIssueContext);
-        List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
+        List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, claims);
         createSubjectCredentialTransaction(credentialIssueContext, issuanceTransactionId);
 
         NotificationId notificationId = switch (issuanceType) {
