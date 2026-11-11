@@ -35,7 +35,10 @@ import java.util.List;
 import static no.idporten.eudiw.issuer.TestData.junitCredentialConfiguration;
 import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class ProofServiceTest {
@@ -73,8 +76,12 @@ public class ProofServiceTest {
         CredentialIssuerTenant credentialIssuerTenant = CredentialIssuerTenant.builder()
                 .credentialIssuer(URI.create("https://utsteder.test.eidas2sandkasse.net"))
                 .build();
-       List<JWK> bindingKeys = proofService.validateProofs(credentialIssuerTenant, junitCredentialConfiguration(), proofs);
-       assertEquals(1, bindingKeys.size());
+       BindingKeys bindingKeys = proofService.validateProofs(credentialIssuerTenant, junitCredentialConfiguration(), proofs);
+       assertEquals(1, bindingKeys.keys().size());
+       AttestedKeys attestedKeys = bindingKeys.keys().getFirst();
+       assertEquals(1, attestedKeys.keys().size());
+       assertFalse(attestedKeys.isAttested());
+       assertNull(attestedKeys.keyAttestation());
     }
 
     @Test
@@ -90,11 +97,15 @@ public class ProofServiceTest {
                 true);
         String jwtProof = createJwtProof(firstAttestedKey, keyAttestation);
 
-        List<JWK> bindingKeys = proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof));
+        BindingKeys bindingKeys = proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof));
 
+        assertEquals(1, bindingKeys.keys().size());
+        AttestedKeys attestedKeys = bindingKeys.keys().getFirst();
         assertEquals(
                 List.of(firstAttestedKey.toPublicJWK(), secondAttestedKey.toPublicJWK()),
-                bindingKeys);
+                attestedKeys.keys());
+        assertTrue(attestedKeys.isAttested());
+        assertEquals(keyAttestation, attestedKeys.keyAttestation().serialize());
     }
 
     @Test
@@ -109,14 +120,18 @@ public class ProofServiceTest {
                 "nnn",
                 true);
 
-        List<JWK> bindingKeys = proofService.validateProofs(
+        BindingKeys bindingKeys = proofService.validateProofs(
                 junitIssuerTenant(),
                 junitCredentialConfiguration(),
                 createAttestationProofs(keyAttestation));
 
+        assertEquals(1, bindingKeys.keys().size());
+        AttestedKeys attestedKeys = bindingKeys.keys().getFirst();
         assertEquals(
                 List.of(firstAttestedKey.toPublicJWK(), secondAttestedKey.toPublicJWK()),
-                bindingKeys);
+                attestedKeys.keys());
+        assertTrue(attestedKeys.isAttested());
+        assertEquals(keyAttestation, attestedKeys.keyAttestation().serialize());
     }
 
     @Test
