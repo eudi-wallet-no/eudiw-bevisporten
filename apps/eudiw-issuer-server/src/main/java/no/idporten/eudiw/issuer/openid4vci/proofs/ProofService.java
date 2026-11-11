@@ -20,6 +20,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -49,10 +50,13 @@ public class ProofService {
     /**
      * Validates proofs and returns binding keys.
      * @param credentialIssuerTenant tenant
+     * @param credentialConfiguration credential configuration
      * @param proofs proofs
      * @return binding keys from validated proofs
      */
-    public List<JWK> validateProofs(CredentialIssuerTenant credentialIssuerTenant, Proofs proofs) {
+    public List<JWK> validateProofs(CredentialIssuerTenant credentialIssuerTenant,
+                                    ExtendedCredentialConfiguration credentialConfiguration,
+                                    Proofs proofs) {
         List<JWK> bindingKeys = new ArrayList<>();
         if (!CollectionUtils.isEmpty(proofs.getJwt())) {
             for (String jwtProof : proofs.getJwt()) {

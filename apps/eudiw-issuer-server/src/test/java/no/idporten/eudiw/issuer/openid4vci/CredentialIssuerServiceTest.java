@@ -136,6 +136,7 @@ public class CredentialIssuerServiceTest {
                     () -> assertEquals("junit", accessTokenCredentialValidationContextCaptor.getValue().authorizationServer()),
                     () -> assertEquals("foo:bar", accessTokenCredentialValidationContextCaptor.getValue().scope())
             );
+            verify(proofService).validateProofs(eq(credentialIssuerTenant), eq(credentialConfiguration), any());
             verify(credentialIssuanceStatusService).credentialIssued(eq("cid"), any(IssuanceTransactionId.class));
             verify(auditService).logIssueCredentials(credentialIssueContextCaptor.capture(),  eq(issuanceTransactionId), eq(1), eq(new NotificationId("nid")));
             assertAll(

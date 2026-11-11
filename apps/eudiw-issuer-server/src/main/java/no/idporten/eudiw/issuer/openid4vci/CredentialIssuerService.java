@@ -51,7 +51,7 @@ public class CredentialIssuerService {
         ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
-        List<JWK> bindingKeys = proofService.validateProofs(tenant, credentialRequest.getProofs());
+        List<JWK> bindingKeys = proofService.validateProofs(tenant, credentialConfiguration, credentialRequest.getProofs());
 
         CredentialIssuanceType issuanceType = CredentialIssuanceType.fromAccessToken(accessToken);
         IssuanceTransactionId issuanceTransactionId = resolveIssuanceTransactionId(accessToken, issuanceType, credentialRequest, tenant);

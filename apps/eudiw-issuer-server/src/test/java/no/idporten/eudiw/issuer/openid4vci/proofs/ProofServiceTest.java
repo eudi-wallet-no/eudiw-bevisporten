@@ -32,6 +32,8 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
+import static no.idporten.eudiw.issuer.TestData.junitCredentialConfiguration;
+import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -71,7 +73,7 @@ public class ProofServiceTest {
         CredentialIssuerTenant credentialIssuerTenant = CredentialIssuerTenant.builder()
                 .credentialIssuer(URI.create("https://utsteder.test.eidas2sandkasse.net"))
                 .build();
-       List<JWK> bindingKeys = proofService.validateProofs(credentialIssuerTenant, proofs);
+       List<JWK> bindingKeys = proofService.validateProofs(credentialIssuerTenant, junitCredentialConfiguration(), proofs);
        assertEquals(1, bindingKeys.size());
     }
 
@@ -88,7 +90,7 @@ public class ProofServiceTest {
                 true);
         String jwtProof = createJwtProof(firstAttestedKey, keyAttestation);
 
-        List<JWK> bindingKeys = proofService.validateProofs(issuerTenant(), createJWTProofs(jwtProof));
+        List<JWK> bindingKeys = proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof));
 
         assertEquals(
                 List.of(firstAttestedKey.toPublicJWK(), secondAttestedKey.toPublicJWK()),
@@ -108,7 +110,8 @@ public class ProofServiceTest {
                 true);
 
         List<JWK> bindingKeys = proofService.validateProofs(
-                issuerTenant(),
+                junitIssuerTenant(),
+                junitCredentialConfiguration(),
                 createAttestationProofs(keyAttestation));
 
         assertEquals(
@@ -131,7 +134,7 @@ public class ProofServiceTest {
 
         assertThrows(
                 InvalidProof.class,
-                () -> proofService.validateProofs(issuerTenant(), createJWTProofs(jwtProof)));
+                () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
     }
 
     @Test
@@ -148,7 +151,7 @@ public class ProofServiceTest {
 
         assertThrows(
                 InvalidProof.class,
-                () -> proofService.validateProofs(issuerTenant(), createJWTProofs(jwtProof)));
+                () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
     }
 
     @Test
@@ -165,7 +168,7 @@ public class ProofServiceTest {
 
         assertThrows(
                 InvalidProof.class,
-                () -> proofService.validateProofs(issuerTenant(), createJWTProofs(jwtProof)));
+                () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
     }
 
     @Test
@@ -183,7 +186,7 @@ public class ProofServiceTest {
 
         assertThrows(
                 InvalidProof.class,
-                () -> proofService.validateProofs(issuerTenant(), createJWTProofs(jwtProof)));
+                () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
     }
 
     private String createKeyAttestation(
@@ -219,7 +222,7 @@ public class ProofServiceTest {
                 .customParam("key_attestation", keyAttestation)
                 .build();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience(issuerTenant().getCredentialIssuer().toString())
+                .audience(junitIssuerTenant().getCredentialIssuer().toString())
                 .issueTime(new Date())
                 .claim("nonce", "nonce")
                 .build();
@@ -244,12 +247,6 @@ public class ProofServiceTest {
 
     private ECKey generateKey() throws Exception {
         return new ECKeyGenerator(Curve.P_256).generate();
-    }
-
-    private CredentialIssuerTenant issuerTenant() {
-        return CredentialIssuerTenant.builder()
-                .credentialIssuer(URI.create("https://utsteder.test.eidas2sandkasse.net"))
-                .build();
     }
 
 }
