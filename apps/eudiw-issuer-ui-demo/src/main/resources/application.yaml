@@ -52,6 +52,7 @@ bevisgenerator:
     allow-verification: true
     revocation-v2-rich-result: false
   byob-service:
+    base-url: http://digital-lommebok-byob-service-service:8080
     create-endpoint: /v1/public/credential-configurations
     get-all-edit-endpoint: /v1/public/credential-configurations
     get-all-issue-endpoint: /v1/admin/credential-configurations
@@ -182,6 +183,7 @@ bevisgenerator:
     verification-result-endpoint: /api/v1/{client_application_id}/verify/result/{verifier_transaction_id}
     client-application-id: ${VERIFIER_SERVICE_CLIENT_APPLICATION_ID:bevisgenerator-login}
     api-key: ${VERIFIER_SERVICE_API_KEY}
+    base-url: http://digital-lommebok-verifier-service-service:8080
 maskinporten:
   lib:
     enabled: true

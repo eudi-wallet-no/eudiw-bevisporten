@@ -7,8 +7,6 @@ bevisgenerator:
   features:
     allow-bevistyper-v2: true
     revocation-v2-rich-result: true
-  byob-service:
-    base-url: https://byob-service.test.eidas2sandkasse.net
   issuer-server:
     credential-issuer: https://utsteder.test.eidas2sandkasse.net/bevisgenerator
     credential-issuer-pid: https://utsteder.test.eidas2sandkasse.net/pid
@@ -30,8 +28,6 @@ bevisgenerator:
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-webuild}
         description: Norsk ID-bevis WeBuild (SD-JWT VC)
         scope: eudiw:no:pid
-  verifier-service:
-    base-url: https://verifier-service.test.eidas2sandkasse.net
 
 maskinporten:
   lib:
