@@ -94,13 +94,25 @@ public class TestData {
     }
 
     /**
-     * A signed wallet instance attestation, as found in the wia claim of an access token
+     * A signed wallet instance attestation.
      */
     public static SignedJWT walletInstanceAttestationJwt() {
+        return walletInstanceAttestationJwt(new JWTClaimsSet.Builder()
+                .claim("wallet_name", "junit-wallet")
+                .claim("client_status", Map.of(
+                        "status", Map.of("status_list", Map.of(
+                                "idx", 1337,
+                                "uri", "https://junit-wallet-provider.example/wia-statuslists/42")),
+                        "exp", 4102444800L))
+                .build());
+    }
+
+    /**
+     * A signed wallet instance attestation with the given claims.
+     */
+    public static SignedJWT walletInstanceAttestationJwt(JWTClaimsSet claims) {
         try {
-            SignedJWT wia = new SignedJWT(
-                    new JWSHeader(JWSAlgorithm.ES256),
-                    new JWTClaimsSet.Builder().issuer("junit-wallet-provider").build());
+            SignedJWT wia = new SignedJWT(new JWSHeader(JWSAlgorithm.ES256), claims);
             wia.sign(new ECDSASigner(new ECKeyGenerator(Curve.P_256).generate()));
             return wia;
         } catch (JOSEException e) {
