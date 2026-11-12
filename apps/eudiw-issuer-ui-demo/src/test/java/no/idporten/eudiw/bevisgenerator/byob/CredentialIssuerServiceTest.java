@@ -33,7 +33,7 @@ class CredentialIssuerServiceTest {
 
         CredentialIssuerService service = new CredentialIssuerService(
                 byobService,
-                new IssuerServerProperties(URI.create("http://issuer.com"),"http://issuer", "/issuance", null, null, null),
+                new IssuerServerProperties("http://issuer", "/issuance", null, null, null),
                 new ObjectMapper()
         );
 

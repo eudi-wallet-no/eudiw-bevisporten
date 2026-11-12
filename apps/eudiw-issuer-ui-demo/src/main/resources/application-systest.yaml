@@ -7,13 +7,13 @@ bevisgenerator:
   features:
     revocation-v2-rich-result: true
   issuer-server:
-    credential-issuer: ${bevisgenerator.issuer-server.base-url}/bevisgenerator
-    credential-issuer-pid: ${bevisgenerator.issuer-server.base-url}/pid
-    credential-issuer-minid: ${bevisgenerator.issuer-server.base-url}/minid
+    credential-issuer: https://utsteder.eidas2sandkasse.dev/bevisgenerator
+    credential-issuer-pid: https://utsteder.eidas2sandkasse.dev/pid
+    credential-issuer-minid: https://utsteder.eidas2sandkasse.dev/minid
     well-known-urls:
-      - ${bevisgenerator.issuer-server.base-url}/.well-known/openid-credential-issuer/pid
-      - ${bevisgenerator.issuer-server.base-url}/.well-known/openid-credential-issuer/minid
-      - ${bevisgenerator.issuer-server.base-url}/.well-known/openid-credential-issuer/bevisgenerator
+      - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/pid
+      - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/minid
+      - https://utsteder.eidas2sandkasse.dev/.well-known/openid-credential-issuer/bevisgenerator
 
 maskinporten:
   lib:
