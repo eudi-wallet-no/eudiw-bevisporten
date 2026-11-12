@@ -20,6 +20,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -47,36 +48,39 @@ public class ProofService {
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
 
     /**
-     * Validates proofs and returns binding keys.
+     * Validates proofs and returns binding keys
      * @param credentialIssuerTenant tenant
+     * @param credentialConfiguration credential configuration
      * @param proofs proofs
-     * @return binding keys from validated proofs
+     * @return binding keys from the validated proofs
      */
-    public List<JWK> validateProofs(CredentialIssuerTenant credentialIssuerTenant, Proofs proofs) {
-        List<JWK> bindingKeys = new ArrayList<>();
+    public BindingKeys validateProofs(CredentialIssuerTenant credentialIssuerTenant,
+                                      ExtendedCredentialConfiguration credentialConfiguration,
+                                      Proofs proofs) {
+        List<AttestedKeys> attestedKeys = new ArrayList<>();
         if (!CollectionUtils.isEmpty(proofs.getJwt())) {
             for (String jwtProof : proofs.getJwt()) {
-                bindingKeys.addAll(validateJwtProof(credentialIssuerTenant, jwtProof));
+                attestedKeys.add(validateJwtProof(credentialIssuerTenant, jwtProof));
             }
         }
         if (!CollectionUtils.isEmpty(proofs.getAttestation())) {
             for (String attestationProof : proofs.getAttestation()) {
-                bindingKeys.addAll(validateAttestationProof(attestationProof));
+                attestedKeys.add(validateAttestationProof(attestationProof));
             }
         }
-        return bindingKeys;
+        return new BindingKeys(attestedKeys);
     }
 
     /**
-     * Validates jwt proofs, with or without key attestation, and returns binding keys.
+     * Validates jwt proofs, with or without key attestation.
      */
-    private List<JWK> validateJwtProof(CredentialIssuerTenant credentialIssuerTenant, String jwtProof) {
+    private AttestedKeys validateJwtProof(CredentialIssuerTenant credentialIssuerTenant, String jwtProof) {
         try {
             SignedJWT jwt = SignedJWT.parse(jwtProof);
             if (jwt.getHeader().getCustomParam(KEY_ATTESTATION_HEADER) != null) {
                 return validateJwtProofWithKeyAttestation(credentialIssuerTenant, jwt);
             }
-            return List.of(validateJwtProof(credentialIssuerTenant, jwt));
+            return new AttestedKeys(List.of(validateJwtProof(credentialIssuerTenant, jwt)), null);
         } catch (ParseException e) {
             throw new InvalidProof("Invalid jwt proof.  Invalid JWT format.");
         } catch (JOSEException e) {
@@ -87,9 +91,9 @@ public class ProofService {
     }
 
     /**
-     * Validates key attestation proofs and returns binding keys.
+     * Validates key attestation proofs.
      */
-    private List<JWK> validateAttestationProof(String attestationProof) {
+    private AttestedKeys validateAttestationProof(String attestationProof) {
         try {
             return validateKeyAttestation(attestationProof);
         } catch (ParseException e) {
@@ -110,15 +114,15 @@ public class ProofService {
         return bindingKey;
     }
 
-    private List<JWK> validateJwtProofWithKeyAttestation(
+    private AttestedKeys validateJwtProofWithKeyAttestation(
             CredentialIssuerTenant credentialIssuerTenant,
             SignedJWT jwt) throws ParseException, BadJOSEException, JOSEException {
         Object keyAttestation = jwt.getHeader().getCustomParam(KEY_ATTESTATION_HEADER);
         if (!(keyAttestation instanceof String keyAttestationJwt)) {
             throw new InvalidProof("Invalid jwt proof.  Invalid key attestation header.");
         }
-        List<JWK> attestedKeys = validateKeyAttestation(keyAttestationJwt);
-        validateJwtSignatureAndClaims(credentialIssuerTenant, jwt, attestedKeys);
+        AttestedKeys attestedKeys = validateKeyAttestation(keyAttestationJwt);
+        validateJwtSignatureAndClaims(credentialIssuerTenant, jwt, attestedKeys.keys());
         return attestedKeys;
     }
 
@@ -141,7 +145,7 @@ public class ProofService {
         jwtProcessor.process(jwt, (SecurityContext) null);
     }
 
-    private List<JWK> validateKeyAttestation(String keyAttestationJwt) throws ParseException, JOSEException {
+    private AttestedKeys validateKeyAttestation(String keyAttestationJwt) throws ParseException, JOSEException {
         SignedJWT keyAttestation = SignedJWT.parse(keyAttestationJwt);
         JWSHeader attestationHeader = keyAttestation.getHeader();
         validateSigningAlgorithm(attestationHeader);
@@ -171,7 +175,7 @@ public class ProofService {
             validateBindingKey(jwk);
             attestedKeys.add(jwk.toPublicJWK());
         }
-        return attestedKeys;
+        return new AttestedKeys(attestedKeys, keyAttestation);
     }
 
     private Map<String, Object> toStringKeyedMap(Map<?, ?> map) {

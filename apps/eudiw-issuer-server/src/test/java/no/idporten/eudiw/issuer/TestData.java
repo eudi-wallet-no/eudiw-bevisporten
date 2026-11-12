@@ -1,9 +1,19 @@
 package no.idporten.eudiw.issuer;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
-import no.idporten.eudiw.issuer.config.*;
+import com.nimbusds.jwt.SignedJWT;
+import no.idporten.eudiw.issuer.config.ClasspathCredentialConfigurationSource;
+import no.idporten.eudiw.issuer.config.CredentialConfigurationSource;
+import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.config.LocalResourceProperties;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedClaimsDescription;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
@@ -11,6 +21,7 @@ import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialMet
 import no.idporten.eudiw.issuer.credentials.types.ClaimDataType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.openid4vci.metadata.Display;
+import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
 
 import java.net.URI;
 import java.util.List;
@@ -73,6 +84,28 @@ public class TestData {
 
     public static String syntheticPersonIdentifier() {
         return "03866599717";
+    }
+
+    /**
+     * Binding keys without any validated proofs
+     */
+    public static BindingKeys bindingKeys() {
+        return new BindingKeys(List.of());
+    }
+
+    /**
+     * A signed wallet instance attestation, as found in the wia claim of an access token
+     */
+    public static SignedJWT walletInstanceAttestationJwt() {
+        try {
+            SignedJWT wia = new SignedJWT(
+                    new JWSHeader(JWSAlgorithm.ES256),
+                    new JWTClaimsSet.Builder().issuer("junit-wallet-provider").build());
+            wia.sign(new ECDSASigner(new ECKeyGenerator(Curve.P_256).generate()));
+            return wia;
+        } catch (JOSEException e) {
+            throw new IllegalStateException("Failed to create wallet instance attestation", e);
+        }
     }
 
 }

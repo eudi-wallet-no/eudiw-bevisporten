@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.openid4vci;
 
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWT;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -11,7 +10,6 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.CredentialCreateService;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionDao;
-import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionEntity;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
 import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.authz.SubjectCredentialTransactionDao;
@@ -23,6 +21,7 @@ import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenValidationService;
 import no.idporten.eudiw.issuer.openid4vci.notification.NotificationId;
 import no.idporten.eudiw.issuer.openid4vci.proofs.ProofService;
+import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
 import no.idporten.eudiw.issuer.openid4vci.protocol.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,14 +50,14 @@ public class CredentialIssuerService {
         ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));
         ClaimsSource claimsSource = claimsSourceService.findClaimsSource(credentialConfiguration.getCredentialIssuerContext().getCredentialDataSourceUri());
-        List<JWK> bindingKeys = proofService.validateProofs(tenant, credentialRequest.getProofs());
+        BindingKeys bindingKeys = proofService.validateProofs(tenant, credentialConfiguration, credentialRequest.getProofs());
 
         CredentialIssuanceType issuanceType = CredentialIssuanceType.fromAccessToken(accessToken);
         IssuanceTransactionId issuanceTransactionId = resolveIssuanceTransactionId(accessToken, issuanceType, credentialRequest, tenant);
 
-        CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration, issuanceTransactionId, issuanceType);
+        CredentialIssueContext credentialIssueContext = new CredentialIssueContext(accessToken, tenant, credentialConfiguration, issuanceTransactionId, issuanceType, bindingKeys);
         List<Claim> claims = claimsSource.issueClaims(credentialIssueContext);
-        List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, bindingKeys, claims);
+        List<Credential> credentials = credentialCreateService.createCredentials(credentialIssueContext, claims);
         createSubjectCredentialTransaction(credentialIssueContext, issuanceTransactionId);
 
         NotificationId notificationId = switch (issuanceType) {

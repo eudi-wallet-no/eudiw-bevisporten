@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 
+import static no.idporten.eudiw.issuer.TestData.bindingKeys;
 import static no.idporten.eudiw.issuer.TestData.credentialIssuerTenant;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,7 +38,8 @@ public class AuthorizedClaimsSourceTest {
                 credentialIssuerTenant("junit"),
                 null,
                 null,
-                CredentialIssuanceType.AUTHORIZATION_CODE
+                CredentialIssuanceType.AUTHORIZATION_CODE,
+                bindingKeys()
         ));
         assertAll(
                 () -> assertEquals(1, claims.size()),

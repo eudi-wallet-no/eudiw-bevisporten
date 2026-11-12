@@ -59,7 +59,7 @@ public class AuthoritativeSourcePullClaimsSourceTest {
         when(authoritativeSourceService.retrieveCredentialData(eq("advokatregisteret"), eq("no.advokattilsynet.advokatregisteret.1"), eq(personIdentifier))).thenReturn(testCredentialData);
         claimsSource.preAuthorize(issuanceContext, null);
         JWT walletAccessToken = preAuthAccessToken(personIdentifier, transactionId);
-        CredentialIssueContext issuerContext = new CredentialIssueContext(walletAccessToken, junitIssuerTenant(), credentialConfiguration, transactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE);
+        CredentialIssueContext issuerContext = new CredentialIssueContext(walletAccessToken, junitIssuerTenant(), credentialConfiguration, transactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE, bindingKeys());
         List<Claim> claims = claimsSource.issueClaims(issuerContext);
         assertAll(
                 () -> assertEquals("FOT", findClaimValue(claims, "etternavn")),
@@ -88,7 +88,8 @@ public class AuthoritativeSourcePullClaimsSourceTest {
                 junitIssuerTenant(),
                 credentialConfiguration,
                 null,
-                CredentialIssuanceType.AUTHORIZATION_CODE
+                CredentialIssuanceType.AUTHORIZATION_CODE,
+                bindingKeys()
         );
         List<Claim> claims = claimsSource.issueClaims(issuerContext);
         assertAll(

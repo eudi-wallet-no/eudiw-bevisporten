@@ -90,7 +90,8 @@ class AuditServiceTest {
                 junitIssuerTenant(),
                 credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"),
                 issuanceTransactionId,
-                CredentialIssuanceType.AUTHORIZATION_CODE
+                CredentialIssuanceType.AUTHORIZATION_CODE,
+                bindingKeys()
         );
 
         auditService.logIssueCredentials(context, issuanceTransactionId, 2, notificationId);
@@ -187,7 +188,8 @@ class AuditServiceTest {
                 junitIssuerTenant(),
                 credentialConfigurationFromClasspath("credential-configurations/junit_mso_mdoc.json"),
                 issuanceTransactionId,
-                CredentialIssuanceType.PRE_AUTHORIZED_CODE
+                CredentialIssuanceType.PRE_AUTHORIZED_CODE,
+                bindingKeys()
         );
         List<StatusEntry> entries = List.of(
                 new StatusEntry(1, URI.create("https://status.eidas2sandkasse.no/lists/1")),

@@ -12,7 +12,6 @@ import no.idporten.eudiw.issuer.oauth2.AuthorizationServerService;
 import no.idporten.eudiw.issuer.openid4vci.CredentialIssuerService;
 import no.idporten.eudiw.issuer.openid4vci.nonce.NonceService;
 import no.idporten.eudiw.issuer.openid4vci.proofs.InvalidProof;
-import no.idporten.eudiw.issuer.openid4vci.proofs.ProofService;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialRequest;
 import no.idporten.eudiw.issuer.openid4vci.protocol.CredentialResponse;
 import org.springframework.http.HttpStatus;
@@ -34,15 +33,13 @@ public class CredentialEndpointController {
     private final AuthorizationServerService authorizationServerService;
     private final AccessTokenValidationService accessTokenValidationService;
     private final NonceService nonceService;
-    private final ProofService proofService;
 
-    public CredentialEndpointController(CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuerService credentialIssuerService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, NonceService nonceService, ProofService proofService) {
+    public CredentialEndpointController(CredentialIssuerTenantService credentialIssuerTenantService, CredentialIssuerService credentialIssuerService, AuthorizationServerService authorizationServerService, AccessTokenValidationService accessTokenValidationService, NonceService nonceService) {
         this.credentialIssuerTenantService = credentialIssuerTenantService;
         this.credentialIssuerService = credentialIssuerService;
         this.authorizationServerService = authorizationServerService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.nonceService = nonceService;
-        this.proofService = proofService;
     }
 
     @PostMapping(path = {Endpoints.CREDENTIAL_ENDPOINT, Endpoints.CREDENTIAL_ENDPOINT_TENANT}, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -56,7 +53,6 @@ public class CredentialEndpointController {
         if (credentialRequest.getProofs() == null) {
             throw new InvalidProof(nonceService.generateNonce(), "Credential Issuer requires key proof to be bound to a Credential Issuer provided nonce.");
         }
-        proofService.validateProofs(credentialIssuerTenant, credentialRequest.getProofs());
         CredentialResponse credentialResponse = credentialIssuerService.issueCredentials(credentialIssuerTenant, credentialRequest, accessToken);
         return ResponseEntity
                 .status(HttpStatus.OK)

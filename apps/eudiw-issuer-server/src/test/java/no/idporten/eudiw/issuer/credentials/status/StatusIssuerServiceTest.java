@@ -63,7 +63,7 @@ public class StatusIssuerServiceTest {
                 junitIssuerTenant(),
                 junitCredentialConfiguration(),
                 transactionId,
-                CredentialIssuanceType.PRE_AUTHORIZED_CODE);
+                CredentialIssuanceType.PRE_AUTHORIZED_CODE, bindingKeys());
     }
 
     private CredentialIssueContext authorizationCodeContext() {
@@ -73,7 +73,7 @@ public class StatusIssuerServiceTest {
                 junitIssuerTenant(),
                 junitCredentialConfiguration(),
                 transactionId,
-                CredentialIssuanceType.AUTHORIZATION_CODE);
+                CredentialIssuanceType.AUTHORIZATION_CODE, bindingKeys());
     }
 
     @BeforeEach

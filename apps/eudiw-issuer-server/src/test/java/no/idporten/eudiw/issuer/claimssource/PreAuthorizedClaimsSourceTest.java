@@ -74,7 +74,7 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.preAuthorize(
                     preAuthorizedIssuanceContext,
                     null);
-            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), junitIssuerTenant(), junitCredentialConfiguration(), issuanceTransactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), junitIssuerTenant(), junitCredentialConfiguration(), issuanceTransactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE, bindingKeys()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
@@ -118,7 +118,7 @@ public class PreAuthorizedClaimsSourceTest {
             claimsSource.preAuthorize(
                     issuanceContext,
                     new CredentialData(Map.of("c", "v")));
-            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), credentialIssuerTenant("junit"), junitCredentialConfiguration(), issuanceTransactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE));
+            List<Claim> claims = claimsSource.issueClaims(new CredentialIssueContext(authProxyToken(issuanceTransactionId.getValue()), credentialIssuerTenant("junit"), junitCredentialConfiguration(), issuanceTransactionId, CredentialIssuanceType.PRE_AUTHORIZED_CODE, bindingKeys()));
             assertAll(
                     () -> assertEquals(1, claims.size()),
                     () -> assertEquals("c", claims.getFirst().getPath().getFirst()),
