@@ -58,6 +58,7 @@ bevisgenerator:
     get-all-issue-endpoint: /v1/admin/credential-configurations
     get-endpoint: /v1/public/credential-configurations
   issuer-server:
+    base-url : http://digital-lommebok-issuer-server-service:8080
     issuance-endpoint: /api/v1/credential/issuance-transaction
     credential-configurations:
       - credential-configuration-id: no.advokattilsynet.advokatregisteret_mso_mdoc

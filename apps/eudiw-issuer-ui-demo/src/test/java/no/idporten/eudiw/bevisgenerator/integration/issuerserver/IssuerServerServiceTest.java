@@ -22,6 +22,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import java.net.ConnectException;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -67,6 +68,7 @@ class IssuerServerServiceTest {
     void setUp() {
         RestClient restClient = mock(RestClient.class);
         IssuerServerProperties properties = new IssuerServerProperties(
+                URI.create("http://issuer"),
                 "http://issuer",
                 "/api/v1/credential/issuance-transaction",
                 null,
@@ -153,6 +155,7 @@ class IssuerServerServiceTest {
         IssuerServerService service = new IssuerServerService(
                 builder.build(),
                 new IssuerServerProperties(
+                        URI.create("http://issuer"),
                         "http://issuer",
                         "/api/v1/credential/issuance-transaction",
                         List.of(),
@@ -296,6 +299,7 @@ class IssuerServerServiceTest {
 
     private IssuerServerService createMetadataService(RestClient restClient, List<String> wellKnownUrls) {
         IssuerServerProperties properties = new IssuerServerProperties(
+                URI.create("http://issuer"),
                 "http://issuer-server",
                 "/credential",
                 List.of(),
@@ -314,6 +318,7 @@ class IssuerServerServiceTest {
 
     private IssuerServerService createRevocationService(RestClient restClient, boolean richResultEnabled) {
         IssuerServerProperties properties = new IssuerServerProperties(
+                URI.create("http://issuer"),
                 "http://issuer",
                 "/api/v1/credential/issuance-transaction",
                 null,

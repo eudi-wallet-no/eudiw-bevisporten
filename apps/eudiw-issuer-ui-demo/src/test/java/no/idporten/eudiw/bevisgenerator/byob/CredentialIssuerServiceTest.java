@@ -11,6 +11,7 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerSe
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
+import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,7 @@ class CredentialIssuerServiceTest {
 
         CredentialIssuerService service = new CredentialIssuerService(
                 byobService,
-                new IssuerServerProperties("http://issuer", "/issuance", null, null, null),
+                new IssuerServerProperties(URI.create("http://issuer.com"),"http://issuer", "/issuance", null, null, null),
                 new ObjectMapper()
         );
 
