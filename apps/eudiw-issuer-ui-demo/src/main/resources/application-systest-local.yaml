@@ -16,6 +16,6 @@ spring:
 
 bevisgenerator:
   verifier-service:
-    base-url: https://verifier-service.eidas2sandkasse.dev/
+    base-url: https://verifier-service.eidas2sandkasse.dev
   byob-service:
     base-url: https://byob-service.eidas2sandkasse.dev/
