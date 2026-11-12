@@ -1,7 +1,6 @@
 package no.idporten.eudiw.issuer.openid4vci.proofs;
 
 import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jwt.SignedJWT;
 
 import java.util.List;
 
@@ -11,7 +10,7 @@ import java.util.List;
  * @param keys public binding keys
  * @param keyAttestation validated key attestation, or null if the keys are not attested
  */
-public record AttestedKeys(List<JWK> keys, SignedJWT keyAttestation) {
+public record AttestedKeys(List<JWK> keys, KeyAttestation keyAttestation) {
 
     public AttestedKeys {
         keys = List.copyOf(keys);

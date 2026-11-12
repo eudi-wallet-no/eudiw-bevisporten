@@ -6,8 +6,8 @@ import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialCon
 import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.oauth2.InvalidAccessTokenException;
-import no.idporten.eudiw.issuer.oauth2.WalletInstanceAttestation;
 import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
+import no.idporten.eudiw.issuer.openid4vci.proofs.WalletInstanceAttestation;
 
 /**
  * Context for credential issuance.

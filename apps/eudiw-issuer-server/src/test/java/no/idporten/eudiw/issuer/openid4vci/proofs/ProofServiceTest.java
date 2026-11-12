@@ -13,6 +13,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
+import no.idporten.eudiw.issuer.credentials.status.StatusList;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -31,6 +32,7 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static no.idporten.eudiw.issuer.TestData.junitCredentialConfiguration;
 import static no.idporten.eudiw.issuer.TestData.junitIssuerTenant;
@@ -48,6 +50,10 @@ public class ProofServiceTest {
 
     @InjectMocks
     ProofService proofService;
+
+    private static final AttestationStatus KEY_STORAGE_STATUS = new AttestationStatus(
+            new StatusList(42, URI.create("https://junit-wallet-provider.example/ka-statuslists/1")),
+            new Date(4102444800000L));
 
 
     Proofs createJWTProofs(String... jwts) {
@@ -105,7 +111,8 @@ public class ProofServiceTest {
                 List.of(firstAttestedKey.toPublicJWK(), secondAttestedKey.toPublicJWK()),
                 attestedKeys.keys());
         assertTrue(attestedKeys.isAttested());
-        assertEquals(keyAttestation, attestedKeys.keyAttestation().serialize());
+        assertEquals(keyAttestation, attestedKeys.keyAttestation().jwt().serialize());
+        assertEquals(KEY_STORAGE_STATUS, attestedKeys.keyAttestation().keyStorageStatus());
     }
 
     @Test
@@ -131,7 +138,8 @@ public class ProofServiceTest {
                 List.of(firstAttestedKey.toPublicJWK(), secondAttestedKey.toPublicJWK()),
                 attestedKeys.keys());
         assertTrue(attestedKeys.isAttested());
-        assertEquals(keyAttestation, attestedKeys.keyAttestation().serialize());
+        assertEquals(keyAttestation, attestedKeys.keyAttestation().jwt().serialize());
+        assertEquals(KEY_STORAGE_STATUS, attestedKeys.keyAttestation().keyStorageStatus());
     }
 
     @Test
@@ -204,12 +212,45 @@ public class ProofServiceTest {
                 () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
     }
 
+    @Test
+    void shouldRejectKeyAttestationWithInvalidKeyStorageStatus() throws Exception {
+        ECKey attestationSigningKey = generateKey();
+        ECKey attestedKey = generateKey();
+        String keyAttestation = createKeyAttestation(
+                attestationSigningKey,
+                createCertificate(attestationSigningKey),
+                List.of(attestedKey),
+                "nnn",
+                true,
+                Map.of("status", Map.of("status_list", Map.of("idx", 42))));
+        String jwtProof = createJwtProof(attestedKey, keyAttestation);
+
+        InvalidProof e = assertThrows(
+                InvalidProof.class,
+                () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
+        assertEquals("Invalid key attestation.  Invalid key storage status.", e.getErrorDescription());
+    }
+
     private String createKeyAttestation(
             ECKey signingKey,
             X509Certificate certificate,
             List<ECKey> attestedKeys,
             String nonce,
             boolean includeCertificate) throws Exception {
+        return createKeyAttestation(signingKey, certificate, attestedKeys, nonce, includeCertificate, Map.of(
+                "status", Map.of("status_list", Map.of(
+                        "idx", KEY_STORAGE_STATUS.statusList().index(),
+                        "uri", KEY_STORAGE_STATUS.statusList().uri().toString())),
+                "exp", KEY_STORAGE_STATUS.exp().getTime() / 1000));
+    }
+
+    private String createKeyAttestation(
+            ECKey signingKey,
+            X509Certificate certificate,
+            List<ECKey> attestedKeys,
+            String nonce,
+            boolean includeCertificate,
+            Object keyStorageStatus) throws Exception {
         JWSHeader.Builder header = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .type(new JOSEObjectType("key-attestation+jwt"));
         if (includeCertificate) {
@@ -224,6 +265,7 @@ public class ProofServiceTest {
                                 ? null
                                 : attestedKeys.stream().map(JWK::toPublicJWK).map(JWK::toJSONObject).toList())
                 .claim("nonce", nonce)
+                .claim("key_storage_status", keyStorageStatus)
                 .build();
         SignedJWT keyAttestation = new SignedJWT(header.build(), claims);
         keyAttestation.sign(new ECDSASigner(signingKey));
