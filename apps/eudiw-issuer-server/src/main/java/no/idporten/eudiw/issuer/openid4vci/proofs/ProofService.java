@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.jwt.InvalidClaimException;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -175,7 +176,11 @@ public class ProofService {
             validateBindingKey(jwk);
             attestedKeys.add(jwk.toPublicJWK());
         }
-        return new AttestedKeys(attestedKeys, keyAttestation);
+        try {
+            return new AttestedKeys(attestedKeys, new KeyAttestation(keyAttestation));
+        } catch (InvalidClaimException e) {
+            throw new InvalidProof("Invalid key attestation.  Invalid claims.", e);
+        }
     }
 
     private Map<String, Object> toStringKeyedMap(Map<?, ?> map) {

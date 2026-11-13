@@ -94,17 +94,40 @@ public class TestData {
     }
 
     /**
-     * A signed wallet instance attestation, as found in the wia claim of an access token
+     * A signed wallet instance attestation.
      */
     public static SignedJWT walletInstanceAttestationJwt() {
+        return walletInstanceAttestationJwt(new JWTClaimsSet.Builder()
+                .claim("wallet_name", "junit-wallet")
+                .claim("client_status", Map.of(
+                        "status", Map.of("status_list", Map.of(
+                                "idx", 1337,
+                                "uri", "https://junit-wallet-provider.example/wia-statuslists/42")),
+                        "exp", 4102444800L))
+                .build());
+    }
+
+    /**
+     * A signed wallet instance attestation with the given claims.
+     */
+    public static SignedJWT walletInstanceAttestationJwt(JWTClaimsSet claims) {
+        return signedJwt(claims);
+    }
+
+    /**
+     * A signed key attestation with the given claims.
+     */
+    public static SignedJWT keyAttestationJwt(JWTClaimsSet claims) {
+        return signedJwt(claims);
+    }
+
+    private static SignedJWT signedJwt(JWTClaimsSet claims) {
         try {
-            SignedJWT wia = new SignedJWT(
-                    new JWSHeader(JWSAlgorithm.ES256),
-                    new JWTClaimsSet.Builder().issuer("junit-wallet-provider").build());
-            wia.sign(new ECDSASigner(new ECKeyGenerator(Curve.P_256).generate()));
-            return wia;
+            SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.ES256), claims);
+            jwt.sign(new ECDSASigner(new ECKeyGenerator(Curve.P_256).generate()));
+            return jwt;
         } catch (JOSEException e) {
-            throw new IllegalStateException("Failed to create wallet instance attestation", e);
+            throw new IllegalStateException("Failed to create signed JWT", e);
         }
     }
 
