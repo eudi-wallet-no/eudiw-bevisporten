@@ -228,7 +228,7 @@ public class ProofServiceTest {
         InvalidProof e = assertThrows(
                 InvalidProof.class,
                 () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
-        assertEquals("Invalid key attestation.  Invalid key storage status.", e.getErrorDescription());
+        assertEquals("Invalid key attestation.  Invalid claims.", e.getErrorDescription());
     }
 
     private String createKeyAttestation(

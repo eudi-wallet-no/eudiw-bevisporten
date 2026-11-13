@@ -179,7 +179,7 @@ public class ProofService {
         try {
             return new AttestedKeys(attestedKeys, new KeyAttestation(keyAttestation));
         } catch (InvalidClaimException e) {
-            throw new InvalidProof("Invalid key attestation.  Invalid key storage status.", e);
+            throw new InvalidProof("Invalid key attestation.  Invalid claims.", e);
         }
     }
 

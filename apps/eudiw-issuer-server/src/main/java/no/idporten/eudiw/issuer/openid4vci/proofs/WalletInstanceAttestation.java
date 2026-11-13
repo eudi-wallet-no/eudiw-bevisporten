@@ -3,6 +3,7 @@ package no.idporten.eudiw.issuer.openid4vci.proofs;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.SignedJWT;
 import no.idporten.eudiw.issuer.jwt.InvalidClaimException;
+import no.idporten.eudiw.issuer.jwt.JwtClaims;
 import no.idporten.eudiw.issuer.oauth2.InvalidAccessTokenException;
 
 import java.text.ParseException;
@@ -20,11 +21,9 @@ public record WalletInstanceAttestation(SignedJWT jwt, AttestationStatus clientS
 
     /**
      * Creates wallet instance attestation with client status read from the jwt.
-     *
-     * @throws InvalidClaimException if the claims or the client_status claim of the jwt are invalid
      */
     public WalletInstanceAttestation(SignedJWT jwt) {
-        this(jwt, readClientStatus(jwt));
+        this(jwt, AttestationStatus.fromClaims(JwtClaims.claimsSet(jwt), CLIENT_STATUS_CLAIM));
     }
 
     /**
@@ -39,14 +38,6 @@ public record WalletInstanceAttestation(SignedJWT jwt, AttestationStatus clientS
             return wia == null ? null : new WalletInstanceAttestation(SignedJWT.parse(wia));
         } catch (ParseException | InvalidClaimException e) {
             throw new InvalidAccessTokenException("Invalid wallet instance attestation in access token", e);
-        }
-    }
-
-    private static AttestationStatus readClientStatus(SignedJWT jwt) {
-        try {
-            return AttestationStatus.fromClaims(jwt.getJWTClaimsSet(), CLIENT_STATUS_CLAIM);
-        } catch (ParseException e) {
-            throw new InvalidClaimException("Invalid claims in wallet instance attestation", e);
         }
     }
 

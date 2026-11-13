@@ -111,12 +111,23 @@ public class TestData {
      * A signed wallet instance attestation with the given claims.
      */
     public static SignedJWT walletInstanceAttestationJwt(JWTClaimsSet claims) {
+        return signedJwt(claims);
+    }
+
+    /**
+     * A signed key attestation with the given claims.
+     */
+    public static SignedJWT keyAttestationJwt(JWTClaimsSet claims) {
+        return signedJwt(claims);
+    }
+
+    private static SignedJWT signedJwt(JWTClaimsSet claims) {
         try {
-            SignedJWT wia = new SignedJWT(new JWSHeader(JWSAlgorithm.ES256), claims);
-            wia.sign(new ECDSASigner(new ECKeyGenerator(Curve.P_256).generate()));
-            return wia;
+            SignedJWT jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.ES256), claims);
+            jwt.sign(new ECDSASigner(new ECKeyGenerator(Curve.P_256).generate()));
+            return jwt;
         } catch (JOSEException e) {
-            throw new IllegalStateException("Failed to create wallet instance attestation", e);
+            throw new IllegalStateException("Failed to create signed JWT", e);
         }
     }
 

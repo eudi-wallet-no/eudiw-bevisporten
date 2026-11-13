@@ -1,32 +1,30 @@
 package no.idporten.eudiw.issuer.openid4vci.proofs;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import no.idporten.eudiw.issuer.jwt.InvalidClaimException;
+import no.idporten.eudiw.issuer.jwt.JwtClaims;
 
-import java.text.ParseException;
+import java.net.URI;
 
 /**
  * Key attestation.
  */
-public record KeyAttestation(SignedJWT jwt, AttestationStatus keyStorageStatus) {
+public record KeyAttestation(SignedJWT jwt, AttestationStatus keyStorageStatus, URI certification) {
 
     static final String KEY_STORAGE_STATUS_CLAIM = "key_storage_status";
+    static final String CERTIFICATION_CLAIM = "certification";
 
     /**
-     * Creates key attestation with key storage status from attestation.
-     *
-     * @throws InvalidClaimException if the claims or the key_storage_status claim of the jwt are invalid
+     * Creates key attestation with information  from attestation JWT.
      */
     public KeyAttestation(SignedJWT jwt) {
-        this(jwt, readKeyStorageStatus(jwt));
+        this(jwt, JwtClaims.claimsSet(jwt));
     }
 
-    private static AttestationStatus readKeyStorageStatus(SignedJWT jwt) {
-        try {
-            return AttestationStatus.fromClaims(jwt.getJWTClaimsSet(), KEY_STORAGE_STATUS_CLAIM);
-        } catch (ParseException e) {
-            throw new InvalidClaimException("Invalid claims in key attestation", e);
-        }
+    private KeyAttestation(SignedJWT jwt, JWTClaimsSet claims) {
+        this(jwt,
+                AttestationStatus.fromClaims(claims, KEY_STORAGE_STATUS_CLAIM),
+                JwtClaims.getURIClaim(claims, CERTIFICATION_CLAIM).orElse(null));
     }
 
 }
