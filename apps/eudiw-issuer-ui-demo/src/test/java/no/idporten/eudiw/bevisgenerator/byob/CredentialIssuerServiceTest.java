@@ -11,7 +11,6 @@ import no.idporten.eudiw.bevisgenerator.integration.issuerserver.config.IssuerSe
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
-import java.net.URI;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

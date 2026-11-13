@@ -22,7 +22,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
 import java.net.ConnectException;
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
