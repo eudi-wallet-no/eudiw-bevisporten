@@ -1,6 +1,9 @@
 package no.idporten.eudiw.issuer.jwt;
 
+import com.nimbusds.jose.PlainHeader;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.PlainJWT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -138,6 +141,26 @@ class JwtClaimsTest {
         @Test
         void testEmptyPath() {
             assertThrows(IllegalArgumentException.class, () -> JwtClaims.getStringClaim(claims));
+        }
+
+    }
+
+    @DisplayName("then the claims set of a JWT")
+    @Nested
+    class ClaimsSetOfJwt {
+
+        @DisplayName("is returned when the JWT has valid claims")
+        @Test
+        void testValidClaims() {
+            assertEquals(claims.toJSONObject(), JwtClaims.claimsSet(new PlainJWT(claims)).toJSONObject());
+        }
+
+        @DisplayName("throws when the JWT has invalid claims")
+        @Test
+        void testInvalidClaims() throws Exception {
+            PlainJWT jwt = new PlainJWT(new PlainHeader().toBase64URL(), Base64URL.encode("not json"));
+
+            assertThrows(InvalidClaimException.class, () -> JwtClaims.claimsSet(jwt));
         }
 
     }

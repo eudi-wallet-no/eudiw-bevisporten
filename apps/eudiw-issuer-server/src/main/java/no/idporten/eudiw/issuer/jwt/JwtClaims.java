@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.jwt;
 
+import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 
 import java.net.URI;
@@ -16,6 +17,17 @@ import java.util.Optional;
 public final class JwtClaims {
 
     private JwtClaims() {
+    }
+
+    /**
+     * Claims set of the jwt, converting ParseException as InvalidClaimException.
+     */
+    public static JWTClaimsSet claimsSet(JWT jwt) {
+        try {
+            return jwt.getJWTClaimsSet();
+        } catch (ParseException e) {
+            throw new InvalidClaimException("Invalid JWT claims", e);
+        }
     }
 
     public static Optional<Object> getClaim(JWTClaimsSet claims, String... path) {
