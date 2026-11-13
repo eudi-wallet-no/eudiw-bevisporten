@@ -9,6 +9,7 @@ import no.idporten.eudiw.issuer.credentials.formats.SDJWTService;
 import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
 import no.idporten.eudiw.issuer.credentials.status.StatusIssuerService;
 import no.idporten.eudiw.issuer.credentials.types.Claim;
+import no.idporten.eudiw.issuer.openid4vci.proofs.AttestedKeys;
 import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Credential;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +41,12 @@ public class CredentialCreateService {
             // TODO this is most likely invalid - test with android and ios updated to OpenID4VCI 1!
             return List.of(createCredential(context, null, claims, allocateStatus(context)));
         }
-        List<JWK> keys = bindingKeys.keys().stream()
-                .flatMap(attestedKeys -> attestedKeys.keys().stream())
-                .toList();
-        List<CredentialStatus> credentialStatuses = allocateStatus(context, keys.size());
         List<Credential> credentials = new ArrayList<>();
-        for (int i = 0; i < keys.size(); i++) {
-            credentials.add(createCredential(context, keys.get(i), claims, credentialStatuses != null ? credentialStatuses.get(i) : null));
+        for (AttestedKeys attestedKeys : bindingKeys.keys()) {
+            List<CredentialStatus> credentialStatuses = allocateStatus(context, attestedKeys.keys().size());
+            for (int i = 0; i < attestedKeys.keys().size(); i++) {
+                credentials.add(createCredential(context, attestedKeys.keys().get(i), claims, credentialStatuses != null ? credentialStatuses.get(i) : null));
+            }
         }
         return credentials;
     }
