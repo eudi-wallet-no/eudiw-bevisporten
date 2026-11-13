@@ -3,7 +3,6 @@ package no.idporten.eudiw.bevisgenerator.integration.issuerserver.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
