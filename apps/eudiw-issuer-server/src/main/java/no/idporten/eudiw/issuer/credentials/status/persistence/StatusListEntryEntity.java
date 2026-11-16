@@ -11,15 +11,14 @@ public class StatusListEntryEntity {
     private Long credentialIssuanceTransactionId;
     private String uri;
     private int idx;
+    private long createdMs;
 
-    public StatusListEntryEntity(Long id, Long credentialIssuanceTransactionId, String uri, int idx) {
+    public StatusListEntryEntity(Long id, Long credentialIssuanceTransactionId, String uri, int idx, long createdMs) {
         this.id = id;
         this.credentialIssuanceTransactionId = credentialIssuanceTransactionId;
         this.uri = uri;
         this.idx = idx;
+        this.createdMs = createdMs;
     }
 
-    public StatusListEntryEntity(Long credentialIssuanceTransactionId, String uri, int idx) {
-        this(null, credentialIssuanceTransactionId, uri, idx);
-    }
 }

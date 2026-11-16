@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
 import java.util.List;
 
 @Repository
@@ -19,8 +20,8 @@ public class StatusListEntryDao {
 
     public List<StatusListEntryEntity> findEntries(long credentialIssuanceTransactionId) {
         return jdbc.query("""
-                        SELECT id, credential_issuance_transaction_id, uri, idx
-                        FROM status_list_entry
+                        SELECT id, credential_issuance_transaction_id, uri, idx, created_ms
+                        FROM credential_status_list
                         WHERE credential_issuance_transaction_id = ?
                         ORDER BY id ASC
                         """,
@@ -34,9 +35,10 @@ public class StatusListEntryDao {
             return;
         }
 
+        long createdMs = Clock.systemUTC().millis();
         jdbc.batchUpdate("""
-                        INSERT INTO status_list_entry (credential_issuance_transaction_id, uri, idx)
-                        VALUES (?, ?, ?)
+                        INSERT INTO credential_status_list (credential_issuance_transaction_id, uri, idx, created_ms)
+                        VALUES (?, ?, ?, ?)
                         """,
                 statusEntries,
                 statusEntries.size(),
@@ -44,12 +46,13 @@ public class StatusListEntryDao {
                     ps.setLong(1, credentialIssuanceTransactionId);
                     ps.setString(2, statusEntry.uri().toString());
                     ps.setInt(3, statusEntry.idx());
+                    ps.setLong(4, createdMs);
                 }
         );
     }
 
     public void deleteAll() {
-        jdbc.update("DELETE FROM status_list_entry");
+        jdbc.update("DELETE FROM credential_status_list");
     }
 
     private StatusListEntryEntity toEntity(ResultSet rs) throws SQLException {
@@ -57,7 +60,8 @@ public class StatusListEntryDao {
                 rs.getLong("id"),
                 rs.getLong("credential_issuance_transaction_id"),
                 rs.getString("uri"),
-                rs.getInt("idx")
+                rs.getInt("idx"),
+                rs.getLong("created_ms")
         );
     }
 }
