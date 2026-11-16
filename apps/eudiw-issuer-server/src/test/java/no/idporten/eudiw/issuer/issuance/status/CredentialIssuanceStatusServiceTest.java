@@ -10,7 +10,7 @@ import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenantService;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionEntity;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionDao;
-import no.idporten.eudiw.issuer.credentials.status.persistence.StatusListEntryDao;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusListDao;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
 import no.idporten.eudiw.issuer.oauth2.AccessTokenCredentialValidationContext;
@@ -55,11 +55,11 @@ public class CredentialIssuanceStatusServiceTest {
     private CredentialIssuanceTransactionDao issuanceTransactionDao;
 
     @Autowired
-    private StatusListEntryDao statusListEntryDao;
+    private CredentialStatusListDao credentialStatusListDao;
 
     @BeforeEach
     void setUp() {
-        statusListEntryDao.deleteAll();
+        credentialStatusListDao.deleteAll();
         issuanceTransactionDao.deleteAll();
     }
 
