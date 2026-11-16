@@ -33,11 +33,11 @@ class CredentialStatusServiceTest {
     private CredentialIssuanceTransactionDao issuanceTransactionDao;
 
     @Autowired
-    private StatusListEntryDao statusListEntryDao;
+    private CredentialStatusListDao credentialStatusListDao;
 
     @BeforeEach
     void setUp() {
-        statusListEntryDao.deleteAll();
+        credentialStatusListDao.deleteAll();
         issuanceTransactionDao.deleteAll();
     }
 

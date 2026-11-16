@@ -17,7 +17,7 @@ import java.util.Optional;
 public class CredentialStatusService {
 
     private final CredentialIssuanceTransactionDao issuanceTransactionDao;
-    private final StatusListEntryDao statusListEntryDao;
+    private final CredentialStatusListDao credentialStatusListDao;
 
     @Transactional
     public void storeCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId, CredentialStatusInfo credentialStatusInfo) {
@@ -27,7 +27,7 @@ public class CredentialStatusService {
                 )
                 .orElseThrow(() -> new IllegalStateException("Missing issuance transaction for status entries"));
 
-        statusListEntryDao.insertEntries(transaction.getId(), credentialStatusInfo.statusEntries());
+        credentialStatusListDao.insertEntries(transaction.getId(), credentialStatusInfo.statusEntries());
         issuanceTransactionDao.updateUpdatedMs(transaction.getId(), System.currentTimeMillis());
     }
 
@@ -43,7 +43,7 @@ public class CredentialStatusService {
         }
 
         CredentialIssuanceTransactionEntity transactionEntity = transaction.get();
-        List<StatusListEntryEntity> statusListEntries = statusListEntryDao.findEntries(transactionEntity.getId());
+        List<StatusListEntryEntity> statusListEntries = credentialStatusListDao.findEntries(transactionEntity.getId());
 
         return toCredentialStatusInfo(transactionEntity, statusListEntries);
     }
@@ -61,7 +61,7 @@ public class CredentialStatusService {
         }
 
         CredentialIssuanceTransactionEntity transactionEntity = transaction.get();
-        List<StatusListEntryEntity> statusListEntries = statusListEntryDao.findEntries(transactionEntity.getId());
+        List<StatusListEntryEntity> statusListEntries = credentialStatusListDao.findEntries(transactionEntity.getId());
 
         return toCredentialStatusInfo(transactionEntity, statusListEntries);
     }

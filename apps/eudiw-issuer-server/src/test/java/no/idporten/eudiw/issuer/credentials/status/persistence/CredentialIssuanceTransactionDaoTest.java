@@ -18,11 +18,11 @@ class CredentialIssuanceTransactionDaoTest {
     private CredentialIssuanceTransactionDao dao;
 
     @Autowired
-    private StatusListEntryDao statusListEntryDao;
+    private CredentialStatusListDao credentialStatusListDao;
 
     @BeforeEach
     void setUp() {
-        statusListEntryDao.deleteAll();
+        credentialStatusListDao.deleteAll();
         dao.deleteAll();
     }
 

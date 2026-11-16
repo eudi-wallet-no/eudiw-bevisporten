@@ -2,29 +2,39 @@ package no.idporten.eudiw.issuer.credentials.status.persistence;
 
 import no.idporten.eudiw.issuer.credentials.status.integration.StatusEntry;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Clock;
 import java.util.List;
 
-@Repository
-public class StatusListEntryDao {
+/**
+ * Base class for storing token status list references linked to an issuance transaction.
+ */
+public abstract class StatusListDao {
 
     private final JdbcTemplate jdbc;
+    private final String findEntriesSql;
+    private final String insertEntriesSql;
+    private final String deleteAllSql;
 
-    public StatusListEntryDao(JdbcTemplate jdbc) {
+    protected StatusListDao(JdbcTemplate jdbc, String table) {
         this.jdbc = jdbc;
+        this.findEntriesSql = """
+                SELECT id, credential_issuance_transaction_id, uri, idx, created_ms
+                FROM %s
+                WHERE credential_issuance_transaction_id = ?
+                ORDER BY id ASC
+                """.formatted(table);
+        this.insertEntriesSql = """
+                INSERT INTO %s (credential_issuance_transaction_id, uri, idx, created_ms)
+                VALUES (?, ?, ?, ?)
+                """.formatted(table);
+        this.deleteAllSql = "DELETE FROM %s".formatted(table);
     }
 
     public List<StatusListEntryEntity> findEntries(long credentialIssuanceTransactionId) {
-        return jdbc.query("""
-                        SELECT id, credential_issuance_transaction_id, uri, idx, created_ms
-                        FROM credential_status_list
-                        WHERE credential_issuance_transaction_id = ?
-                        ORDER BY id ASC
-                        """,
+        return jdbc.query(findEntriesSql,
                 (rs, rowNum) -> toEntity(rs),
                 credentialIssuanceTransactionId
         );
@@ -36,10 +46,7 @@ public class StatusListEntryDao {
         }
 
         long createdMs = Clock.systemUTC().millis();
-        jdbc.batchUpdate("""
-                        INSERT INTO credential_status_list (credential_issuance_transaction_id, uri, idx, created_ms)
-                        VALUES (?, ?, ?, ?)
-                        """,
+        jdbc.batchUpdate(insertEntriesSql,
                 statusEntries,
                 statusEntries.size(),
                 (ps, statusEntry) -> {
@@ -52,7 +59,7 @@ public class StatusListEntryDao {
     }
 
     public void deleteAll() {
-        jdbc.update("DELETE FROM credential_status_list");
+        jdbc.update(deleteAllSql);
     }
 
     private StatusListEntryEntity toEntity(ResultSet rs) throws SQLException {

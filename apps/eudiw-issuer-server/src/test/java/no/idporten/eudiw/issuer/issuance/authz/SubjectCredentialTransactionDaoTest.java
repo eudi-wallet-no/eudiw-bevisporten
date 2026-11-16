@@ -1,7 +1,7 @@
 package no.idporten.eudiw.issuer.issuance.authz;
 
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialIssuanceTransactionDao;
-import no.idporten.eudiw.issuer.credentials.status.persistence.StatusListEntryDao;
+import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusListDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,14 +28,14 @@ class SubjectCredentialTransactionDaoTest {
     private CredentialIssuanceTransactionDao issuanceTransactionDao;
 
     @Autowired
-    private StatusListEntryDao statusListEntryDao;
+    private CredentialStatusListDao credentialStatusListDao;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {
-        statusListEntryDao.deleteAll();
+        credentialStatusListDao.deleteAll();
         dao.deleteAll();
         issuanceTransactionDao.deleteAll();
     }
