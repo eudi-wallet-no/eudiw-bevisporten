@@ -54,8 +54,8 @@ class CredentialStatusServiceTest {
                 "junit",
                 "pid",
                 List.of(
-                        new StatusEntry(10, URI.create("https://status.example/lists/1")),
-                        new StatusEntry(11, URI.create("https://status.example/lists/1"))
+                        new StatusEntry(10, URI.create("https://junit.status.eidas2sandkasse.dev/lists/1")),
+                        new StatusEntry(11, URI.create("https://junit.status.eidas2sandkasse.dev/lists/1"))
                 )
         );
 
@@ -67,7 +67,7 @@ class CredentialStatusServiceTest {
                 () -> assertEquals("pid", retrieved.credentialConfigurationId()),
                 () -> assertEquals(2, retrieved.statusEntries().size()),
                 () -> assertEquals(10, retrieved.statusEntries().getFirst().idx()),
-                () -> assertEquals("https://status.example/lists/1", retrieved.statusEntries().getFirst().uri().toString()),
+                () -> assertEquals("https://junit.status.eidas2sandkasse.dev/lists/1", retrieved.statusEntries().getFirst().uri().toString()),
                 () -> assertEquals(11, retrieved.statusEntries().getLast().idx())
         );
     }
@@ -83,7 +83,7 @@ class CredentialStatusServiceTest {
                 new CredentialStatusInfo(
                         "junit",
                         "pid",
-                        List.of(new StatusEntry(99, URI.create("https://status.example/lists/new")))
+                        List.of(new StatusEntry(99, URI.create("https://junit.status.eidas2sandkasse.dev/lists/new")))
                 )
         ));
     }
@@ -99,7 +99,7 @@ class CredentialStatusServiceTest {
                 new CredentialStatusInfo(
                         "junit",
                         "pid",
-                        List.of(new StatusEntry(1, URI.create("https://status.example/lists/first")))
+                        List.of(new StatusEntry(1, URI.create("https://junit.status.eidas2sandkasse.dev/lists/first")))
                 )
         );
 
@@ -135,7 +135,7 @@ class CredentialStatusServiceTest {
                 new CredentialStatusInfo(
                         "junit",
                         "pid",
-                        List.of(new StatusEntry(1, URI.create("https://status.example/lists/pid")))
+                        List.of(new StatusEntry(1, URI.create("https://junit.status.eidas2sandkasse.dev/lists/pid")))
                 )
         );
         CredentialStatusInfo retrieved = credentialStatusService.retrieveRevocableCredentialStatus(junitIssuerTenant(), transactionId);
