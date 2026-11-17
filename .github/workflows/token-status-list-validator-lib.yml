@@ -18,7 +18,6 @@ on:
 jobs:
   pull-request-checks:
     if: github.event_name == 'pull_request'
-    permissions: {}
     uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-lib.yml@main
     with:
       application-path: libs/token-status-list-validator-lib/
