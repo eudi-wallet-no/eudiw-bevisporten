@@ -18,14 +18,7 @@ on:
 jobs:
   pull-request-checks:
     if: github.event_name == 'pull_request'
-    permissions:
-      # contents: write unconditionally (even though it's disabled for us via
-      # enable-auto-merge-dependabot defaulting to false) - GitHub validates
-      # that declared permission against this job's grant for the whole
-      # workflow file, so contents: read here breaks the file on push to main.
-      contents: write
-      packages: read
-      pull-requests: write
+    permissions: {}
     uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-lib.yml@main
     with:
       application-path: libs/token-status-list-validator-lib/
