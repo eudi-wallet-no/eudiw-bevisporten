@@ -9,10 +9,9 @@ CREATE TABLE `wia_status_list` (
         FOREIGN KEY (`credential_issuance_transaction_id`)
             REFERENCES `credential_issuance_transaction` (`id`)
             ON DELETE CASCADE,
-    CONSTRAINT `uq_wia_status_list_transaction_uri_idx` UNIQUE (`credential_issuance_transaction_id`, `uri`, `idx`)
+    CONSTRAINT `uq_wia_status_list_transaction_uri_idx` UNIQUE (`credential_issuance_transaction_id`, `uri`, `idx`),
+    INDEX `idx_wia_status_list_uri_idx` (`uri`, `idx`)
 );
-
-CREATE INDEX `idx_wia_status_list_uri_idx` ON `wia_status_list` (`uri`, `idx`);
 
 CREATE TABLE `ka_status_list` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -25,7 +24,6 @@ CREATE TABLE `ka_status_list` (
         FOREIGN KEY (`credential_issuance_transaction_id`)
             REFERENCES `credential_issuance_transaction` (`id`)
             ON DELETE CASCADE,
-    CONSTRAINT `uq_ka_status_list_transaction_uri_idx` UNIQUE (`credential_issuance_transaction_id`, `uri`, `idx`)
+    CONSTRAINT `uq_ka_status_list_transaction_uri_idx` UNIQUE (`credential_issuance_transaction_id`, `uri`, `idx`),
+    INDEX `idx_ka_status_list_uri_idx` (`uri`, `idx`)
 );
-
-CREATE INDEX `idx_ka_status_list_uri_idx` ON `ka_status_list` (`uri`, `idx`);
