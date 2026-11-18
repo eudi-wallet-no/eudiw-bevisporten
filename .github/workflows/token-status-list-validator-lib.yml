@@ -6,14 +6,9 @@ on:
     paths:
       - 'libs/token-status-list-validator-lib/**'
       - '.github/workflows/token-status-list-validator-lib.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'libs/token-status-list-validator-lib/**'
-      - '.github/workflows/token-status-list-validator-lib.yml'
-      - '!libs/token-status-list-validator-lib/src/test/**'
-      - '!libs/token-status-list-validator-lib/*.md'
-  workflow_dispatch:
+  release:
+    types:
+      - created
 
 jobs:
   pull-request-checks:
@@ -21,4 +16,14 @@ jobs:
     uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-lib.yml@main
     with:
       application-path: libs/token-status-list-validator-lib/
+    secrets: inherit
+  create-release:
+    if: github.event_name == 'release'
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-lib.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      application-path: libs/token-status-list-validator-lib/
+      package-version: token-status-list-validator-lib-${{ github.event.release.tag_name }}
     secrets: inherit
