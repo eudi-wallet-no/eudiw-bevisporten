@@ -506,4 +506,19 @@ public class PushedAuthorizationRequestProcessingTest {
         authorizationServer.validate(authorizationRequest, clientMetadata);
     }
 
+    @Test
+    @DisplayName("then a client authentication none is not allowed at the par endpoint")
+    public void testClientAuthNoneNotAllowedAtPArEndpoint() {
+        ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
+        MockRequest request = new MockRequest();
+        request.addParameter("client_id", "cid");
+        PushedAuthorizationRequest authorizationRequest = new PushedAuthorizationRequest(request.getHeaders(), request.getParameters());
+        OAuth2Exception exception = assertThrows(OAuth2Exception.class, () -> authorizationServer.process(authorizationRequest));
+        assertAll(
+                () -> assertEquals(401, exception.getHttpStatusCode()),
+                () -> assertEquals("invalid_client", exception.error()),
+                () -> assertTrue(exception.errorDescription().contains("none"))
+        );
+    }
+
 }
