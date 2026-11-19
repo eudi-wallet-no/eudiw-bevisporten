@@ -508,7 +508,7 @@ public class PushedAuthorizationRequestProcessingTest {
 
     @Test
     @DisplayName("then a client authentication none is not allowed at the par endpoint")
-    public void testClientAuthNoneNotAllowedAtPArEndpoint() {
+    public void testClientAuthNoneNotAllowedAtParEndpoint() {
         ClientMetadata clientMetadata = TestUtils.defaultClientMetadata();
         MockRequest request = new MockRequest();
         request.addParameter("client_id", "cid");

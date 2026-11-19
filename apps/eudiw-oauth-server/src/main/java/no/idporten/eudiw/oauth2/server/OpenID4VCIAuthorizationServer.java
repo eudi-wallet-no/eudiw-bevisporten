@@ -41,7 +41,7 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
     @Override
     public ClientMetadata authenticateClient(AuthenticatedRequest authenticatedRequest) {
         if (authenticatedRequest.isNone() && authenticatedRequest instanceof PushedAuthorizationRequest) {
-            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Client authentication method 'none' is not supported for authorization code flow.", 401);
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Client authentication method none is not supported for authorization code flow.", 401);
         }
         return super.authenticateClient(authenticatedRequest);
     }
