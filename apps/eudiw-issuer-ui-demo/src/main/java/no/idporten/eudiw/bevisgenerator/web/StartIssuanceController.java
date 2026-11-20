@@ -26,16 +26,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.Collator;
@@ -118,22 +117,34 @@ public class StartIssuanceController {
         return "start";
     }
 
+
     @PostMapping("/start-issuance/{credential_configuration_id}")
     public String startIssuance(@PathVariable("credential_configuration_id") String credentialConfigurationId,
                                 @ModelAttribute("startIssuanceForm") StartIssuanceForm startIssuanceForm,
+                                @RequestParam(value = "issuanceMode", required = false) String issuanceMode,
                                 Model model,
                                 HttpSession session) {
         CredentialConfiguration credentialConfiguration = issuerServerService.getById(credentialConfigurationId);
         String normalizedJson = startIssuanceForm.json().replaceAll("\\s", ""); // TODO add validation
         logger.info(normalizedJson);
-
+        String personalIdentifier = null;
+        if (issuanceMode != null) {
+            if (issuanceMode.equals("json")) {
+                personalIdentifier = startIssuanceForm.personIdentifier();
+            } else if (issuanceMode.equals("schema")) {
+                personalIdentifier = credentialConfiguration.personIdentifier();
+            } else {
+                throw new IssuerUiException("Invalid issuance mode: " + issuanceMode);
+            }
+        }
         model.addAttribute("request", createRequestTrace(credentialConfiguration, startIssuanceForm));
 
-        IssuanceResponse response = issuerServerService.startIssuance(credentialConfiguration, startIssuanceForm);
+        IssuanceResponse response = issuerServerService.startIssuance(credentialConfiguration, startIssuanceForm, personalIdentifier);
         IssuanceSessionData issuanceSessionData = createIssuanceSessionData(
                 credentialConfiguration,
                 response,
-                startIssuanceForm
+                startIssuanceForm,
+                personalIdentifier
         );
 
         String uri = convertToCredentialOfferUri(response);
@@ -164,21 +175,21 @@ public class StartIssuanceController {
     private IssuanceSessionData createIssuanceSessionData(
             CredentialConfiguration credentialConfiguration,
             IssuanceResponse response,
-            StartIssuanceForm startIssuanceForm
+            StartIssuanceForm startIssuanceForm,
+            String personalIdentifier
     ) {
         CredentialOffer credentialOffer = response.credentialOffer();
         validateCredentialOffer(credentialOffer, credentialConfiguration);
 
         String issuedCredentialConfigurationId = credentialOffer.credentialConfigurationIds().getFirst();
         String credentialName = credentialName(credentialConfiguration, issuedCredentialConfigurationId);
-        String subjectIdentifier = resolveSubjectIdentifier(startIssuanceForm, issuedCredentialConfigurationId);
         List<ClaimView> claims = extractClaims(startIssuanceForm.json());
 
         return new IssuanceSessionData(
                 credentialOffer.credentialIssuer(),
                 issuedCredentialConfigurationId,
                 credentialName,
-                subjectIdentifier,
+                personalIdentifier,
                 false,
                 claims
         );
@@ -199,15 +210,6 @@ public class StartIssuanceController {
             logger.warn("Could not extract credential_data claims from json", e);
         }
         return List.of();
-    }
-
-    private String resolveSubjectIdentifier(StartIssuanceForm startIssuanceForm, String issuedCredentialConfigurationId) {
-        boolean isSubjectCredential =
-                issuerServerService.getSubjectCredentialConfigurationById(issuedCredentialConfigurationId) != null;
-        if (isSubjectCredential && StringUtils.hasText(startIssuanceForm.personIdentifier())) {
-            return startIssuanceForm.personIdentifier();
-        }
-        return "";
     }
 
     private static String credentialName(CredentialConfiguration credentialConfiguration, String fallback) {

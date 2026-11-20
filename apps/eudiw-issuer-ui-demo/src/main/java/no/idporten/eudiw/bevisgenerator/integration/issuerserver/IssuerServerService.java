@@ -139,16 +139,6 @@ public class IssuerServerService {
         return issuerServerProperties.findSubjectCredentialConfigurationById(id);
     }
 
-    private String createAccessToken(CredentialConfiguration credentialConfiguration, StartIssuanceForm startIssuanceForm) {
-        return maskinportenClient.getAccessToken(
-                AccessTokenRequestOverrides.builder()
-                        .personIdentifier(StringUtils.hasText(startIssuanceForm.personIdentifier()) ? startIssuanceForm.personIdentifier() : null)
-                        .scopes(List.of(credentialConfiguration.scope()))
-                        .resources(Collections.singletonList(credentialConfiguration.credentialIssuer()))
-                        .build())
-                .getValue();
-    }
-
     private String createAccessToken(CredentialConfiguration credentialConfiguration) {
         return maskinportenClient.getAccessToken(
                 AccessTokenRequestOverrides.builder()
@@ -168,9 +158,9 @@ public class IssuerServerService {
                 .getValue();
     }
 
-    public IssuanceResponse startIssuance(CredentialConfiguration credentialConfiguration, StartIssuanceForm json) {
+    public IssuanceResponse startIssuance(CredentialConfiguration credentialConfiguration, StartIssuanceForm json, String personalIdentifier) {
         String issuanceEndpoint = credentialConfiguration.credentialIssuer() + issuerServerProperties.issuanceEndpoint();
-        String accessToken = createAccessToken(credentialConfiguration, json);
+        String accessToken = createAccessToken(credentialConfiguration, personalIdentifier);
         IssuanceResponse result;
         try {
             result = restClient.post()

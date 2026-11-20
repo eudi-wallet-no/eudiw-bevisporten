@@ -1,5 +1,6 @@
 package no.idporten.eudiw.bevisgenerator.integration.issuerserver;
 
+import com.nimbusds.openid.connect.sdk.assurance.evidences.PersonalNumber;
 import no.idporten.eudiw.bevisgenerator.byob.CredentialIssuerService;
 import no.idporten.eudiw.bevisgenerator.config.FeatureSwitches;
 import no.idporten.eudiw.bevisgenerator.exception.IssuerServerException;
@@ -186,8 +187,7 @@ class IssuerServerServiceTest {
 
         IssuanceResponse response = service.startIssuance(
                 credentialConfiguration,
-                new StartIssuanceForm("{}", null)
-        );
+                new StartIssuanceForm("{}", ""), "12345678901");
 
         assertEquals("tx-id", response.issuanceTransactionId());
         mockServer.verify();

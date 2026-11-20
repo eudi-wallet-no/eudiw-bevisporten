@@ -40,6 +40,7 @@
                        placeholder=""
                        class="ds-input"
                        th:field="*{personIdentifier}" />
+                <input type="hidden" id="issuance_mode" name="issuanceMode" value="schema" />
             </div>
 
             <div class="mode-toggle-row">
@@ -98,5 +99,6 @@
 <footer th:replace="~{fragments/layout :: page_footer_fragment(issuer=${issuerUrl})}"></footer>
 <script th:src="@{/js/mode-toggle.js}"></script>
 <script th:src="@{/js/issuance-form.js}"></script>
+<script th:src="@{/js/issuance-advanced.js}"></script>
 </body>
 </html>
