@@ -9,13 +9,88 @@
 
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
+        <kotlin.version>2.4.21</kotlin.version>
+        <!-- walt.id 1.2.x is built against their kotlinx-serialization fork -->
+        <kotlin-serialization.version>1.11.1-waltid-20260811</kotlin-serialization.version>
+        <kotlin-coroutines.version>1.11.0</kotlin-coroutines.version>
+        <waltid.version>1.2.0</waltid.version>
+        <!-- Same ktor version as walt.id 1.2.0 -->
+        <ktor.version>3.6.0</ktor.version>
+        <slf4j.version>2.0.19</slf4j.version>
     </properties>
 
     <dependencies>
         <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-verification-policies2-jvm</artifactId>
+            <version>${waltid.version}</version>
+        </dependency>
+        <!-- Runtime scope in policies2, used directly for decoding the list and the CWT claims -->
+        <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-status-list-jvm</artifactId>
+            <version>${waltid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.crypto</groupId>
+            <artifactId>waltid-cose-jvm</artifactId>
+            <version>${waltid.version}</version>
+        </dependency>
+        <!-- Public key from an x5chain certificate in the unprotected CWT header -->
+        <dependency>
+            <groupId>id.walt.crypto</groupId>
+            <artifactId>waltid-x509-jvm</artifactId>
+            <version>${waltid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-java-jvm</artifactId>
+            <version>${ktor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core-jvm</artifactId>
+            <version>${kotlin-coroutines.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-json-jvm</artifactId>
+            <version>${kotlin-serialization.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-serialization-cbor-jvm</artifactId>
+            <version>${kotlin-serialization.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>6.0.3</version>
+            <version>6.1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-mock-jvm</artifactId>
+            <version>${ktor.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -23,15 +98,89 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <source>src/main/kotlin</source>
+                                <source>src/main/java</source>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <source>src/test/kotlin</source>
+                                <source>src/test/java</source>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jvmTarget>25</jvmTarget>
+                </configuration>
+            </plugin>
+            <!-- Mixed build: Kotlin (src/main/kotlin) is compiled before Java, so Java can call the Kotlin bridge -->
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.0</version>
+                <version>3.16.0</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>java-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>java-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.6.1</version>
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>waltid-repository-releases</id>
+            <name>walt.id Release Repository</name>
+            <url>https://maven.waltid.dev/releases</url>
+        </repository>
+        <repository>
+            <id>waltid-repository-snapshots</id>
+            <name>walt.id Snapshot Repository</name>
+            <url>https://maven.waltid.dev/snapshots</url>
+        </repository>
+    </repositories>
 </project>

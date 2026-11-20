@@ -9,7 +9,6 @@ on:
   release:
     types:
       - created
-      - published
 
 jobs:
   pull-request-checks:
@@ -22,7 +21,7 @@ jobs:
       application-path: libs/token-status-list-validator-lib/
     secrets: inherit
   create-release:
-    if: contains(fromJSON('["release", "published"]'), github.event_name)
+    if: contains(fromJSON('["release"]'), github.event_name)
     uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-lib.yml@main
     permissions:
       contents: read
