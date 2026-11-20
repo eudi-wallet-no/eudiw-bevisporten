@@ -115,6 +115,19 @@ public class TestData {
     }
 
     /**
+     * A signed key attestation with key storage status.
+     */
+    public static SignedJWT keyAttestationJwt() {
+        return keyAttestationJwt(new JWTClaimsSet.Builder()
+                .claim("key_storage_status", Map.of(
+                        "status", Map.of("status_list", Map.of(
+                                "idx", 4711,
+                                "uri", "https://wallet-provider.junit.eidas2sandkasse.dev/ka-statuslists/7")),
+                        "exp", 4102444800L))
+                .build());
+    }
+
+    /**
      * A signed key attestation with the given claims.
      */
     public static SignedJWT keyAttestationJwt(JWTClaimsSet claims) {

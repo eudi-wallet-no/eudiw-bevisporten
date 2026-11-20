@@ -9,6 +9,8 @@ import no.idporten.eudiw.issuer.credentials.status.integration.StatusIssuerInteg
 import no.idporten.eudiw.issuer.credentials.status.integration.UpdatedStatusEntry;
 import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusService;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.openid4vci.proofs.AttestationStatus;
+import no.idporten.eudiw.issuer.openid4vci.proofs.AttestedKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -61,6 +64,34 @@ public class StatusIssuerService {
                 .stream()
                 .map(statusEntry -> CredentialStatus.create(statusEntry.idx(), statusEntry.uri()))
                 .toList();
+    }
+
+    /**
+     * Stores status list references from the wallet instance attestation and key attestations, if present.
+     */
+    public void storeAttestationStatus(CredentialIssueContext context) {
+        var transactionId = requireNonNull(
+            context.transactionId(),
+            "Transaction id is required to store attestation status."
+        );
+
+        List<StatusEntry> wiaStatusEntries = Stream.ofNullable(context.walletInstanceAttestation())
+                .flatMap(wia -> statusEntry(wia.clientStatus()))
+                .toList();
+        List<StatusEntry> kaStatusEntries = Stream.ofNullable(context.bindingKeys())
+                .flatMap(bindingKeys -> bindingKeys.keys().stream())
+                .map(AttestedKeys::keyAttestation)
+                .filter(Objects::nonNull)
+                .flatMap(keyAttestation -> statusEntry(keyAttestation.keyStorageStatus()))
+                .toList();
+        credentialStatusService.storeAttestationStatus(context.credentialIssuerTenant(), transactionId, wiaStatusEntries, kaStatusEntries);
+    }
+
+    private static Stream<StatusEntry> statusEntry(AttestationStatus attestationStatus) {
+        if (attestationStatus == null || attestationStatus.statusList() == null) {
+            return Stream.empty();
+        }
+        return Stream.of(new StatusEntry(attestationStatus.statusList().index(), attestationStatus.statusList().uri()));
     }
 
     public int revokeStatus(CredentialRevokeContext context) {
