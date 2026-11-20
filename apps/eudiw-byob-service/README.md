@@ -16,7 +16,7 @@ EUDI wallet: Bring your own bevis service
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|

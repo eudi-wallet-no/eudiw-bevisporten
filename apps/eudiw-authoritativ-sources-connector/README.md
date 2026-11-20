@@ -16,7 +16,7 @@ EUDI wallet: Authoritativ-sources-connector to connect to external Authoritativ-
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|

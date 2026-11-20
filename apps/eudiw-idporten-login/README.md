@@ -21,7 +21,7 @@ The EUDIW verifier service is used to handle the OpenID4VP protocol with wallets
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                   |
 |---------|-----------------------------------------------|
