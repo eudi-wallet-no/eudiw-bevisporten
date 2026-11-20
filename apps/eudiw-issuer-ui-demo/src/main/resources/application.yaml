@@ -77,13 +77,13 @@ bevisgenerator:
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer}
         description: Digital kontaktinformasjon
         scope: eudiw:no:kontaktregisteret:kontaktinformasjon
-        person-identifier: 16903349844
+        person-identifier: 48856401181
         json-request: |
           {
             "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer}",
             "credential_configuration_id": "no.kontaktregisteret.kontaktinformasjon_sd_jwt_vc",
             "subject": {
-              "identifier": "16903349844"
+              "identifier": "48856401181"
             }
           }
       - credential-configuration-id: no.minid.mpid_sd_jwt_vc
