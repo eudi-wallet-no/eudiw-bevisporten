@@ -20,8 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TokenStatusListValidatorTest {
 
     private static final Duration AFTER_ISSUANCE = Duration.ofMinutes(1);
-    private static final Duration BEYOND_SKEW = TokenStatusListConfig.defaults().clockSkew().plusSeconds(1);
-    private static final Duration WITHIN_SKEW = TokenStatusListConfig.defaults().clockSkew().minusSeconds(1);
+    private static final Duration BEYOND_SKEW = TokenStatusListValidatorConfig.defaults().clockSkew().plusSeconds(1);
+    private static final Duration WITHIN_SKEW = TokenStatusListValidatorConfig.defaults().clockSkew().minusSeconds(1);
 
     @Test
     @DisplayName("and the JWT status at idx is 0 then true is expected")
@@ -200,7 +200,7 @@ class TokenStatusListValidatorTest {
     void uncachedListIsFetchedEveryTime() {
         var endpoint = new MockStatusListEndpoint()
                 .serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"), "max-age=30");
-        var config = new TokenStatusListConfig(Duration.ofSeconds(3), Duration.ofSeconds(5), false, Duration.ofSeconds(60));
+        var config = new TokenStatusListValidatorConfig(Duration.ofSeconds(3), Duration.ofSeconds(5), false, Duration.ofSeconds(60));
         var validator = new TokenStatusListValidator(config, fixedClock(PT_ISSUED_AT.plus(AFTER_ISSUANCE)), endpoint.engine());
 
         validator.validate(URI.create(TestData.PT_URI), PT_IDX_VALID);
@@ -210,7 +210,7 @@ class TokenStatusListValidatorTest {
     }
 
     private static TokenStatusListValidator validator(MockStatusListEndpoint endpoint, Instant now) {
-        return new TokenStatusListValidator(TokenStatusListConfig.defaults(), fixedClock(now), endpoint.engine());
+        return new TokenStatusListValidator(TokenStatusListValidatorConfig.defaults(), fixedClock(now), endpoint.engine());
     }
 
     private static Clock fixedClock(Instant now) {

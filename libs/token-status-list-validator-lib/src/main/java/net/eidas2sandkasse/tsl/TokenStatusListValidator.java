@@ -19,10 +19,10 @@ public class TokenStatusListValidator {
     private final WaltStatusListClient client;
 
     public TokenStatusListValidator() {
-        this(TokenStatusListConfig.defaults());
+        this(TokenStatusListValidatorConfig.defaults());
     }
 
-    public TokenStatusListValidator(TokenStatusListConfig config) {
+    public TokenStatusListValidator(TokenStatusListValidatorConfig config) {
         this.client = new WaltStatusListClient(
                 config.connectTimeout().toMillis(),
                 config.readTimeout().toMillis(),
@@ -31,7 +31,7 @@ public class TokenStatusListValidator {
     }
 
     // For tests
-    TokenStatusListValidator(TokenStatusListConfig config, Clock clock, HttpClientEngine engine) {
+    TokenStatusListValidator(TokenStatusListValidatorConfig config, Clock clock, HttpClientEngine engine) {
         this.client = new WaltStatusListClient(
                 config.connectTimeout().toMillis(),
                 config.readTimeout().toMillis(),
