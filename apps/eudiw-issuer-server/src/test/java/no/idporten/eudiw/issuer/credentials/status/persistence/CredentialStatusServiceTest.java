@@ -35,9 +35,17 @@ class CredentialStatusServiceTest {
     @Autowired
     private CredentialStatusListDao credentialStatusListDao;
 
+    @Autowired
+    private WiaStatusListDao wiaStatusListDao;
+
+    @Autowired
+    private KaStatusListDao kaStatusListDao;
+
     @BeforeEach
     void setUp() {
         credentialStatusListDao.deleteAll();
+        wiaStatusListDao.deleteAll();
+        kaStatusListDao.deleteAll();
         issuanceTransactionDao.deleteAll();
     }
 
@@ -122,6 +130,49 @@ class CredentialStatusServiceTest {
                 () -> assertEquals(createdOnInsert, updated.getCreatedMs()),
                 () -> assertEquals(updatedOnInsert + 1000, updated.getUpdatedMs())
         );
+    }
+
+    @DisplayName("then attestation status entries are stored in the wia and ka tables")
+    @Test
+    void testStoreAttestationStatus() {
+        IssuanceTransactionId transactionId = new IssuanceTransactionId("tx-attestation");
+        prepareIssuanceTransaction("tx-attestation", "pid", "junit");
+
+        credentialStatusService.storeAttestationStatus(
+                junitIssuerTenant(),
+                transactionId,
+                List.of(new StatusEntry(1, URI.create("https://wallet-provider.junit.eidas2sandkasse.dev/wia/1"))),
+                List.of(
+                        new StatusEntry(2, URI.create("https://wallet-provider.junit.eidas2sandkasse.dev/ka/1")),
+                        new StatusEntry(3, URI.create("https://wallet-provider.junit.eidas2sandkasse.dev/ka/1"))
+                )
+        );
+
+        long id = issuanceTransactionDao.findByIssuanceTransactionId("tx-attestation", "junit").orElseThrow().getId();
+        List<StatusListEntryEntity> wiaEntries = wiaStatusListDao.findEntries(id);
+        List<StatusListEntryEntity> kaEntries = kaStatusListDao.findEntries(id);
+        assertAll(
+                () -> assertEquals(1, wiaEntries.size()),
+                () -> assertEquals(1, wiaEntries.getFirst().getIdx()),
+                () -> assertEquals("https://wallet-provider.junit.eidas2sandkasse.dev/wia/1", wiaEntries.getFirst().getUri()),
+                () -> assertEquals(2, kaEntries.size()),
+                () -> assertEquals(2, kaEntries.getFirst().getIdx()),
+                () -> assertEquals(3, kaEntries.getLast().getIdx()),
+                () -> assertTrue(credentialStatusListDao.findEntries(id).isEmpty())
+        );
+    }
+
+    @DisplayName("then storing attestation status fails when issuance transaction does not exist")
+    @Test
+    void testStoreAttestationStatusFailsWhenIssuanceTransactionIsMissing() {
+        List<StatusEntry> wiaStatusEntries = List.of(new StatusEntry(1, URI.create("https://wallet-provider.junit.eidas2sandkasse.dev/wia/1")));
+
+        assertThrows(IllegalStateException.class, () -> credentialStatusService.storeAttestationStatus(
+                junitIssuerTenant(),
+                new IssuanceTransactionId("tx-unknown"),
+                wiaStatusEntries,
+                List.of()
+        ));
     }
 
     @DisplayName("then retrieve by tenant and transaction returns stored status")
