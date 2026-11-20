@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TokenStatusListValidatorTest {
 
     private static final Duration AFTER_ISSUANCE = Duration.ofMinutes(1);
+    private static final Duration BEYOND_SKEW = TokenStatusListConfig.defaults().clockSkew().plusSeconds(1);
+    private static final Duration WITHIN_SKEW = TokenStatusListConfig.defaults().clockSkew().minusSeconds(1);
 
     @Test
     @DisplayName("and the JWT status at idx is 0 then true is expected")
@@ -83,7 +85,7 @@ class TokenStatusListValidatorTest {
         var endpoint = new MockStatusListEndpoint().serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"));
 
         assertThrows(TokenStatusListException.class,
-                () -> validator(endpoint, PT_EXPIRES_AT.plusSeconds(1)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+                () -> validator(endpoint, PT_EXPIRES_AT.plus(BEYOND_SKEW)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
     }
 
     @Test
@@ -92,7 +94,41 @@ class TokenStatusListValidatorTest {
         var endpoint = new MockStatusListEndpoint().serve(PT_URI, CWT, statusList("pt-pid-mdoc.cwt"));
 
         assertThrows(TokenStatusListException.class,
-                () -> validator(endpoint, PT_EXPIRES_AT.plusSeconds(1)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+                () -> validator(endpoint, PT_EXPIRES_AT.plus(BEYOND_SKEW)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+    }
+
+    @Test
+    @DisplayName("and exp has passed but within the clock skew then the status is resolved")
+    void expiredWithinClockSkew() {
+        var endpoint = new MockStatusListEndpoint().serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"));
+
+        assertTrue(validator(endpoint, PT_EXPIRES_AT.plus(WITHIN_SKEW)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+    }
+
+    @Test
+    @DisplayName("and the JWT iat is in the future beyond the clock skew then an exception is expected")
+    void jwtIssuedInFuture() {
+        var endpoint = new MockStatusListEndpoint().serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"));
+
+        assertThrows(TokenStatusListException.class,
+                () -> validator(endpoint, PT_ISSUED_AT.minus(BEYOND_SKEW)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+    }
+
+    @Test
+    @DisplayName("and the CWT iat is in the future beyond the clock skew then an exception is expected")
+    void cwtIssuedInFuture() {
+        var endpoint = new MockStatusListEndpoint().serve(UA_URI, CWT, statusList("ua-pid-mdoc.cwt"));
+
+        assertThrows(TokenStatusListException.class,
+                () -> validator(endpoint, UA_ISSUED_AT.minus(BEYOND_SKEW)).validate(URI.create(TestData.UA_URI), UA_IDX_VALID));
+    }
+
+    @Test
+    @DisplayName("and iat is in the future but within the clock skew then the status is resolved")
+    void issuedInFutureWithinClockSkew() {
+        var endpoint = new MockStatusListEndpoint().serve(UA_URI, CWT, statusList("ua-pid-mdoc.cwt"));
+
+        assertTrue(validator(endpoint, UA_ISSUED_AT.minus(WITHIN_SKEW)).validate(URI.create(TestData.UA_URI), UA_IDX_VALID));
     }
 
     @Test
@@ -164,7 +200,7 @@ class TokenStatusListValidatorTest {
     void uncachedListIsFetchedEveryTime() {
         var endpoint = new MockStatusListEndpoint()
                 .serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"), "max-age=30");
-        var config = new TokenStatusListConfig(Duration.ofSeconds(3), Duration.ofSeconds(5), false);
+        var config = new TokenStatusListConfig(Duration.ofSeconds(3), Duration.ofSeconds(5), false, Duration.ofSeconds(60));
         var validator = new TokenStatusListValidator(config, fixedClock(PT_ISSUED_AT.plus(AFTER_ISSUANCE)), endpoint.engine());
 
         validator.validate(URI.create(TestData.PT_URI), PT_IDX_VALID);

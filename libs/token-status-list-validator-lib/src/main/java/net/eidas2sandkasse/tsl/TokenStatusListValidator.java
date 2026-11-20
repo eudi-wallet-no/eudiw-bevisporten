@@ -26,7 +26,8 @@ public class TokenStatusListValidator {
         this.client = new WaltStatusListClient(
                 config.connectTimeout().toMillis(),
                 config.requestTimeout().toMillis(),
-                config.cacheEnabled());
+                config.cacheEnabled(),
+                config.clockSkew().toSeconds());
     }
 
     // For tests
@@ -35,6 +36,7 @@ public class TokenStatusListValidator {
                 config.connectTimeout().toMillis(),
                 config.requestTimeout().toMillis(),
                 config.cacheEnabled(),
+                config.clockSkew().toSeconds(),
                 clock,
                 engine);
     }

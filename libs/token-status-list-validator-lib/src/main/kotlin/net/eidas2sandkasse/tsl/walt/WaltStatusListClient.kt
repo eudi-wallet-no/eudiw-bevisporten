@@ -60,6 +60,7 @@ internal class WaltStatusListClient @JvmOverloads constructor(
     connectTimeoutMillis: Long,
     requestTimeoutMillis: Long,
     private val cacheEnabled: Boolean,
+    private val clockSkewSeconds: Long,
     private val clock: java.time.Clock = java.time.Clock.systemUTC(),
     engine: HttpClientEngine = Java.create(),
 ) {
@@ -77,8 +78,8 @@ internal class WaltStatusListClient @JvmOverloads constructor(
 
     // KONFIGURASJON: caching. walt.id's CredentialFetcher keeps an in-memory cache of at most
     // CredentialFetcher.MAX_CACHE_ENTRIES (256) lists. Expiry is the earliest of Cache-Control max-age (minus Age),
-    // the token's exp and iat + ttl, and cannot be configured further. Without Cache-Control max-age nothing is
-    // cached. Only a single shared instance caches.
+    // the token's exp and ttl counted from the fetch, and cannot be configured further. Without Cache-Control max-age
+    // nothing is cached. Only a single shared instance caches.
     private val sharedFetcher = CredentialFetcher(httpClient, now)
 
     private val signatureVerifier = StatusListSignatureVerifier()
@@ -90,12 +91,14 @@ internal class WaltStatusListClient @JvmOverloads constructor(
         val content = fetcher.fetch(uri).getOrThrow()
 
         val subject: String?
+        val iat: Long?
         val exp: Long?
         val statusList: IETFStatusContent
         when (content) {
             is StatusListContent.Text -> {
                 val claims = signatureVerifier.verifyJwt(content.content).getOrThrow()
                 subject = claims["sub"]?.jsonPrimitive?.contentOrNull
+                iat = claims["iat"]?.jsonPrimitive?.longOrNull
                 exp = claims["exp"]?.jsonPrimitive?.longOrNull
                 statusList = jwtReader.read(content).getOrThrow()
             }
@@ -103,13 +106,14 @@ internal class WaltStatusListClient @JvmOverloads constructor(
             is StatusListContent.Binary -> {
                 val claims = cwtClaims(verifyCwt(content.content))
                 subject = (claims[CborInteger(CWT_SUB)] as? CborString)?.value
+                iat = (claims[CborInteger(CWT_IAT)] as? CborInteger)?.longOrNull
                 exp = (claims[CborInteger(CWT_EXP)] as? CborInteger)?.longOrNull
                 statusList = cwtReader.read(content).getOrThrow()
             }
         }
 
         require(subject == uri) { "Status list sub '$subject' does not match uri '$uri'" }
-        require(exp == null || exp > now().epochSeconds) { "Status list token from '$uri' is expired" }
+        checkTokenTimes(uri, iat, exp, now().epochSeconds, clockSkewSeconds)
 
         val statuses = TokenStatusListCodec.decode(statusList.list)
         val status = TokenStatusListCodec.readStatus(decoded = statuses, index = index, bits = statusList.size).toInt()
@@ -140,14 +144,27 @@ internal class WaltStatusListClient @JvmOverloads constructor(
         coseCompliantCbor.decodeFromByteArray(CborElement.serializer(), payload) as? CborMap
             ?: throw IllegalArgumentException("Status list CWT claims are not a CBOR map")
 
-    private companion object {
-        const val CWT_SUB = 2L
-        const val CWT_EXP = 4L
+    companion object {
+        private const val CWT_SUB = 2L
+        private const val CWT_EXP = 4L
+        private const val CWT_IAT = 6L
 
         // ES256, ES384, ES512, PS256, PS384, PS512
-        val ALLOWED_COSE_ALGORITHMS = setOf(-7, -35, -36, -37, -38, -39)
+        private val ALLOWED_COSE_ALGORITHMS = setOf(-7, -35, -36, -37, -38, -39)
 
-        val x509: JavaX509CertificateUtil = JavaX509CertificateUtil.getDefault()
-        val cryptoRuntime = CryptoRuntime(defaultSoftwareKeyProviders(), emptyList())
+        private val x509: JavaX509CertificateUtil = JavaX509CertificateUtil.getDefault()
+        private val cryptoRuntime = CryptoRuntime(defaultSoftwareKeyProviders(), emptyList())
+
+        /**
+         * iat is required (draft-ietf-oauth-status-list-21 §5.1/§5.2), and must not be in the future. exp is
+         * optional, but must not have passed (§8.3). walt.id checks neither. Times are epoch seconds; null means
+         * missing or unreadable.
+         */
+        @JvmStatic
+        fun checkTokenTimes(uri: String, iat: Long?, exp: Long?, now: Long, clockSkewSeconds: Long) {
+            requireNotNull(iat) { "Status list token from '$uri' has no valid iat" }
+            require(iat <= now + clockSkewSeconds) { "Status list token from '$uri' has iat in the future" }
+            require(exp == null || exp > now - clockSkewSeconds) { "Status list token from '$uri' is expired" }
+        }
     }
 }
