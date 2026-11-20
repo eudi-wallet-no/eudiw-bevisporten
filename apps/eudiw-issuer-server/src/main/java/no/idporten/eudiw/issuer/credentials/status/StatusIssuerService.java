@@ -83,6 +83,7 @@ public class StatusIssuerService {
                 .map(AttestedKeys::keyAttestation)
                 .filter(Objects::nonNull)
                 .flatMap(keyAttestation -> statusEntry(keyAttestation.keyStorageStatus()))
+                .distinct()
                 .toList();
         credentialStatusService.storeAttestationStatus(context.credentialIssuerTenant(), transactionId, wiaStatusEntries, kaStatusEntries);
     }
