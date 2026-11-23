@@ -8,7 +8,7 @@ EUDI wallet: verifier-service for eidas2sandkasse.
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|
