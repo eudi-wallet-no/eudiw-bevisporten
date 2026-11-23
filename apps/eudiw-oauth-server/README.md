@@ -19,7 +19,7 @@ EUDIW oAuth2 Server is an oauth2-server in front of ID-porten for authenticate u
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                   |
 |---------|-----------------------------------------------|

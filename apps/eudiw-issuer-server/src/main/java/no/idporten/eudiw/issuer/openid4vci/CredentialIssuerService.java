@@ -2,7 +2,6 @@ package no.idporten.eudiw.issuer.openid4vci;
 
 import com.nimbusds.jwt.JWT;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSource;
 import no.idporten.eudiw.issuer.claimssource.ClaimsSourceService;
 import no.idporten.eudiw.issuer.claimssource.CredentialIssueContext;
@@ -45,7 +44,6 @@ public class CredentialIssuerService {
     private final MetricService metricService;
 
     @Transactional
-    @SneakyThrows
     public CredentialResponse issueCredentials(CredentialIssuerTenant tenant, CredentialRequest credentialRequest, JWT accessToken) {
         ExtendedCredentialConfiguration credentialConfiguration = tenant.findCredentialConfiguration(credentialRequest.getCredentialConfigurationId());
         accessTokenValidationService.validateAccessTokenForCredentialConfiguration(accessToken, AccessTokenCredentialValidationContext.forAuthorization(credentialConfiguration));

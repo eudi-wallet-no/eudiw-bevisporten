@@ -38,6 +38,14 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
         return processPreAuthorizedTokenRequest(tokenRequest);
     }
 
+    @Override
+    public ClientMetadata authenticateClient(AuthenticatedRequest authenticatedRequest) {
+        if (authenticatedRequest.isNone() && authenticatedRequest instanceof PushedAuthorizationRequest) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Client authentication method none is not supported for authorization code flow.", 401);
+        }
+        return super.authenticateClient(authenticatedRequest);
+    }
+
     /**
      * Process Pre-authorized token request.  Validate request, lookup authorization, check tx_code and create token response.
      */

@@ -33,14 +33,16 @@ public class PreAuthorizedIssuanceService {
     private final CredentialIssuanceStatusService credentialIssuanceStatusService;
     private final AuditService auditService;
     private final MetricService metricService;
+    private final FeatureSwitches featureSwitches;
 
-    public PreAuthorizedIssuanceService(ClaimsSourceService claimsSourceService, AccessTokenValidationService accessTokenValidationService, PreAuthorizationIntegration preAuthorizationIntegration, CredentialIssuanceStatusService credentialIssuanceStatusService, AuditService auditService, MetricService metricService) {
+    public PreAuthorizedIssuanceService(ClaimsSourceService claimsSourceService, AccessTokenValidationService accessTokenValidationService, PreAuthorizationIntegration preAuthorizationIntegration, CredentialIssuanceStatusService credentialIssuanceStatusService, AuditService auditService, MetricService metricService, FeatureSwitches featureSwitches) {
         this.claimsSourceService = claimsSourceService;
         this.accessTokenValidationService = accessTokenValidationService;
         this.preAuthorizationIntegration = preAuthorizationIntegration;
         this.credentialIssuanceStatusService = credentialIssuanceStatusService;
         this.auditService = auditService;
         this.metricService = metricService;
+        this.featureSwitches = featureSwitches;
     }
 
     public PreAuthorizedIssuanceResponse startIssuerTransaction(CredentialIssuerTenant credentialIssuerTenant, PreAuthorizedIssuanceRequest preAuthorizedIssuanceRequest, JWT accessToken) {
@@ -60,12 +62,13 @@ public class PreAuthorizedIssuanceService {
         final String preAuthorizedCode = preAuthorizationIntegration.preAuthorize(credentialIssuerTenant, issuanceTransactionId, preAuthorizedIssuanceRequest);
         claimsSource.preAuthorize(new PreAuthorizedIssuanceContext(credentialIssuerTenant, credentialConfiguration, issuanceTransactionId, accessToken, credentialConfiguration.getCredentialIssuerContext().getPreAuthorizationLifetime()), preAuthorizedIssuanceRequest.getCredentialData());
         ExtendedCredentialMetadata metadata = credentialConfiguration.getExtendedCredentialMetadata();
+        boolean includeTxCode = featureSwitches.isPreAuthTxCodeEnabled() && credentialConfiguration.getCredentialIssuerContext().isRequireTxCode();
         CredentialOffer credentialOffer = CredentialOffer.builder()
                 .credentialIssuer(credentialIssuerTenant.getCredentialIssuer().toString())
                 .credentialConfigurationId(credentialConfiguration.getCredentialConfigurationId())
                 .grants(Grants.builder()
                         .preAuthorizedCodeGrant(PreAuthorizedCodeGrant.builder().preAuthorizedCode(preAuthorizedCode)
-                                .txCode(credentialConfiguration.getCredentialIssuerContext().isRequireTxCode() ?
+                                .txCode(includeTxCode ?
                                         TxCode.builder()
                                                 .inputMode("numeric")
                                                 .length(4)

@@ -8,7 +8,7 @@ EUDIW Token Status List for eidas2sandkasse in Norway.
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|

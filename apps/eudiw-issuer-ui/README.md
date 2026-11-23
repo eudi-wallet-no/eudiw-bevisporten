@@ -16,7 +16,7 @@ EUDI wallet: Issuer-ui for issuance of verifiable credentials for Norway
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|
