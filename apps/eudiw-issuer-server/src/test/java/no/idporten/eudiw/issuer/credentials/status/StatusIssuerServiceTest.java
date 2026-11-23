@@ -12,6 +12,11 @@ import no.idporten.eudiw.issuer.credentials.status.persistence.CredentialStatusS
 import no.idporten.eudiw.issuer.issuance.CredentialIssuanceType;
 import no.idporten.eudiw.issuer.issuance.preauth.IssuanceTransactionId;
 import no.idporten.eudiw.issuer.logging.audit.AuditService;
+import no.idporten.eudiw.issuer.openid4vci.proofs.AttestedKeys;
+import no.idporten.eudiw.issuer.openid4vci.proofs.BindingKeys;
+import no.idporten.eudiw.issuer.openid4vci.proofs.KeyAttestation;
+import no.idporten.eudiw.issuer.openid4vci.proofs.WalletInstanceAttestation;
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -176,6 +181,51 @@ public class StatusIssuerServiceTest {
         CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
         assertEquals(0, service.revokeStatus(context));
         verifyNoInteractions(statusIssuerIntegration);
+    }
+
+    @DisplayName("then status list references from wallet instance attestation and key attestations are stored")
+    @Test
+    void testStoreAttestationStatus() {
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        BindingKeys bindingKeys = new BindingKeys(List.of(
+                new AttestedKeys(List.of(), new KeyAttestation(keyAttestationJwt())),
+                new AttestedKeys(List.of(), null)));
+        CredentialIssueContext context = new CredentialIssueContext(
+                preAuthAccessToken(syntheticPersonIdentifier(), transactionId),
+                junitIssuerTenant(),
+                junitCredentialConfiguration(),
+                transactionId,
+                CredentialIssuanceType.PRE_AUTHORIZED_CODE,
+                bindingKeys,
+                new WalletInstanceAttestation(walletInstanceAttestationJwt()));
+
+        service.storeAttestationStatus(context);
+
+        verify(credentialStatusService).storeAttestationStatus(
+                junitIssuerTenant(),
+                transactionId,
+                List.of(new StatusEntry(1337, URI.create("https://junit-wallet-provider.example/wia-statuslists/42"))),
+                List.of(new StatusEntry(4711, URI.create("https://wallet-provider.junit.eidas2sandkasse.dev/ka-statuslists/7"))));
+    }
+
+    @DisplayName("then no status list references are stored when attestations have no status")
+    @Test
+    void testStoreAttestationStatusWithoutStatus() {
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        BindingKeys bindingKeys = new BindingKeys(List.of(
+                new AttestedKeys(List.of(), new KeyAttestation(keyAttestationJwt(new JWTClaimsSet.Builder().build())))));
+        CredentialIssueContext context = new CredentialIssueContext(
+                preAuthAccessToken(syntheticPersonIdentifier(), transactionId),
+                junitIssuerTenant(),
+                junitCredentialConfiguration(),
+                transactionId,
+                CredentialIssuanceType.PRE_AUTHORIZED_CODE,
+                bindingKeys,
+                null);
+
+        service.storeAttestationStatus(context);
+
+        verify(credentialStatusService).storeAttestationStatus(junitIssuerTenant(), transactionId, List.of(), List.of());
     }
 
     @DisplayName("then allocateStatus throws NullPointerException when transaction id is null")

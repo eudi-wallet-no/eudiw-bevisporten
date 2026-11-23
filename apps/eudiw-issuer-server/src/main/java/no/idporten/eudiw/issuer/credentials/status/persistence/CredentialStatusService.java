@@ -18,6 +18,8 @@ public class CredentialStatusService {
 
     private final CredentialIssuanceTransactionDao issuanceTransactionDao;
     private final CredentialStatusListDao credentialStatusListDao;
+    private final WiaStatusListDao wiaStatusListDao;
+    private final KaStatusListDao kaStatusListDao;
 
     @Transactional
     public void storeCredentialStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId, CredentialStatusInfo credentialStatusInfo) {
@@ -29,6 +31,24 @@ public class CredentialStatusService {
 
         credentialStatusListDao.insertEntries(transaction.getId(), credentialStatusInfo.statusEntries());
         issuanceTransactionDao.updateUpdatedMs(transaction.getId(), System.currentTimeMillis());
+    }
+
+    /**
+     * Stores status list references from the wallet instance attestation and key attestations used for issuance.
+     */
+    @Transactional
+    public void storeAttestationStatus(CredentialIssuerTenant tenant, IssuanceTransactionId transactionId, List<StatusEntry> wiaStatusEntries, List<StatusEntry> kaStatusEntries) {
+        if (wiaStatusEntries.isEmpty() && kaStatusEntries.isEmpty()) {
+            return;
+        }
+        CredentialIssuanceTransactionEntity transaction = issuanceTransactionDao.findByIssuanceTransactionId(
+                        transactionId.getValue(),
+                        tenant.getId()
+                )
+                .orElseThrow(() -> new IllegalStateException("Missing issuance transaction for attestation status entries"));
+
+        wiaStatusListDao.insertEntries(transaction.getId(), wiaStatusEntries);
+        kaStatusListDao.insertEntries(transaction.getId(), kaStatusEntries);
     }
 
     @Transactional(readOnly = true)

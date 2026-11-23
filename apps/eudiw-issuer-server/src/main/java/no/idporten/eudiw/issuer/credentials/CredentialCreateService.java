@@ -48,6 +48,7 @@ public class CredentialCreateService {
                 credentials.add(createCredential(context, attestedKeys.keys().get(i), claims, credentialStatuses != null ? credentialStatuses.get(i) : null));
             }
         }
+        statusIssuerService.storeAttestationStatus(context);
         return credentials;
     }
 
