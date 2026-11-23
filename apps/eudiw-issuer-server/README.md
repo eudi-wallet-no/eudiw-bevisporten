@@ -17,7 +17,7 @@ Digdir generic credential issuer server for issuing verifiable credentials to di
 
 ## Configuration
 
-Profiles in the [resources](/src/main/resources) folder:
+Profiles in the [resources](src/main/resources) folder:
 
 | Profile | Description                                |
 |---------|--------------------------------------------|
