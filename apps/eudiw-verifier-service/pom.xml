@@ -39,7 +39,7 @@
         <dss.validation.version>6.4</dss.validation.version>
         <opentelemetry-api.version>1.68.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
-        <token-status-list-validator-lib.version>0.0.1-SNAPSHOT</token-status-list-validator-lib.version>
+        <token-status-list-validator-lib.version>0.0.2</token-status-list-validator-lib.version>
     </properties>
     <dependencies>
         <dependency>
@@ -312,6 +312,11 @@
             <id>github</id>
             <name>GitHub felleslosninger Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/felleslosninger/.github</url>
+        </repository>
+        <repository>
+            <id>github-eudi-wallet-no</id>
+            <name>Bevisporten Maven Packages</name>
+            <url>https://maven.pkg.github.com/eudi-wallet-no/eudiw-bevisporten</url>
         </repository>
     </repositories>
 </project>
