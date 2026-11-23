@@ -28,7 +28,10 @@ class TokenStatusListValidatorTest {
     void jwtStatusZeroIsValid() {
         var endpoint = new MockStatusListEndpoint().serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"));
 
-        assertTrue(validator(endpoint, PT_ISSUED_AT.plus(AFTER_ISSUANCE)).validate(URI.create(PT_URI), PT_IDX_VALID));
+        var validator = validator(endpoint, PT_ISSUED_AT.plus(AFTER_ISSUANCE));
+
+        assertTrue(validator.validate(URI.create(PT_URI), PT_IDX_VALID));
+        assertEquals(0, validator.retrieveStatus(URI.create(PT_URI), PT_IDX_VALID));
     }
 
     @Test
@@ -36,7 +39,10 @@ class TokenStatusListValidatorTest {
     void jwtStatusOneIsNotValid() {
         var endpoint = new MockStatusListEndpoint().serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"));
 
-        assertFalse(validator(endpoint, PT_ISSUED_AT.plus(AFTER_ISSUANCE)).validate(URI.create(PT_URI), PT_IDX_REVOKED));
+        var validator = validator(endpoint, PT_ISSUED_AT.plus(AFTER_ISSUANCE));
+
+        assertFalse(validator.validate(URI.create(PT_URI), PT_IDX_REVOKED));
+        assertEquals(1, validator.retrieveStatus(URI.create(PT_URI), PT_IDX_REVOKED));
     }
 
     @Test
@@ -46,7 +52,9 @@ class TokenStatusListValidatorTest {
         var validator = validator(endpoint, PT_ISSUED_AT.plus(AFTER_ISSUANCE));
 
         assertTrue(validator.validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+        assertEquals(0, validator.retrieveStatus(URI.create(TestData.PT_URI), PT_IDX_VALID));
         assertFalse(validator.validate(URI.create(TestData.PT_URI), PT_IDX_REVOKED));
+        assertEquals(1, validator.retrieveStatus(URI.create(TestData.PT_URI), PT_IDX_REVOKED));
     }
 
     @Test
@@ -56,7 +64,9 @@ class TokenStatusListValidatorTest {
         var validator = validator(endpoint, UA_ISSUED_AT.plus(AFTER_ISSUANCE));
 
         assertTrue(validator.validate(URI.create(TestData.UA_URI), UA_IDX_VALID));
+        assertEquals(0, validator.retrieveStatus(URI.create(TestData.UA_URI), UA_IDX_VALID));
         assertFalse(validator.validate(URI.create(TestData.UA_URI), UA_IDX_REVOKED));
+        assertEquals(1, validator.retrieveStatus(URI.create(TestData.UA_URI), UA_IDX_REVOKED));
     }
 
     @Test
@@ -102,7 +112,10 @@ class TokenStatusListValidatorTest {
     void expiredWithinClockSkew() {
         var endpoint = new MockStatusListEndpoint().serve(PT_URI, JWT, statusList("pt-pid-mdoc.jwt"));
 
-        assertTrue(validator(endpoint, PT_EXPIRES_AT.plus(WITHIN_SKEW)).validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+        var validator = validator(endpoint, PT_EXPIRES_AT.plus(WITHIN_SKEW));
+
+        assertTrue(validator.validate(URI.create(TestData.PT_URI), PT_IDX_VALID));
+        assertEquals(0, validator.retrieveStatus(URI.create(TestData.PT_URI), PT_IDX_VALID));
     }
 
     @Test
@@ -128,7 +141,10 @@ class TokenStatusListValidatorTest {
     void issuedInFutureWithinClockSkew() {
         var endpoint = new MockStatusListEndpoint().serve(UA_URI, CWT, statusList("ua-pid-mdoc.cwt"));
 
-        assertTrue(validator(endpoint, UA_ISSUED_AT.minus(WITHIN_SKEW)).validate(URI.create(TestData.UA_URI), UA_IDX_VALID));
+        var validator = validator(endpoint, UA_ISSUED_AT.minus(WITHIN_SKEW));
+
+        assertTrue(validator.validate(URI.create(TestData.UA_URI), UA_IDX_VALID));
+        assertEquals(0, validator.retrieveStatus(URI.create(TestData.UA_URI), UA_IDX_VALID));
     }
 
     @Test

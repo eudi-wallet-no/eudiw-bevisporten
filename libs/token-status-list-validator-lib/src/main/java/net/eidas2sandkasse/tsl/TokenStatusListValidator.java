@@ -42,16 +42,25 @@ public class TokenStatusListValidator {
     }
 
     /**
-     * Validates a token status list entry.
+     * Validates that status is valid in a token status list.
      *
      * @throws TokenStatusListException if the status could not be determined
      */
     public boolean validate(URI uri, long index) {
+        return retrieveStatus(uri, index) == 0;
+    }
+
+    /**
+     * Retrieves status type value from a token status list.
+     *
+     * @return the status value at given index on given token status list
+     */
+    public int retrieveStatus(URI uri, long index) {
         if (!validUri(uri)  || !validIdx(index)) {
             throw new IllegalArgumentException("Status list uri and a non-negative index are required");
         }
         try {
-            return client.resolveStatus(uri.toString(), (int) index) == 0;
+            return client.resolveStatus(uri.toString(), (int) index);
         } catch (Exception e) {
             log.warn("Status list {} could not be resolved for idx {}", uri, index);
             throw new TokenStatusListException("Could not resolve token status list status", e);
