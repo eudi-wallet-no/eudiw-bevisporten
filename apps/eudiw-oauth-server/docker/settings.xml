@@ -16,6 +16,13 @@
                         <enabled>false</enabled>
                     </snapshots>
                 </repository>
+                <repository>
+                    <id>github-eudi-wallet-no</id>
+                    <url>https://maven.pkg.github.com/eudi-wallet-no/eudiw-bevisporten</url>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
             </repositories>
         </profile>
     </profiles>
