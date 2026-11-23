@@ -4,8 +4,6 @@ import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.factories.DefaultJWEDecrypterFactory;
 import com.nimbusds.jose.jwk.JWK;
 import no.idporten.eudiw.verifier.ErrorCode;
-import no.idporten.eudiw.verifier.IOConnectionException;
-import no.idporten.eudiw.verifier.StatusCommunicationException;
 import no.idporten.eudiw.verifier.VerificationException;
 import no.idporten.eudiw.verifier.api.openid4vp.EncryptedAuthorizationResponse;
 import no.idporten.eudiw.verifier.api.openid4vp.WalletCallback;
@@ -268,7 +266,7 @@ public class OpenID4VPResponseService {
             if (index < 0) {
                 throw new VerificationException(ErrorCode.INVALID_REQUEST, "Invalid status list idx in vp_token");
             }
-            status = tokenStatuslistService.lookupStatusFromStatuslist(statuslistEntry.uri(), index, format.statusListTokenFormat());
+            status = tokenStatuslistService.lookupStatusFromTokenStatuslist(statuslistEntry.uri(), index);
 
         } else {
             status = ValidationStatus.NOT_APPLICABLE; // Still valid, but no status in the proof.
