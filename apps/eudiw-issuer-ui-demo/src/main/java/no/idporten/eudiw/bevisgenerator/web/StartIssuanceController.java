@@ -29,7 +29,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
@@ -132,7 +131,7 @@ public class StartIssuanceController {
             if (issuanceMode.equals("json")) {
                 personalIdentifier = startIssuanceForm.personIdentifier();
             } else if (issuanceMode.equals("schema")) {
-                personalIdentifier = credentialConfiguration.personIdentifier();
+                personalIdentifier = startIssuanceForm.personIdentifier();
             } else {
                 throw new IssuerUiException("Invalid issuance mode: " + issuanceMode);
             }
