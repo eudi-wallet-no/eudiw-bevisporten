@@ -1,7 +1,6 @@
 package no.idporten.eudiw.verifier.statuslist;
 
 import net.eidas2sandkasse.tsl.TokenStatusListValidator;
-import no.idporten.eudiw.verifier.config.VerifierServiceProperties;
 import no.idporten.eudiw.verifier.openid4vp.validation.ValidationStatus;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
