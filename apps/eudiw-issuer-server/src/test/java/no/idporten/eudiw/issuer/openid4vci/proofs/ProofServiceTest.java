@@ -11,6 +11,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import net.eidas2sandkasse.tsl.TokenStatusListValidator;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.status.StatusList;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,12 +43,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ProofServiceTest {
 
     @Spy
     CredentialIssuerServerProperties credentialIssuerServerProperties;
+
+    @Mock
+    TokenStatusListValidator tokenStatusListValidator;
 
     @InjectMocks
     ProofService proofService;
@@ -88,10 +98,12 @@ public class ProofServiceTest {
        assertEquals(1, attestedKeys.keys().size());
        assertFalse(attestedKeys.isAttested());
        assertNull(attestedKeys.keyAttestation());
+       verify(tokenStatusListValidator, never()).validate(any(), anyLong());
     }
 
     @Test
     void shouldReturnAllKeysFromValidKeyAttestation() throws Exception {
+        givenKeyStorageStatusIsValid();
         ECKey attestationSigningKey = generateKey();
         ECKey firstAttestedKey = generateKey();
         ECKey secondAttestedKey = generateKey();
@@ -117,6 +129,7 @@ public class ProofServiceTest {
 
     @Test
     void shouldReturnAllKeysFromAttestationProof() throws Exception {
+        givenKeyStorageStatusIsValid();
         ECKey attestationSigningKey = generateKey();
         ECKey firstAttestedKey = generateKey();
         ECKey secondAttestedKey = generateKey();
@@ -229,6 +242,89 @@ public class ProofServiceTest {
                 InvalidProof.class,
                 () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
         assertEquals("Invalid key attestation.  Invalid claims.", e.getErrorDescription());
+    }
+
+    @Test
+    void shouldRejectKeyAttestationWithoutKeyStorageStatus() throws Exception {
+        assertRejected(createKeyAttestationProof(null), "Invalid key attestation.  Missing status list reference.");
+        verify(tokenStatusListValidator, never()).validate(any(), anyLong());
+    }
+
+    @Test
+    void shouldRejectKeyAttestationWithoutTokenStatusListReferenceReference() throws Exception {
+        String jwtProof = createKeyAttestationProof(Map.of("exp", KEY_STORAGE_STATUS.exp().getTime() / 1000));
+        assertRejected(jwtProof, "Invalid key attestation.  Missing status list reference.");
+        verify(tokenStatusListValidator, never()).validate(any(), anyLong());
+    }
+
+    @Test
+    void shouldRejectRevokedKeyAttestation() throws Exception {
+        when(tokenStatusListValidator.validate(KEY_STORAGE_STATUS.statusList().uri(), KEY_STORAGE_STATUS.statusList().index()))
+                .thenReturn(false);
+        assertRejected(createKeyAttestationProof(), "Invalid key attestation.  Key attestation is revoked.");
+    }
+
+    @Test
+    void shouldRejectKeyAttestationWhenTokenStatusListReferenceCannotBeChecked() throws Exception {
+        when(tokenStatusListValidator.validate(KEY_STORAGE_STATUS.statusList().uri(), KEY_STORAGE_STATUS.statusList().index()))
+                .thenThrow(new IllegalStateException("status list unavailable"));
+        assertRejected(createKeyAttestationProof(), "Invalid key attestation.  Unable to check status list.");
+    }
+
+    @Test
+    void shouldCheckSameTokenStatusListReferenceReferenceOnlyOnce() throws Exception {
+        givenKeyStorageStatusIsValid();
+        ECKey attestationSigningKey = generateKey();
+        ECKey attestedKey = generateKey();
+        String keyAttestation = createKeyAttestation(
+                attestationSigningKey,
+                createCertificate(attestationSigningKey),
+                List.of(attestedKey),
+                "nnn",
+                true);
+        Proofs proofs = createJWTProofs(createJwtProof(attestedKey, keyAttestation), createJwtProof(attestedKey, keyAttestation));
+
+        BindingKeys bindingKeys = proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), proofs);
+
+        assertEquals(2, bindingKeys.keys().size());
+        verify(tokenStatusListValidator).validate(KEY_STORAGE_STATUS.statusList().uri(), KEY_STORAGE_STATUS.statusList().index());
+    }
+
+    private void givenKeyStorageStatusIsValid() {
+        when(tokenStatusListValidator.validate(KEY_STORAGE_STATUS.statusList().uri(), KEY_STORAGE_STATUS.statusList().index()))
+                .thenReturn(true);
+    }
+
+    private void assertRejected(String jwtProof, String expectedErrorDescription) {
+        InvalidProof e = assertThrows(
+                InvalidProof.class,
+                () -> proofService.validateProofs(junitIssuerTenant(), junitCredentialConfiguration(), createJWTProofs(jwtProof)));
+        assertEquals(expectedErrorDescription, e.getErrorDescription());
+    }
+
+    private String createKeyAttestationProof() throws Exception {
+        ECKey attestationSigningKey = generateKey();
+        ECKey attestedKey = generateKey();
+        String keyAttestation = createKeyAttestation(
+                attestationSigningKey,
+                createCertificate(attestationSigningKey),
+                List.of(attestedKey),
+                "nnn",
+                true);
+        return createJwtProof(attestedKey, keyAttestation);
+    }
+
+    private String createKeyAttestationProof(Object keyStorageStatus) throws Exception {
+        ECKey attestationSigningKey = generateKey();
+        ECKey attestedKey = generateKey();
+        String keyAttestation = createKeyAttestation(
+                attestationSigningKey,
+                createCertificate(attestationSigningKey),
+                List.of(attestedKey),
+                "nnn",
+                true,
+                keyStorageStatus);
+        return createJwtProof(attestedKey, keyAttestation);
     }
 
     private String createKeyAttestation(
