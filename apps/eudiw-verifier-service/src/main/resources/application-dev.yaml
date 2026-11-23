@@ -10,7 +10,7 @@ spring:
 
   data:
     redis:
-      port: 9262
+      port: 9282
       host: localhost
 
 
