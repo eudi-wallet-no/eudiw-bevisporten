@@ -2,34 +2,14 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
         http://maven.apache.org/xsd/settings-1.0.0.xsd">
-    <profiles>
-        <profile>
-            <repositories>
-                <repository>
-                    <id>central</id>
-                    <url>https://repo1.maven.org/maven2</url>
-                </repository>
-                <repository>
-                    <id>github</id>
-                    <url>https://maven.pkg.github.com/felleslosninger/.github</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-                <repository>
-                    <id>github-eudi-wallet-no</id>
-                    <url>https://maven.pkg.github.com/eudi-wallet-no/eudiw-bevisporten</url>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
-    </profiles>
-
     <servers>
         <server>
             <id>github</id>
+            <username>${env.GIT_PACKAGE_USERNAME}</username>
+            <password>${env.GIT_PACKAGE_TOKEN}</password>
+        </server>
+        <server>
+            <id>github-eudi-wallet-no</id>
             <username>${env.GIT_PACKAGE_USERNAME}</username>
             <password>${env.GIT_PACKAGE_TOKEN}</password>
         </server>
