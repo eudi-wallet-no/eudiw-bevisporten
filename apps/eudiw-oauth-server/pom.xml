@@ -24,9 +24,15 @@
         <oauth2-oidc-sdk.version>11.39</oauth2-oidc-sdk.version>
         <bcpkix-jdk18on.version>1.87</bcpkix-jdk18on.version>
         <bcprov-jdk18on.version>1.87</bcprov-jdk18on.version>
+        <token-status-list-validator-lib.version>0.0.2</token-status-list-validator-lib.version>
         <lombok.version>1.18.48</lombok.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>net.eidas2sandkasse.tsl</groupId>
+            <artifactId>token-status-list-validator-lib</artifactId>
+            <version>${token-status-list-validator-lib.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
@@ -150,6 +156,11 @@
             <id>github</id>
             <name>GitHub felleslosninger Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/felleslosninger/.github</url>
+        </repository>
+        <repository>
+            <id>github-eudi-wallet-no</id>
+            <name>Bevisporten Maven Packages</name>
+            <url>https://maven.pkg.github.com/eudi-wallet-no/eudiw-bevisporten</url>
         </repository>
     </repositories>
 </project>
