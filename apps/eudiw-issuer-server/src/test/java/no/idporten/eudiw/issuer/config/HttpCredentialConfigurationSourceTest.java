@@ -1,6 +1,5 @@
 package no.idporten.eudiw.issuer.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -97,7 +96,7 @@ public class HttpCredentialConfigurationSourceTest {
 
     @DisplayName("then return all configurations from success response and enrich context")
     @Test
-    void testRetrieveAllSuccess() throws JsonProcessingException {
+    void testRetrieveAllSuccess() {
         mockServer.expect(requestTo(EXTERNAL_SERVICE_URL)).andRespond(withSuccess(EXAMPLE_JSON_RESPONSE, MediaType.APPLICATION_JSON));
         credentialConfigurationSource.init();
         List<ExtendedCredentialConfiguration> retrievedCredentialConfigurations = credentialConfigurationSource.retrieve();
