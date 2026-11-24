@@ -52,10 +52,10 @@ public class TrustlistValidator {
 
     private void validUri(URI uri) {
         if (uri == null ) {
-            throw new IllegalArgumentException("Status list uri is null");
+            throw new IllegalArgumentException("Trustlist uri is null");
         }
         if (!"https".equalsIgnoreCase(uri.getScheme())) {
-            throw new IllegalArgumentException("Status list uri must be https");
+            throw new IllegalArgumentException("Trustlist uri must be https");
         }
     }
 }
