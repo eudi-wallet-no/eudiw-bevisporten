@@ -5,7 +5,7 @@ import java.time.Duration;
 /**
  * @param connectTimeout TCP connect timeout against trustlist endpoints
  * @param readTimeout read timeout for trustlist endpoints
- * @param cacheEnabled   cache status lists in memory (walt.id: max 256 lists, expiry from Cache-Control, exp and ttl)
+ * @param cacheEnabled   cache trustlist in memory
  * @param clockSkew      allowed clock difference when timestamps
  */
 public record TrustlistValidatorConfig(Duration connectTimeout,
