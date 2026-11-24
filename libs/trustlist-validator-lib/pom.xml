@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.eidas2sandkasse.tsl</groupId>
     <artifactId>trustlist-validator-lib</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.release>25</maven.compiler.release>
