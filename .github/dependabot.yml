@@ -302,6 +302,32 @@ updates:
           - "*"
 
   # ============================================================
+  # trustlist-validator-lib
+  # ============================================================
+  - package-ecosystem: maven
+    directory: /libs/trustlist-validator-lib
+    registries:
+      - maven-github
+    schedule:
+      interval: weekly
+      day: sunday
+    open-pull-requests-limit: 25
+    labels:
+      - dependencies
+      - trustlist-validator-lib
+    groups:
+      maven:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "org.springframework.boot:spring-boot-starter-parent"
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # ============================================================
   # GitHub Actions
   # ============================================================
   - package-ecosystem: github-actions
