@@ -34,15 +34,22 @@
         <waltid-sdjwt-jvm.version>1.0.0</waltid-sdjwt-jvm.version>
         <cose-java.version>1.1.1-WALT-SNAPSHOT</cose-java.version>
         <kotlinx-serialization-bom.version>1.12.0</kotlinx-serialization-bom.version>
-        <kotlinx-coroutines-core.version>1.11.0</kotlinx-coroutines-core.version>
+        <!-- Overrides Spring Boot managed version; walt.id 1.2.x and token-status-list-validator-lib need kotlinx-coroutines 1.11 -->
+        <kotlin-coroutines.version>1.11.0</kotlin-coroutines.version>
         <kotlinx-datetime-jvm.version>0.8.0-0.6.x-compat</kotlinx-datetime-jvm.version>
         <kotlinx-serialization-json-jvm.version>1.12.0</kotlinx-serialization-json-jvm.version>
         <idporten-log-audit.version>4.0.6</idporten-log-audit.version>
         <idporten-lib-keystore-spring-boot-4.version>3.0.0</idporten-lib-keystore-spring-boot-4.version>
         <netty.version>4.2.15.Final</netty.version>
+        <token-status-list-validator-lib.version>0.0.3</token-status-list-validator-lib.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>net.eidas2sandkasse.tsl</groupId>
+            <artifactId>token-status-list-validator-lib</artifactId>
+            <version>${token-status-list-validator-lib.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc</artifactId>
@@ -163,7 +170,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>${kotlinx-coroutines-core.version}</version>
+            <version>${kotlin-coroutines.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
@@ -294,6 +301,11 @@
             <id>github</id>
             <name>GitHub felleslosninger Apache Maven Packages</name>
             <url>https://maven.pkg.github.com/felleslosninger/.github</url>
+        </repository>
+        <repository>
+            <id>github-eudi-wallet-no</id>
+            <name>Bevisporten Maven Packages</name>
+            <url>https://maven.pkg.github.com/eudi-wallet-no/eudiw-bevisporten</url>
         </repository>
         <repository>
             <id>waltid-releases</id>
