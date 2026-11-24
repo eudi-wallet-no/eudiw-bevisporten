@@ -40,7 +40,7 @@ public class TrustlistValidator {
      *
      * @return true if the certificate is on the trustlist or chains to one on the trustlist, false otherwise
      */
-    public boolean checkTrustlist(URI uri, X509Certificate certificate) {
+    private boolean checkTrustlist(URI uri, X509Certificate certificate) {
         validUri(uri);
         try {
 //            TODO: Implementation logic. Use Walt id library to check the trustlist for the certificate or its chain.
@@ -50,7 +50,7 @@ public class TrustlistValidator {
         }
     }
 
-    public void validUri(URI uri) {
+    private void validUri(URI uri) {
         if (uri == null ) {
             throw new IllegalArgumentException("Status list uri is null");
         }
