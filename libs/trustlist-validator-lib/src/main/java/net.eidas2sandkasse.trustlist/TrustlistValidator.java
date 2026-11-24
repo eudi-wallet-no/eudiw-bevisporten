@@ -2,7 +2,6 @@ package net.eidas2sandkasse.trustlist;
 
 
 import java.net.URI;
-import java.net.http.HttpClient;
 import java.security.cert.X509Certificate;
 
 
@@ -14,16 +13,12 @@ import java.security.cert.X509Certificate;
 public class TrustlistValidator {
 
 
-    private final HttpClient client;
 
     public TrustlistValidator() {
         this(TrustlistValidatorConfig.defaults());
     }
 
     public TrustlistValidator(TrustlistValidatorConfig config) {
-        this.client = HttpClient.newBuilder()
-                .connectTimeout(java.time.Duration.ofMillis(config.connectTimeout().toMillis()))
-                .build();
     }
 
     /**
