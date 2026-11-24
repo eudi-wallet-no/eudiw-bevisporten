@@ -1,0 +1,33 @@
+name: trustlist-validator-lib
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'libs/trustlist-validator-lib/**'
+      - '.github/workflows/trustlist-validator-lib.yml'
+  release:
+    types:
+      - created
+
+jobs:
+  pull-request-checks:
+    if: github.event_name == 'pull_request'
+    uses: felleslosninger/github-workflows/.github/workflows/ci-pr-checks-lib.yml@main
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      application-path: libs/trustlist-validator-lib/
+    secrets: inherit
+  create-release:
+    if: contains(fromJSON('["release"]'), github.event_name)
+    uses: felleslosninger/github-workflows/.github/workflows/ci-build-publish-lib.yml@main
+    permissions:
+      contents: read
+      packages: write
+    with:
+      application-path: libs/trustlist-validator-lib/
+      deployment-repository: ${{ github.repository }}
+      package-version: ${{ github.event.release.tag_name }}
+    secrets: inherit
