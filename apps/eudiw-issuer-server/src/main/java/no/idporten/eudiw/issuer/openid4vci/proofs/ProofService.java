@@ -18,9 +18,11 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import lombok.RequiredArgsConstructor;
+import net.eidas2sandkasse.tsl.TokenStatusListValidator;
 import no.idporten.eudiw.issuer.config.CredentialIssuerServerProperties;
 import no.idporten.eudiw.issuer.config.CredentialIssuerTenant;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
+import no.idporten.eudiw.issuer.credentials.status.StatusList;
 import no.idporten.eudiw.issuer.jwt.InvalidClaimException;
 import no.idporten.eudiw.issuer.openid4vci.protocol.Proofs;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,7 @@ public class ProofService {
     private static final String ATTESTED_KEYS_CLAIM = "attested_keys";
 
     private final CredentialIssuerServerProperties credentialIssuerServerProperties;
+    private final TokenStatusListValidator tokenStatusListValidator;
 
     /**
      * Validates proofs and returns binding keys
@@ -69,7 +72,39 @@ public class ProofService {
                 attestedKeys.add(validateAttestationProof(attestationProof));
             }
         }
+        validateKeyAttestationStatus(attestedKeys);
         return new BindingKeys(attestedKeys);
+    }
+
+    /**
+     * Checks each distinct status list reference once, after all proofs are validated, since it requires a network call.
+     */
+    private void validateKeyAttestationStatus(List<AttestedKeys> attestedKeys) {
+        attestedKeys.stream()
+                .filter(AttestedKeys::isAttested)
+                .map(keys -> tokenStatusListReference(keys.keyAttestation()))
+                .distinct()
+                .forEach(this::validateStatus);
+    }
+
+    private StatusList tokenStatusListReference(KeyAttestation keyAttestation) {
+        AttestationStatus status = keyAttestation.keyStorageStatus();
+        if (status == null || status.statusList() == null) {
+            throw new InvalidProof("Invalid key attestation.  Missing status list reference.");
+        }
+        return status.statusList();
+    }
+
+    private void validateStatus(StatusList statusList) {
+        boolean valid;
+        try {
+            valid = tokenStatusListValidator.validate(statusList.uri(), statusList.index());
+        } catch (Exception e) {
+            throw new InvalidProof("Invalid key attestation.  Unable to check status list.", e);
+        }
+        if (!valid) {
+            throw new InvalidProof("Invalid key attestation.  Key attestation is revoked.");
+        }
     }
 
     /**
