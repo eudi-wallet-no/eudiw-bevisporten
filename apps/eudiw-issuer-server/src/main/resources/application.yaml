@@ -96,6 +96,11 @@ credential-issuer-server:
         api-key-header: X-API-KEY
         connect-timeout: 2s
         read-timeout: 2s
+  token-status-list-validator-config:
+    read-timeout: 3s
+    connect-timeout: 3s
+    clock-skew: 60s
+    cache-enabled: true
 
 # Digdir standard logging
 digdir:

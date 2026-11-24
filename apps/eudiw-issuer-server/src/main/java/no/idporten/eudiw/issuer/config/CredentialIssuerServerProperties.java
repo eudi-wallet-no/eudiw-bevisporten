@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import net.eidas2sandkasse.tsl.TokenStatusListValidatorConfig;
 import no.idporten.eudiw.issuer.oauth2.AuthorizationServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,9 @@ public class CredentialIssuerServerProperties implements InitializingBean {
 
     @NotNull
     private Duration issuanceStatusPollingLifetime = Duration.ofHours(24);
+
+    @NotNull
+    private TokenStatusListValidatorConfig tokenStatusListValidatorConfig;
 
     /**
      * Load credential configurations from credential configuration sources.
