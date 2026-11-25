@@ -132,9 +132,9 @@ vcverifier:
         - family_name
         - given_name
         - middle_name
-        - birth_date
-        - expiry_date
-        - issuance_date
+        - birthdate
+        - date_of_expiry
+        - date_of_issuance
     - id: conformance-pid-mdoc
       authorization-endpoint-uri: https://demo.certification.openid.net/test/a/demo-verifier-1/authorize
       doc-type: "eu.europa.ec.eudi.pid.1"
