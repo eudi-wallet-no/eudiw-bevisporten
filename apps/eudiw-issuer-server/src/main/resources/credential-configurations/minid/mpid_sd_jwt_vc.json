@@ -79,7 +79,7 @@
         ]
       },
       {
-        "path": "birth_date",
+        "path": "birthdate",
         "type": "iso_date",
         "mandatory": true,
         "display": [
@@ -92,7 +92,7 @@
         ]
       },
       {
-        "path": "expiry_date",
+        "path": "date_of_expiry",
         "type": "iso_date",
         "mandatory": true,
         "display": [
@@ -105,7 +105,7 @@
         ]
       },
       {
-        "path": "issuance_date",
+        "path": "date_of_issuance",
         "type": "iso_date",
         "mandatory": true,
         "display": [
