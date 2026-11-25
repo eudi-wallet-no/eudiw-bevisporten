@@ -15,8 +15,8 @@
         <kotlin-coroutines.version>1.11.0</kotlin-coroutines.version>
         <waltid.version>1.2.0</waltid.version>
         <!-- Same ktor version as walt.id 1.2.0 -->
-        <ktor.version>3.6.0</ktor.version>
-        <slf4j.version>2.0.19</slf4j.version>
+        <ktor.version>3.6.1</ktor.version>
+        <slf4j.version>2.0.20</slf4j.version>
     </properties>
 
     <dependencies>
