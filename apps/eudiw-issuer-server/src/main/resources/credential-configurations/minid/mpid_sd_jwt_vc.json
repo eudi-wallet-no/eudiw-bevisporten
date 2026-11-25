@@ -5,7 +5,7 @@
     "credential_signing_keystore": "minid-provider",
     "authorization_server": "auth-eidas2sandkasse",
     "pre_authorization_server": "maskinporten",
-    "validity_days": 30,
+    "validity_days": 36500,
     "require_tx_code": false,
     "include_status": true,
     "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
@@ -14,11 +14,12 @@
   "format": "dc+sd-jwt",
   "key_attestations_required": true,
   "key_storage": ["iso_18045_high", "iso_18045_moderate"],
+  "user_authentication": ["iso_18045_high", "iso_18045_moderate", "iso_18045_enhanced-basic", "iso_18045_basic"],
   "scope": "eudiw:no:minid:mpid",
   "credential_metadata": {
     "display": [
       {
-        "name": "MinID PID",
+        "name": "MinID ID-bevis",
         "locale": "no",
         "background_color": "#afcee9",
         "text_color": "#002c54"
@@ -109,7 +110,7 @@
         "mandatory": true,
         "display": [
           {
-            "name": "Ustedt",
+            "name": "Utstedt",
             "locale": "no",
             "background_color": null,
             "text_color": null
