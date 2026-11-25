@@ -10,7 +10,7 @@ import java.time.Clock;
 
 /**
  * Validates a credential against an IETF Token Status List, as statuslist+jwt or statuslist+cwt.
- * Status 0 (VALID) gives true, every other status gives false.
+ * The result includes the certificate the list was signed with.
  */
 public class TokenStatusListValidator {
 
@@ -42,20 +42,13 @@ public class TokenStatusListValidator {
     }
 
     /**
-     * Validates that status is valid in a token status list.
+     * Resolves the status at index in a verified token status list. Check the signer certificate against a trust list
+     * before trusting the status.
      *
-     * @throws TokenStatusListException if the status could not be determined
+     * @throws TokenStatusListException if the status could not be determined, or the list is not signed with an
+     *                                  x5c/x5chain certificate
      */
-    public boolean validate(URI uri, long index) {
-        return retrieveStatus(uri, index) == 0;
-    }
-
-    /**
-     * Retrieves status type value from a token status list.
-     *
-     * @return the status value at given index on given token status list
-     */
-    public int retrieveStatus(URI uri, long index) {
+    public TokenStatus resolve(URI uri, long index) {
         if (!validUri(uri)  || !validIdx(index)) {
             throw new IllegalArgumentException("Status list uri and a non-negative index are required");
         }

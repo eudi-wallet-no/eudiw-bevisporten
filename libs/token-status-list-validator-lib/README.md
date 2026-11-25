@@ -35,4 +35,11 @@ Verify with `mvn dependency:tree -Dincludes='org.jetbrains.kotlinx:kotlinx-*'`.
 
 ## Usage
 
+```java
+TokenStatus status = validator.resolve(uri, idx);
+status.isValid();           // status 0
+status.format();            // JWT or CWT
+status.signerCertificate(); // leaf from x5c/x5chain, check it against a trust list
+```
 
+A list not signed with an x5c/x5chain certificate (DID, well-known or jwk) gives `TokenStatusListException`.
