@@ -5,24 +5,30 @@ EUDI wallet: token-status-list-validator-lib for validation of Token Status List
 - Java 25
 - Maven
 - kotlinx-coroutines 1.11.0 or newer at runtime
+- walt.id's kotlinx-serialization fork `1.11.1-waltid-20260811` at runtime (from `https://maven.waltid.dev/releases`)
 
 ### Spring Boot applications
-Spring Boot manages the kotlinx-coroutines version and downgrades it (Spring Boot 4.1.2 uses 1.10.2).
-The library and walt.id 1.2.x are compiled against 1.11.0, so validation fails at runtime with:
-
-```
-java.lang.NoSuchMethodError: 'java.lang.Object kotlinx.coroutines.BuildersKt.runBlockingK$default(...)'
-```
-
-Override the Spring Boot managed version in the application's `pom.xml`:
+Spring Boot manages the kotlinx-coroutines and kotlinx-serialization versions. Both must be overridden in the
+application's `pom.xml`:
 
 ```xml
 <properties>
     <kotlin-coroutines.version>1.11.0</kotlin-coroutines.version>
+    <kotlin-serialization.version>1.11.1-waltid-20260811</kotlin-serialization.version>
 </properties>
 ```
 
-Verify with `mvn dependency:tree -Dincludes=org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm`.
+If the application declares `kotlinx-serialization-bom` or `kotlinx-serialization-json-jvm` itself, use
+`${kotlin-serialization.version}` there too, and add the walt.id repository:
+
+```xml
+<repository>
+    <id>waltid-releases</id>
+    <url>https://maven.waltid.dev/releases</url>
+</repository>
+```
+
+Verify with `mvn dependency:tree -Dincludes='org.jetbrains.kotlinx:kotlinx-*'`.
 
 ## Configuration
 
