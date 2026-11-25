@@ -1,10 +1,13 @@
 package net.eidas2sandkasse.tsl;
 
 /**
- * The status could not be determined: the list could not be fetched, the signature is invalid, the token is
- * expired, or the index is out of range.
+ * Exception thrown when something fails during validation: invalid input, invalid token status list, runtime errors, ... .
  */
 public class TokenStatusListException extends RuntimeException {
+
+    public TokenStatusListException(String message) {
+        super(message);
+    }
 
     public TokenStatusListException(String message, Throwable cause) {
         super(message, cause);

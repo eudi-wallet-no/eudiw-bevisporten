@@ -14,8 +14,8 @@ final class TestData {
     static final String JWT = "application/statuslist+jwt";
     static final String CWT = "application/statuslist+cwt";
 
-    // Not the sub of any list below. The real lists keep their own uris, since sub is signed.
     static final String OTHER_URI = "https://status.junit.eidas2sandkasse.dev/lists/1";
+    static final String HTTP_URI = "http://status.junit.eidas2sandkasse.dev/lists/1";
 
     // UA, mdoc PID. CWT only, it has x5chain in the unprotected header.
     static final String UA_URI =
@@ -33,7 +33,6 @@ final class TestData {
     static final long PT_IDX_REVOKED = 11; // From the list itself, not from a PID
     static final Instant PT_ISSUED_AT = Instant.ofEpochSecond(1794960002);
     static final Instant PT_EXPIRES_AT = Instant.ofEpochSecond(1795046402);
-    // CN=PT PID Document Signer. The CWT x5chain also has the IACA, which must not be returned.
     static final BigInteger PT_SIGNER_SERIAL = new BigInteger("22DD3B7A807CEAC7AEEF8CB4FC0C6B17E6372ED6", 16);
 
     static byte[] statusList(String name) {

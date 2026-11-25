@@ -211,12 +211,17 @@ class TokenStatusListValidatorTest {
     }
 
     @Test
-    @DisplayName("and uri or idx is missing then an IllegalArgumentException is expected")
-    void missingInput() {
-        var validator = validator(new MockStatusListEndpoint(), PT_ISSUED_AT);
+    @DisplayName("and uri or idx is invalid then an exception is expected")
+    void invalidInput() {
+        var endpoint = new MockStatusListEndpoint();
+        var validator = validator(endpoint, PT_ISSUED_AT);
 
-        assertThrows(IllegalArgumentException.class, () -> validator.resolve(null, 1L));
-        assertThrows(IllegalArgumentException.class, () -> validator.resolve(URI.create(TestData.PT_URI), -1L));
+        assertThrows(TokenStatusListException.class, () -> validator.resolve(null, 1L));
+        assertThrows(TokenStatusListException.class, () -> validator.resolve(URI.create(HTTP_URI), 1L));
+        assertThrows(TokenStatusListException.class, () -> validator.resolve(URI.create(TestData.PT_URI), -1L));
+        assertThrows(TokenStatusListException.class,
+                () -> validator.resolve(URI.create(TestData.PT_URI), Integer.MAX_VALUE + 1L));
+        assertEquals(0, endpoint.requestCount());
     }
 
     @Test
