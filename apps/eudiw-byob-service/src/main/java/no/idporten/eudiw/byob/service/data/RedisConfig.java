@@ -10,8 +10,9 @@ import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 @Configuration
 public class RedisConfig {
@@ -61,15 +62,27 @@ public class RedisConfig {
         // Use StringRedisSerializer for the keys to keep them human-readable
         template.setKeySerializer(new StringRedisSerializer());
 
-        // Use GenericJackson2JsonRedisSerializer for the values to store objects as JSON strings
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        // Values are stored as JSON with type info (@class), so they deserialize back to the original class
+        GenericJacksonJsonRedisSerializer valueSerializer = jsonSerializerWithTypeInfo();
+        template.setValueSerializer(valueSerializer);
 
         // Also configure hash key/value serializers if needed
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashValueSerializer(valueSerializer);
 
         template.afterPropertiesSet();
 
         return template;
+    }
+
+    private static GenericJacksonJsonRedisSerializer jsonSerializerWithTypeInfo() {
+        BasicPolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
+                .allowIfSubType("no.idporten.eudiw.byob.service.model.data.")
+                .allowIfSubType("java.util.")
+                .allowIfSubType("java.lang.")
+                .build();
+        return GenericJacksonJsonRedisSerializer.builder()
+                .enableDefaultTyping(typeValidator)
+                .build();
     }
 }

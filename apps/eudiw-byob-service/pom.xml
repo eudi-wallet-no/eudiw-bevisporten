@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.2</version>
+        <version>4.2.0</version>
     </parent>
     <groupId>no.idporten.eudiw</groupId>
     <artifactId>eudiw-byob-service</artifactId>
@@ -19,7 +19,7 @@
         <idporten-access-log.version>4.0.9</idporten-access-log.version>
         <opentelemetry-api.version>1.68.0</opentelemetry-api.version>
         <surefire.plugin.version>3.5.3</surefire.plugin.version>
-        <springdoc.version>3.2.0</springdoc.version>
+        <springdoc.version>3.2.1</springdoc.version>
         <idporten.maskinporten.client.version>5.0.1</idporten.maskinporten.client.version>
     </properties>
     <dependencies>
