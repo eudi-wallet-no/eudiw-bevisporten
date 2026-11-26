@@ -217,6 +217,12 @@ public final class OAuth2ServerConfiguration {
     private boolean requireChallenge = true;
 
     /**
+     * Require client_status claim in wallet instance attestations.  If not required, client_status is still validated when present.
+     */
+    @Builder.Default
+    private boolean requireWalletInstanceAttestation = true;
+
+    /**
      * Support iss parameter on authorization responses.  Default is on.
      */
     @Builder.Default

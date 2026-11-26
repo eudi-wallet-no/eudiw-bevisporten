@@ -71,6 +71,7 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
 
     private boolean requirePkce = true;
     private boolean requireChallenge = true;
+    private boolean requireWalletInstanceAttestation = true;
     private boolean authorizationResponseIssParameterSupported = true;
     private KeyStoreProperties keyStore;
 
@@ -118,6 +119,7 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
                         .authorizationResponseIssParameterSupported(authorizationResponseIssParameterSupported)
                         .requirePkce(requirePkce)
                         .requireChallenge(requireChallenge)
+                        .requireWalletInstanceAttestation(requireWalletInstanceAttestation)
                         .responseMode("query")
 //                        .uiLocales(uiLocales)
                         .scopesSupported(scopesSupported)

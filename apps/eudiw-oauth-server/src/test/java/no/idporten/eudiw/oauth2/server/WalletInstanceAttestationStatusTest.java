@@ -40,6 +40,45 @@ class WalletInstanceAttestationStatusTest {
         return TestUtils.createClientAttestation("wallet", "jw", "https://jw.eidas2sandkasse.dev", TestUtils.createECPrivateKey(), clientStatus);
     }
 
+    private OpenID4VCIAuthorizationServer walletInstanceAttestationOptionalServer() throws Exception {
+        OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
+                .tokenStatusListValidator(tokenStatusListValidator)
+                .requireWalletInstanceAttestation(false)
+                .build();
+        return new OpenID4VCIAuthorizationServer(serverConfiguration);
+    }
+
+    @Test
+    @DisplayName("then a missing client_status is accepted when wallet instance attestation is optional")
+    void testMissingClientStatusAcceptedWhenOptional() throws Exception {
+        OpenID4VCIAuthorizationServer optionalServer = walletInstanceAttestationOptionalServer();
+        optionalServer.validateWalletInstanceAttestationStatus(wia(null));
+        verifyNoInteractions(tokenStatusListValidator);
+    }
+
+    @Test
+    @DisplayName("then an incomplete client_status is rejected also when wallet instance attestation is optional")
+    void testIncompleteClientStatusRejectedWhenOptional() throws Exception {
+        OpenID4VCIAuthorizationServer optionalServer = walletInstanceAttestationOptionalServer();
+        SignedJWT wia = wia(TestUtils.clientStatus(TestUtils.defaultClientStatusListUri().toString(), null));
+        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> optionalServer.validateWalletInstanceAttestationStatus(wia));
+        assertAll(
+                () -> assertEquals(OAuth2Exception.INVALID_CLIENT_ATTESTATION, e.error()),
+                () -> assertTrue(e.errorDescription().contains("JWT missing client_status.status.status_list.idx claim"))
+        );
+        verifyNoInteractions(tokenStatusListValidator);
+    }
+
+    @Test
+    @DisplayName("then a revoked wallet instance is rejected also when wallet instance attestation is optional")
+    void testRevokedStatusRejectedWhenOptional() throws Exception {
+        when(tokenStatusListValidator.validate(any(), anyLong())).thenReturn(false);
+        OpenID4VCIAuthorizationServer optionalServer = walletInstanceAttestationOptionalServer();
+        SignedJWT wia = wia(TestUtils.defaultClientStatus());
+        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> optionalServer.validateWalletInstanceAttestationStatus(wia));
+        assertTrue(e.errorDescription().contains("Wallet instance is revoked"));
+    }
+
     @Test
     @DisplayName("then a wallet instance with valid status in client_status is accepted")
     void testValidStatus() throws Exception {

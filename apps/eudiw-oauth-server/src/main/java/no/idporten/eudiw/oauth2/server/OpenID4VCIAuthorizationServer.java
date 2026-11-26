@@ -67,6 +67,9 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
     void validateWalletInstanceAttestationStatus(SignedJWT clientAttestation) {
         try {
             JWTClaimsSet claims = clientAttestation.getJWTClaimsSet();
+            if (!getConfiguration().isRequireWalletInstanceAttestation() && claims.getClaim("client_status") == null) {
+                return;
+            }
             URI uri = JwtClaimsUtils.getURIClaim(claims, "client_status", "status", "status_list", "uri")
                     .orElseThrow(() -> new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing client_status.status.status_list.uri claim.", 401));
             long idx = JwtClaimsUtils.getLongClaim(claims, "client_status", "status", "status_list", "idx")
