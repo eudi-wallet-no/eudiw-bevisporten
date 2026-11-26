@@ -65,7 +65,6 @@ credential-issuer-server:
               - classpath:credential-configurations/advokattilsynet/advokatbevilling_mso_mdoc.json
               - classpath:credential-configurations/krr/kontaktinformasjon_sd_jwt_vc.json
               - classpath:credential-configurations/skatteetaten/inntekt_sd_jwt_vc.json
-              - classpath:credential-configurations/drikkebong/drikkebong_mso_mdoc.json
         - api:
             uri: http://digital-lommebok-byob-service-service:8080/v1/admin/credential-configurations
             api-key-header: X-API-KEY
@@ -91,6 +90,16 @@ credential-issuer-server:
         - local:
             paths:
               - classpath:credential-configurations/minid/mpid_sd_jwt_vc.json
+    dealdag:
+      metadata-lifetime: 5m
+      metadata-signing-keystore: minid-access
+      batch-size: 2
+      display-names:
+        "no": "Digdir eksperiment bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/drikkebong/drikkebong_mso_mdoc.json
 
 
 idporten-key-manager:

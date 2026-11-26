@@ -1,6 +1,17 @@
 {
   "credential_configuration_id": "net.eidas2sandkasse.test.drikkebong_mso_mdoc",
-  "scope": "eudiw:no:minid:drikkebong",
+  "credential_issuer_context": {
+    "credential_datasource_uri": "class://no.idporten.eudiw.issuer.claimssource.PushPreAuthorizedClaimsSource",
+    "credential_signing_keystore": "minid-provider",
+    "authorization_server": "auth-eidas2sandkasse",
+    "pre_authorization_server": "maskinporten",
+    "validity_days": 36500,
+    "require_tx_code": false,
+    "include_status": true,
+    "grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code"
+  },
+  "key_attestations_required": false,
+  "scope": "eudiw:no:minid:mpid",
   "format": "mso_mdoc",
   "credential_type": "net:eidas2sandkasse:test:drikkebong:1",
   "credential_metadata": {
