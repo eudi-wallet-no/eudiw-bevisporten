@@ -1,13 +1,19 @@
 package no.idporten.eudiw.oauth2.server;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import net.eidas2sandkasse.tsl.TokenStatusListException;
 import no.idporten.eudiw.oauth2.server.protocol.*;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
+import no.idporten.eudiw.oauth2.server.util.JwtClaimsUtils;
 import no.idporten.eudiw.oauth2.server.util.MultiValuedMapUtils;
 import no.idporten.eudiw.oauth2.server.util.StringUtils;
 import org.jspecify.annotations.NonNull;
 import org.springframework.util.CollectionUtils;
 
+import java.net.URI;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +50,37 @@ public class OpenID4VCIAuthorizationServer extends OAuth2AuthorizationServerBase
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Client authentication method none is not supported for authorization code flow.", 401);
         }
         return super.authenticateClient(authenticatedRequest);
+    }
+
+    /**
+     * Override and perform additional validation for Wallet Instance Attestations.
+     */
+    @Override
+    protected void validateClientAttestation(SignedJWT clientAttestation) {
+        super.validateClientAttestation(clientAttestation);
+        validateWalletInstanceAttestationStatus(clientAttestation);
+    }
+
+    /**
+     * Checks the Wallet Instance revocation status in client_status.status.status_list (TS3).
+     */
+    void validateWalletInstanceAttestationStatus(SignedJWT clientAttestation) {
+        try {
+            JWTClaimsSet claims = clientAttestation.getJWTClaimsSet();
+            URI uri = JwtClaimsUtils.getURIClaim(claims, "client_status", "status", "status_list", "uri")
+                    .orElseThrow(() -> new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing client_status.status.status_list.uri claim.", 401));
+            long idx = JwtClaimsUtils.getLongClaim(claims, "client_status", "status", "status_list", "idx")
+                    .orElseThrow(() -> new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT missing client_status.status.status_list.idx claim.", 401));
+            if (!getConfiguration().getTokenStatusListValidator().validate(uri, idx)) {
+                throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Wallet instance is revoked.", 401);
+            }
+        } catch (ParseException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. JWT invalid client_status claim.", 401, e);
+        } catch (IllegalArgumentException e) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT_ATTESTATION, "Invalid client authentication. Invalid client_status claim.", 401, e);
+        } catch (TokenStatusListException e) {
+            throw new OAuth2Exception(OAuth2Exception.TEMPORARILY_UNAVAILABLE, "Failed to check status of wallet instance.", 503, e);
+        }
     }
 
     /**
