@@ -1,0 +1,46 @@
+{
+  "credential_configuration_id": "net.eidas2sandkasse.test.drikkebong_mso_mdoc",
+  "scope": "eudiw:net:eidas2sandkasse:test:drikkebong",
+  "format": "mso_mdoc",
+  "credential_type": "net:eidas2sandkasse:test:drikkebong:1",
+  "credential_metadata": {
+    "display": [
+      {
+        "locale": "no",
+        "name": "Drikkebong",
+        "background_color": "#afcee9",
+        "text_color": "#002c54"
+      }
+    ],
+    "claims": [
+      {
+        "path": [
+          "net:eidas2sandkasse:test:drikkebong:1",
+          "navn"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "Fullt navn"
+          }
+        ],
+        "mandatory": true
+      },
+      {
+        "path": [
+          "net:eidas2sandkasse:test:drikkebong:1",
+          "epostadresse"
+        ],
+        "type": "string",
+        "display": [
+          {
+            "locale": "no",
+            "name": "E-postadresse"
+          }
+        ],
+        "mandatory": true
+      }
+    ]
+  }
+}
