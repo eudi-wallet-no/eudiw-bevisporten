@@ -86,6 +86,23 @@ bevisgenerator:
               "identifier": "48856401181"
             }
           }
+      - credential-configuration-id: net.eidas2sandkasse.test.drikkebong_mso_mdoc
+        credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-dealdag}
+        description: Drikkebong
+        scope: eudiw:no:minid:mpid
+        person-identifier: 24838674964
+        json-request: |
+          {
+            "credential_issuer": "${bevisgenerator.issuer-server.credential-issuer-dealdag}",
+            "credential_configuration_id": "net.eidas2sandkasse.test.drikkebong_mso_mdoc",
+            "subject": {
+              "identifier": "24838674964"
+            },
+            "credential_data": {
+              "name": "Tyste Fest",
+              "epostadresse": "testtest@test.digdir.no"
+            }
+          }
       - credential-configuration-id: no.minid.mpid_sd_jwt_vc
         credential-issuer: ${bevisgenerator.issuer-server.credential-issuer-minid}
         description: MinID PID
