@@ -100,6 +100,11 @@ oauth-authorization-server:
   grant-types-supported:
     - authorization_code
     - urn:ietf:params:oauth:grant-type:pre-authorized_code
+  token-status-list-validator-config:
+    read-timeout: 3s
+    connect-timeout: 3s
+    clock-skew: 60s
+    cache-enabled: true
 
 oidc-proxy:
   connect-timeout-millis: 5000

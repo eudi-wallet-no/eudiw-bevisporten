@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
+import net.eidas2sandkasse.tsl.TokenStatusListValidator;
 import no.idporten.eudiw.oauth2.server.audit.NullAuditLogger;
 import no.idporten.eudiw.oauth2.server.audit.OpenIDConnectAuditLogger;
 import no.idporten.eudiw.oauth2.server.cache.OpenIDConnectCache;
@@ -180,6 +181,11 @@ public final class OAuth2ServerConfiguration {
      */
     @Builder.Default
     private OpenIDConnectAuditLogger auditLogger = new NullAuditLogger();
+
+    /**
+     * Validator for token status lists, used to check client_status in wallet instance attestations.
+     */
+    private TokenStatusListValidator tokenStatusListValidator;
 
     /**
      * Private key used to sign tokens.
