@@ -4,10 +4,13 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import id.walt.cose.Cose;
+import id.walt.cose.CoseKey;
 import id.walt.mdoc.objects.document.IssuerSigned;
 import id.walt.mdoc.objects.elements.IssuerSignedItem;
 import id.walt.mdoc.objects.mso.MobileSecurityObject;
 import id.walt.mdoc.objects.mso.Status;
+import no.idporten.eudiw.issuer.IssuerServerException;
 import no.idporten.eudiw.issuer.credentials.configurations.CredentialIssuerContext;
 import no.idporten.eudiw.issuer.credentials.configurations.ExtendedCredentialConfiguration;
 import no.idporten.eudiw.issuer.credentials.status.CredentialStatus;
@@ -15,7 +18,11 @@ import no.idporten.eudiw.issuer.credentials.types.*;
 import no.idporten.lib.keystore.KeystoreManager;
 import no.idporten.logging.audit.AuditLogger;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -31,11 +38,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static no.idporten.eudiw.issuer.credentials.formats.MDocTestSupport.items;
 import static no.idporten.eudiw.issuer.credentials.formats.MDocTestSupport.value;
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("When creting credentials in mdoc format")
 @ActiveProfiles("junit")
 @SpringBootTest
 public class MDocServiceTest {
@@ -67,6 +76,7 @@ public class MDocServiceTest {
         return issuerSigned.decodeMobileSecurityObject();
     }
 
+    @DisplayName("then string claims are supported")
     @Test
     void testIssueMDocCredentialsWithStringClaim() throws Exception {
         Claim stringClaim1 = buildClaim("foo", "string1", new StringValue("foobar"));
@@ -88,6 +98,7 @@ public class MDocServiceTest {
         return Claim.builder().path(path).path(key).value(value).build();
     }
 
+    @DisplayName("then boolean claims are supported")
     @Test
     void testIssueMDocCredentialsWithBooleanClaim() throws Exception {
         Claim claim = buildClaim("foo", "cool-id", new BooleanValue(true));
@@ -100,6 +111,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then number claims are supported")
     @Test
     void testIssueMDocCredentialsWithNumberClaim() throws Exception {
         Claim claim = buildClaim("foo", "my-id", new NumberValue(12L));
@@ -112,6 +124,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then date claims are supported")
     @Test
     void testIssueMDocCredentialsDatetimeAndFullDate() throws Exception {
         Claim fullDateClaim = buildClaim("foo", "fulldato", new FullDateValue(LocalDate.of(2026, 11, 26)));
@@ -128,6 +141,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then binary claims are supported")
     @Test
     void testIssueMDocCredentialsWithBinaryClaim() throws Exception {
         String img = "base64encodedstring";
@@ -141,6 +155,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then list claims are supported")
     @Test
     void testIssueMDocCredentialsList() throws Exception {
         List<ClaimValue> list = List.of(new StringValue("one"), new StringValue("two"), new StringValue("three"));
@@ -155,6 +170,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then map claims are supported")
     @Test
     void testIssueMDocCredentialsMap() throws Exception {
         Map<String, ClaimValue> map = Map.of(
@@ -171,6 +187,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then validity info is supported")
     @Test
     void testIssueMDocWithValidity() throws Exception {
         ExtendedCredentialConfiguration credentialConfiguration = credentialConfiguration("foo", "eaa-provider");
@@ -190,6 +207,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then token status list claims are supported")
     @Test
     void testIssueMDocCredentialsWithStatus() throws Exception {
         Claim stringClaim1 = buildClaim("foo", "string1", new StringValue("foobar"));
@@ -208,6 +226,7 @@ public class MDocServiceTest {
         );
     }
 
+    @DisplayName("then an mdoc is signed and can be encoded and decoded")
     @Test
     void testIssuedMDocIsSignedByIssuerAndSurvivesEncoding() throws Exception {
         Claim claim = buildClaim("foo", "string1", new StringValue("foobar"));
@@ -220,6 +239,41 @@ public class MDocServiceTest {
                 () -> assertEquals("foobar", value(items(decoded, "foo").getFirst())),
                 () -> assertEquals("foo", mso(decoded).getDocType())
         );
+    }
+
+    static Stream<Arguments> deviceKeyCurves() {
+        return Stream.of(
+                Arguments.of(Curve.P_256, Cose.EllipticCurves.P_256),
+                Arguments.of(Curve.P_384, Cose.EllipticCurves.P_384),
+                Arguments.of(Curve.P_521, Cose.EllipticCurves.P_521));
+    }
+
+
+    @DisplayName("then selected device key curves are supported")
+    @ParameterizedTest
+    @MethodSource("deviceKeyCurves")
+    void testIssueMDocBindsDeviceKeyWithCurve(Curve curve, int coseCurve) throws Exception {
+        ECKey deviceKey = new ECKeyGenerator(curve).generate();
+        Claim claim = buildClaim("foo", "string1", new StringValue("foobar"));
+
+        IssuerSigned mdoc = mDocService.createMDoc(deviceKey, credentialConfiguration("foo", "eaa-provider"), List.of(claim), null);
+        CoseKey coseKey = mso(mdoc).getDeviceKeyInfo().getDeviceKey();
+        assertAll(
+                () -> assertEquals(Cose.KeyTypes.EC2, coseKey.getKty()),
+                () -> assertEquals(coseCurve, coseKey.getCrv()),
+                () -> assertArrayEquals(deviceKey.getX().decode(), coseKey.getX()),
+                () -> assertArrayEquals(deviceKey.getY().decode(), coseKey.getY())
+        );
+    }
+
+    @DisplayName("then unsupported device key curves are rejected")
+    @Test
+    void testIssueMDocFailsForUnsupportedDeviceKeyCurve() throws Exception {
+        ECKey deviceKey = new ECKeyGenerator(Curve.SECP256K1).provider(Security.getProvider("BC")).generate();
+        Claim claim = buildClaim("foo", "string1", new StringValue("foobar"));
+
+        assertThrows(IssuerServerException.class,
+                () -> mDocService.createMDoc(deviceKey, credentialConfiguration("foo", "eaa-provider"), List.of(claim), null));
     }
 
     private static ECKey generateDeviceKey() throws JOSEException {

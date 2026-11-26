@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.credentials.formats
 
+import com.nimbusds.jose.jwk.Curve
 import com.nimbusds.jose.jwk.ECKey
 import id.walt.cose.Cose
 import id.walt.cose.CoseCertificate
@@ -35,14 +36,16 @@ import java.util.Base64
 import kotlin.time.Instant
 
 /**
- * Java-friendly wrapper around walt.id mdoc-credentials2, which exposes suspend functions and CBOR types with
- * unsigned tags that cannot be used from Java.
+ * Wapper around walt.id mdoc-credentials2 for signing mdoc credentials.
  */
 object MDocSigner {
 
     private const val TAG_TDATE = 0uL
     private const val TAG_FULL_DATE = 1004uL
 
+    /**
+     * Sign an mdoc.
+     */
     @JvmStatic
     fun sign(
         docType: String,
@@ -69,10 +72,16 @@ object MDocSigner {
         )
     }
 
+    /**
+     * Encode to byte array.
+     */
     @JvmStatic
     fun encode(issuerSigned: IssuerSigned): ByteArray =
         coseCompliantCbor.encodeToByteArray(IssuerSigned.serializer(), issuerSigned)
 
+    /**
+     * Create an issuer signed item for a claim.
+     */
     @JvmStatic
     fun issuerSignedItem(digestId: Int, elementIdentifier: String, value: ClaimValue): IssuerSignedItem =
         IssuerSignedItem.create(digestId.toUInt(), elementIdentifier, toCbor(value))
@@ -98,10 +107,15 @@ object MDocSigner {
 
     private fun toCoseKey(jwk: ECKey): CoseKey = CoseKey(
         kty = Cose.KeyTypes.EC2,
-        crv = Cose.EllipticCurves.P_256,
+        crv = when (jwk.curve) {
+            Curve.P_256 -> Cose.EllipticCurves.P_256
+            Curve.P_384 -> Cose.EllipticCurves.P_384
+            Curve.P_521 -> Cose.EllipticCurves.P_521
+            else -> throw IllegalArgumentException("Unsupported device key curve: ${jwk.curve}")
+        },
         x = jwk.x.decode(),
         y = jwk.y.decode(),
-    ).also { require(jwk.curve.name == "P-256") { "Device key must use curve P-256, was ${jwk.curve}" } }
+    )
 
     private fun java.time.Instant.toKotlinInstant(): Instant = Instant.fromEpochSeconds(epochSecond)
 

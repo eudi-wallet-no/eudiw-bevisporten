@@ -1,5 +1,6 @@
 package no.idporten.eudiw.issuer.credentials.formats;
 
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import id.walt.mdoc.objects.document.IssuerSigned;
 import id.walt.mdoc.objects.elements.IssuerSignedItem;
@@ -21,6 +22,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
+/**
+ * Create credential in mdoc format.  Builds mdoc from claims and status, and signes the result.
+ */
 @Service
 public class MDocService {
 
@@ -53,19 +57,27 @@ public class MDocService {
         Instant signedAt = now.minus(1, ChronoUnit.MINUTES);
         Instant validUntil = now.plus(credentialConfiguration.getCredentialIssuerContext().getValidityDays(), ChronoUnit.DAYS);
         Status mdocStatus = credentialStatus != null ? MDocStatusBridge.create(credentialStatus) : null;
+        ECKey deviceKey = toECKey(jwk);
         try {
             return MDocSigner.sign(
                     credentialConfiguration.getCredentialType(),
                     namespaces,
                     keyProvider.privateKey(),
                     List.of((X509Certificate) keyProvider.certificate()),
-                    jwk.toECKey(),
+                    deviceKey,
                     signedAt,
                     validUntil,
                     mdocStatus);
-        } catch (ClassCastException e) {
-            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Device key is not an EC key, cannot create mdoc", e);
+        } catch (Exception e) {
+            throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Failed to create credential in mdoc format", e);
         }
+    }
+
+    private static ECKey toECKey(JWK jwk) {
+        if (jwk instanceof ECKey ecKey) {
+            return ecKey;
+        }
+        throw new IssuerServerException(ErrorCode.SERVER_ERROR, "Device key is not an EC key, cannot sign credential");
     }
 
 }
