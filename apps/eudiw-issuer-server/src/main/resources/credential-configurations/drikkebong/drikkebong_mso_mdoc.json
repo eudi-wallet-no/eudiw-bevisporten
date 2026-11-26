@@ -27,7 +27,7 @@
       {
         "path": [
           "net:eidas2sandkasse:test:drikkebong:1",
-          "name"
+          "navn"
         ],
         "type": "string",
         "display": [
