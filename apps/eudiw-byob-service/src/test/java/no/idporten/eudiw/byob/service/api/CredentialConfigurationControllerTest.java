@@ -1,6 +1,5 @@
 package no.idporten.eudiw.byob.service.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import no.idporten.eudiw.byob.service.data.RedisService;
 import no.idporten.eudiw.byob.service.model.CredentialConfiguration;
 import no.idporten.eudiw.byob.service.model.CredentialMetadata;
@@ -22,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
