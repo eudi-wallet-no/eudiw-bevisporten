@@ -4,6 +4,8 @@ import id.walt.certificate.x509.JavaX509CertificateUtil
 import id.walt.cose.CoseSign1
 import id.walt.cose.coseCompliantCbor
 import id.walt.cose.verify
+import id.walt.credentials.keyresolver.JwtKeyResolutionSource
+import id.walt.credentials.keyresolver.ResolvedJwtVerificationKey
 import id.walt.crypto2.CryptoRuntime
 import id.walt.crypto2.providers.cryptography.defaultSoftwareKeyProviders
 import id.walt.policies2.vc.policies.status.CredentialFetcher
@@ -35,6 +37,12 @@ import kotlinx.serialization.cbor.longOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import net.eidas2sandkasse.tsl.StatusListFormat
+import net.eidas2sandkasse.tsl.TokenStatus
+import java.io.ByteArrayInputStream
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
+import java.util.Base64
 import kotlin.time.Instant
 import org.slf4j.LoggerFactory
 
@@ -86,7 +94,7 @@ internal class WaltStatusListClient @JvmOverloads constructor(
     private val jwtReader = IETFJwtStatusValueReader(JwtFormatMatcher(), JwtParser())
     private val cwtReader = IETFCwtStatusValueReader(CwtFormatMatcher(), CwtParser())
 
-    fun resolveStatus(uri: String, index: Int): Int = runBlocking {
+    fun resolveStatus(uri: String, index: Int): TokenStatus = runBlocking {
         val fetcher = if (cacheEnabled) sharedFetcher else CredentialFetcher(httpClient, now)
         val content = fetcher.fetch(uri).getOrThrow()
 
@@ -94,9 +102,14 @@ internal class WaltStatusListClient @JvmOverloads constructor(
         val iat: Long?
         val exp: Long?
         val statusList: IETFStatusContent
+        val format: StatusListFormat
+        val signer: X509Certificate
         when (content) {
             is StatusListContent.Text -> {
-                val claims = signatureVerifier.verifyJwt(content.content).getOrThrow()
+                val verified = signatureVerifier.verifyJwtWithSigner(content.content).getOrThrow()
+                val claims = verified.payload
+                format = StatusListFormat.JWT
+                signer = signerCertificate(verified.signer)
                 subject = claims["sub"]?.jsonPrimitive?.contentOrNull
                 iat = claims["iat"]?.jsonPrimitive?.longOrNull
                 exp = claims["exp"]?.jsonPrimitive?.longOrNull
@@ -104,7 +117,10 @@ internal class WaltStatusListClient @JvmOverloads constructor(
             }
 
             is StatusListContent.Binary -> {
-                val claims = cwtClaims(verifyCwt(content.content))
+                val verified = verifyCwt(content.content)
+                val claims = cwtClaims(verified.payload)
+                format = StatusListFormat.CWT
+                signer = verified.signer
                 subject = (claims[CborInteger(CWT_SUB)] as? CborString)?.value
                 iat = (claims[CborInteger(CWT_IAT)] as? CborInteger)?.longOrNull
                 exp = (claims[CborInteger(CWT_EXP)] as? CborInteger)?.longOrNull
@@ -117,19 +133,23 @@ internal class WaltStatusListClient @JvmOverloads constructor(
 
         val statuses = TokenStatusListCodec.decode(statusList.list)
         val status = TokenStatusListCodec.readStatus(decoded = statuses, index = index, bits = statusList.size).toInt()
-        log.debug("Status list {} has status {} at idx {}.", uri, status, index)
-        status
+        log.info("Status list {} has status {} at idx {}. Signed by {}.", uri, status, index, signer.subjectX500Principal)
+        TokenStatus(status, format, signer)
     }
 
-    private suspend fun verifyCwt(cwt: ByteArray): ByteArray =
-        signatureVerifier.verifyCwt(cwt).recoverCatching { e ->
-            if (e !is KeyResolutionFailedException) throw e
-            log.debug("walt.id found no key in the protected CWT header, trying x5chain in the unprotected header")
-            verifyCwtWithUnprotectedX5Chain(cwt)
-        }.getOrThrow()
+    private class VerifiedCwt(val payload: ByteArray, val signer: X509Certificate)
+
+    private suspend fun verifyCwt(cwt: ByteArray): VerifiedCwt =
+        signatureVerifier.verifyCwtWithSigner(cwt)
+            .map { VerifiedCwt(it.payload, signerCertificate(it.signer)) }
+            .recoverCatching { e ->
+                if (e !is KeyResolutionFailedException) throw e
+                log.debug("walt.id found no key in the protected CWT header, trying x5chain in the unprotected header")
+                verifyCwtWithUnprotectedX5Chain(cwt)
+            }.getOrThrow()
 
     // walt.id only resolves x5chain from the protected header, RFC 9360 allows it in the unprotected one too.
-    private suspend fun verifyCwtWithUnprotectedX5Chain(cwt: ByteArray): ByteArray {
+    private suspend fun verifyCwtWithUnprotectedX5Chain(cwt: ByteArray): VerifiedCwt {
         val coseSign1 = CoseSign1.fromTagged(cwt)
         val certificate = coseSign1.unprotected?.x5chain?.firstOrNull()
             ?: throw KeyResolutionFailedException("Status list CWT has no x5chain in the protected or unprotected header")
@@ -137,8 +157,21 @@ internal class WaltStatusListClient @JvmOverloads constructor(
         if (!coseSign1.verify(key, ALLOWED_COSE_ALGORITHMS, ByteArray(0))) {
             throw SignatureInvalidException("Status list CWT signature verification failed")
         }
-        return coseSign1.payload ?: throw IllegalArgumentException("Status list CWT payload is missing")
+        val payload = coseSign1.payload ?: throw IllegalArgumentException("Status list CWT payload is missing")
+        return VerifiedCwt(payload, parseCertificate(certificate.rawBytes))
     }
+
+    // Strict: a key from DID, well-known metadata or an inline jwk has no certificate to check against a trust list.
+    private fun signerCertificate(signer: ResolvedJwtVerificationKey): X509Certificate {
+        val leaf = signer.certificateChain.firstOrNull()
+        if (signer.source != JwtKeyResolutionSource.X5C || leaf == null) {
+            throw IllegalArgumentException("Status list is not signed with a key from an x5c/x5chain certificate")
+        }
+        return parseCertificate(Base64.getDecoder().decode(leaf))
+    }
+
+    private fun parseCertificate(der: ByteArray): X509Certificate =
+        CertificateFactory.getInstance("X.509").generateCertificate(ByteArrayInputStream(der)) as X509Certificate
 
     private fun cwtClaims(payload: ByteArray): CborMap =
         coseCompliantCbor.decodeFromByteArray(CborElement.serializer(), payload) as? CborMap

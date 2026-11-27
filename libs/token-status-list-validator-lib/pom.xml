@@ -25,7 +25,6 @@
             <artifactId>waltid-verification-policies2-jvm</artifactId>
             <version>${waltid.version}</version>
         </dependency>
-        <!-- Runtime scope in policies2, used directly for decoding the list and the CWT claims -->
         <dependency>
             <groupId>id.walt.credentials</groupId>
             <artifactId>waltid-status-list-jvm</artifactId>
@@ -34,6 +33,11 @@
         <dependency>
             <groupId>id.walt.crypto</groupId>
             <artifactId>waltid-cose-jvm</artifactId>
+            <version>${waltid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>id.walt.credentials</groupId>
+            <artifactId>waltid-credential-key-resolver-jvm</artifactId>
             <version>${waltid.version}</version>
         </dependency>
         <!-- Public key from an x5chain certificate in the unprotected CWT header -->
