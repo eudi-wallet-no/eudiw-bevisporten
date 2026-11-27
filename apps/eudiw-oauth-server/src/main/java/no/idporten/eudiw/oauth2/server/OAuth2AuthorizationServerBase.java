@@ -63,6 +63,7 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
                 .challengeEndpoint(serverConfiguration.getChallengeEndpoint())
                 .jwksUri(serverConfiguration.getJwksUri())
                 .grantTypesSupported(serverConfiguration.getGrantTypesSupported())
+                .tokenEndpointAuthMethodsSupported(serverConfiguration.getTokenEndpointAuthMethodsSupported())
                 .acrValuesSupported(serverConfiguration.getAcrValues())
                 .uiLocalesSupported(serverConfiguration.getUiLocales())
                 .codeChallengeMethodsSupported(serverConfiguration.getCodeChallengeMethodsSupported())
@@ -330,8 +331,10 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         }
         final ClientAuthentication clientAuthentication;
         if (authenticatedRequest.isAttestationBased()) {
+            supportedClientAuthMethod("attest_jwt_client_auth");
             clientAuthentication = authenticateClientByAttestation(authenticatedRequest);
         } else if (authenticatedRequest.isNone()) {
+            supportedClientAuthMethod("none");
             clientAuthentication = authenticateClientByNone(authenticatedRequest);
         } else {
             throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Unknown client authentication method.", 401);
@@ -350,6 +353,13 @@ public class OAuth2AuthorizationServerBase implements OAuth2AuthorizationServer 
         serverConfiguration.getAuditLogger().auditClientAuthentication(clientAuthentication);
         return clientMetadata;
     }
+
+    private void supportedClientAuthMethod(String method) {
+        if (!serverConfiguration.getTokenEndpointAuthMethodsSupported().contains(method)) {
+            throw new OAuth2Exception(OAuth2Exception.INVALID_CLIENT, "Invalid client authentication. Client authentication method not supported.", 401);
+        }
+    }
+
     private void validateJWTAudience(SignedJWT signedJWT, AuthenticatedRequest authenticatedRequest) {
         try {
             List<String> audiences = signedJWT.getJWTClaimsSet().getAudience();

@@ -63,6 +63,12 @@ public final class OAuth2ServerConfiguration {
     private URI tokenEndpoint;
 
     /**
+     * Client authentication methods announced in metadata and accepted by the server.
+     */
+    @Builder.Default
+    private List<String> tokenEndpointAuthMethodsSupported = List.of("attest_jwt_client_auth");
+
+    /**
      * List of supported algorithms clients can use for signing authenticated requests.
      */
     @Builder.Default
@@ -229,7 +235,7 @@ public final class OAuth2ServerConfiguration {
     private boolean authorizationResponseIssParameterSupported = true;
 
     @Builder.Default
-    private boolean preAuthorizedGrantAnonymousAccessSupported = true;
+    private boolean preAuthorizedGrantAnonymousAccessSupported = false;
 
     /**
      * List of supported algorithms for DPoP signing.

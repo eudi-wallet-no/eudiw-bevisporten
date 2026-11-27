@@ -100,6 +100,8 @@ oauth-authorization-server:
   grant-types-supported:
     - authorization_code
     - urn:ietf:params:oauth:grant-type:pre-authorized_code
+  token-endpoint-auth-methods-supported:
+    - attest_jwt_client_auth
   token-status-list-validator-config:
     read-timeout: 3s
     connect-timeout: 3s

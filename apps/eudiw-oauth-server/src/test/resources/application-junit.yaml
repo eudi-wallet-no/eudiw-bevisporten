@@ -17,6 +17,9 @@ oauth-authorization-server:
   scopes-supported:
     - ra
   api-key: junit
+  token-endpoint-auth-methods-supported:
+    - none
+    - attest_jwt_client_auth
 
 oidc-proxy:
   redirect-uri: http://my-test-server/callback

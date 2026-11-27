@@ -102,6 +102,7 @@ public class TestUtils {
                 .apiKey(defaultApiKey())
                 .issuer(new URI(defaultIssuer()))
                 .grantTypesSupported(List.of("urn:ietf:params:oauth:grant-type:pre-authorized_code", "authorization_code"))
+                .tokenEndpointAuthMethodsSupported(List.of("none", "attest_jwt_client_auth"))
                 .cache(new SimpleOpenIDConnectCache())
                 .jwk(new ECKeyGenerator(Curve.P_256)
                         .keyUse(KeyUse.SIGNATURE)
