@@ -42,6 +42,7 @@ class PreAuthorizedCodeFlowTest {
     @BeforeEach
     public void setUp() throws Exception {
         OAuth2ServerConfiguration serverConfiguration = TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
+                .preAuthorizedGrantAnonymousAccessSupported(true)
                 .auditLogger(auditLogger)
                 .build();
         openID4VCIAuthorizationServer = new OpenID4VCIAuthorizationServer(serverConfiguration);
@@ -105,6 +106,26 @@ class PreAuthorizedCodeFlowTest {
         verify(auditLogger).auditClientAuthentication(clientAuthenticationCaptor.capture());
         verifyNoMoreInteractions(auditLogger);
         assertEquals("none", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
+    }
+
+    @Test
+    @DisplayName("then anonymous access is rejected by default")
+    void testAnonymousAccessRejectedByDefault() throws Exception {
+        OpenID4VCIAuthorizationServer server = new OpenID4VCIAuthorizationServer(TestUtils.defaultEmbeddedServerTestConfiguration());
+        PreAuthorizationRequest preAuthorizationRequest = new PreAuthorizationRequest();
+        preAuthorizationRequest.setAud(server.getConfiguration().getIssuer().toString());
+        preAuthorizationRequest.setSub("12345678901");
+        preAuthorizationRequest.setScope(List.of("scp1"));
+        preAuthorizationRequest.setTxId("tid1");
+        PreAuthorizationResponse preAuthorizationResponse = server.process(preAuthorizationRequest, TestUtils.headersWithApiKey(TestUtils.defaultApiKey()));
+
+        MockRequest request = new MockRequest();
+        request.addParameter("grant_type", "urn:ietf:params:oauth:grant-type:pre-authorized_code");
+        request.addParameter("pre-authorized_code", preAuthorizationResponse.getPreAuthorizedCode());
+        TokenRequest tokenRequest = new TokenRequest(request.getHeaders(), request.getParameters());
+
+        OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> server.process(tokenRequest));
+        assertEquals(OAuth2Exception.INVALID_CLIENT, e.error());
     }
 
     @Test

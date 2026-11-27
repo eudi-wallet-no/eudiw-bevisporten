@@ -15,6 +15,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.dpop.DPoPProofFactory;
 import com.nimbusds.oauth2.sdk.dpop.DefaultDPoPProofFactory;
+import net.eidas2sandkasse.tsl.TokenStatusListValidator;
 import no.idporten.eudiw.oauth2.server.cache.SimpleOpenIDConnectCache;
 import no.idporten.eudiw.oauth2.server.client.ClientMetadata;
 import no.idporten.eudiw.oauth2.server.config.OAuth2ServerConfiguration;
@@ -101,12 +102,14 @@ public class TestUtils {
                 .apiKey(defaultApiKey())
                 .issuer(new URI(defaultIssuer()))
                 .grantTypesSupported(List.of("urn:ietf:params:oauth:grant-type:pre-authorized_code", "authorization_code"))
+                .tokenEndpointAuthMethodsSupported(List.of("none", "attest_jwt_client_auth"))
                 .cache(new SimpleOpenIDConnectCache())
                 .jwk(new ECKeyGenerator(Curve.P_256)
                         .keyUse(KeyUse.SIGNATURE)
                         .keyID("test-kid")
                         .generate())
                 .client(defaultClientMetadata())
+                .tokenStatusListValidator(validTokenStatusListValidator())
                 .acrValue("Level3")
                 .acrValue("Level4")
                 .uiLocale("nn");
@@ -161,11 +164,58 @@ public class TestUtils {
         return ECKey.parse(jwk);
     }
 
+    /**
+     * A token status list validator accepting all statuses, without fetching status lists.
+     */
+    public static TokenStatusListValidator validTokenStatusListValidator() {
+        return new TokenStatusListValidator() {
+            @Override
+            public boolean validate(URI uri, long index) {
+                return true;
+            }
+        };
+    }
+
+    public static URI defaultClientStatusListUri() {
+        return URI.create("https://wallet-provider.junit.eidas2sandkasse.dev/wia-statuslists/1");
+    }
+
+    public static long defaultClientStatusListIdx() {
+        return 1337L;
+    }
+
+    /**
+     * A client_status claim for client attestations (TS3).
+     */
+    public static Map<String, Object> clientStatus(Object uri, Object idx) {
+        return JsonObjectBuilder.builder()
+                .addAttribute("status", JsonObjectBuilder.builder()
+                        .addAttribute("status_list", JsonObjectBuilder.builder()
+                                .addAttribute("uri", uri)
+                                .addAttribute("idx", idx)
+                                .build())
+                        .build())
+                .addAttribute("exp", new Date().getTime() / 1000 + 60 * 60 * 24 * 31)
+                .build();
+    }
+
+    public static Map<String, Object> defaultClientStatus() {
+        return clientStatus(defaultClientStatusListUri().toString(), defaultClientStatusListIdx());
+    }
+
     public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey) throws ParseException, JOSEException {
         return createClientAttestation(clientId, walletName, walletLink, clientKey, true);
     }
 
     public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey, boolean includeX5c) throws ParseException, JOSEException {
+        return createClientAttestation(clientId, walletName, walletLink, clientKey, includeX5c, defaultClientStatus());
+    }
+
+    public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey, Object clientStatus) throws ParseException, JOSEException {
+        return createClientAttestation(clientId, walletName, walletLink, clientKey, true, clientStatus);
+    }
+
+    public static SignedJWT createClientAttestation(String clientId, String walletName, String walletLink, ECKey clientKey, boolean includeX5c, Object clientStatus) throws ParseException, JOSEException {
         ECKey clientAttesterJWK = clientAttesterJWK();
         JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256)
                 .type(new JOSEObjectType("oauth-client-attestation+jwt"));
@@ -184,6 +234,7 @@ public class TestUtils {
                                 .claim("cnf", JsonObjectBuilder.builder().addAttribute("jwk", clientKey.toPublicJWK().toJSONObject()).build())
                                 .claim("wallet_name", walletName)
                                 .claim("wallet_link", walletLink)
+                                .claim("client_status", clientStatus)
                                 .build());
         clientAttestation.sign(new ECDSASigner(clientAttesterJWK.toECPrivateKey()));
         return clientAttestation;

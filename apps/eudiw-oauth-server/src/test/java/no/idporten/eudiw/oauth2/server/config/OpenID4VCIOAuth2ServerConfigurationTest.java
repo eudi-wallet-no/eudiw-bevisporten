@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @ActiveProfiles("junit")
@@ -22,6 +24,8 @@ class OpenID4VCIOAuth2ServerConfigurationTest {
         assertTrue(openID4VCIOAuth2ServerConfiguration.getGrantTypesSupported().contains("authorization_code"));
         assertTrue(openID4VCIOAuth2ServerConfiguration.getGrantTypesSupported().contains("urn:ietf:params:oauth:grant-type:pre-authorized_code"));
         assertTrue(openID4VCIOAuth2ServerConfiguration.isRequireChallenge());
+        assertEquals(List.of("none", "attest_jwt_client_auth"), openID4VCIOAuth2ServerConfiguration.getTokenEndpointAuthMethodsSupported());
+        assertFalse(openID4VCIOAuth2ServerConfiguration.isPreAuthorizedGrantAnonymousAccessSupported());
     }
 
 }

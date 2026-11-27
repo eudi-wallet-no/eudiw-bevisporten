@@ -340,6 +340,25 @@ public class ClientAuthenticationTest {
             assertEquals("none", clientAuthenticationCaptor.getValue().getTokenEndpointAuthMethod());
         }
 
+        @Test
+        @DisplayName("then none is rejected and not announced when not configured")
+        public void testNoneRejectedWhenNotConfigured() throws Exception {
+            OAuth2AuthorizationServerBase attestationOnlyServer = new OAuth2AuthorizationServerBase(TestUtils.defaultOAuth2ServerTestConfigurationBuilder()
+                    .tokenEndpointAuthMethodsSupported(List.of("attest_jwt_client_auth"))
+                    .auditLogger(auditLogger)
+                    .build());
+            AuthenticatedRequest authenticatedRequest = TestRequest.builder()
+                    .clientId("eudiw-abca")
+                    .build();
+            OAuth2Exception e = assertThrows(OAuth2Exception.class, () -> attestationOnlyServer.authenticateClient(authenticatedRequest));
+            assertAll(
+                    () -> assertEquals(OAuth2Exception.INVALID_CLIENT, e.error()),
+                    () -> assertTrue(e.errorDescription().contains("Client authentication method not supported")),
+                    () -> assertEquals(List.of("attest_jwt_client_auth"), attestationOnlyServer.getOpenIDProviderMetadata().getTokenEndpointAuthMethodsSupported())
+            );
+            verifyNoInteractions(auditLogger);
+        }
+
     }
 
 }
