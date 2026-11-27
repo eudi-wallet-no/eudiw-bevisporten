@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import net.eidas2sandkasse.tsl.TokenStatusListValidator;
+import net.eidas2sandkasse.tsl.TokenStatusListValidatorConfig;
 import no.idporten.eudiw.oauth2.server.audit.AuditService;
 import no.idporten.eudiw.oauth2.server.crypto.KeyStoreProperties;
 import no.idporten.eudiw.oauth2.server.crypto.KeyStoreProvider;
@@ -72,9 +74,13 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
 
     private boolean requirePkce = true;
     private boolean requireChallenge = true;
+    private boolean requireWalletInstanceAttestation = true;
     private boolean authorizationResponseIssParameterSupported = true;
     private boolean preAuthorizedGrantAnonymousAccessSupported = false;
     private KeyStoreProperties keyStore;
+
+    @NotNull
+    private TokenStatusListValidatorConfig tokenStatusListValidatorConfig;
 
     @Override
     public void afterPropertiesSet() {
@@ -94,7 +100,12 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
     }
 
     @Bean
-    public OAuth2ServerConfiguration serverConfiguration(AuditService auditService, OpenIDConnectCache openIDConnectCache) throws Exception {
+    public TokenStatusListValidator tokenStatusListValidator() {
+        return new TokenStatusListValidator(tokenStatusListValidatorConfig);
+    }
+
+    @Bean
+    public OAuth2ServerConfiguration serverConfiguration(AuditService auditService, OpenIDConnectCache openIDConnectCache, TokenStatusListValidator tokenStatusListValidator) throws Exception {
         OAuth2ServerConfiguration.OAuth2ServerConfigurationBuilder builder =
                 OAuth2ServerConfiguration.builder()
                         .apiKey(apiKey)
@@ -114,12 +125,14 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
                         .preAuthorizedGrantAnonymousAccessSupported(preAuthorizedGrantAnonymousAccessSupported)
                         .requirePkce(requirePkce)
                         .requireChallenge(requireChallenge)
+                        .requireWalletInstanceAttestation(requireWalletInstanceAttestation)
                         .responseMode("query")
 //                        .uiLocales(uiLocales)
                         .scopesSupported(scopesSupported)
                         .authorizationDetailsTypeSupported("openid_credential")
                         .cache(openIDConnectCache)
-                        .auditLogger(auditService);
+                        .auditLogger(auditService)
+                        .tokenStatusListValidator(tokenStatusListValidator);
 
         if (keyStore == null) {
             builder.jwk(generateServerECKey());
