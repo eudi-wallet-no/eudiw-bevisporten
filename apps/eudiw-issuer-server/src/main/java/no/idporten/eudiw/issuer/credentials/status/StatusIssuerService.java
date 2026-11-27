@@ -112,12 +112,16 @@ public class StatusIssuerService {
             throw new IssuerServerException(ErrorCode.INVALID_REQUEST, "Not allowed to revoke credential status.", "Credential configuration id in context [%s] does not match credential status info [%s].".formatted(context.credentialConfiguration().getCredentialConfigurationId(), credentialStatusInfo.credentialConfigurationId()));
         }
 
-        statusIssuerIntegration.updateStatusEntries(
-                credentialStatusInfo
-                        .statusEntries()
-                        .stream()
-                        .map(entry -> new UpdatedStatusEntry(entry, status))
-                        .toList());
+        if (credentialStatusInfo.statusEntries().isEmpty()) {
+            log.info("No status entries for transaction id {}, marking revoked without updating status issuer", context.transactionId());
+        } else {
+            statusIssuerIntegration.updateStatusEntries(
+                    credentialStatusInfo
+                            .statusEntries()
+                            .stream()
+                            .map(entry -> new UpdatedStatusEntry(entry, status))
+                            .toList());
+        }
 
         if (!credentialStatusService.markCredentialRevoked(context.credentialIssuerTenant(), context.transactionId())) {
             auditService.logRevokeCredential(context, Collections.emptyList(), status);

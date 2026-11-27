@@ -158,6 +158,22 @@ public class StatusIssuerServiceTest {
         verify(credentialStatusService).markCredentialRevoked(tenant, transactionId);
     }
 
+    @DisplayName("then revoking an offer without status entries marks it revoked without calling the status issuer")
+    @Test
+    void testRevokeWithoutStatusEntries() {
+        CredentialIssuerTenant tenant = junitIssuerTenant();
+        ExtendedCredentialConfiguration credentialConfiguration = junitCredentialConfiguration();
+        IssuanceTransactionId transactionId = new IssuanceTransactionId();
+        CredentialStatusInfo credentialStatusInfo = new CredentialStatusInfo(tenant.getId(), credentialConfiguration.getCredentialConfigurationId(), List.of());
+        when(credentialStatusService.retrieveRevocableCredentialStatus(tenant, transactionId)).thenReturn(credentialStatusInfo);
+        when(credentialStatusService.markCredentialRevoked(tenant, transactionId)).thenReturn(true);
+        CredentialRevokeContext context = new CredentialRevokeContext(preAuthAccessToken(syntheticPersonIdentifier(), transactionId), tenant, credentialConfiguration, transactionId);
+        assertEquals(1, service.revokeStatus(context));
+        verifyNoInteractions(statusIssuerIntegration);
+        verify(credentialStatusService).markCredentialRevoked(tenant, transactionId);
+        verify(auditService).logRevokeCredential(any(), eq(List.of()), eq("INVALID"));
+    }
+
     @DisplayName("then revoking with a non-matching credential configuration id is not allowed")
     @Test
     void testRevokeWithInvalidCredentialConfigurationId() {
