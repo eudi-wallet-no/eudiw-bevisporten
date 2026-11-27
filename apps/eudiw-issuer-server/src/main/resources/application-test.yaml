@@ -115,6 +115,17 @@ credential-issuer-server:
             paths:
               - classpath:credential-configurations/sikt/elevbevis_sd_jwt_vc.json
 
+    dealdag:
+      metadata-lifetime: 5m
+      metadata-signing-keystore: minid-access
+      batch-size: 2
+      display-names:
+        "no": "Digdir eksperiment bevisutsteder"
+      credential-configuration-sources-properties:
+        - local:
+            paths:
+              - classpath:credential-configurations/drikkebong/drikkebong_mso_mdoc.json
+
 idporten-key-manager:
   keystores:
     pid-provider:
