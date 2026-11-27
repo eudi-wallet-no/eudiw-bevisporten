@@ -56,6 +56,9 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
     @NotEmpty
     private List<String> scopesSupported;
 
+    @NotEmpty
+    private List<String> tokenEndpointAuthMethodsSupported;
+
 //    @NotEmpty
 //    private List<String> responseModesSupported = new ArrayList<>();
 
@@ -70,6 +73,7 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
     private boolean requirePkce = true;
     private boolean requireChallenge = true;
     private boolean authorizationResponseIssParameterSupported = true;
+    private boolean preAuthorizedGrantAnonymousAccessSupported = false;
     private KeyStoreProperties keyStore;
 
     @Override
@@ -102,10 +106,12 @@ public class OpenID4VCIOAuth2ServerConfiguration implements InitializingBean {
                         .jwksUri(UriComponentsBuilder.fromUri(issuer).path("/jwks").build().toUri())
                         .challengeEndpoint(UriComponentsBuilder.fromUri(issuer).path("/challenge").build().toUri())
                         .grantTypesSupported(grantTypesSupported)
+                        .tokenEndpointAuthMethodsSupported(tokenEndpointAuthMethodsSupported)
                         .authorizationRequestLifetimeSeconds(parLifetimeSeconds)
                         .authorizationLifetimeSeconds(authorizationLifetimeSeconds)
                         .accessTokenDefaultAudience(accessTokenDefaultAudience)
                         .authorizationResponseIssParameterSupported(authorizationResponseIssParameterSupported)
+                        .preAuthorizedGrantAnonymousAccessSupported(preAuthorizedGrantAnonymousAccessSupported)
                         .requirePkce(requirePkce)
                         .requireChallenge(requireChallenge)
                         .responseMode("query")

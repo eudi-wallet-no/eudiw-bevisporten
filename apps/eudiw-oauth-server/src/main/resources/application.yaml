@@ -100,6 +100,8 @@ oauth-authorization-server:
   grant-types-supported:
     - authorization_code
     - urn:ietf:params:oauth:grant-type:pre-authorized_code
+  token-endpoint-auth-methods-supported:
+    - attest_jwt_client_auth
 
 oidc-proxy:
   connect-timeout-millis: 5000
